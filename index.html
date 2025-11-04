@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Date Range Picker Web Component Demo</title>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      line-height: 1.6;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 2rem;
+      background: #f9fafb;
+    }
+
+    h1, h2, h3 {
+      color: #111827;
+      margin-top: 2rem;
+    }
+
+    h1 {
+      border-bottom: 2px solid #e5e7eb;
+      padding-bottom: 1rem;
+    }
+
+    .card {
+      background: white;
+      border-radius: 0.5rem;
+      padding: 1.5rem;
+      margin-bottom: 2rem;
+      box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1);
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 1.5rem;
+      margin: 1rem 0;
+    }
+
+    .form-group {
+      margin-bottom: 1rem;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 0.5rem;
+      font-weight: 500;
+      color: #374151;
+    }
+
+    .pa-input {
+      width: 100%;
+      padding: 0.5rem 0.75rem;
+      border: 1px solid #d1d5db;
+      border-radius: 0.375rem;
+      font-size: 1rem;
+      transition: border-color 150ms;
+    }
+
+    .pa-input:focus {
+      outline: none;
+      border-color: #3b82f6;
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    }
+
+    .pa-input:disabled {
+      background: #f3f4f6;
+      cursor: not-allowed;
+    }
+
+    small {
+      display: block;
+      margin-top: 0.25rem;
+      color: #6b7280;
+      font-size: 0.875rem;
+    }
+
+    .code {
+      background: #f3f4f6;
+      border: 1px solid #e5e7eb;
+      border-radius: 0.375rem;
+      padding: 1rem;
+      margin: 1rem 0;
+      font-family: 'Courier New', monospace;
+      font-size: 0.875rem;
+      overflow-x: auto;
+    }
+
+    .features {
+      list-style-position: inside;
+      color: #374151;
+    }
+
+    .features li {
+      margin-bottom: 0.5rem;
+    }
+  </style>
+</head>
+<body>
+  <h1>📅 Date Range Picker Web Component</h1>
+  <p>Lightweight, accessible date picker with excellent keyboard navigation and range selection support.</p>
+
+  <div class="card">
+    <h2>Basic Examples</h2>
+    <div class="grid">
+      <div class="form-group">
+        <label>Single Date Picker</label>
+        <date-range-picker mode="single" placeholder="YYYY-MM-DD"></date-range-picker>
+        <small>Click to open calendar or type date directly</small>
+      </div>
+
+      <div class="form-group">
+        <label>Date Range Picker</label>
+        <date-range-picker mode="range" placeholder="Start Date - End Date"></date-range-picker>
+        <small>Select start and end dates with day/night count</small>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Different Date Formats</h2>
+    <div class="grid">
+      <div class="form-group">
+        <label>ISO Format (YYYY-MM-DD)</label>
+        <date-range-picker format="YYYY-MM-DD" placeholder="YYYY-MM-DD"></date-range-picker>
+        <small>Try typing: 20250115 → auto-formats to 2025-01-15</small>
+      </div>
+
+      <div class="form-group">
+        <label>European Format (DD.MM.YYYY)</label>
+        <date-range-picker format="DD.MM.YYYY" placeholder="DD.MM.YYYY"></date-range-picker>
+        <small>Try typing: 15012025 → auto-formats to 15.01.2025</small>
+      </div>
+
+      <div class="form-group">
+        <label>US Format (MM/DD/YYYY)</label>
+        <date-range-picker format="MM/DD/YYYY" placeholder="MM/DD/YYYY"></date-range-picker>
+        <small>Try typing: 01152025 → auto-formats to 01/15/2025</small>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Multi-Month Display</h2>
+    <div class="grid">
+      <div class="form-group">
+        <label>Range with 3 Months</label>
+        <date-range-picker mode="range" months-to-show="3" placeholder="Select range"></date-range-picker>
+        <small>Great for selecting dates far apart</small>
+      </div>
+
+      <div class="form-group">
+        <label>Single Date with 2 Months</label>
+        <date-range-picker mode="single" months-to-show="2" placeholder="YYYY-MM-DD"></date-range-picker>
+        <small>Each month has independent navigation</small>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Pre-filled Values</h2>
+    <div class="grid">
+      <div class="form-group">
+        <label>Single Date with Value</label>
+        <date-range-picker value="2025-11-15" placeholder="YYYY-MM-DD"></date-range-picker>
+      </div>
+
+      <div class="form-group">
+        <label>Date Range with Value</label>
+        <date-range-picker mode="range" value="2025-11-01 to 2025-11-30" placeholder="Start - End"></date-range-picker>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Disabled State</h2>
+    <div class="grid">
+      <div class="form-group">
+        <label>Disabled Picker</label>
+        <date-range-picker disabled value="2025-11-15" placeholder="YYYY-MM-DD"></date-range-picker>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Keyboard Shortcuts</h2>
+    <ul class="features">
+      <li><strong>↑ ↓</strong> - Navigate up/down by week</li>
+      <li><strong>← →</strong> - Navigate left/right by day</li>
+      <li><strong>Ctrl+← / Ctrl+→</strong> - Previous / next month</li>
+      <li><strong>Home</strong> - First day of current month</li>
+      <li><strong>End</strong> - Last day of current month</li>
+      <li><strong>Ctrl+Home</strong> - January 1st of current year (repeat for previous year)</li>
+      <li><strong>Ctrl+End</strong> - December 31st of current year (repeat for next year)</li>
+      <li><strong>PageUp / PageDown</strong> - Previous / next month</li>
+      <li><strong>Enter</strong> - Select focused day</li>
+      <li><strong>Escape</strong> - Close calendar</li>
+      <li><strong>Tab / Shift+Tab</strong> - Switch between month columns (multi-month mode)</li>
+      <li><strong>T</strong> - Jump to today</li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <h2>Features</h2>
+    <ul class="features">
+      <li>🎯 <strong>Input Masking:</strong> Auto-format dates as you type</li>
+      <li>⌨️ <strong>Keyboard Navigation:</strong> Full keyboard support for accessibility</li>
+      <li>📅 <strong>Rolling Selector:</strong> Quick month/year selection with scrollable lists</li>
+      <li>📊 <strong>Multi-Month:</strong> Show multiple months side by side</li>
+      <li>🎨 <strong>Themeable:</strong> All styles use CSS custom properties (--drp-*)</li>
+      <li>🖱️ <strong>Drag-to-Adjust:</strong> Drag range endpoints to adjust selection</li>
+      <li>🌐 <strong>Multiple Formats:</strong> YYYY-MM-DD, DD.MM.YYYY, MM/DD/YYYY, etc.</li>
+      <li>✨ <strong>Modern:</strong> Web Component with Shadow DOM</li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <h2>Programmatic API</h2>
+    <div class="form-group">
+      <label>API Demo</label>
+      <date-range-picker id="api-demo" mode="range"></date-range-picker>
+      <div style="margin-top: 1rem; display: flex; gap: 0.5rem;">
+        <button onclick="document.getElementById('api-demo').show()" style="padding: 0.5rem 1rem; border: 1px solid #d1d5db; border-radius: 0.375rem; cursor: pointer;">Show</button>
+        <button onclick="document.getElementById('api-demo').hide()" style="padding: 0.5rem 1rem; border: 1px solid #d1d5db; border-radius: 0.375rem; cursor: pointer;">Hide</button>
+        <button onclick="document.getElementById('api-demo').toggle()" style="padding: 0.5rem 1rem; border: 1px solid #d1d5db; border-radius: 0.375rem; cursor: pointer;">Toggle</button>
+        <button onclick="document.getElementById('api-demo').clear()" style="padding: 0.5rem 1rem; border: 1px solid #d1d5db; border-radius: 0.375rem; cursor: pointer;">Clear</button>
+        <button onclick="alert(document.getElementById('api-demo').getValue())" style="padding: 0.5rem 1rem; border: 1px solid #d1d5db; border-radius: 0.375rem; cursor: pointer;">Get Value</button>
+      </div>
+    </div>
+
+    <div class="code">
+const picker = document.querySelector('date-range-picker');
+
+// Methods
+picker.show();        // Show calendar
+picker.hide();        // Hide calendar
+picker.toggle();      // Toggle calendar
+picker.clear();       // Clear selection
+picker.getValue();    // Get current value
+picker.setValue('2025-11-15'); // Set value
+
+// Properties
+picker.mode = 'range';
+picker.format = 'DD.MM.YYYY';
+picker.value = '2025-11-15';
+
+// Events
+picker.addEventListener('date-select', (e) => {
+  console.log('Selected:', e.detail);
+});
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Usage</h2>
+    <div class="code">
+&lt;!-- HTML --&gt;
+&lt;date-range-picker
+  mode="range"
+  format="YYYY-MM-DD"
+  months-to-show="2"
+  placeholder="Select dates"
+&gt;&lt;/date-range-picker&gt;
+
+&lt;script type="module"&gt;
+  import '@keenmate/web-daterangepicker';
+
+  const picker = document.querySelector('date-range-picker');
+  picker.addEventListener('date-select', (e) => {
+    console.log('Date selected:', e.detail.formattedValue);
+  });
+&lt;/script&gt;
+    </div>
+  </div>
+
+  <script type="module" src="/src/index.ts"></script>
+
+  <script>
+    // Add event listeners to demo the events
+    document.querySelectorAll('date-range-picker').forEach(picker => {
+      picker.addEventListener('date-select', (e) => {
+        console.log('Date selected:', e.detail);
+      });
+    });
+  </script>
+</body>
+</html>

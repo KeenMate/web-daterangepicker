@@ -1,0 +1,576 @@
+<div class="pa-card">
+  <div class="pa-card__header">
+    <h2>Date Picker Components</h2>
+  </div>
+  <div class="pa-card__body">
+    <p>Lightweight date picker with excellent keyboard navigation and innovative rolling selector for month/year selection.</p>
+    <p><strong>Note:</strong> This is a UI/UX demo focused on navigation and usability. Full date validation and logic will be implemented in the Svelte version.</p>
+  </div>
+</div>
+
+<!-- Basic Date Pickers -->
+<div class="pa-card">
+  <div class="pa-card__header">
+    <h3>Basic Date Pickers</h3>
+  </div>
+  <div class="pa-card__body">
+    <div class="pure-g">
+      <div class="pure-u-1 pure-u-md-1-2">
+        <div class="pa-form-group">
+          <label>Single Date Picker</label>
+          <input
+            type="text"
+            class="pa-input pa-date-picker-input"
+            data-date-picker
+            placeholder="YYYY-MM-DD"
+          >
+          <small class="pa-form-text">Click to open calendar or type date directly</small>
+        </div>
+      </div>
+      <div class="pure-u-1 pure-u-md-1-2">
+        <div class="pa-form-group">
+          <label>Date Range Picker (2 Months)</label>
+          <input
+            type="text"
+            class="pa-input pa-date-picker-input"
+            data-date-picker
+            data-date-picker-mode="range"
+            placeholder="Start Date - End Date"
+          >
+          <small class="pa-form-text">Shows 2 months side by side, each with independent rolling selector</small>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Input Masking & Formats -->
+<div class="pa-card">
+  <div class="pa-card__header">
+    <h3>Input Masking & Date Formats</h3>
+  </div>
+  <div class="pa-card__body">
+    <p>Configure date format using <code>data-date-format</code> attribute. Input automatically formats as you type with separator auto-insertion.</p>
+    <div class="pure-g">
+      <div class="pure-u-1 pure-u-md-1-2">
+        <div class="pa-form-group">
+          <label>YYYY-MM-DD (ISO Format)</label>
+          <input
+            type="text"
+            class="pa-input pa-date-picker-input"
+            data-date-picker
+            data-date-format="YYYY-MM-DD"
+            placeholder="YYYY-MM-DD"
+          >
+          <small class="pa-form-text">Try typing: 20250115 → auto-formats to 2025-01-15</small>
+        </div>
+      </div>
+      <div class="pure-u-1 pure-u-md-1-2">
+        <div class="pa-form-group">
+          <label>DD.MM.YYYY (European)</label>
+          <input
+            type="text"
+            class="pa-input pa-date-picker-input"
+            data-date-picker
+            data-date-format="DD.MM.YYYY"
+            placeholder="DD.MM.YYYY"
+          >
+          <small class="pa-form-text">Try typing: 15012025 → auto-formats to 15.01.2025</small>
+        </div>
+      </div>
+    </div>
+    <div class="pure-g">
+      <div class="pure-u-1 pure-u-md-1-2">
+        <div class="pa-form-group">
+          <label>DD/MM/YYYY (European)</label>
+          <input
+            type="text"
+            class="pa-input pa-date-picker-input"
+            data-date-picker
+            data-date-format="DD/MM/YYYY"
+            placeholder="DD/MM/YYYY"
+          >
+          <small class="pa-form-text">Try typing: 15012025 → auto-formats to 15/01/2025</small>
+        </div>
+      </div>
+      <div class="pure-u-1 pure-u-md-1-2">
+        <div class="pa-form-group">
+          <label>MM/DD/YYYY (US Format)</label>
+          <input
+            type="text"
+            class="pa-input pa-date-picker-input"
+            data-date-picker
+            data-date-format="MM/DD/YYYY"
+            placeholder="MM/DD/YYYY"
+          >
+          <small class="pa-form-text">Try typing: 01152025 → auto-formats to 01/15/2025</small>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Calendar Button Trigger -->
+<div class="pa-card">
+  <div class="pa-card__header">
+    <h3>Calendar Button Trigger</h3>
+  </div>
+  <div class="pa-card__body">
+    <p>Use <code>data-calendar-trigger="button"</code> to open calendar only via button click, not by clicking/focusing the input.</p>
+    <div class="pure-g">
+      <div class="pure-u-1 pure-u-md-1-2">
+        <div class="pa-form-group">
+          <label>Button-Only Trigger</label>
+          <div class="pa-input-group">
+            <input
+              type="text"
+              class="pa-input"
+              data-date-picker
+              data-date-format="YYYY-MM-DD"
+              data-calendar-trigger="button"
+              placeholder="YYYY-MM-DD"
+            >
+            <button class="pa-input-group__append" data-calendar-button>📅</button>
+          </div>
+          <small class="pa-form-text">Calendar opens only when clicking the button</small>
+        </div>
+      </div>
+      <div class="pure-u-1 pure-u-md-1-2">
+        <div class="pa-form-group">
+          <label>Button Trigger with Range</label>
+          <div class="pa-input-group">
+            <input
+              type="text"
+              class="pa-input"
+              data-date-picker
+              data-date-picker-mode="range"
+              data-date-picker-months="2"
+              data-date-format="DD.MM.YYYY"
+              data-calendar-trigger="button"
+              placeholder="DD.MM.YYYY - DD.MM.YYYY"
+            >
+            <button class="pa-input-group__append" data-calendar-button>📅</button>
+          </div>
+          <small class="pa-form-text">Type dates or use button to open calendar</small>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Multi-Month Display -->
+<div class="pa-card">
+  <div class="pa-card__header">
+    <h3>Multi-Month Display</h3>
+  </div>
+  <div class="pa-card__body">
+    <div class="pure-g">
+      <div class="pure-u-1 pure-u-md-1-2">
+        <div class="pa-form-group">
+          <label>3 Months Display</label>
+          <input
+            type="text"
+            class="pa-input pa-date-picker-input"
+            data-date-picker
+            data-date-picker-mode="range"
+            data-date-picker-months="3"
+            placeholder="Select range"
+          >
+          <small class="pa-form-text">Useful for selecting dates far apart (e.g., 1.1.2004 to 12.3.2019)</small>
+        </div>
+      </div>
+      <div class="pure-u-1 pure-u-md-1-2">
+        <div class="pa-form-group">
+          <label>Single Date with 2 Months</label>
+          <input
+            type="text"
+            class="pa-input pa-date-picker-input"
+            data-date-picker
+            data-date-picker-months="2"
+            placeholder="YYYY-MM-DD"
+          >
+          <small class="pa-form-text">Each month has its own rolling selector for quick navigation</small>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Input Sizes -->
+<div class="pa-card">
+  <div class="pa-card__header">
+    <h3>Input Sizes</h3>
+  </div>
+  <div class="pa-card__body">
+    <div class="pure-g">
+      <div class="pure-u-1 pure-u-md-1-2">
+        <div class="pa-form-group">
+          <label>Extra Small</label>
+          <input
+            type="text"
+            class="pa-input pa-input--xs pa-date-picker-input"
+            data-date-picker
+            placeholder="YYYY-MM-DD"
+          >
+        </div>
+      </div>
+      <div class="pure-u-1 pure-u-md-1-2">
+        <div class="pa-form-group">
+          <label>Small</label>
+          <input
+            type="text"
+            class="pa-input pa-input--sm pa-date-picker-input"
+            data-date-picker
+            placeholder="YYYY-MM-DD"
+          >
+        </div>
+      </div>
+    </div>
+    <div class="pure-g">
+      <div class="pure-u-1 pure-u-md-1-2">
+        <div class="pa-form-group">
+          <label>Default</label>
+          <input
+            type="text"
+            class="pa-input pa-date-picker-input"
+            data-date-picker
+            placeholder="YYYY-MM-DD"
+          >
+        </div>
+      </div>
+      <div class="pure-u-1 pure-u-md-1-2">
+        <div class="pa-form-group">
+          <label>Large</label>
+          <input
+            type="text"
+            class="pa-input pa-input--lg pa-date-picker-input"
+            data-date-picker
+            placeholder="YYYY-MM-DD"
+          >
+        </div>
+      </div>
+    </div>
+    <div class="pure-g">
+      <div class="pure-u-1 pure-u-md-1-2">
+        <div class="pa-form-group">
+          <label>Extra Large</label>
+          <input
+            type="text"
+            class="pa-input pa-input--xl pa-date-picker-input"
+            data-date-picker
+            placeholder="YYYY-MM-DD"
+          >
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Validation States -->
+<div class="pa-card">
+  <div class="pa-card__header">
+    <h3>Validation States</h3>
+  </div>
+  <div class="pa-card__body">
+    <div class="pure-g">
+      <div class="pure-u-1 pure-u-md-1-3">
+        <div class="pa-form-group pa-form-group--success">
+          <label>Valid Date Range</label>
+          <input
+            type="text"
+            class="pa-input pa-date-picker-input"
+            data-date-picker
+            data-date-picker-mode="range"
+            value="2025-11-01 - 2025-11-30"
+          >
+          <small class="pa-form-text">Date range is valid</small>
+        </div>
+      </div>
+      <div class="pure-u-1 pure-u-md-1-3">
+        <div class="pa-form-group pa-form-group--warning">
+          <label>Date Near Deadline</label>
+          <input
+            type="text"
+            class="pa-input pa-date-picker-input"
+            data-date-picker
+            value="2025-11-28"
+          >
+          <small class="pa-form-text">Within 3 days of deadline</small>
+        </div>
+      </div>
+      <div class="pure-u-1 pure-u-md-1-3">
+        <div class="pa-form-group pa-form-group--error">
+          <label>Invalid Date</label>
+          <input
+            type="text"
+            class="pa-input pa-date-picker-input"
+            data-date-picker
+            value="2025-02-30"
+          >
+          <small class="pa-form-text">Please enter a valid date</small>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Input States -->
+<div class="pa-card">
+  <div class="pa-card__header">
+    <h3>Input States</h3>
+  </div>
+  <div class="pa-card__body">
+    <div class="pure-g">
+      <div class="pure-u-1 pure-u-md-1-3">
+        <div class="pa-form-group">
+          <label>Normal</label>
+          <input
+            type="text"
+            class="pa-input pa-date-picker-input"
+            data-date-picker
+            value="2025-11-01"
+          >
+        </div>
+      </div>
+      <div class="pure-u-1 pure-u-md-1-3">
+        <div class="pa-form-group">
+          <label>Disabled</label>
+          <input
+            type="text"
+            class="pa-input pa-date-picker-input"
+            data-date-picker
+            disabled
+            value="2025-11-01"
+          >
+        </div>
+      </div>
+      <div class="pure-u-1 pure-u-md-1-3">
+        <div class="pa-form-group">
+          <label>Readonly</label>
+          <input
+            type="text"
+            class="pa-input pa-date-picker-input"
+            data-date-picker
+            readonly
+            value="2025-11-01"
+          >
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- With Input Group -->
+<div class="pa-card">
+  <div class="pa-card__header">
+    <h3>With Input Group</h3>
+  </div>
+  <div class="pa-card__body">
+    <div class="pure-g">
+      <div class="pure-u-1 pure-u-md-1-2">
+        <div class="pa-form-group">
+          <label>Event Date</label>
+          <div class="pa-input-group">
+            <span class="pa-input-group__prepend">📅</span>
+            <input
+              type="text"
+              class="pa-input"
+              data-date-picker
+              placeholder="Select date"
+            >
+          </div>
+        </div>
+      </div>
+      <div class="pure-u-1 pure-u-md-1-2">
+        <div class="pa-form-group">
+          <label>Booking Period</label>
+          <div class="pa-input-group">
+            <span class="pa-input-group__prepend">📅</span>
+            <input
+              type="text"
+              class="pa-input"
+              data-date-picker
+              data-date-picker-mode="range"
+              placeholder="Select date range"
+            >
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Usage Patterns -->
+<div class="pa-card">
+  <div class="pa-card__header">
+    <h3>Common Usage Patterns</h3>
+  </div>
+  <div class="pa-card__body">
+
+    <!-- Filter Form Pattern -->
+    <h4>Filter Form with Date Range</h4>
+    <div class="pure-g">
+      <div class="pure-u-1 pure-u-md-1-4">
+        <div class="pa-form-group">
+          <label>From Date</label>
+          <input
+            type="text"
+            class="pa-input pa-date-picker-input"
+            data-date-picker
+            placeholder="Start date"
+          >
+        </div>
+      </div>
+      <div class="pure-u-1 pure-u-md-1-4">
+        <div class="pa-form-group">
+          <label>To Date</label>
+          <input
+            type="text"
+            class="pa-input pa-date-picker-input"
+            data-date-picker
+            placeholder="End date"
+          >
+        </div>
+      </div>
+      <div class="pure-u-1 pure-u-md-1-4">
+        <div class="pa-form-group">
+          <label>Status</label>
+          <select class="pa-select">
+            <option>All</option>
+            <option>Active</option>
+            <option>Pending</option>
+          </select>
+        </div>
+      </div>
+      <div class="pure-u-1 pure-u-md-1-4">
+        <div class="pa-form-group">
+          <label>&nbsp;</label>
+          <button class="pa-btn pa-btn--primary" style="width: 100%;">Apply Filter</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Booking Form Pattern -->
+    <h4 style="margin-top: 1.5rem;">Booking Form</h4>
+    <div class="pure-g">
+      <div class="pure-u-1 pure-u-md-1-2">
+        <div class="pa-form-group">
+          <label>Check-in / Check-out</label>
+          <input
+            type="text"
+            class="pa-input pa-date-picker-input"
+            data-date-picker
+            data-date-picker-mode="range"
+            placeholder="Select date range"
+          >
+          <small class="pa-form-text">Select your arrival and departure dates</small>
+        </div>
+      </div>
+      <div class="pure-u-1 pure-u-md-1-4">
+        <div class="pa-form-group">
+          <label>Guests</label>
+          <input type="number" class="pa-input" value="2" min="1">
+        </div>
+      </div>
+      <div class="pure-u-1 pure-u-md-1-4">
+        <div class="pa-form-group">
+          <label>&nbsp;</label>
+          <button class="pa-btn pa-btn--primary" style="width: 100%;">Check Availability</button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- Features -->
+<div class="pa-card">
+  <div class="pa-card__header">
+    <h3>Features & Keyboard Shortcuts</h3>
+  </div>
+  <div class="pa-card__body">
+    <div class="pure-g">
+      <div class="pure-u-1 pure-u-md-1-2">
+        <h4>Features</h4>
+        <ul>
+          <li><strong>Input Masking:</strong> Auto-format dates as you type with separator insertion</li>
+          <li><strong>Multiple Formats:</strong> YYYY-MM-DD, DD.MM.YYYY, DD/MM/YYYY, MM/DD/YYYY</li>
+          <li><strong>Character Validation:</strong> Block invalid characters, allow only digits and separators</li>
+          <li><strong>Button Trigger Mode:</strong> Open calendar via button click instead of input focus</li>
+          <li><strong>Direct Input:</strong> Users can type dates directly in the field</li>
+          <li><strong>Keyboard Navigation:</strong> Arrow keys to navigate between days</li>
+          <li><strong>Rolling Selector:</strong> Innovative scrollable year/month picker per month</li>
+          <li><strong>Multi-Month Display:</strong> Show 1-3+ months side by side</li>
+          <li><strong>Independent Navigation:</strong> Each month has its own rolling selector</li>
+          <li><strong>Draggable Range:</strong> Drag start/end dates to adjust selection</li>
+          <li><strong>Today Button:</strong> Quick jump to current date</li>
+          <li><strong>Clear Button:</strong> Reset selection</li>
+          <li><strong>Range Selection:</strong> Select start and end dates with day/night counts</li>
+          <li><strong>Smart Positioning:</strong> Uses Floating UI for intelligent popup placement</li>
+        </ul>
+      </div>
+      <div class="pure-u-1 pure-u-md-1-2">
+        <h4>Keyboard Shortcuts</h4>
+        <ul>
+          <li><kbd>↑</kbd> <strong>Up Arrow:</strong> Move up one week (7 days back)</li>
+          <li><kbd>↓</kbd> <strong>Down Arrow:</strong> Move down one week (7 days forward)</li>
+          <li><kbd>←</kbd> <strong>Left Arrow:</strong> Move to previous day</li>
+          <li><kbd>→</kbd> <strong>Right Arrow:</strong> Move to next day</li>
+          <li><kbd>Enter</kbd> <strong>Enter:</strong> Select focused day</li>
+          <li><kbd>Esc</kbd> <strong>Escape:</strong> Close calendar</li>
+        </ul>
+        <h4 style="margin-top: 1rem;">Mouse Actions</h4>
+        <ul>
+          <li><strong>Click month/year:</strong> Toggle rolling selector</li>
+          <li><strong>Click year/month:</strong> Jump to that date</li>
+          <li><strong>Click day:</strong> Select date</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Implementation Notes -->
+<div class="pa-card">
+  <div class="pa-card__header">
+    <h3>Implementation Notes</h3>
+  </div>
+  <div class="pa-card__body">
+    <h4>Auto-Initialization</h4>
+    <p>Add <code>data-date-picker</code> attribute to any input to automatically initialize:</p>
+    <pre><code>&lt;input type="text" class="pa-input pa-date-picker-input" data-date-picker&gt;</code></pre>
+
+    <h4>Date Range Mode</h4>
+    <p>Add <code>data-date-picker-mode="range"</code> for range selection:</p>
+    <pre><code>&lt;input type="text" class="pa-input" data-date-picker data-date-picker-mode="range"&gt;</code></pre>
+
+    <h4>Date Format Configuration</h4>
+    <p>Use <code>data-date-format</code> to specify input format with auto-masking:</p>
+    <pre><code>&lt;input type="text" class="pa-input" data-date-picker data-date-format="DD.MM.YYYY"&gt;</code></pre>
+
+    <h4>Button Trigger Mode</h4>
+    <p>Calendar opens only via button click (not input focus):</p>
+    <pre><code>&lt;div class="pa-input-group"&gt;
+  &lt;input type="text" class="pa-input" data-date-picker
+         data-calendar-trigger="button"&gt;
+  &lt;button class="pa-input-group__append" data-calendar-button&gt;📅&lt;/button&gt;
+&lt;/div&gt;</code></pre>
+
+    <h4>Programmatic Initialization</h4>
+    <pre><code>const picker = new PureDatePicker(inputElement, {
+  mode: 'single',           // 'single' or 'range'
+  format: 'YYYY-MM-DD',     // Date format
+  calendarTrigger: 'auto',  // 'auto' or 'button'
+  position: 'bottom-start', // Floating UI position
+  onSelect: (date) => {
+    console.log('Selected:', date);
+  }
+});</code></pre>
+
+    <h4>Rolling Selector Innovation</h4>
+    <p>Unlike traditional date pickers with dropdown menus, our rolling selector provides side-by-side scrollable lists for years and months. This allows quick navigation through decades without multiple clicks. Click on the month/year display to toggle this view.</p>
+
+    <h4>Development Note</h4>
+    <p>This is a UI/UX demo focused on navigation and user experience. The Svelte version (<code>svelte-pure-admin</code>) will include full date validation, min/max constraints, disabled dates, and comprehensive date logic.</p>
+  </div>
+</div>

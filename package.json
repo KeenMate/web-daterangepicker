@@ -1,0 +1,68 @@
+{
+  "name": "@keenmate/web-daterangepicker",
+  "version": "1.0.0-rc01",
+  "description": "Lightweight date picker web component with excellent keyboard navigation and range selection",
+  "type": "module",
+  "main": "./dist/date-range-picker.umd.js",
+  "module": "./dist/date-range-picker.js",
+  "style": "./dist/style.css",
+  "exports": {
+    ".": {
+      "import": "./dist/date-range-picker.js",
+      "require": "./dist/date-range-picker.umd.js",
+      "default": "./dist/date-range-picker.js"
+    },
+    "./style.css": "./dist/style.css",
+    "./dist/*": "./dist/*",
+    "./package.json": "./package.json"
+  },
+  "sideEffects": [
+    "./dist/date-range-picker.js",
+    "./dist/date-range-picker.umd.js",
+    "*.css"
+  ],
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "build:types": "tsc",
+    "build:full": "tsc && vite build",
+    "preview": "vite preview",
+    "package": "npm run build && npm pack",
+    "publish:dry": "npm run build && npm publish --dry-run",
+    "clean": "rimraf dist *.tgz",
+    "clean:dist": "rimraf dist"
+  },
+  "keywords": [
+    "datepicker",
+    "date-range-picker",
+    "date-picker",
+    "web-component",
+    "custom-element",
+    "calendar",
+    "date-input",
+    "date-selector",
+    "keenmate"
+  ],
+  "author": "Keenmate",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/keenmate/web-daterangepicker.git"
+  },
+  "homepage": "https://github.com/keenmate/web-daterangepicker#readme",
+  "bugs": {
+    "url": "https://github.com/keenmate/web-daterangepicker/issues"
+  },
+  "devDependencies": {
+    "rimraf": "^5.0.5",
+    "sass": "^1.69.5",
+    "typescript": "^5.3.3",
+    "vite": "^5.0.8"
+  },
+  "dependencies": {
+    "@floating-ui/dom": "^1.5.3"
+  }
+}
