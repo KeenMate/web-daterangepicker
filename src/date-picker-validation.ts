@@ -1,0 +1,288 @@
+/**
+ * Date Picker Validation Methods
+ *
+ * Pure functions for date validation and restriction logic.
+ */
+
+import type { DateRange } from './types';
+
+/**
+ * Detect week start day from locale or use provided value
+ */
+export function detectWeekStartDay(weekStartDay: 'auto' | 0 | 1 | 2 | 3 | 4 | 5 | 6): number {
+    if (weekStartDay !== 'auto') {
+        return weekStartDay;
+    }
+
+    // Try modern API first (Chrome 99+, Firefox 105+, Safari 16+)
+    try {
+        const locale = new Intl.Locale(navigator.language);
+        if ('weekInfo' in locale && locale.weekInfo && 'firstDay' in locale.weekInfo) {
+            // weekInfo.firstDay: 1 = Monday, 7 = Sunday
+            // We need: 0 = Sunday, 1 = Monday
+            const firstDay = (locale.weekInfo as any).firstDay;
+            return firstDay === 7 ? 0 : firstDay;
+        }
+    } catch (e) {
+        // Fallback if API not supported
+    }
+
+    // Fallback: Locale-based detection
+    const locale = navigator.language.toLowerCase();
+
+    // Countries/regions that start week on Sunday
+    const sundayCountries = [
+        'en-us', 'en-ca', // US, Canada
+        'ja', 'ja-jp',    // Japan
+        'he', 'he-il',    // Israel
+        'ar-sa', 'ar-ae', // Saudi Arabia, UAE
+        'ko', 'ko-kr'     // South Korea
+    ];
+
+    if (sundayCountries.some(country => locale.startsWith(country))) {
+        return 0; // Sunday
+    }
+
+    // Default to Monday for most of the world
+    return 1;
+}
+
+/**
+ * Normalize a date input (string or Date) to a Date object at midnight
+ */
+export function normalizeDate(dateInput: Date | string): Date | null {
+    if (!dateInput) return null;
+
+    let date: Date;
+    if (typeof dateInput === 'string') {
+        // Parse string date (assume YYYY-MM-DD format)
+        date = new Date(dateInput + 'T00:00:00');
+    } else {
+        date = new Date(dateInput);
+    }
+
+    // Set to midnight to avoid time comparison issues
+    date.setHours(0, 0, 0, 0);
+
+    return isNaN(date.getTime()) ? null : date;
+}
+
+/**
+ * Format date as YYYY-MM-DD for use as map/set key
+ */
+export function formatDateKey(date: Date): string {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+}
+
+/**
+ * Check if a date should be disabled based on restrictions
+ */
+export function isDateDisabled(
+    date: Date,
+    normalizedMinDate: Date | null,
+    normalizedMaxDate: Date | null,
+    normalizedDisabledDates: Set<string>,
+    disabledDays: number[] | undefined,
+    isDateDisabledCallback: ((date: Date) => boolean) | undefined
+): boolean {
+    const dateKey = formatDateKey(date);
+    const dayOfWeek = date.getDay();
+
+    // Check min/max dates
+    if (normalizedMinDate && date < normalizedMinDate) {
+        return true;
+    }
+    if (normalizedMaxDate && date > normalizedMaxDate) {
+        return true;
+    }
+
+    // Check disabled days of week
+    if (disabledDays && disabledDays.includes(dayOfWeek)) {
+        return true;
+    }
+
+    // Check specific disabled dates
+    if (normalizedDisabledDates.has(dateKey)) {
+        return true;
+    }
+
+    // Check custom callback
+    if (isDateDisabledCallback && isDateDisabledCallback(date)) {
+        return true;
+    }
+
+    return false;
+}
+
+/**
+ * Check if there are any disabled dates in a range
+ */
+export function hasDisabledDatesInRange(
+    start: Date,
+    end: Date,
+    isDateDisabledFn: (date: Date) => boolean
+): boolean {
+    const startDate = new Date(start);
+    const endDate = new Date(end);
+    startDate.setHours(0, 0, 0, 0);
+    endDate.setHours(0, 0, 0, 0);
+
+    const current = new Date(startDate);
+    while (current <= endDate) {
+        if (isDateDisabledFn(current)) {
+            return true;
+        }
+        current.setDate(current.getDate() + 1);
+    }
+    return false;
+}
+
+/**
+ * Get all enabled dates in a range
+ */
+export function getEnabledDatesInRange(
+    start: Date,
+    end: Date,
+    isDateDisabledFn: (date: Date) => boolean
+): Date[] {
+    const enabledDates: Date[] = [];
+    const startDate = new Date(start);
+    const endDate = new Date(end);
+    startDate.setHours(0, 0, 0, 0);
+    endDate.setHours(0, 0, 0, 0);
+
+    const current = new Date(startDate);
+    while (current <= endDate) {
+        if (!isDateDisabledFn(current)) {
+            enabledDates.push(new Date(current));
+        }
+        current.setDate(current.getDate() + 1);
+    }
+    return enabledDates;
+}
+
+/**
+ * Get all disabled dates in a range
+ */
+export function getDisabledDatesInRange(
+    start: Date,
+    end: Date,
+    isDateDisabledFn: (date: Date) => boolean
+): Date[] {
+    const disabledDates: Date[] = [];
+    const startDate = new Date(start);
+    const endDate = new Date(end);
+    startDate.setHours(0, 0, 0, 0);
+    endDate.setHours(0, 0, 0, 0);
+
+    const current = new Date(startDate);
+    while (current <= endDate) {
+        if (isDateDisabledFn(current)) {
+            disabledDates.push(new Date(current));
+        }
+        current.setDate(current.getDate() + 1);
+    }
+    return disabledDates;
+}
+
+/**
+ * For 'block' mode: Find the last enabled date before hitting a disabled date
+ */
+export function findLastEnabledBeforeGap(
+    start: Date,
+    end: Date,
+    isDateDisabledFn: (date: Date) => boolean
+): Date {
+    const startDate = new Date(start);
+    const endDate = new Date(end);
+    startDate.setHours(0, 0, 0, 0);
+    endDate.setHours(0, 0, 0, 0);
+
+    let lastEnabled = new Date(startDate);
+    const current = new Date(startDate);
+    current.setDate(current.getDate() + 1); // Start from day after start
+
+    while (current <= endDate) {
+        if (isDateDisabledFn(current)) {
+            // Hit a disabled date, return the last enabled date
+            return lastEnabled;
+        }
+        lastEnabled = new Date(current);
+        current.setDate(current.getDate() + 1);
+    }
+
+    return lastEnabled;
+}
+
+/**
+ * For 'split' mode: Split a range into multiple ranges separated by disabled dates
+ */
+export function splitRangeByDisabled(
+    start: Date,
+    end: Date,
+    isDateDisabledFn: (date: Date) => boolean
+): DateRange[] {
+    const ranges: DateRange[] = [];
+    const startDate = new Date(start);
+    const endDate = new Date(end);
+    startDate.setHours(0, 0, 0, 0);
+    endDate.setHours(0, 0, 0, 0);
+
+    let rangeStart: Date | null = null;
+    const current = new Date(startDate);
+
+    while (current <= endDate) {
+        if (!isDateDisabledFn(current)) {
+            // This date is enabled
+            if (!rangeStart) {
+                rangeStart = new Date(current);
+            }
+        } else {
+            // This date is disabled
+            if (rangeStart) {
+                // End the current range
+                const rangeEnd = new Date(current);
+                rangeEnd.setDate(rangeEnd.getDate() - 1);
+                ranges.push({ start: rangeStart, end: rangeEnd });
+                rangeStart = null;
+            }
+        }
+        current.setDate(current.getDate() + 1);
+    }
+
+    // Close the last range if still open
+    if (rangeStart) {
+        ranges.push({ start: rangeStart, end: new Date(endDate) });
+    }
+
+    return ranges;
+}
+
+/**
+ * Check if a date is today
+ */
+export function isToday(date: Date): boolean {
+    const today = new Date();
+    return isSameDay(date, today);
+}
+
+/**
+ * Check if two dates are the same day
+ */
+export function isSameDay(date1: Date | null, date2: Date | null): boolean {
+    if (!date1 || !date2) return false;
+    return date1.getFullYear() === date2.getFullYear() &&
+           date1.getMonth() === date2.getMonth() &&
+           date1.getDate() === date2.getDate();
+}
+
+/**
+ * Check if a date is in a range (exclusive of start and end)
+ */
+export function isInRange(date: Date, start: Date | null, end: Date | null): boolean {
+    if (!start || !end) return false;
+    return date > start && date < end;
+}

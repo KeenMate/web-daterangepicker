@@ -11,6 +11,9 @@ A lightweight, accessible date picker web component with excellent keyboard navi
 - 🎨 **Themeable** - All styles use CSS custom properties (`--drp-*`)
 - 🖱️ **Drag-to-Adjust** - Drag range endpoints to adjust selection (range mode)
 - 🌐 **Multiple Formats** - YYYY-MM-DD, DD.MM.YYYY, MM/DD/YYYY, etc.
+- 🌍 **Locale-Aware** - Auto-detect week start day from user's locale
+- 🚫 **Date Restrictions** - Min/max dates, disabled days/dates, custom disable logic
+- 🎉 **Special Dates** - Highlight holidays, events with custom labels and styling
 - ✨ **Modern** - Web Component with Shadow DOM, TypeScript, bundled with Vite
 
 ## Installation
@@ -78,6 +81,12 @@ picker.setValue('2025-11-15'); // Set value
 | `value` | `string` | - | Current value |
 | `placeholder` | `string` | - | Input placeholder text |
 | `disabled` | `boolean` | `false` | Disable the picker |
+| `week-start-day` | `'auto' \| 0-6` | `'auto'` | First day of week (0=Sunday, 1=Monday, etc. 'auto'=detect from locale) |
+| `min-date` | `string` | - | Minimum selectable date (YYYY-MM-DD) |
+| `max-date` | `string` | - | Maximum selectable date (YYYY-MM-DD) |
+| `disabled-days` | `string` | - | Comma-separated day numbers to disable (e.g., "0,6" for weekends) |
+| `range-disabled-mode` | `'allow' \| 'block' \| 'split' \| 'individual'` | `'allow'` | How to handle range selections over disabled dates (see [Range Selection Modes](#range-selection-modes)) |
+| `highlight-disabled-in-range` | `boolean` | `true` | Whether to visually highlight disabled dates within a selected range. Set to `false` to only highlight enabled dates. |
 
 ## Properties
 
@@ -121,6 +130,261 @@ picker.disabled = true;
 - **Escape** - Close calendar
 - **Tab / Shift+Tab** - Switch between month columns (multi-month mode)
 - **T** - Jump to today
+
+## Advanced Features
+
+### Week Start Day
+
+Control which day the week starts on (auto-detected by default from user's locale):
+
+```html
+<!-- Auto-detect from locale (default) -->
+<date-range-picker week-start-day="auto"></date-range-picker>
+
+<!-- Force Sunday start -->
+<date-range-picker week-start-day="0"></date-range-picker>
+
+<!-- Force Monday start (common in Europe) -->
+<date-range-picker week-start-day="1"></date-range-picker>
+```
+
+### Disabled Dates & Date Restrictions
+
+#### Simple Restrictions (Attributes)
+
+```html
+<!-- Disable weekends -->
+<date-range-picker disabled-days="0,6"></date-range-picker>
+
+<!-- Date range restriction -->
+<date-range-picker
+  min-date="2025-01-01"
+  max-date="2025-12-31">
+</date-range-picker>
+```
+
+#### Complex Restrictions (JavaScript)
+
+```javascript
+const picker = document.querySelector('date-range-picker');
+
+// Disable specific dates (e.g., public holidays)
+picker.disabledDates = [
+  '2025-12-25', // Christmas
+  '2025-01-01', // New Year
+  new Date(2025, 6, 4) // July 4th
+];
+
+// Custom disable logic (e.g., cottage booking)
+picker.isDateDisabled = (date) => {
+  // Disable all dates that overlap with existing bookings
+  return bookedRanges.some(range =>
+    date >= range.start && date <= range.end
+  );
+};
+```
+
+### Special Dates (Holidays, Events)
+
+Add visual indicators and labels to specific dates:
+
+```javascript
+const picker = document.querySelector('date-range-picker');
+
+picker.specialDates = [
+  {
+    date: '2025-12-25',
+    class: 'holiday',  // CSS class for styling
+    label: '🎄',       // Emoji or short text overlay
+    tooltip: 'Christmas Day'
+  },
+  {
+    date: '2025-07-04',
+    class: 'holiday',
+    label: '🎆',
+    tooltip: 'Independence Day'
+  },
+  {
+    date: '2025-02-14',
+    class: 'event',
+    label: '❤️',
+    tooltip: 'Valentine\'s Day'
+  }
+];
+```
+
+### Advanced Styling & Info
+
+For complete control, use the `getDateInfo` callback:
+
+```javascript
+picker.getDateInfo = (date) => {
+  const dateStr = date.toISOString().split('T')[0];
+
+  // Check if it's a peak season date
+  if (isPeakSeason(date)) {
+    return {
+      class: 'peak-season',
+      label: '$$$',
+      tooltip: 'Peak season pricing'
+    };
+  }
+
+  // Check if it's a special offer date
+  if (specialOffers[dateStr]) {
+    return {
+      class: 'special-offer',
+      label: '%',
+      tooltip: `${specialOffers[dateStr]}% off!`
+    };
+  }
+
+  return null;
+};
+```
+
+### CSS Styling for Special Dates
+
+```css
+/* Holiday styling (predefined class) */
+date-range-picker::part(calendar) .pa-date-picker__day.holiday {
+  background-color: rgba(239, 68, 68, 0.1);
+}
+
+/* Event styling (predefined class) */
+date-range-picker::part(calendar) .pa-date-picker__day.event {
+  background-color: rgba(16, 185, 129, 0.1);
+}
+
+/* Custom class example */
+date-range-picker::part(calendar) .pa-date-picker__day.peak-season {
+  background-color: rgba(251, 191, 36, 0.15);
+  font-weight: 600;
+}
+```
+
+## Range Selection Modes
+
+When selecting date ranges that include disabled dates (e.g., selecting a working week where weekends are disabled), you can control how the selection is handled using the `range-disabled-mode` attribute:
+
+### Mode: 'allow' (default)
+
+Allows range selections over disabled dates. Returns both enabled and disabled date arrays:
+
+```html
+<date-range-picker
+  mode="range"
+  disabled-days="0,6"
+  range-disabled-mode="allow">
+</date-range-picker>
+
+<script>
+picker.addEventListener('date-select', (e) => {
+  console.log('Enabled dates:', e.detail.enabledDates);
+  console.log('Disabled dates:', e.detail.disabledDates);
+  console.log('Total days:', e.detail.getTotalDays());
+  console.log('Enabled count:', e.detail.getEnabledDateCount());
+});
+</script>
+```
+
+**Use case:** Selecting working weeks where you need to know both working days and weekends (e.g., "Select 3 weeks of work" where weekends are included in the range but you get a separate array of working days).
+
+### Mode: 'block'
+
+Prevents range selections from crossing disabled dates. Automatically snaps to the last enabled date before the gap:
+
+```html
+<date-range-picker
+  mode="range"
+  range-disabled-mode="block">
+</date-range-picker>
+```
+
+When dragging from day 1 to day 7 with days 4-5 disabled, the selection will automatically snap to days 1-3.
+
+**Use case:** Cottage booking where you can't book across existing reservations, or any scenario where gaps in the range are not allowed.
+
+### Mode: 'split'
+
+Returns multiple date ranges separated by disabled dates:
+
+```html
+<date-range-picker
+  mode="range"
+  disabled-days="0,6"
+  range-disabled-mode="split">
+</date-range-picker>
+
+<script>
+picker.addEventListener('date-select', (e) => {
+  console.log('Ranges:', e.detail.dateRanges);
+  // e.g., [{start: Mon, end: Fri}, {start: Mon, end: Fri}, {start: Mon, end: Fri}]
+  console.log('Formatted:', e.detail.formattedValue);
+  // "2025-11-03 - 2025-11-07, 2025-11-10 - 2025-11-14, 2025-11-17 - 2025-11-21"
+});
+</script>
+```
+
+**Use case:** Reporting or analytics where you need distinct time periods (e.g., "Generate report for these 3 work weeks").
+
+### Mode: 'individual'
+
+Returns a flat array of individual enabled dates:
+
+```html
+<date-range-picker
+  mode="range"
+  disabled-days="0,6"
+  range-disabled-mode="individual">
+</date-range-picker>
+
+<script>
+picker.addEventListener('date-select', (e) => {
+  console.log('Individual dates:', e.detail.dates);
+  // [Date(Mon), Date(Tue), Date(Wed), Date(Thu), Date(Fri), Date(Mon), ...]
+  console.log('Formatted:', e.detail.formattedValue);
+  // "2025-11-03, 2025-11-04, 2025-11-05, 2025-11-06, 2025-11-07, ..."
+});
+</script>
+```
+
+**Use case:** Scheduling or event planning where you need a list of specific dates (e.g., "Schedule training sessions on these dates").
+
+### Event Detail Structure by Mode
+
+| Mode | Properties | Description |
+|------|-----------|-------------|
+| `allow` | `dateRange`, `enabledDates`, `disabledDates`, `getTotalDays()`, `getEnabledDateCount()` | Full range with helper methods |
+| `block` | `dateRange`, `dates` | Single continuous range (no disabled dates) |
+| `split` | `dateRanges`, `dates` | Multiple ranges split by disabled dates |
+| `individual` | `dates` | Flat array of enabled dates |
+
+### Visual Highlighting Control
+
+By default, when you select a range that includes disabled dates, all dates (both enabled and disabled) within the range are visually highlighted. You can change this behavior with the `highlight-disabled-in-range` attribute:
+
+```html
+<!-- Default: highlights all dates in range, including disabled weekends -->
+<date-range-picker
+  mode="range"
+  disabled-days="0,6"
+  range-disabled-mode="split">
+</date-range-picker>
+
+<!-- Only highlight enabled dates (Mon-Fri), skip weekends -->
+<date-range-picker
+  mode="range"
+  disabled-days="0,6"
+  range-disabled-mode="split"
+  highlight-disabled-in-range="false">
+</date-range-picker>
+```
+
+**When to use `highlight-disabled-in-range="false"`:**
+- Selecting working weeks where you only want to see Monday-Friday highlighted
+- Visual clarity when disabled dates are not relevant to the selection
+- Any scenario where showing gaps in the range is clearer than showing continuous highlighting
 
 ## Theming
 

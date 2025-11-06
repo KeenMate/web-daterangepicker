@@ -47,6 +47,262 @@
   --drp-input-padding-h: 0.75rem;
 }
 
+// Font Size Classes
+// Control text sizing only, independent of spacing
+// Example: <div class="drp-font-lg"><date-range-picker ...></div>
+
+.drp-font-xs {
+  --drp-font-size-2xs: 0.4375rem;  // 0.625 * 0.7
+  --drp-font-size-xs: 0.525rem;    // 0.75 * 0.7
+  --drp-font-size-sm: 0.6125rem;   // 0.875 * 0.7
+  --drp-font-size-base: 0.7rem;    // 1 * 0.7
+  --drp-font-size-lg: 0.7875rem;   // 1.125 * 0.7
+  --drp-font-size-xl: 0.875rem;    // 1.25 * 0.7
+  --drp-font-size-2xl: 1.05rem;    // 1.5 * 0.7
+}
+
+.drp-font-sm {
+  --drp-font-size-2xs: 0.53125rem; // 0.625 * 0.85
+  --drp-font-size-xs: 0.6375rem;   // 0.75 * 0.85
+  --drp-font-size-sm: 0.74375rem;  // 0.875 * 0.85
+  --drp-font-size-base: 0.85rem;   // 1 * 0.85
+  --drp-font-size-lg: 0.95625rem;  // 1.125 * 0.85
+  --drp-font-size-xl: 1.0625rem;   // 1.25 * 0.85
+  --drp-font-size-2xl: 1.275rem;   // 1.5 * 0.85
+}
+
+.drp-font-md {
+  // Uses default :root values
+}
+
+.drp-font-lg {
+  --drp-font-size-2xs: 0.75rem;   // 0.625 * 1.2
+  --drp-font-size-xs: 0.9rem;     // 0.75 * 1.2
+  --drp-font-size-sm: 1.05rem;    // 0.875 * 1.2
+  --drp-font-size-base: 1.2rem;   // 1 * 1.2
+  --drp-font-size-lg: 1.35rem;    // 1.125 * 1.2
+  --drp-font-size-xl: 1.5rem;     // 1.25 * 1.2
+  --drp-font-size-2xl: 1.8rem;    // 1.5 * 1.2
+}
+
+.drp-font-xl {
+  --drp-font-size-2xs: 0.875rem;  // 0.625 * 1.4
+  --drp-font-size-xs: 1.05rem;    // 0.75 * 1.4
+  --drp-font-size-sm: 1.225rem;   // 0.875 * 1.4
+  --drp-font-size-base: 1.4rem;   // 1 * 1.4
+  --drp-font-size-lg: 1.575rem;   // 1.125 * 1.4
+  --drp-font-size-xl: 1.75rem;    // 1.25 * 1.4
+  --drp-font-size-2xl: 2.1rem;    // 1.5 * 1.4
+}
+
+// Spacing/Density Classes
+// Control gaps, padding, and calendar width only
+// Example: <div class="drp-spacing-sm"><date-range-picker ...></div>
+
+.drp-spacing-xs {
+  --drp-spacing-xs: 0.175rem;  // 0.25 * 0.7
+  --drp-spacing-sm: 0.35rem;   // 0.5 * 0.7
+  --drp-spacing-md: 0.7rem;    // 1 * 0.7
+  --drp-spacing-lg: 1.05rem;   // 1.5 * 0.7
+  --drp-spacing-xl: 1.4rem;    // 2 * 0.7
+
+  .pa-date-picker__month {
+    min-width: 196px; // 280 * 0.7
+  }
+}
+
+.drp-spacing-sm {
+  --drp-spacing-xs: 0.2125rem; // 0.25 * 0.85
+  --drp-spacing-sm: 0.425rem;  // 0.5 * 0.85
+  --drp-spacing-md: 0.85rem;   // 1 * 0.85
+  --drp-spacing-lg: 1.275rem;  // 1.5 * 0.85
+  --drp-spacing-xl: 1.7rem;    // 2 * 0.85
+
+  .pa-date-picker__month {
+    min-width: 238px; // 280 * 0.85
+  }
+}
+
+.drp-spacing-md {
+  // Uses default :root values
+}
+
+.drp-spacing-lg {
+  --drp-spacing-xs: 0.3rem;    // 0.25 * 1.2
+  --drp-spacing-sm: 0.6rem;    // 0.5 * 1.2
+  --drp-spacing-md: 1.2rem;    // 1 * 1.2
+  --drp-spacing-lg: 1.8rem;    // 1.5 * 1.2
+  --drp-spacing-xl: 2.4rem;    // 2 * 1.2
+
+  .pa-date-picker__month {
+    min-width: 336px; // 280 * 1.2
+  }
+}
+
+.drp-spacing-xl {
+  --drp-spacing-xs: 0.35rem;   // 0.25 * 1.4
+  --drp-spacing-sm: 0.7rem;    // 0.5 * 1.4
+  --drp-spacing-md: 1.4rem;    // 1 * 1.4
+  --drp-spacing-lg: 2.1rem;    // 1.5 * 1.4
+  --drp-spacing-xl: 2.8rem;    // 2 * 1.4
+
+  .pa-date-picker__month {
+    min-width: 392px; // 280 * 1.4
+  }
+}
+
+// Responsive Scaling
+// Scales font and spacing independently at breakpoints
+// Example: <div class="drp-font-lg drp-spacing-xl drp-responsive">
+
+.drp-responsive {
+  // Font XL: xl → lg @ 1200px → md @ 768px
+  &.drp-font-xl {
+    @media (max-width: 1200px) {
+      --drp-font-size-2xs: 0.75rem;
+      --drp-font-size-xs: 0.9rem;
+      --drp-font-size-sm: 1.05rem;
+      --drp-font-size-base: 1.2rem;
+      --drp-font-size-lg: 1.35rem;
+      --drp-font-size-xl: 1.5rem;
+      --drp-font-size-2xl: 1.8rem;
+    }
+    @media (max-width: 768px) {
+      --drp-font-size-2xs: 0.625rem;
+      --drp-font-size-xs: 0.75rem;
+      --drp-font-size-sm: 0.875rem;
+      --drp-font-size-base: 1rem;
+      --drp-font-size-lg: 1.125rem;
+      --drp-font-size-xl: 1.25rem;
+      --drp-font-size-2xl: 1.5rem;
+    }
+  }
+
+  // Font LG: lg → md @ 1200px → sm @ 768px
+  &.drp-font-lg {
+    @media (max-width: 1200px) {
+      --drp-font-size-2xs: 0.625rem;
+      --drp-font-size-xs: 0.75rem;
+      --drp-font-size-sm: 0.875rem;
+      --drp-font-size-base: 1rem;
+      --drp-font-size-lg: 1.125rem;
+      --drp-font-size-xl: 1.25rem;
+      --drp-font-size-2xl: 1.5rem;
+    }
+    @media (max-width: 768px) {
+      --drp-font-size-2xs: 0.53125rem;
+      --drp-font-size-xs: 0.6375rem;
+      --drp-font-size-sm: 0.74375rem;
+      --drp-font-size-base: 0.85rem;
+      --drp-font-size-lg: 0.95625rem;
+      --drp-font-size-xl: 1.0625rem;
+      --drp-font-size-2xl: 1.275rem;
+    }
+  }
+
+  // Font MD: md → sm @ 768px
+  &.drp-font-md {
+    @media (max-width: 768px) {
+      --drp-font-size-2xs: 0.53125rem;
+      --drp-font-size-xs: 0.6375rem;
+      --drp-font-size-sm: 0.74375rem;
+      --drp-font-size-base: 0.85rem;
+      --drp-font-size-lg: 0.95625rem;
+      --drp-font-size-xl: 1.0625rem;
+      --drp-font-size-2xl: 1.275rem;
+    }
+  }
+
+  // Font SM: sm → xs @ 768px
+  &.drp-font-sm {
+    @media (max-width: 768px) {
+      --drp-font-size-2xs: 0.4375rem;
+      --drp-font-size-xs: 0.525rem;
+      --drp-font-size-sm: 0.6125rem;
+      --drp-font-size-base: 0.7rem;
+      --drp-font-size-lg: 0.7875rem;
+      --drp-font-size-xl: 0.875rem;
+      --drp-font-size-2xl: 1.05rem;
+    }
+  }
+
+  // Spacing XL: xl → lg @ 1200px → md @ 768px
+  &.drp-spacing-xl {
+    @media (max-width: 1200px) {
+      --drp-spacing-xs: 0.3rem;
+      --drp-spacing-sm: 0.6rem;
+      --drp-spacing-md: 1.2rem;
+      --drp-spacing-lg: 1.8rem;
+      --drp-spacing-xl: 2.4rem;
+      .pa-date-picker__month {
+        min-width: 336px;
+      }
+    }
+    @media (max-width: 768px) {
+      --drp-spacing-xs: 0.25rem;
+      --drp-spacing-sm: 0.5rem;
+      --drp-spacing-md: 1rem;
+      --drp-spacing-lg: 1.5rem;
+      --drp-spacing-xl: 2rem;
+      .pa-date-picker__month {
+        min-width: 280px;
+      }
+    }
+  }
+
+  // Spacing LG: lg → md @ 1200px → sm @ 768px
+  &.drp-spacing-lg {
+    @media (max-width: 1200px) {
+      --drp-spacing-xs: 0.25rem;
+      --drp-spacing-sm: 0.5rem;
+      --drp-spacing-md: 1rem;
+      --drp-spacing-lg: 1.5rem;
+      --drp-spacing-xl: 2rem;
+      .pa-date-picker__month {
+        min-width: 280px;
+      }
+    }
+    @media (max-width: 768px) {
+      --drp-spacing-xs: 0.2125rem;
+      --drp-spacing-sm: 0.425rem;
+      --drp-spacing-md: 0.85rem;
+      --drp-spacing-lg: 1.275rem;
+      --drp-spacing-xl: 1.7rem;
+      .pa-date-picker__month {
+        min-width: 238px;
+      }
+    }
+  }
+
+  // Spacing MD: md → sm @ 768px
+  &.drp-spacing-md {
+    @media (max-width: 768px) {
+      --drp-spacing-xs: 0.2125rem;
+      --drp-spacing-sm: 0.425rem;
+      --drp-spacing-md: 0.85rem;
+      --drp-spacing-lg: 1.275rem;
+      --drp-spacing-xl: 1.7rem;
+      .pa-date-picker__month {
+        min-width: 238px;
+      }
+    }
+  }
+
+  // Spacing SM: sm → xs @ 768px
+  &.drp-spacing-sm {
+    @media (max-width: 768px) {
+      --drp-spacing-xs: 0.175rem;
+      --drp-spacing-sm: 0.35rem;
+      --drp-spacing-md: 0.7rem;
+      --drp-spacing-lg: 1.05rem;
+      --drp-spacing-xl: 1.4rem;
+      .pa-date-picker__month {
+        min-width: 196px;
+      }
+    }
+  }
+}
+
 // Date Picker Input
 .pa-date-picker-input {
   position: relative;
@@ -79,18 +335,70 @@
   &:not(.pa-date-picker--visible) {
     display: none;
   }
+
+  // Inline mode modifier
+  &--inline {
+    position: relative !important; // Override absolute positioning
+    display: block !important; // Always visible
+    z-index: auto; // No need for high z-index
+    min-width: 0; // Allow shrinking below 280px
+    max-width: 100%; // Don't overflow container
+    width: fit-content; // Fit content instead of full width
+    box-sizing: border-box; // Include padding in width
+  }
 }
 
 // Months Container (for multiple months side by side)
 .pa-date-picker__months {
   display: flex;
   gap: var(--drp-spacing-lg);
+
+  // Allow wrapping for inline mode on small screens
+  .pa-date-picker--inline & {
+    flex-wrap: wrap;
+  }
+
+  // Grid layout mode
+  &--grid {
+    display: grid;
+    grid-template-columns: repeat(var(--drp-grid-columns, 3), minmax(0, 1fr));
+    grid-template-rows: repeat(var(--drp-grid-rows, 2), auto);
+    gap: var(--drp-spacing-lg);
+    width: 100%; // Take full width of container
+
+    // Responsive breakpoints - reduce columns on smaller screens
+    @media (max-width: 1200px) {
+      // Max 3 columns on medium screens
+      grid-template-columns: repeat(min(var(--drp-grid-columns, 3), 3), minmax(0, 1fr));
+    }
+
+    @media (max-width: 768px) {
+      // Max 2 columns on tablets
+      grid-template-columns: repeat(min(var(--drp-grid-columns, 3), 2), minmax(0, 1fr));
+    }
+
+    @media (max-width: 480px) {
+      // 1 column on mobile
+      grid-template-columns: minmax(0, 1fr);
+    }
+  }
 }
 
 // Individual Month Container
 .pa-date-picker__month {
   flex: 1;
   min-width: 280px;
+
+  // Allow shrinking for inline mode
+  .pa-date-picker--inline & {
+    min-width: 250px; // Smaller minimum for inline
+  }
+
+  // Grid layout: remove min-width to allow proper grid sizing
+  .pa-date-picker__months--grid & {
+    min-width: 0; // Let grid control the size
+    width: 100%; // Take full grid cell width
+  }
 }
 
 // Calendar Header
@@ -144,6 +452,19 @@
 
   &:active {
     background-color: var(--drp-primary-bg-hover);
+  }
+
+  // Disabled state (when month has no enabled days)
+  &--disabled,
+  &[disabled] {
+    opacity: 0.5;
+    cursor: not-allowed;
+    pointer-events: none;
+
+    &:hover {
+      background-color: transparent;
+      border-color: var(--drp-border-color);
+    }
   }
 
   &--prev::before {
@@ -244,10 +565,16 @@
 
 // Days Grid
 .pa-date-picker__days {
+  display: flex;
+  flex-direction: column;
+  gap: var(--drp-spacing-xs);
+  margin-bottom: var(--drp-spacing-md);
+}
+
+.pa-date-picker__date-row {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
   gap: var(--drp-spacing-xs);
-  margin-bottom: var(--drp-spacing-md);
 }
 
 .pa-date-picker__day {
@@ -260,6 +587,7 @@
   cursor: pointer;
   transition: all var(--drp-transition-fast) var(--drp-easing-snappy);
   border: 2px solid transparent;
+  position: relative; // For absolute positioning of labels
 
   &:hover:not(.pa-date-picker__day--disabled):not(.pa-date-picker__day--other-month) {
     background-color: var(--drp-primary-bg);
@@ -292,8 +620,28 @@
   // Disabled
   &--disabled {
     color: var(--drp-text-secondary);
-    opacity: 0.4;
+    opacity: 0.6;
     cursor: not-allowed;
+    position: relative;
+
+    // Diagonal hatched pattern overlay
+    &::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-image: repeating-linear-gradient(
+        45deg,
+        rgba(0, 0, 0, 0.1) 0px,
+        rgba(0, 0, 0, 0.1) 1px,
+        transparent 1px,
+        transparent 6px
+      );
+      border-radius: var(--drp-border-radius);
+      pointer-events: none;
+    }
 
     &:hover {
       background-color: transparent;
@@ -355,6 +703,103 @@
       color: #ffffff;
     }
   }
+
+  &--drag-invalid {
+    background-color: color-mix(in srgb, #ef4444 20%, transparent) !important;
+    border-color: #ef4444 !important;
+    border-style: dashed !important;
+  }
+}
+
+// Badge rows (grid-based system)
+.pa-date-picker__badge-row {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: var(--drp-spacing-xs);
+  margin-bottom: var(--drp-spacing-xs);
+  max-height: var(--drp-font-size-base);
+  min-height: var(--drp-font-size-base);
+}
+
+.pa-date-picker__badge-cell {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--drp-font-size-2xs);
+  padding: 1px 2px;
+  border-radius: 2px;
+  transition: all var(--drp-transition-fast) var(--drp-easing-snappy);
+  cursor: pointer;
+  height: 100%;
+  max-height: var(--drp-font-size-base);
+
+  &:empty {
+    visibility: hidden;
+  }
+
+  &:hover:not(:empty) {
+    transform: scale(1.05);
+  }
+}
+
+// Badge style variations
+.pa-date-picker__badge-cell.badge-number {
+  background-color: #10b981;
+  color: white;
+  font-size: 0.7rem;
+  font-weight: 600;
+}
+
+.pa-date-picker__badge-cell.badge-count {
+  background-color: #ef4444;
+  color: white;
+  font-size: 0.7rem;
+  font-weight: 700;
+}
+
+.pa-date-picker__badge-cell.badge-text {
+  background-color: #6b7280;
+  color: white;
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.pa-date-picker__badge-cell.badge-text.holiday-text {
+  background-color: #ef4444;
+}
+
+.pa-date-picker__badge-cell.badge-text.event-text {
+  background-color: #3b82f6;
+}
+
+.pa-date-picker__badge-cell.badge-text.birthday-text {
+  background-color: #ec4899;
+}
+
+.pa-date-picker__badge-cell.badge-text.meeting-text {
+  background-color: #8b5cf6;
+}
+
+.pa-date-picker__badge-cell.badge-text.vip-text {
+  background-color: #f59e0b;
+}
+
+// Optional: Add predefined special date classes
+.pa-date-picker__day.holiday {
+  background-color: color-mix(in srgb, #ef4444 10%, transparent);
+
+  &:hover:not(.pa-date-picker__day--disabled) {
+    background-color: color-mix(in srgb, #ef4444 20%, transparent);
+  }
+}
+
+.pa-date-picker__day.event {
+  background-color: color-mix(in srgb, #10b981 10%, transparent);
+
+  &:hover:not(.pa-date-picker__day--disabled) {
+    background-color: color-mix(in srgb, #10b981 20%, transparent);
+  }
 }
 
 // Selection Summary (days/nights count)
@@ -378,6 +823,36 @@
   font-weight: var(--drp-font-weight-semibold);
   color: var(--drp-accent-color);
   font-size: var(--drp-font-size-base);
+}
+
+// Floating UI Tooltips
+.pa-date-picker__tooltip {
+  position: absolute;
+  z-index: 9999;
+  background-color: var(--drp-text-primary);
+  color: #ffffff;
+  padding: var(--drp-spacing-xs) var(--drp-spacing-sm);
+  border-radius: var(--drp-border-radius);
+  font-size: var(--drp-font-size-xs);
+  line-height: 1.4;
+  max-width: 200px;
+  word-wrap: break-word;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity var(--drp-transition-fast) var(--drp-easing-snappy);
+
+  &--visible {
+    opacity: 1;
+  }
+
+  // Tooltip arrow
+  &-arrow {
+    position: absolute;
+    background-color: var(--drp-text-primary);
+    width: 8px;
+    height: 8px;
+    transform: rotate(45deg);
+  }
 }
 
 // Action Buttons
