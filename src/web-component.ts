@@ -1,5 +1,5 @@
 import { PureDatePicker } from './date-picker';
-import type { DatePickerOptions, DateRange, SpecialDate, DateInfo } from './types';
+import type { DatePickerOptions, DateRange, DecoratedDate, DateInfo } from './types';
 import styles from './scss/_date-picker.scss?inline';
 
 export class DateRangePickerElement extends HTMLElement {
@@ -8,16 +8,17 @@ export class DateRangePickerElement extends HTMLElement {
     private shadow: ShadowRoot;
 
     // Properties for complex data (not attributes)
-    private _specialDates?: SpecialDate[];
+    private _specialDates?: DecoratedDate[];
     private _disabledDates?: (Date | string)[];
     private _isDateDisabled?: (date: Date) => boolean;
-    private _getDateInfo?: (date: Date) => DateInfo | null;
+    private _getDateMetadata?: (date: Date) => DateInfo | null;
 
     static get observedAttributes() {
         return [
-            'mode', 'format', 'months-to-show', 'trigger', 'value', 'disabled', 'placeholder',
-            'week-start-day', 'min-date', 'max-date', 'disabled-days', 'range-disabled-mode',
-            'highlight-disabled-in-range', 'display', 'layout', 'grid-rows', 'grid-columns', 'position'
+            'selection-mode', 'date-format-mask', 'visible-months-count', 'calendar-open-trigger', 'value', 'disabled', 'placeholder',
+            'week-start-day', 'min-date', 'max-date', 'disabled-weekdays', 'range-disabled-handling',
+            'highlight-disabled-in-range', 'positioning-mode', 'month-layout', 'grid-rows', 'grid-columns', 'calendar-placement',
+            'locale', 'display-format-mask'
         ];
     }
 
@@ -72,13 +73,13 @@ export class DateRangePickerElement extends HTMLElement {
         styleSheet.textContent = styles;
         this.shadow.appendChild(styleSheet);
 
-        const display = this.getAttribute('display') || 'floating';
+        const display = this.getAttribute('positioning-mode') || 'floating';
 
         // Only create input for floating mode
         if (display === 'floating') {
             this.inputElement = document.createElement('input');
             this.inputElement.type = 'text';
-            this.inputElement.classList.add('pa-input', 'pa-date-picker-input');
+            this.inputElement.classList.add('drp-input', 'drp-date-picker-input');
 
             // Set initial attributes
             const placeholder = this.getAttribute('placeholder');
@@ -101,16 +102,16 @@ export class DateRangePickerElement extends HTMLElement {
     }
 
     private initializePicker() {
-        const display = this.getAttribute('display') || 'floating';
+        const display = this.getAttribute('positioning-mode') || 'floating';
 
         // For floating mode, require input element
         if (display === 'floating' && !this.inputElement) return;
 
-        // Parse disabled-days attribute (comma-separated numbers)
-        let disabledDays: number[] | undefined;
-        const disabledDaysAttr = this.getAttribute('disabled-days');
-        if (disabledDaysAttr) {
-            disabledDays = disabledDaysAttr.split(',').map(d => parseInt(d.trim())).filter(d => !isNaN(d) && d >= 0 && d <= 6);
+        // Parse disabled-weekdays attribute (comma-separated numbers)
+        let disabledWeekdays: number[] | undefined;
+        const disabledWeekdaysAttr = this.getAttribute('disabled-weekdays');
+        if (disabledWeekdaysAttr) {
+            disabledWeekdays = disabledWeekdaysAttr.split(',').map(d => parseInt(d.trim())).filter(d => !isNaN(d) && d >= 0 && d <= 6);
         }
 
         // Parse week-start-day attribute
@@ -128,33 +129,35 @@ export class DateRangePickerElement extends HTMLElement {
         }
 
         const options: DatePickerOptions = {
-            mode: (this.getAttribute('mode') as 'single' | 'range') || 'single',
-            format: this.getAttribute('format') || 'YYYY-MM-DD',
-            monthsToShow: parseInt(this.getAttribute('months-to-show') || '0') || undefined,
-            calendarTrigger: (this.getAttribute('trigger') as 'auto' | 'button') || 'auto',
+            selectionMode: (this.getAttribute('selection-mode') as 'single' | 'range') || 'single',
+            dateFormatMask: this.getAttribute('date-format-mask') || 'YYYY-MM-DD',
+            visibleMonthsCount: parseInt(this.getAttribute('visible-months-count') || '0') || undefined,
+            calendarOpenTrigger: (this.getAttribute('calendar-open-trigger') as 'auto' | 'button') || 'auto',
             onSelect: (date) => this.handleDateSelect(date),
             container: this.shadow as unknown as HTMLElement, // Append calendar to shadow root
-            display: display as 'inline' | 'floating',
+            positioningMode: display as 'inline' | 'floating',
 
             // Layout options
-            layout: (this.getAttribute('layout') as 'horizontal' | 'grid') || undefined,
+            monthLayout: (this.getAttribute('month-layout') as 'horizontal' | 'grid') || undefined,
             gridRows: parseInt(this.getAttribute('grid-rows') || '0') || undefined,
             gridColumns: parseInt(this.getAttribute('grid-columns') || '0') || undefined,
 
             // Positioning
-            position: this.getAttribute('position') || undefined,
+            calendarPlacement: this.getAttribute('calendar-placement') || undefined,
 
             // New options
             weekStartDay: weekStartDay,
             minDate: this.getAttribute('min-date') || undefined,
             maxDate: this.getAttribute('max-date') || undefined,
-            disabledDays: disabledDays,
+            disabledWeekdays: disabledWeekdays,
             disabledDates: this._disabledDates,
             specialDates: this._specialDates,
             isDateDisabled: this._isDateDisabled,
-            getDateInfo: this._getDateInfo,
-            rangeDisabledMode: (this.getAttribute('range-disabled-mode') as 'allow' | 'block' | 'split' | 'individual') || undefined,
-            highlightDisabledInRange: this.hasAttribute('highlight-disabled-in-range') ? this.getAttribute('highlight-disabled-in-range') === 'true' : undefined
+            getDateMetadata: this._getDateMetadata,
+            rangeDisabledHandling: (this.getAttribute('range-disabled-handling') as 'allow' | 'block' | 'split' | 'individual') || undefined,
+            highlightDisabledInRange: this.hasAttribute('highlight-disabled-in-range') ? this.getAttribute('highlight-disabled-in-range') === 'true' : undefined,
+            locale: this.getAttribute('locale') || 'auto',
+            displayFormatMask: this.getAttribute('display-format-mask') || undefined
         };
 
         // For inline mode, pass null as input element
@@ -179,7 +182,7 @@ export class DateRangePickerElement extends HTMLElement {
             return;
         }
 
-        const mode = this.picker.options.rangeDisabledMode;
+        const mode = this.picker.options.rangeDisabledHandling;
 
         if (!(date instanceof Date) && date.start && date.end) {
             // Range selection
@@ -257,15 +260,15 @@ export class DateRangePickerElement extends HTMLElement {
         this.picker?.toggle();
     }
 
-    public clear() {
-        this.picker?.clear();
+    public clearSelection() {
+        this.picker?.clearSelection();
     }
 
-    public getValue(): string {
+    public getInputValue(): string {
         return this.inputElement?.value || '';
     }
 
-    public setValue(value: string) {
+    public setInputValue(value: string) {
         if (this.inputElement) {
             this.inputElement.value = value;
         }
@@ -273,28 +276,28 @@ export class DateRangePickerElement extends HTMLElement {
     }
 
     // Property accessors
-    get mode(): 'single' | 'range' {
-        return (this.getAttribute('mode') as 'single' | 'range') || 'single';
+    get selectionMode(): 'single' | 'range' {
+        return (this.getAttribute('selection-mode') as 'single' | 'range') || 'single';
     }
 
-    set mode(value: 'single' | 'range') {
-        this.setAttribute('mode', value);
+    set selectionMode(value: 'single' | 'range') {
+        this.setAttribute('selection-mode', value);
     }
 
-    get format(): string {
-        return this.getAttribute('format') || 'YYYY-MM-DD';
+    get dateFormatMask(): string {
+        return this.getAttribute('date-format-mask') || 'YYYY-MM-DD';
     }
 
-    set format(value: string) {
-        this.setAttribute('format', value);
+    set dateFormatMask(value: string) {
+        this.setAttribute('date-format-mask', value);
     }
 
     get value(): string {
-        return this.getValue();
+        return this.getInputValue();
     }
 
     set value(val: string) {
-        this.setValue(val);
+        this.setInputValue(val);
     }
 
     get disabled(): boolean {
@@ -346,27 +349,27 @@ export class DateRangePickerElement extends HTMLElement {
         }
     }
 
-    // Disabled days property
-    get disabledDays(): number[] | undefined {
-        const attr = this.getAttribute('disabled-days');
+    // Disabled weekdays property
+    get disabledWeekdays(): number[] | undefined {
+        const attr = this.getAttribute('disabled-weekdays');
         if (!attr) return undefined;
         return attr.split(',').map(d => parseInt(d.trim())).filter(d => !isNaN(d) && d >= 0 && d <= 6);
     }
 
-    set disabledDays(value: number[] | undefined) {
+    set disabledWeekdays(value: number[] | undefined) {
         if (value && value.length > 0) {
-            this.setAttribute('disabled-days', value.join(','));
+            this.setAttribute('disabled-weekdays', value.join(','));
         } else {
-            this.removeAttribute('disabled-days');
+            this.removeAttribute('disabled-weekdays');
         }
     }
 
     // Complex data properties (not attributes)
-    get specialDates(): SpecialDate[] | undefined {
+    get specialDates(): DecoratedDate[] | undefined {
         return this._specialDates;
     }
 
-    set specialDates(value: SpecialDate[] | undefined) {
+    set specialDates(value: DecoratedDate[] | undefined) {
         this._specialDates = value;
         if (this.picker) {
             this.picker.destroy();
@@ -398,12 +401,12 @@ export class DateRangePickerElement extends HTMLElement {
         }
     }
 
-    get getDateInfo(): ((date: Date) => DateInfo | null) | undefined {
-        return this._getDateInfo;
+    get getDateMetadata(): ((date: Date) => DateInfo | null) | undefined {
+        return this._getDateMetadata;
     }
 
-    set getDateInfo(value: ((date: Date) => DateInfo | null) | undefined) {
-        this._getDateInfo = value;
+    set getDateMetadata(value: ((date: Date) => DateInfo | null) | undefined) {
+        this._getDateMetadata = value;
         if (this.picker) {
             this.picker.destroy();
             this.initializePicker();

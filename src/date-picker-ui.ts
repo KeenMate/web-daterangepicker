@@ -9,7 +9,7 @@ import { computePosition, flip, shift, offset, arrow } from '@floating-ui/dom';
 
 export function show(picker: any) {
     // Skip for inline mode (always visible)
-    if (picker.options.display === 'inline') return;
+    if (picker.options.positioningMode === 'inline') return;
 
     console.log('[DatePicker 11] Show called - adding visible class');
 
@@ -19,7 +19,7 @@ export function show(picker: any) {
         picker.isFirstRender = false;
     }
 
-    picker.calendar.classList.add('pa-date-picker--visible');
+    picker.calendar.classList.add('drp-date-picker--visible');
     picker.isCalendarActive = true; // Make calendar active when shown
     console.log('[DatePicker 11a] Calendar classes:', picker.calendar.className);
     position(picker);
@@ -31,14 +31,14 @@ export function show(picker: any) {
 
 export function hide(picker: any) {
     // Skip for inline mode (always visible)
-    if (picker.options.display === 'inline') return;
+    if (picker.options.positioningMode === 'inline') return;
 
     // Only process hide if calendar is actually visible
-    if (!picker.calendar.classList.contains('pa-date-picker--visible')) {
+    if (!picker.calendar.classList.contains('drp-date-picker--visible')) {
         return;
     }
 
-    picker.calendar.classList.remove('pa-date-picker--visible');
+    picker.calendar.classList.remove('drp-date-picker--visible');
     picker.isCalendarActive = false; // Deactivate calendar when hidden
     // Reset all rolling selectors to closed state
     for (let i = 0; i < picker.showingRollingSelector.length; i++) {
@@ -55,7 +55,7 @@ export function hide(picker: any) {
 }
 
 export function toggle(picker: any) {
-    if (picker.calendar.classList.contains('pa-date-picker--visible')) {
+    if (picker.calendar.classList.contains('drp-date-picker--visible')) {
         hide(picker);
     } else {
         show(picker);
@@ -73,7 +73,7 @@ export async function position(picker: any) {
         : [offset(8), flip(), shift({ padding: 8 })]; // Allow flip on first show
 
     const result = await computePosition(picker.input, picker.calendar, {
-        placement: (picker.lockedPlacement || picker.options.position) as any,
+        placement: (picker.lockedPlacement || picker.options.calendarPlacement) as any,
         middleware
     });
 
@@ -99,7 +99,7 @@ export async function showTooltip(picker: any, element: HTMLElement, content: st
     picker.currentTooltipTarget = element;
     picker.tooltip.textContent = content;
     picker.tooltip.appendChild(picker.tooltipArrow); // Re-append after setting textContent
-    picker.tooltip.classList.add('pa-date-picker__tooltip--visible');
+    picker.tooltip.classList.add('drp-date-picker__tooltip--visible');
 
     const { x, y, placement, middlewareData } = await computePosition(element, picker.tooltip, {
         placement: 'top',
@@ -143,6 +143,6 @@ export async function showTooltip(picker: any, element: HTMLElement, content: st
  */
 export function hideTooltip(picker: any) {
     if (!picker.tooltip) return;
-    picker.tooltip.classList.remove('pa-date-picker__tooltip--visible');
+    picker.tooltip.classList.remove('drp-date-picker__tooltip--visible');
     picker.currentTooltipTarget = undefined;
 }

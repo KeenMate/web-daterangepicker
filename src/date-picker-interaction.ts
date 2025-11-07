@@ -10,18 +10,27 @@
 export function initDragListeners(picker: any) {
     // For range mode, add mousedown listeners to ALL enabled days
     // This allows drawing a range from scratch without clicking first
-    if (picker.options.mode === 'range') {
-        const allDays = picker.calendar.querySelectorAll('.pa-date-picker__day:not(.pa-date-picker__day--disabled):not(.pa-date-picker__day--other-month)');
+    // BUT: We need to detect actual dragging vs clicking to allow both behaviors
+    if (picker.options.selectionMode === 'range') {
+        const allDays = picker.calendar.querySelectorAll('.drp-date-picker__day:not(.drp-date-picker__day--disabled):not(.drp-date-picker__day--other-month)');
 
         allDays.forEach(day => {
             day.addEventListener('mousedown', (e) => {
-                // Determine drag type based on what's clicked and what's selected
+                const mouseEvent = e as MouseEvent;
                 const dayElement = day as HTMLElement;
-                const isRangeStart = dayElement.classList.contains('pa-date-picker__day--range-start');
-                const isRangeEnd = dayElement.classList.contains('pa-date-picker__day--range-end');
 
-                // If clicking on existing range endpoints, drag that endpoint
-                // Otherwise, start a new range (draw from scratch)
+                // Store initial position to detect actual dragging
+                const startX = mouseEvent.clientX;
+                const startY = mouseEvent.clientY;
+                const dragThreshold = 5; // pixels
+
+                let hasMoved = false;
+                let dragStarted = false;
+
+                // Determine drag type based on what's clicked and what's selected
+                const isRangeStart = dayElement.classList.contains('drp-date-picker__day--range-start');
+                const isRangeEnd = dayElement.classList.contains('drp-date-picker__day--range-end');
+
                 let dragType: 'start' | 'end';
                 if (isRangeStart && picker.selectedStartDate && picker.selectedEndDate) {
                     dragType = 'start';
@@ -32,31 +41,83 @@ export function initDragListeners(picker: any) {
                     dragType = 'start';
                 }
 
-                startDrag(picker, e as MouseEvent, dragType);
+                // Listen for mouse movement
+                const onMouseMove = (moveEvent: MouseEvent) => {
+                    const deltaX = Math.abs(moveEvent.clientX - startX);
+                    const deltaY = Math.abs(moveEvent.clientY - startY);
+
+                    // Check if moved beyond threshold
+                    if (!hasMoved && (deltaX > dragThreshold || deltaY > dragThreshold)) {
+                        hasMoved = true;
+                    }
+
+                    // Start dragging if we've moved and haven't started yet
+                    if (hasMoved && !dragStarted) {
+                        dragStarted = true;
+                        // Now start the drag (this will add its own move/up listeners)
+                        // Pass the dayElement we have in scope instead of relying on event.currentTarget
+                        startDrag(picker, mouseEvent, dragType, dayElement);
+                        // Clean up our temporary listeners
+                        document.removeEventListener('mousemove', onMouseMove);
+                        document.removeEventListener('mouseup', onMouseUp);
+                    }
+                };
+
+                const onMouseUp = () => {
+                    // Mouse released without movement - this is a click, not a drag
+                    // Clean up listeners and let the click event fire normally
+                    document.removeEventListener('mousemove', onMouseMove);
+                    document.removeEventListener('mouseup', onMouseUp);
+
+                    // Don't do anything here - let the click event handler in date-picker.ts handle it
+                };
+
+                // Add temporary listeners to detect movement
+                document.addEventListener('mousemove', onMouseMove);
+                document.addEventListener('mouseup', onMouseUp);
             });
         });
     }
 }
 
-export function startDrag(picker: any, event: MouseEvent, type: 'start' | 'end') {
+export function startDrag(picker: any, event: MouseEvent, type: 'start' | 'end', dayElement: HTMLElement) {
     event.preventDefault();
     event.stopPropagation();
 
     picker.isDragging = true;
     picker.draggingType = type;
 
+    // Parse date from the clicked element
+    const clickedElement = dayElement;
+    const dateAttr = clickedElement.dataset.date;
+    let clickedDate: Date | null = null;
+    if (dateAttr) {
+        const [year, month, day] = dateAttr.split('-').map(Number);
+        clickedDate = new Date(year, month, day);
+    }
+
     // If no selection exists (drawing from scratch), use the clicked day as the start point
-    const clickedElement = event.currentTarget as HTMLElement;
     if (!picker.selectedStartDate && !picker.selectedEndDate) {
-        // Parse date from the clicked element
-        const dateAttr = clickedElement.dataset.date;
-        if (dateAttr) {
-            const [year, month, day] = dateAttr.split('-').map(Number);
-            const clickedDate = new Date(year, month, day);
+        if (clickedDate) {
             picker.originalStartDate = clickedDate;
             picker.originalEndDate = null;
             // Set type to 'end' so we're dragging the end point from this start
             picker.draggingType = 'end';
+        }
+    } else if (clickedDate && picker.selectedStartDate && !picker.selectedEndDate) {
+        // Single date selected but dragging from a DIFFERENT date - start new range
+        const isSameDate = clickedDate.getTime() === picker.selectedStartDate.getTime();
+        if (!isSameDate) {
+            // Clear the old selection and start fresh
+            picker.selectedStartDate = null;
+            picker.selectedEndDate = null;
+            picker.originalStartDate = clickedDate;
+            picker.originalEndDate = null;
+            picker.draggingType = 'end';
+        } else {
+            // Dragging from the selected start date - treat as extending range
+            picker.originalStartDate = new Date(picker.selectedStartDate);
+            picker.originalEndDate = null;
         }
     } else {
         // Existing range - store original positions for drag
@@ -69,7 +130,7 @@ export function startDrag(picker: any, event: MouseEvent, type: 'start' | 'end')
     }
 
     // Add dragging class to the day being dragged
-    clickedElement.classList.add('pa-date-picker__day--dragging');
+    clickedElement.classList.add('drp-date-picker__day--dragging');
 
     console.log(`[DatePicker Drag] Started dragging ${type} date`);
 
@@ -97,15 +158,15 @@ export function onDragMove(picker: any, event: MouseEvent) {
     }
 
     // Unified navigation button handling
-    const prevButton = element?.closest('.pa-date-picker__nav--prev');
-    const nextButton = element?.closest('.pa-date-picker__nav--next');
+    const prevButton = element?.closest('.drp-date-picker__nav--prev');
+    const nextButton = element?.closest('.drp-date-picker__nav--next');
 
     if (prevButton || nextButton) {
         // Hovering over a navigation button
         if (!picker.navInterval) {
             // Start navigation interval
             const button = (prevButton || nextButton) as Element;
-            const monthContainer = button.closest('.pa-date-picker__month');
+            const monthContainer = button.closest('.drp-date-picker__month');
             if (monthContainer && monthContainer instanceof HTMLElement) {
                 const monthIndex = parseInt(monthContainer.dataset.monthIndex || '0');
                 const isPrev = !!prevButton;
@@ -138,7 +199,7 @@ export function onDragMove(picker: any, event: MouseEvent) {
 
     // Find the day element under the cursor
     const dayElement = element;
-    if (!dayElement || !dayElement.classList.contains('pa-date-picker__day')) return;
+    if (!dayElement || !dayElement.classList.contains('drp-date-picker__day')) return;
 
     const dateAttr = (dayElement as HTMLElement).dataset.date;
     if (!dateAttr) return;
@@ -148,7 +209,7 @@ export function onDragMove(picker: any, event: MouseEvent) {
     let hoveredDate = new Date(year, month, day);
 
     // If hovering over a disabled day, snap to nearest enabled date
-    if (dayElement.classList.contains('pa-date-picker__day--disabled')) {
+    if (dayElement.classList.contains('drp-date-picker__day--disabled')) {
         const direction = picker.draggingType === 'start' ?
             (picker.originalEndDate && hoveredDate > picker.originalEndDate ? 'backward' : 'forward') :
             (picker.originalStartDate && hoveredDate < picker.originalStartDate ? 'forward' : 'backward');
@@ -177,7 +238,7 @@ export function onDragMove(picker: any, event: MouseEvent) {
     }
 
     // For 'block' mode, prevent range from crossing disabled dates
-    if (picker.options.rangeDisabledMode === 'block' && picker.dragPreviewStart && picker.dragPreviewEnd) {
+    if (picker.options.rangeDisabledHandling === 'block' && picker.dragPreviewStart && picker.dragPreviewEnd) {
         if (picker.hasDisabledDatesInRange(picker.dragPreviewStart, picker.dragPreviewEnd)) {
             // Adjust the preview to stop at the last enabled date before the gap
             if (picker.draggingType === 'start' && picker.originalEndDate) {
@@ -208,7 +269,7 @@ export function onDragEnd(picker: any, event: MouseEvent) {
         picker.selectedEndDate = findNearestEnabledDate(picker, picker.dragPreviewEnd, 'backward');
 
         // For 'block' mode, if there are disabled dates in range, snap to last enabled before gap
-        if (picker.options.rangeDisabledMode === 'block' &&
+        if (picker.options.rangeDisabledHandling === 'block' &&
             picker.hasDisabledDatesInRange(picker.selectedStartDate, picker.selectedEndDate)) {
             picker.selectedEndDate = picker.findLastEnabledBeforeGap(picker.selectedStartDate, picker.selectedEndDate);
         }
@@ -234,8 +295,8 @@ export function onDragEnd(picker: any, event: MouseEvent) {
     picker.dragPreviewEnd = null;
 
     // Remove dragging class
-    picker.calendar.querySelectorAll('.pa-date-picker__day--dragging').forEach(day => {
-        day.classList.remove('pa-date-picker__day--dragging');
+    picker.calendar.querySelectorAll('.drp-date-picker__day--dragging').forEach(day => {
+        day.classList.remove('drp-date-picker__day--dragging');
     });
 
     // Remove document-level listeners
@@ -316,7 +377,7 @@ export function handleInputMask(picker: any, event: Event) {
     const { separator } = picker.formatInfo;
 
     // For range mode, handle " to " separator
-    if (picker.options.mode === 'range') {
+    if (picker.options.selectionMode === 'range') {
         // Keep digits, date separators, and allow 'to' with spaces
         const cleanValue = currentValue.replace(new RegExp(`[^0-9${separator.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}to ]`, 'gi'), '');
 
@@ -457,7 +518,7 @@ export function handleKeydown(picker: any, event: KeyboardEvent) {
     const { separator } = picker.formatInfo;
 
     // If calendar is open, let document handler deal with navigation keys
-    if (picker.calendar.classList.contains('pa-date-picker--visible')) {
+    if (picker.calendar.classList.contains('drp-date-picker--visible')) {
         const navigationKeys = ['ArrowUp', 'ArrowDown', 'Home', 'End', 'PageUp', 'PageDown'];
         if (navigationKeys.includes(key)) {
             event.preventDefault(); // Prevent default input behavior
@@ -518,7 +579,7 @@ export function handleKeydown(picker: any, event: KeyboardEvent) {
     }
 
     // For range mode, also allow space and letters 't', 'o' (for " to ")
-    if (picker.options.mode === 'range') {
+    if (picker.options.selectionMode === 'range') {
         if (!/^\d$/.test(key) && key !== separator && key !== ' ' && key.toLowerCase() !== 't' && key.toLowerCase() !== 'o') {
             event.preventDefault();
         }
@@ -575,7 +636,7 @@ export function updateCalendarFromInput(picker: any) {
     console.log('[DatePicker] Format info:', { separator, parts, maxLength });
 
     // For range mode, split by " to " first
-    if (picker.options.mode === 'range' && value.includes(' to ')) {
+    if (picker.options.selectionMode === 'range' && value.includes(' to ')) {
         const rangeParts = value.split(' to ');
         const startValue = rangeParts[0];
         const endValue = rangeParts[1];
@@ -595,7 +656,7 @@ export function updateCalendarFromInput(picker: any) {
 
     // Single mode or range without " to " yet
     // Use helper to parse and update
-    const dateType = picker.options.mode === 'range' ? 'start' : 'single';
+    const dateType = picker.options.selectionMode === 'range' ? 'start' : 'single';
     parseAndUpdateSingleDate(picker, value, dateType);
 }
 
@@ -639,19 +700,19 @@ export function parseAndUpdateSingleDate(picker: any, value: string, dateType: s
         const newYear = year || new Date().getFullYear();
         const newMonth = month !== null ? month - 1 : new Date().getMonth();
 
-        if (picker.options.mode === 'single') {
+        if (picker.options.selectionMode === 'single') {
             picker.monthDates = [];
-            for (let i = 0; i < picker.options.monthsToShow; i++) {
+            for (let i = 0; i < picker.options.visibleMonthsCount; i++) {
                 const date = new Date(newYear, newMonth + i, 1);
                 picker.monthDates.push(date);
             }
-        } else if (picker.options.mode === 'range') {
+        } else if (picker.options.selectionMode === 'range') {
             // For start date or first date typed, update first month
             if (dateType === 'start' || !picker.selectedStartDate) {
                 picker.displayMonths = [
                     { month: newMonth, year: newYear }
                 ];
-                if (picker.options.monthsToShow > 1) {
+                if (picker.options.visibleMonthsCount > 1) {
                     const nextMonth = new Date(newYear, newMonth + 1, 1);
                     picker.displayMonths.push({
                         month: nextMonth.getMonth(),
@@ -660,7 +721,7 @@ export function parseAndUpdateSingleDate(picker: any, value: string, dateType: s
                 }
 
                 picker.monthDates = [];
-                for (let i = 0; i < picker.options.monthsToShow; i++) {
+                for (let i = 0; i < picker.options.visibleMonthsCount; i++) {
                     const monthData = picker.displayMonths[i];
                     const date = new Date(monthData.year, monthData.month, 1);
                     picker.monthDates.push(date);
@@ -685,7 +746,7 @@ export function parseAndUpdateSingleDate(picker: any, value: string, dateType: s
             picker.renderCalendar();
 
             // Update summary for range mode when both dates are complete
-            if (picker.options.mode === 'range') {
+            if (picker.options.selectionMode === 'range') {
                 picker.updateSummary();
             }
 
