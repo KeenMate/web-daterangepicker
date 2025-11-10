@@ -1,0 +1,168 @@
+// ==============================================================================
+// DATE RANGE PICKER - BASE STYLES
+// ==============================================================================
+// Base container styles, FOUC prevention, and root CSS custom properties
+
+@use 'variables' as *;
+
+// ==============================================================================
+// CSS CUSTOM PROPERTIES (CSS VARIABLES)
+// ==============================================================================
+// Define CSS custom properties with SCSS fallbacks for runtime customization
+
+:root {
+  // Colors
+  --drp-card-bg: #{$drp-calendar-bg};
+  --drp-border-color: #{$drp-border-color};
+  --drp-primary-bg: #{$drp-color-neutral-lighter};
+  --drp-primary-bg-hover: #{$drp-color-neutral-light};
+  --drp-accent-color: #{$drp-color-accent};
+  --drp-accent-color-hover: #{$drp-color-accent-dark};
+  --drp-text-primary: #{$drp-color-neutral-darkest};
+  --drp-text-secondary: #{$drp-color-neutral-dark};
+
+  // Spacing
+  --drp-spacing-xs: #{$drp-spacing-xs};
+  --drp-spacing-sm: #{$drp-spacing-sm};
+  --drp-spacing-md: #{$drp-spacing-md};
+  --drp-spacing-lg: #{$drp-spacing-lg};
+  --drp-spacing-xl: #{$drp-spacing-xl};
+
+  // Typography
+  --drp-font-size-2xs: #{$drp-font-size-2xs};
+  --drp-font-size-xs: #{$drp-font-size-xs};
+  --drp-font-size-sm: #{$drp-font-size-sm};
+  --drp-font-size-base: #{$drp-font-size-base};
+  --drp-font-size-lg: #{$drp-font-size-lg};
+  --drp-font-size-xl: #{$drp-font-size-xl};
+  --drp-font-size-2xl: #{$drp-font-size-2xl};
+  --drp-font-weight-medium: #{$drp-font-weight-medium};
+  --drp-font-weight-semibold: #{$drp-font-weight-semibold};
+
+  // Borders
+  --drp-border-width-base: #{$drp-border-width-base};
+  --drp-border-radius: #{$drp-border-radius};
+
+  // Shadows
+  --drp-shadow-xl: #{$drp-shadow-xl};
+
+  // Transitions
+  --drp-transition-fast: #{$drp-transition-fast};
+  --drp-easing-snappy: #{$drp-easing-snappy};
+
+  // Input
+  --drp-input-padding-h: #{$drp-input-padding-h};
+
+  // Grid
+  --drp-grid-columns: #{$drp-grid-columns};
+  --drp-grid-rows: #{$drp-grid-rows};
+}
+
+// ==============================================================================
+// DATE PICKER INPUT FIELD
+// ==============================================================================
+
+.drp-date-picker-input {
+  position: relative;
+  cursor: pointer;
+
+  &::after {
+    content: '📅';
+    position: absolute;
+    right: var(--drp-input-padding-h);
+    top: 50%;
+    transform: translateY(-50%);
+    pointer-events: none;
+    opacity: $drp-input-icon-opacity;
+  }
+}
+
+// ==============================================================================
+// CALENDAR POPUP CONTAINER
+// ==============================================================================
+
+.drp-date-picker {
+  position: absolute;
+  z-index: $drp-z-index-dropdown;
+  background: var(--drp-card-bg);
+  border: var(--drp-border-width-base) solid var(--drp-border-color);
+  border-radius: var(--drp-border-radius);
+  box-shadow: var(--drp-shadow-xl);
+  padding: var(--drp-spacing-md);
+  min-width: $drp-month-min-width;
+  max-width: $drp-calendar-max-width;
+  box-sizing: border-box;
+  user-select: none;
+
+  // Hide by default
+  &:not(.drp-date-picker--visible) {
+    display: none;
+  }
+
+  // Inline mode modifier
+  &--inline {
+    position: relative !important;
+    display: block !important;
+    z-index: auto;
+    min-width: 0;
+    max-width: 100%;
+    width: fit-content;
+    box-sizing: border-box;
+  }
+}
+
+// ==============================================================================
+// MONTHS CONTAINER (MULTI-MONTH LAYOUT)
+// ==============================================================================
+
+.drp-date-picker__months {
+  display: flex;
+  gap: var(--drp-spacing-lg);
+
+  // Allow wrapping for inline mode on small screens
+  .drp-date-picker--inline & {
+    flex-wrap: wrap;
+  }
+
+  // Grid layout mode
+  &--grid {
+    display: grid;
+    grid-template-columns: repeat(var(--drp-grid-columns, 3), minmax(0, 1fr));
+    grid-template-rows: repeat(var(--drp-grid-rows, 2), auto);
+    gap: var(--drp-spacing-lg);
+    width: 100%;
+
+    // Responsive breakpoints
+    @media (max-width: 1200px) {
+      grid-template-columns: repeat(min(var(--drp-grid-columns, 3), 3), minmax(0, 1fr));
+    }
+
+    @media (max-width: 768px) {
+      grid-template-columns: repeat(min(var(--drp-grid-columns, 3), 2), minmax(0, 1fr));
+    }
+
+    @media (max-width: 480px) {
+      grid-template-columns: minmax(0, 1fr);
+    }
+  }
+}
+
+// ==============================================================================
+// INDIVIDUAL MONTH CONTAINER
+// ==============================================================================
+
+.drp-date-picker__month {
+  flex: 1;
+  min-width: $drp-month-min-width;
+
+  // Allow shrinking for inline mode
+  .drp-date-picker--inline & {
+    min-width: $drp-month-min-width-inline;
+  }
+
+  // Grid layout: remove min-width to allow proper grid sizing
+  .drp-date-picker__months--grid & {
+    min-width: 0;
+    width: 100%;
+  }
+}

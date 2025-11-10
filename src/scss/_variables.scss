@@ -1,0 +1,399 @@
+// ==============================================================================
+// DATE RANGE PICKER - SCSS VARIABLES
+// ==============================================================================
+// This file contains all SCSS variables for the date range picker component.
+// All variables use the `$drp-` prefix (date range picker).
+// Variables use the `!default` flag to allow customization.
+
+// ==============================================================================
+// BASE PRIMITIVES
+// ==============================================================================
+// These are foundational values that can be used across the component
+
+$padding-xs: 0.25rem !default;
+$padding-sm: 0.5rem !default;
+$padding-base: 0.75rem !default;
+$padding-md: 1rem !default;
+$padding-lg: 1.5rem !default;
+
+$border-radius-sm: 0.25rem !default;
+$border-radius-base: 0.375rem !default;
+$border-radius-md: 0.5rem !default;
+$border-radius-full: 9999px !default;
+
+$font-size-2xs: 0.625rem !default;
+$font-size-xs: 0.75rem !default;
+$font-size-sm: 0.875rem !default;
+$font-size-base: 1rem !default;
+$font-size-lg: 1.125rem !default;
+$font-size-xl: 1.25rem !default;
+$font-size-2xl: 1.5rem !default;
+
+$border-width-base: 1px !default;
+
+// ==============================================================================
+// SPACING SCALE
+// ==============================================================================
+
+$drp-spacing-xs: 0.25rem !default;
+$drp-spacing-sm: 0.5rem !default;
+$drp-spacing-md: 1rem !default;
+$drp-spacing-lg: 1.5rem !default;
+$drp-spacing-xl: 2rem !default;
+
+// ==============================================================================
+// COLOR PALETTE
+// ==============================================================================
+
+// Neutral Colors
+$drp-color-white: #ffffff !default;
+$drp-color-neutral-lightest: #f9fafb !default;
+$drp-color-neutral-lighter: #f3f4f6 !default;
+$drp-color-neutral-light: #e5e7eb !default;
+$drp-color-neutral: #d1d5db !default;
+$drp-color-neutral-medium: #9ca3af !default;
+$drp-color-neutral-dark: #6b7280 !default;
+$drp-color-neutral-darker: #4b5563 !default;
+$drp-color-neutral-darkest: #111827 !default;
+
+// Accent Colors (Blue)
+$drp-color-accent-lightest: #eff6ff !default;
+$drp-color-accent-lighter: #dbeafe !default;
+$drp-color-accent-light: #93c5fd !default;
+$drp-color-accent: #3b82f6 !default;
+$drp-color-accent-dark: #2563eb !default;
+$drp-color-accent-darker: #1d4ed8 !default;
+
+// Error/Danger Colors (Red)
+$drp-color-error-light: #fecaca !default;
+$drp-color-error: #ef4444 !default;
+$drp-color-error-dark: #dc2626 !default;
+
+// Success Colors (Green)
+$drp-color-success-light: #bbf7d0 !default;
+$drp-color-success: #10b981 !default;
+$drp-color-success-dark: #059669 !default;
+
+// Special Event Colors
+$drp-color-holiday: #ef4444 !default;
+$drp-color-event: #3b82f6 !default;
+$drp-color-birthday: #ec4899 !default;
+$drp-color-meeting: #8b5cf6 !default;
+$drp-color-vip: #f59e0b !default;
+
+// ==============================================================================
+// TYPOGRAPHY SCALE
+// ==============================================================================
+
+$drp-font-size-2xs: $font-size-2xs !default;
+$drp-font-size-xs: $font-size-xs !default;
+$drp-font-size-sm: $font-size-sm !default;
+$drp-font-size-base: $font-size-base !default;
+$drp-font-size-lg: $font-size-lg !default;
+$drp-font-size-xl: $font-size-xl !default;
+$drp-font-size-2xl: $font-size-2xl !default;
+
+$drp-font-weight-normal: 400 !default;
+$drp-font-weight-medium: 500 !default;
+$drp-font-weight-semibold: 600 !default;
+$drp-font-weight-bold: 700 !default;
+
+$drp-line-height-none: 1 !default;
+$drp-line-height-tight: 1.25 !default;
+$drp-line-height-normal: 1.5 !default;
+$drp-line-height-relaxed: 1.75 !default;
+
+$drp-letter-spacing-tight: -0.025em !default;
+$drp-letter-spacing-normal: 0 !default;
+$drp-letter-spacing-wide: 0.025em !default;
+
+// ==============================================================================
+// BORDERS & SHADOWS
+// ==============================================================================
+
+$drp-border-width-base: $border-width-base !default;
+$drp-border-width-thick: 2px !default;
+
+$drp-border-radius: $border-radius-base !default;
+$drp-border-radius-sm: $border-radius-sm !default;
+$drp-border-radius-md: $border-radius-md !default;
+$drp-border-radius-full: $border-radius-full !default;
+
+$drp-border-color: $drp-color-neutral-light !default;
+$drp-border-color-hover: $drp-color-accent !default;
+$drp-border-color-focus: $drp-color-accent !default;
+
+$drp-shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05) !default;
+$drp-shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1) !default;
+$drp-shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1) !default;
+$drp-shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1) !default;
+
+// ==============================================================================
+// TRANSITIONS & ANIMATIONS
+// ==============================================================================
+
+$drp-transition-fast: 150ms !default;
+$drp-transition-normal: 200ms !default;
+$drp-transition-slow: 300ms !default;
+
+$drp-easing-linear: linear !default;
+$drp-easing-ease: ease !default;
+$drp-easing-snappy: cubic-bezier(0.4, 0.0, 0.2, 1) !default;
+$drp-easing-smooth: cubic-bezier(0.4, 0.0, 0.6, 1) !default;
+
+// ==============================================================================
+// Z-INDEX LAYERS
+// ==============================================================================
+
+$drp-z-index-base: 1 !default;
+$drp-z-index-sticky: 100 !default;
+$drp-z-index-dropdown: 9500 !default;
+$drp-z-index-overlay: 9000 !default;
+$drp-z-index-popover: 9600 !default;
+$drp-z-index-tooltip: 9999 !default;
+
+// ==============================================================================
+// LAYOUT & DIMENSIONS
+// ==============================================================================
+
+$drp-month-min-width: 280px !default;
+$drp-month-min-width-inline: 250px !default;
+$drp-calendar-max-width: calc(100vw - 2rem) !default;
+
+// ==============================================================================
+// OPACITY VALUES
+// ==============================================================================
+
+$drp-opacity-disabled: 0.6 !default;
+$drp-opacity-other-month: 0.5 !default;
+$drp-opacity-hover: 0.8 !default;
+$drp-opacity-dragging: 0.7 !default;
+
+// ==============================================================================
+// COMPONENT SEMANTIC VARIABLES
+// ==============================================================================
+// These variables map to specific component parts and use the base primitives
+
+// --------------------------------------
+// Calendar Container
+// --------------------------------------
+$drp-calendar-bg: $drp-color-white !default;
+$drp-calendar-padding: $drp-spacing-md !default;
+$drp-calendar-border-color: $drp-border-color !default;
+$drp-calendar-border-width: $drp-border-width-base !default;
+$drp-calendar-border-radius: $drp-border-radius !default;
+$drp-calendar-shadow: $drp-shadow-xl !default;
+
+// --------------------------------------
+// Input Field
+// --------------------------------------
+$drp-input-padding-h: $padding-base !default;
+$drp-input-icon-opacity: 0.6 !default;
+
+// --------------------------------------
+// Header (Month/Year Navigation)
+// --------------------------------------
+$drp-header-margin-bottom: $drp-spacing-md !default;
+$drp-header-gap: $drp-spacing-sm !default;
+
+$drp-month-year-font-size: $drp-font-size-base !default;
+$drp-month-year-font-weight: $drp-font-weight-semibold !default;
+$drp-month-year-padding-v: $drp-spacing-sm !default;
+$drp-month-year-padding-h: $drp-spacing-md !default;
+$drp-month-year-bg-hover: $drp-color-neutral-lighter !default;
+$drp-month-year-bg-active: $drp-color-neutral-light !default;
+$drp-month-year-border-radius: $drp-border-radius !default;
+
+// --------------------------------------
+// Navigation Buttons
+// --------------------------------------
+$drp-nav-size: 2rem !default;
+$drp-nav-font-size: $drp-font-size-lg !default;
+$drp-nav-border-color: $drp-border-color !default;
+$drp-nav-border-width: $drp-border-width-base !default;
+$drp-nav-border-radius: $drp-border-radius !default;
+$drp-nav-bg-hover: $drp-color-neutral-lighter !default;
+$drp-nav-bg-active: $drp-color-neutral-light !default;
+$drp-nav-border-color-hover: $drp-color-accent !default;
+$drp-nav-opacity-disabled: $drp-opacity-disabled !default;
+
+// --------------------------------------
+// Rolling Selector (Month/Year Picker)
+// --------------------------------------
+$drp-rolling-gap: $drp-spacing-md !default;
+$drp-rolling-margin-bottom: $drp-spacing-md !default;
+$drp-rolling-border-color: $drp-border-color !default;
+$drp-rolling-border-width: $drp-border-width-base !default;
+$drp-rolling-border-radius: $drp-border-radius !default;
+$drp-rolling-scrollbar-width: 6px !default;
+$drp-rolling-scrollbar-bg: $drp-color-neutral-lighter !default;
+$drp-rolling-scrollbar-thumb: $drp-border-color !default;
+$drp-rolling-scrollbar-thumb-hover: $drp-color-accent !default;
+
+$drp-rolling-item-padding-v: $drp-spacing-sm !default;
+$drp-rolling-item-padding-h: $drp-spacing-md !default;
+$drp-rolling-item-font-size: $drp-font-size-sm !default;
+$drp-rolling-item-bg-hover: $drp-color-neutral-lighter !default;
+$drp-rolling-item-bg-selected: $drp-color-accent !default;
+$drp-rolling-item-color-selected: $drp-color-white !default;
+$drp-rolling-item-font-weight-selected: $drp-font-weight-semibold !default;
+
+// --------------------------------------
+// Weekday Labels
+// --------------------------------------
+$drp-weekday-font-size: $drp-font-size-xs !default;
+$drp-weekday-font-weight: $drp-font-weight-semibold !default;
+$drp-weekday-color: $drp-color-neutral-dark !default;
+$drp-weekday-padding: $drp-spacing-xs !default;
+$drp-weekday-margin-bottom: $drp-spacing-sm !default;
+
+// --------------------------------------
+// Day Cells
+// --------------------------------------
+$drp-day-font-size: $drp-font-size-sm !default;
+$drp-day-border-radius: $drp-border-radius !default;
+$drp-day-border-width: 2px !default;
+$drp-day-border-color: transparent !default;
+$drp-day-bg-hover: $drp-color-neutral-lighter !default;
+$drp-day-border-color-hover: $drp-color-accent !default;
+
+// Day - Today
+$drp-day-today-border-color: $drp-color-accent !default;
+$drp-day-today-font-weight: $drp-font-weight-semibold !default;
+
+// Day - Selected
+$drp-day-selected-bg: $drp-color-accent !default;
+$drp-day-selected-color: $drp-color-white !default;
+$drp-day-selected-font-weight: $drp-font-weight-semibold !default;
+$drp-day-selected-bg-hover: $drp-color-accent-dark !default;
+
+// Day - Focused (keyboard)
+$drp-day-focused-outline-color: $drp-color-accent !default;
+$drp-day-focused-outline-width: 2px !default;
+$drp-day-focused-outline-offset: 2px !default;
+
+// Day - Disabled
+$drp-day-disabled-color: $drp-color-neutral-dark !default;
+$drp-day-disabled-opacity: $drp-opacity-disabled !default;
+$drp-day-disabled-pattern-opacity: 0.1 !default;
+
+// Day - Other Month
+$drp-day-other-month-color: $drp-color-neutral-dark !default;
+$drp-day-other-month-opacity: $drp-opacity-other-month !default;
+
+// Day - Range Selection
+$drp-day-range-start-bg: $drp-color-accent !default;
+$drp-day-range-start-color: $drp-color-white !default;
+$drp-day-range-end-bg: $drp-color-accent !default;
+$drp-day-range-end-color: $drp-color-white !default;
+$drp-day-in-range-bg-opacity: 0.15 !default;
+$drp-day-in-range-hover-bg-opacity: 0.25 !default;
+
+// Day - Dragging
+$drp-day-dragging-opacity: $drp-opacity-dragging !default;
+$drp-day-dragging-scale: 1.1 !default;
+$drp-day-drag-preview-bg-opacity: 0.30 !default;
+$drp-day-drag-preview-border-style: dashed !default;
+$drp-day-drag-preview-edge-bg-opacity: 0.60 !default;
+$drp-day-drag-invalid-bg: $drp-color-error !default;
+$drp-day-drag-invalid-bg-opacity: 0.20 !default;
+
+// --------------------------------------
+// Badge System
+// --------------------------------------
+$drp-badge-font-size: $drp-font-size-2xs !default;
+$drp-badge-padding-v: 1px !default;
+$drp-badge-padding-h: 2px !default;
+$drp-badge-border-radius: 2px !default;
+$drp-badge-max-height: $drp-font-size-base !default;
+
+// Badge Type Colors
+$drp-badge-number-bg: $drp-color-success !default;
+$drp-badge-number-color: $drp-color-white !default;
+$drp-badge-count-bg: $drp-color-error !default;
+$drp-badge-count-color: $drp-color-white !default;
+$drp-badge-text-bg: $drp-color-neutral-dark !default;
+$drp-badge-text-color: $drp-color-white !default;
+
+// Badge Event Type Colors
+$drp-badge-holiday-bg: $drp-color-holiday !default;
+$drp-badge-event-bg: $drp-color-event !default;
+$drp-badge-birthday-bg: $drp-color-birthday !default;
+$drp-badge-meeting-bg: $drp-color-meeting !default;
+$drp-badge-vip-bg: $drp-color-vip !default;
+
+// Special Date Highlighting
+$drp-holiday-bg-opacity: 0.10 !default;
+$drp-holiday-hover-bg-opacity: 0.20 !default;
+$drp-event-bg-opacity: 0.10 !default;
+$drp-event-hover-bg-opacity: 0.20 !default;
+
+// --------------------------------------
+// Selection Summary
+// --------------------------------------
+$drp-summary-padding: $drp-spacing-md !default;
+$drp-summary-border-color: $drp-border-color !default;
+$drp-summary-border-width: $drp-border-width-base !default;
+$drp-summary-font-size: $drp-font-size-sm !default;
+$drp-summary-color: $drp-color-neutral-dark !default;
+$drp-summary-count-font-weight: $drp-font-weight-semibold !default;
+$drp-summary-count-color: $drp-color-accent !default;
+$drp-summary-count-font-size: $drp-font-size-base !default;
+
+// --------------------------------------
+// Tooltip
+// --------------------------------------
+$drp-tooltip-bg: $drp-color-neutral-darkest !default;
+$drp-tooltip-color: $drp-color-white !default;
+$drp-tooltip-padding-v: $drp-spacing-xs !default;
+$drp-tooltip-padding-h: $drp-spacing-sm !default;
+$drp-tooltip-border-radius: $drp-border-radius !default;
+$drp-tooltip-font-size: $drp-font-size-xs !default;
+$drp-tooltip-line-height: 1.4 !default;
+$drp-tooltip-max-width: 200px !default;
+$drp-tooltip-arrow-size: 8px !default;
+
+// --------------------------------------
+// Action Buttons
+// --------------------------------------
+$drp-actions-gap: $drp-spacing-sm !default;
+$drp-actions-padding-top: $drp-spacing-sm !default;
+$drp-actions-border-color: $drp-border-color !default;
+$drp-actions-border-width: $drp-border-width-base !default;
+
+$drp-button-padding-v: $drp-spacing-sm !default;
+$drp-button-padding-h: $drp-spacing-md !default;
+$drp-button-font-size: $drp-font-size-sm !default;
+$drp-button-font-weight: $drp-font-weight-medium !default;
+$drp-button-border-width: $drp-border-width-base !default;
+$drp-button-border-color: $drp-border-color !default;
+$drp-button-border-radius: $drp-border-radius !default;
+$drp-button-bg-hover: $drp-color-neutral-lighter !default;
+$drp-button-border-color-hover: $drp-color-accent !default;
+
+$drp-button-today-color: $drp-color-accent !default;
+$drp-button-clear-color: $drp-color-neutral-dark !default;
+$drp-button-cancel-color: $drp-color-neutral-dark !default;
+
+$drp-button-apply-bg: $drp-color-accent !default;
+$drp-button-apply-color: $drp-color-white !default;
+$drp-button-apply-border-color: $drp-color-accent !default;
+$drp-button-apply-bg-hover: $drp-color-accent-dark !default;
+
+// --------------------------------------
+// Multi-Month Layout
+// --------------------------------------
+$drp-months-gap: $drp-spacing-lg !default;
+$drp-grid-columns: 3 !default;
+$drp-grid-rows: 2 !default;
+
+// ==============================================================================
+// SIZE VARIANT MULTIPLIERS
+// ==============================================================================
+// Used by modifiers partial for size variants
+
+$drp-size-xs-multiplier: 0.7 !default;
+$drp-size-sm-multiplier: 0.85 !default;
+$drp-size-md-multiplier: 1 !default;
+$drp-size-lg-multiplier: 1.2 !default;
+$drp-size-xl-multiplier: 1.4 !default;

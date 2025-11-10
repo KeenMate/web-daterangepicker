@@ -1,0 +1,87 @@
+// ==============================================================================
+// DATE RANGE PICKER - SUMMARY & ACTIONS
+// ==============================================================================
+// Selection summary (days/nights count) and action buttons (Today, Clear, Apply)
+
+@use 'variables' as *;
+
+// ==============================================================================
+// SELECTION SUMMARY (DAYS/NIGHTS COUNT)
+// ==============================================================================
+
+.drp-date-picker__summary {
+  text-align: center;
+  padding: var(--drp-spacing-md);
+  border-top: var(--drp-border-width-base) solid var(--drp-border-color);
+  font-size: var(--drp-font-size-sm);
+  color: var(--drp-text-secondary);
+
+  &--visible {
+    display: block;
+  }
+
+  &--hidden {
+    display: none;
+  }
+}
+
+.drp-date-picker__summary-count {
+  font-weight: var(--drp-font-weight-semibold);
+  color: var(--drp-accent-color);
+  font-size: var(--drp-font-size-base);
+}
+
+// ==============================================================================
+// ACTION BUTTONS
+// ==============================================================================
+
+.drp-date-picker__actions {
+  display: flex;
+  gap: var(--drp-spacing-sm);
+  justify-content: space-between;
+  padding-top: var(--drp-spacing-sm);
+  border-top: var(--drp-border-width-base) solid var(--drp-border-color);
+}
+
+.drp-date-picker__button {
+  flex: 1;
+  padding: var(--drp-spacing-sm) var(--drp-spacing-md);
+  border: var(--drp-border-width-base) solid var(--drp-border-color);
+  border-radius: var(--drp-border-radius);
+  background: transparent;
+  cursor: pointer;
+  font-size: var(--drp-font-size-sm);
+  font-weight: var(--drp-font-weight-medium);
+  transition: all var(--drp-transition-fast) var(--drp-easing-snappy);
+
+  &:hover {
+    background-color: var(--drp-primary-bg);
+    border-color: var(--drp-accent-color);
+  }
+
+  // Today Button
+  &--today {
+    color: var(--drp-accent-color);
+  }
+
+  // Clear Button
+  &--clear {
+    color: var(--drp-text-secondary);
+  }
+
+  // Apply Button (primary action)
+  &--apply {
+    background-color: var(--drp-accent-color);
+    color: $drp-button-apply-color;
+    border-color: var(--drp-accent-color);
+
+    &:hover {
+      background-color: var(--drp-accent-color-hover);
+    }
+  }
+
+  // Cancel Button
+  &--cancel {
+    color: var(--drp-text-secondary);
+  }
+}

@@ -1,0 +1,93 @@
+// ==============================================================================
+// DATE RANGE PICKER - BADGES
+// ==============================================================================
+// Badge system for displaying event markers, counts, and labels on calendar days
+
+@use 'variables' as *;
+
+// ==============================================================================
+// BADGE ROWS (GRID-BASED SYSTEM)
+// ==============================================================================
+
+.drp-date-picker__badge-row {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: var(--drp-spacing-xs);
+  margin-bottom: var(--drp-spacing-xs);
+  max-height: $drp-badge-max-height;
+  min-height: $drp-badge-max-height;
+}
+
+.drp-date-picker__badge-cell {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--drp-font-size-2xs);
+  padding: $drp-badge-padding-v $drp-badge-padding-h;
+  border-radius: $drp-badge-border-radius;
+  transition: all var(--drp-transition-fast) var(--drp-easing-snappy);
+  cursor: pointer;
+  height: 100%;
+  max-height: $drp-badge-max-height;
+
+  &:empty {
+    visibility: hidden;
+  }
+
+  &:hover:not(:empty) {
+    transform: scale(1.05);
+  }
+}
+
+// ==============================================================================
+// BADGE TYPE STYLES
+// ==============================================================================
+
+// Number Badge (e.g., day number, count)
+.drp-date-picker__badge-cell.badge-number {
+  background-color: $drp-badge-number-bg;
+  color: $drp-badge-number-color;
+  font-size: 0.7rem;
+  font-weight: 600;
+}
+
+// Count Badge (e.g., number of events)
+.drp-date-picker__badge-cell.badge-count {
+  background-color: $drp-badge-count-bg;
+  color: $drp-badge-count-color;
+  font-size: 0.7rem;
+  font-weight: 700;
+}
+
+// Text Badge (generic)
+.drp-date-picker__badge-cell.badge-text {
+  background-color: $drp-badge-text-bg;
+  color: $drp-badge-text-color;
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+// ==============================================================================
+// EVENT-SPECIFIC BADGE STYLES
+// ==============================================================================
+
+.drp-date-picker__badge-cell.badge-text.holiday-text {
+  background-color: $drp-badge-holiday-bg;
+}
+
+.drp-date-picker__badge-cell.badge-text.event-text {
+  background-color: $drp-badge-event-bg;
+}
+
+.drp-date-picker__badge-cell.badge-text.birthday-text {
+  background-color: $drp-badge-birthday-bg;
+}
+
+.drp-date-picker__badge-cell.badge-text.meeting-text {
+  background-color: $drp-badge-meeting-bg;
+}
+
+.drp-date-picker__badge-cell.badge-text.vip-text {
+  background-color: $drp-badge-vip-bg;
+}

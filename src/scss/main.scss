@@ -1,0 +1,28 @@
+// ==============================================================================
+// DATE RANGE PICKER COMPONENT - MAIN ENTRY POINT
+// ==============================================================================
+//
+// File structure:
+// ├── _variables.scss          - All SCSS variables with $drp- prefix
+// ├── _base.scss               - Base container, FOUC prevention, CSS custom properties
+// ├── _header-navigation.scss  - Header, month/year display, nav buttons, rolling selector
+// ├── _calendar-grid.scss      - Weekdays, day cells, all day states
+// ├── _badges.scss             - Badge system for events/markers
+// ├── _summary-actions.scss    - Selection summary and action buttons
+// ├── _tooltips.scss           - Floating UI tooltips
+// ├── _modifiers.scss          - Size variants, font/spacing scaling, responsive
+// └── main.scss                - This file (imports all partials)
+//
+// Import order matters - variables must be first, modifiers should be last
+//
+// ==============================================================================
+
+// Import all partials in dependency order
+@use 'variables';
+@use 'base';
+@use 'header-navigation';
+@use 'calendar-grid';
+@use 'badges';
+@use 'summary-actions';
+@use 'tooltips';
+@use 'modifiers';

@@ -5,15 +5,19 @@
   "type": "module",
   "main": "./dist/date-range-picker.umd.js",
   "module": "./dist/date-range-picker.js",
+  "types": "./dist/index.d.ts",
   "style": "./dist/style.css",
   "exports": {
     ".": {
+      "types": "./dist/index.d.ts",
       "import": "./dist/date-range-picker.js",
       "require": "./dist/date-range-picker.umd.js",
       "default": "./dist/date-range-picker.js"
     },
     "./style.css": "./dist/style.css",
+    "./scss": "./src/scss/main.scss",
     "./dist/*": "./dist/*",
+    "./src/scss/*": "./src/scss/*",
     "./package.json": "./package.json"
   },
   "sideEffects": [
@@ -22,7 +26,8 @@
     "*.css"
   ],
   "files": [
-    "dist"
+    "dist",
+    "src/scss"
   ],
   "scripts": {
     "dev": "vite",

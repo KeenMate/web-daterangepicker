@@ -102,7 +102,8 @@ class PureDatePicker {
             highlightDisabledInRange: options.highlightDisabledInRange !== undefined ? options.highlightDisabledInRange : true,
             locale: options.locale || 'auto',
             displayFormatMask: options.displayFormatMask,
-            customStrings: options.customStrings
+            customStrings: options.customStrings,
+            formatSummaryCallback: options.formatSummaryCallback
         };
 
         // Detect/set week start day
@@ -905,7 +906,7 @@ class PureDatePicker {
     renderDays(monthIndex: number, date: Date) { return Rendering.renderDays(this, monthIndex, date); }
     renderRollingSelector(monthIndex: number) { return Rendering.renderRollingSelector(this, monthIndex); }
     updateSummary() { return Rendering.updateSummary(this); }
-    updateSummaryWithPreview(previewStart: Date, previewEnd: Date) { return Rendering.updateSummaryWithPreview(this, previewStart, previewEnd); }
+    updateSummaryWithPreview() { return Rendering.updateSummaryWithPreview(this); }
     updateDragPreview() { return Rendering.updateDragPreview(this); }
 
     // Navigation methods - wrappers for pure functions

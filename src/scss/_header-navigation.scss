@@ -1,0 +1,163 @@
+// ==============================================================================
+// DATE RANGE PICKER - HEADER & NAVIGATION
+// ==============================================================================
+// Month/year header, navigation buttons, and rolling selector
+
+@use 'variables' as *;
+
+// ==============================================================================
+// CALENDAR HEADER
+// ==============================================================================
+
+.drp-date-picker__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--drp-spacing-md);
+  gap: var(--drp-spacing-sm);
+}
+
+// ==============================================================================
+// MONTH/YEAR DISPLAY (CLICKABLE TO OPEN ROLLING SELECTOR)
+// ==============================================================================
+
+.drp-date-picker__month-year {
+  flex: 1;
+  text-align: center;
+  font-weight: var(--drp-font-weight-semibold);
+  font-size: var(--drp-font-size-base);
+  padding: var(--drp-spacing-sm) var(--drp-spacing-md);
+  border-radius: var(--drp-border-radius);
+  cursor: pointer;
+  transition: background-color var(--drp-transition-fast) var(--drp-easing-snappy);
+
+  &:hover {
+    background-color: var(--drp-primary-bg);
+  }
+
+  &:active {
+    background-color: var(--drp-primary-bg-hover);
+  }
+}
+
+// ==============================================================================
+// NAVIGATION BUTTONS (PREVIOUS/NEXT MONTH)
+// ==============================================================================
+
+.drp-date-picker__nav {
+  width: $drp-nav-size;
+  height: $drp-nav-size;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: var(--drp-border-width-base) solid var(--drp-border-color);
+  border-radius: var(--drp-border-radius);
+  background: transparent;
+  cursor: pointer;
+  transition: all var(--drp-transition-fast) var(--drp-easing-snappy);
+  font-size: var(--drp-font-size-lg);
+  color: var(--drp-text-primary);
+
+  &:hover {
+    background-color: var(--drp-primary-bg);
+    border-color: var(--drp-accent-color);
+  }
+
+  &:active {
+    background-color: var(--drp-primary-bg-hover);
+  }
+
+  // Disabled state
+  &--disabled,
+  &[disabled] {
+    opacity: $drp-nav-opacity-disabled;
+    cursor: not-allowed;
+    pointer-events: none;
+
+    &:hover {
+      background-color: transparent;
+      border-color: var(--drp-border-color);
+    }
+  }
+
+  &--prev::before {
+    content: '‹';
+  }
+
+  &--next::before {
+    content: '›';
+  }
+}
+
+// ==============================================================================
+// ROLLING SELECTOR VIEW (MONTH/YEAR SELECTION)
+// ==============================================================================
+
+.drp-date-picker__rolling-selector {
+  display: none;
+
+  &.drp-date-picker__rolling-selector--visible {
+    display: flex;
+
+    // Hide calendar days when rolling selector is visible
+    ~ .drp-date-picker__weekdays,
+    ~ .drp-date-picker__days {
+      display: none;
+    }
+  }
+
+  gap: var(--drp-spacing-md);
+  margin-bottom: var(--drp-spacing-md);
+  // Height is set dynamically via JavaScript to match calendar content
+}
+
+.drp-date-picker__rolling-list {
+  flex: 1;
+  height: 100%; // Fill parent height (set dynamically on parent)
+  overflow-y: auto;
+  border: var(--drp-border-width-base) solid var(--drp-border-color);
+  border-radius: var(--drp-border-radius);
+
+  // Smooth scrolling
+  scroll-behavior: smooth;
+
+  // Custom scrollbar
+  &::-webkit-scrollbar {
+    width: $drp-rolling-scrollbar-width;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: var(--drp-primary-bg);
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: var(--drp-border-color);
+    border-radius: 3px;
+
+    &:hover {
+      background: var(--drp-accent-color);
+    }
+  }
+}
+
+.drp-date-picker__rolling-item {
+  padding: var(--drp-spacing-sm) var(--drp-spacing-md);
+  text-align: center;
+  cursor: pointer;
+  font-size: var(--drp-font-size-sm);
+  transition: background-color var(--drp-transition-fast) var(--drp-easing-snappy);
+
+  &:hover {
+    background-color: var(--drp-primary-bg);
+  }
+
+  &--selected {
+    background-color: var(--drp-accent-color);
+    color: $drp-rolling-item-color-selected;
+    font-weight: var(--drp-font-weight-semibold);
+
+    &:hover {
+      background-color: var(--drp-accent-color-hover);
+    }
+  }
+}
