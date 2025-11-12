@@ -6,12 +6,13 @@
  */
 
 import { computePosition, flip, shift, offset, arrow } from '@floating-ui/dom';
+import { uiLogger } from './logger';
 
 export function show(picker: any) {
     // Skip for inline mode (always visible)
     if (picker.options.positioningMode === 'inline') return;
 
-    console.log('[DatePicker 11] Show called - adding visible class');
+    uiLogger.debug('show() - adding visible class');
 
     // Render calendar on first show to avoid rendering hidden days
     if (picker.isFirstRender) {
@@ -21,11 +22,11 @@ export function show(picker: any) {
 
     picker.calendar.classList.add('drp-date-picker--visible');
     picker.isCalendarActive = true; // Make calendar active when shown
-    console.log('[DatePicker 11a] Calendar classes:', picker.calendar.className);
+    uiLogger.debug('show() - calendar classes:', picker.calendar.className);
     position(picker);
     setTimeout(() => {
         const computedStyle = window.getComputedStyle(picker.calendar);
-        console.log('[DatePicker 11e] Calendar display:', computedStyle.display, 'position:', computedStyle.position, 'left:', computedStyle.left, 'top:', computedStyle.top, 'z-index:', computedStyle.zIndex);
+        uiLogger.debug('show() - computed styles - display:', computedStyle.display, 'position:', computedStyle.position, 'left:', computedStyle.left, 'top:', computedStyle.top, 'z-index:', computedStyle.zIndex);
     }, 100);
 }
 
@@ -63,7 +64,7 @@ export function toggle(picker: any) {
 }
 
 export async function position(picker: any) {
-    console.log('[DatePicker 11b] Position method called, locked placement:', picker.lockedPlacement);
+    uiLogger.debug('position() - locked placement:', picker.lockedPlacement);
 
     if (!picker.input) return;
 
@@ -77,17 +78,17 @@ export async function position(picker: any) {
         middleware
     });
 
-    console.log('[DatePicker 11c] FloatingUI computed position - x:', result.x, 'y:', result.y, 'placement:', result.placement);
+    uiLogger.debug('position() - FloatingUI computed - x:', result.x, 'y:', result.y, 'placement:', result.placement);
 
     // Lock the placement after first positioning to prevent jumping
     if (!picker.lockedPlacement) {
         picker.lockedPlacement = result.placement;
-        console.log('[DatePicker 11c-lock] Locked placement to:', picker.lockedPlacement);
+        uiLogger.debug('position() - locked placement to:', picker.lockedPlacement);
     }
 
     picker.calendar.style.left = `${result.x}px`;
     picker.calendar.style.top = `${result.y}px`;
-    console.log('[DatePicker 11d] Position applied to calendar');
+    uiLogger.debug('position() - applied styles to calendar');
 }
 
 /**
@@ -145,4 +146,30 @@ export function hideTooltip(picker: any) {
     if (!picker.tooltip) return;
     picker.tooltip.classList.remove('drp-date-picker__tooltip--visible');
     picker.currentTooltipTarget = undefined;
+}
+
+/**
+ * Show loading overlay during async validation
+ */
+export function showLoadingOverlay(picker: any): void {
+    if (picker.loadingOverlay) return; // Already showing
+
+    const overlay = document.createElement('div');
+    overlay.className = 'drp-date-picker__loading-overlay';
+    overlay.innerHTML = `
+        <div class="drp-date-picker__loading-spinner"></div>
+    `;
+
+    picker.calendar.appendChild(overlay);
+    picker.loadingOverlay = overlay;
+}
+
+/**
+ * Hide loading overlay after async validation completes
+ */
+export function hideLoadingOverlay(picker: any): void {
+    if (picker.loadingOverlay) {
+        picker.loadingOverlay.remove();
+        picker.loadingOverlay = undefined;
+    }
 }

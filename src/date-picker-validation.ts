@@ -214,7 +214,7 @@ export function findLastEnabledBeforeGap(
         current.setDate(current.getDate() + 1);
     }
 
-    return lastEnabled;
+    return endDate;  // No disabled dates found, return the original end date
 }
 
 /**

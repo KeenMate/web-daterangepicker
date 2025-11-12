@@ -26,6 +26,7 @@
   text-align: center;
   font-weight: var(--drp-font-weight-semibold);
   font-size: var(--drp-font-size-base);
+  color: var(--drp-text-primary);
   padding: var(--drp-spacing-sm) var(--drp-spacing-md);
   border-radius: var(--drp-border-radius);
   cursor: pointer;
@@ -153,7 +154,7 @@
 
   &--selected {
     background-color: var(--drp-accent-color);
-    color: $drp-rolling-item-color-selected;
+    color: var(--drp-accent-text-color);
     font-weight: var(--drp-font-weight-semibold);
 
     &:hover {

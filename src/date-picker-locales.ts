@@ -5,6 +5,7 @@
  */
 
 import type { LocaleStrings } from './types';
+import log from './logger';
 
 /**
  * Built-in locale strings for supported languages
@@ -106,7 +107,7 @@ export function getWeekdayNames(locale: string): string[] {
     return weekdays;
   } catch (e) {
     // Fallback to English if Intl fails
-    console.warn('[DatePicker] Intl.DateTimeFormat failed, using English weekdays', e);
+    log.warn('getWeekdayNames() - Intl.DateTimeFormat failed, using English weekdays', e);
     return ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'];
   }
 }
@@ -132,7 +133,7 @@ export function getMonthNames(locale: string): string[] {
     return months;
   } catch (e) {
     // Fallback to English if Intl fails
-    console.warn('[DatePicker] Intl.DateTimeFormat failed, using English months', e);
+    log.warn('getMonthNames() - Intl.DateTimeFormat failed, using English months', e);
     return [
       'January', 'February', 'March', 'April', 'May', 'June',
       'July', 'August', 'September', 'October', 'November', 'December'

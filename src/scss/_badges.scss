@@ -60,34 +60,13 @@
 }
 
 // Text Badge (generic)
+// Note: Background colors for specific badge types (holiday, event, birthday, etc.)
+// should be defined by the application, not the component library.
+// See index.html examples for how to customize badge colors for your use case.
 .drp-date-picker__badge-cell.badge-text {
   background-color: $drp-badge-text-bg;
   color: $drp-badge-text-color;
   font-size: 0.65rem;
   font-weight: 700;
   text-transform: uppercase;
-}
-
-// ==============================================================================
-// EVENT-SPECIFIC BADGE STYLES
-// ==============================================================================
-
-.drp-date-picker__badge-cell.badge-text.holiday-text {
-  background-color: $drp-badge-holiday-bg;
-}
-
-.drp-date-picker__badge-cell.badge-text.event-text {
-  background-color: $drp-badge-event-bg;
-}
-
-.drp-date-picker__badge-cell.badge-text.birthday-text {
-  background-color: $drp-badge-birthday-bg;
-}
-
-.drp-date-picker__badge-cell.badge-text.meeting-text {
-  background-color: $drp-badge-meeting-bg;
-}
-
-.drp-date-picker__badge-cell.badge-text.vip-text {
-  background-color: $drp-badge-vip-bg;
 }

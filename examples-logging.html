@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Debug & Logging Examples - Date Range Picker</title>
+  <link rel="stylesheet" href="dist/style.css">
+  <style>
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 2rem;
+      background: #f9fafb;
+    }
+
+    h1 {
+      color: #111827;
+      border-bottom: 2px solid #e5e7eb;
+      padding-bottom: 1rem;
+      margin-bottom: 2rem;
+    }
+
+    .back-link {
+      display: inline-block;
+      margin-bottom: 1rem;
+      color: #667eea;
+      text-decoration: none;
+      font-weight: 500;
+    }
+
+    .back-link:hover {
+      text-decoration: underline;
+    }
+
+    .demo-section {
+      background: white;
+      margin-bottom: 2rem;
+      padding: 1.5rem;
+      border: 1px solid #e5e7eb;
+      border-radius: 0.5rem;
+      box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1);
+    }
+
+    .demo-section h2 {
+      margin-top: 0;
+      margin-bottom: 0.5rem;
+      font-size: 1.25rem;
+      color: #111827;
+    }
+
+    .demo-section p {
+      margin-bottom: 1rem;
+      color: #6b7280;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 0.5rem;
+      font-weight: 600;
+      color: #374151;
+    }
+
+    .warning {
+      margin-top: 1rem;
+      padding: 0.75rem;
+      background-color: #fef3c7;
+      border: 1px solid #f59e0b;
+      border-radius: 0.375rem;
+      color: #92400e;
+    }
+
+    .info {
+      margin-top: 1rem;
+      padding: 0.75rem;
+      background-color: #dbeafe;
+      border: 1px solid #3b82f6;
+      border-radius: 0.375rem;
+      color: #1e40af;
+    }
+
+    .success {
+      margin-top: 1rem;
+      padding: 0.75rem;
+      background-color: #d1fae5;
+      border: 1px solid #10b981;
+      border-radius: 0.375rem;
+      color: #065f46;
+    }
+
+    .code-block {
+      background: #1f2937;
+      color: #f9fafb;
+      padding: 1rem;
+      border-radius: 0.375rem;
+      overflow-x: auto;
+      font-family: 'Courier New', monospace;
+      font-size: 0.875rem;
+      margin-top: 1rem;
+    }
+
+    .console-output {
+      background: #0f172a;
+      color: #94a3b8;
+      padding: 1rem;
+      border-radius: 0.375rem;
+      font-family: 'Courier New', monospace;
+      font-size: 0.8rem;
+      margin-top: 1rem;
+      max-height: 300px;
+      overflow-y: auto;
+    }
+
+    .log-category {
+      display: inline-block;
+      padding: 0.125rem 0.5rem;
+      border-radius: 0.25rem;
+      font-size: 0.75rem;
+      font-weight: 600;
+      margin-right: 0.5rem;
+    }
+
+    .cat-init { background: #dbeafe; color: #1e40af; }
+    .cat-navigation { background: #fef3c7; color: #92400e; }
+    .cat-ui { background: #d1fae5; color: #065f46; }
+    .cat-rendering { background: #fce7f3; color: #831843; }
+    .cat-selection { background: #e0e7ff; color: #3730a3; }
+    .cat-validation { background: #fed7aa; color: #9a3412; }
+    .cat-drag { background: #fecaca; color: #991b1b; }
+    .cat-interaction { background: #e9d5ff; color: #6b21a8; }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 1rem;
+    }
+
+    th, td {
+      padding: 0.75rem;
+      text-align: left;
+      border-bottom: 1px solid #e5e7eb;
+    }
+
+    th {
+      background: #f9fafb;
+      font-weight: 600;
+      color: #374151;
+    }
+
+    code {
+      background: #f3f4f6;
+      padding: 0.125rem 0.375rem;
+      border-radius: 0.25rem;
+      font-family: 'Courier New', monospace;
+      font-size: 0.875em;
+    }
+  </style>
+</head>
+<body>
+  <a href="index.html" class="back-link">← Back to Examples</a>
+
+  <h1>🐛 Debug & Logging Examples</h1>
+
+  <div class="demo-section">
+    <h2>Overview: Built-in Logging System</h2>
+    <div class="info">
+      <strong>Professional debugging with loglevel</strong><br><br>
+      The date picker includes a comprehensive logging system powered by <strong>loglevel</strong> library.
+      Logs are categorized, timestamped, and easy to filter for troubleshooting.
+    </div>
+    <div class="warning">
+      <strong>⚠️ Development Only</strong><br>
+      Debug logging is for development only. Never ship with <code>show-debug-info</code> enabled in production!
+    </div>
+  </div>
+
+  <div class="demo-section">
+    <h2>Log Categories</h2>
+    <p>The logging system organizes output into 8 categories:</p>
+    <table>
+      <thead>
+        <tr>
+          <th>Category</th>
+          <th>Badge</th>
+          <th>What It Logs</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><code>INIT</code></td>
+          <td><span class="log-category cat-init">INIT</span></td>
+          <td>Component initialization, option parsing, setup</td>
+        </tr>
+        <tr>
+          <td><code>NAVIGATION</code></td>
+          <td><span class="log-category cat-navigation">NAVIGATION</span></td>
+          <td>Month navigation, keyboard navigation</td>
+        </tr>
+        <tr>
+          <td><code>UI</code></td>
+          <td><span class="log-category cat-ui">UI</span></td>
+          <td>Show/hide calendar, positioning, visibility changes</td>
+        </tr>
+        <tr>
+          <td><code>RENDERING</code></td>
+          <td><span class="log-category cat-rendering">RENDERING</span></td>
+          <td>Calendar rendering, day cell updates, DOM operations</td>
+        </tr>
+        <tr>
+          <td><code>SELECTION</code></td>
+          <td><span class="log-category cat-selection">SELECTION</span></td>
+          <td>Date selection, range selection, value changes</td>
+        </tr>
+        <tr>
+          <td><code>VALIDATION</code></td>
+          <td><span class="log-category cat-validation">VALIDATION</span></td>
+          <td>Date validation, disabled date handling, range validation</td>
+        </tr>
+        <tr>
+          <td><code>DRAG</code></td>
+          <td><span class="log-category cat-drag">DRAG</span></td>
+          <td>Drag-to-adjust functionality, drag previews</td>
+        </tr>
+        <tr>
+          <td><code>INTERACTION</code></td>
+          <td><span class="log-category cat-interaction">INTERACTION</span></td>
+          <td>User interactions, clicks, hover events</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="demo-section">
+    <h2>Example 1: Basic Logging</h2>
+    <p>Enable debug logging with the <code>show-debug-info</code> attribute:</p>
+    <div class="code-block">&lt;date-range-picker
+  selection-mode="single"
+  show-debug-info&gt;
+&lt;/date-range-picker&gt;</div>
+
+    <label>Try it - Open console (F12) and interact:</label>
+    <date-range-picker
+      id="basic-debug"
+      selection-mode="single"
+      show-debug-info
+      placeholder="Click to see logs">
+    </date-range-picker>
+
+    <div class="success">
+      ✅ Open your browser console (F12) and click the input to see initialization and UI logs
+    </div>
+
+    <p style="margin-top: 1.5rem;"><strong>Expected console output:</strong></p>
+    <div class="console-output">[14:23:15.420] [DEBUG] [INIT] Week starts on day: 1
+[14:23:15.425] [DEBUG] [INIT] Creating calendar
+[14:23:15.428] [DEBUG] [RENDERING] renderCalendar() called
+[14:23:15.430] [DEBUG] [UI] show() - adding visible class
+[14:23:15.432] [DEBUG] [UI] Positioning calendar
+[14:23:15.435] [DEBUG] [RENDERING] Rendering month 0: November 2025</div>
+  </div>
+
+  <div class="demo-section">
+    <h2>Example 2: Range Selection with Validation Logs</h2>
+    <p>See validation logs when selecting date ranges with disabled dates:</p>
+    <label>Range picker with disabled weekends:</label>
+    <date-range-picker
+      id="range-debug"
+      selection-mode="range"
+      visible-months-count="2"
+      disabled-weekdays="0,6"
+      disabled-dates-handling="block"
+      show-debug-info
+      placeholder="Select a range">
+    </date-range-picker>
+
+    <div class="info">
+      💡 Try selecting a range that crosses weekends. Watch the console for <strong>VALIDATION</strong> logs showing how the component adjusts the range.
+    </div>
+
+    <p style="margin-top: 1.5rem;"><strong>Expected validation logs:</strong></p>
+    <div class="console-output">[14:23:45.122] [DEBUG] [VALIDATION] validateRangeAsync called - mode: block
+[14:23:45.125] [DEBUG] [VALIDATION] BLOCK mode - adjusted end: Fri Jan 05 2025
+[14:23:45.128] [DEBUG] [SELECTION] Range selected: 2025-01-02 to 2025-01-05
+[14:23:45.130] [DEBUG] [VALIDATION] Validating 4 enabled dates</div>
+  </div>
+
+  <div class="demo-section">
+    <h2>Example 3: Navigation & Rendering Logs</h2>
+    <p>Track calendar navigation and rendering:</p>
+    <label>Multi-month picker:</label>
+    <date-range-picker
+      id="nav-debug"
+      selection-mode="single"
+      visible-months-count="3"
+      show-debug-info
+      placeholder="Navigate months">
+    </date-range-picker>
+
+    <div class="info">
+      💡 Click the navigation arrows to switch months. Watch for <strong>NAVIGATION</strong> and <strong>RENDERING</strong> logs.
+    </div>
+
+    <p style="margin-top: 1.5rem;"><strong>Expected navigation logs:</strong></p>
+    <div class="console-output">[14:24:10.250] [DEBUG] [NAVIGATION] Next month clicked for index 0
+[14:24:10.253] [DEBUG] [NAVIGATION] New month: December 2025
+[14:24:10.255] [DEBUG] [RENDERING] renderCalendar() called
+[14:24:10.258] [DEBUG] [RENDERING] Rendering month 0: December 2025
+[14:24:10.260] [DEBUG] [RENDERING] Rendering month 1: January 2026
+[14:24:10.262] [DEBUG] [RENDERING] Rendering month 2: February 2026</div>
+  </div>
+
+  <div class="demo-section">
+    <h2>Example 4: Drag-to-Adjust Logs</h2>
+    <p>Track drag interactions in range mode:</p>
+    <label>Range picker with drag support:</label>
+    <date-range-picker
+      id="drag-debug"
+      selection-mode="range"
+      visible-months-count="2"
+      value="2025-11-10 to 2025-11-20"
+      show-debug-info
+      placeholder="Select and drag">
+    </date-range-picker>
+
+    <div class="info">
+      💡 Select a range, then drag the start or end dates. Watch for <strong>DRAG</strong> logs showing drag start, preview, and end.
+    </div>
+
+    <p style="margin-top: 1.5rem;"><strong>Expected drag logs:</strong></p>
+    <div class="console-output">[14:25:30.100] [DEBUG] [DRAG] Drag started - type: start
+[14:25:30.450] [DEBUG] [DRAG] Dragging over: 2025-11-08
+[14:25:30.455] [DEBUG] [DRAG] Preview range: 2025-11-08 to 2025-11-20
+[14:25:30.800] [DEBUG] [DRAG] Drag ended
+[14:25:30.803] [DEBUG] [SELECTION] Range updated via drag: 2025-11-08 to 2025-11-20</div>
+  </div>
+
+  <div class="demo-section">
+    <h2>Filtering Console Logs</h2>
+    <p>Use browser console filters to focus on specific categories:</p>
+
+    <h3 style="font-size: 1rem; margin-top: 1.5rem;">Filter by Category</h3>
+    <div class="code-block">// In browser console filter box:
+[INIT]          // Only initialization logs
+[VALIDATION]    // Only validation logs
+[SELECTION]     // Only selection logs
+[DRAG]          // Only drag logs</div>
+
+    <h3 style="font-size: 1rem; margin-top: 1.5rem;">Filter by Function</h3>
+    <div class="code-block">// Filter by function name:
+renderCalendar  // Only calendar rendering
+validateRange   // Only range validation
+selectDate      // Only date selection</div>
+
+    <h3 style="font-size: 1rem; margin-top: 1.5rem;">Programmatic Control</h3>
+    <div class="code-block">// Access the picker instance
+const picker = document.querySelector('date-range-picker').picker;
+
+// Enable/disable specific categories
+picker.logger.setLevel('debug');  // Show all
+picker.logger.setLevel('error');  // Errors only
+picker.logger.setLevel('silent'); // Disable all</div>
+  </div>
+
+  <div class="demo-section">
+    <h2>Log Message Format</h2>
+    <p>Each log message includes:</p>
+    <div class="code-block">[HH:MM:SS.mmm] [LEVEL] [CATEGORY] Message with context
+
+Example:
+[14:23:15.420] [DEBUG] [INIT] Week starts on day: 1
+    │            │        │       │
+    │            │        │       └─ Message with details
+    │            │        └───────── Category (INIT, UI, etc.)
+    │            └────────────────── Log level (DEBUG, ERROR, etc.)
+    └─────────────────────────────── Timestamp (millisecond precision)</div>
+  </div>
+
+  <div class="demo-section">
+    <h2>Best Practices</h2>
+    <ul style="margin-left: 1.5rem; color: #374151;">
+      <li style="margin-bottom: 0.5rem;"><strong>Development:</strong> Enable <code>show-debug-info</code> when troubleshooting</li>
+      <li style="margin-bottom: 0.5rem;"><strong>Production:</strong> Always remove <code>show-debug-info</code> attribute</li>
+      <li style="margin-bottom: 0.5rem;"><strong>Performance:</strong> Logs are minimal overhead when disabled</li>
+      <li style="margin-bottom: 0.5rem;"><strong>Filtering:</strong> Use console filters to reduce noise</li>
+      <li style="margin-bottom: 0.5rem;"><strong>Categories:</strong> Focus on specific categories for targeted debugging</li>
+      <li style="margin-bottom: 0.5rem;"><strong>Timestamps:</strong> Use millisecond precision to measure performance</li>
+    </ul>
+  </div>
+
+  <div class="demo-section">
+    <h2>Complete Example</h2>
+    <div class="code-block">&lt;!-- HTML with debug enabled --&gt;
+&lt;date-range-picker
+  selection-mode="range"
+  visible-months-count="2"
+  disabled-weekdays="0,6"
+  disabled-dates-handling="block"
+  show-debug-info&gt;
+&lt;/date-range-picker&gt;
+
+&lt;script&gt;
+  // Listen to events and log details
+  const picker = document.querySelector('date-range-picker');
+
+  picker.addEventListener('date-select', (e) => {
+    console.log('Date selected event:', e.detail);
+  });
+
+  // Programmatic logging control
+  setTimeout(() => {
+    // Disable logging after 30 seconds
+    if (picker.picker) {
+      picker.picker.logger.setLevel('silent');
+      console.log('Debug logging disabled');
+    }
+  }, 30000);
+&lt;/script&gt;</div>
+  </div>
+
+  <script type="module" src="dist/date-range-picker.js"></script>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      console.log('🐛 Debug & Logging Examples Loaded');
+      console.log('');
+      console.log('📋 Instructions:');
+      console.log('1. Keep this console open (F12)');
+      console.log('2. Interact with the date pickers above');
+      console.log('3. Watch the categorized log output');
+      console.log('4. Try filtering logs by category: [INIT], [SELECTION], [VALIDATION], etc.');
+      console.log('');
+      console.log('💡 Each picker on this page has show-debug-info enabled');
+      console.log('');
+
+      // Add event listeners for demonstrations
+      const pickers = document.querySelectorAll('date-range-picker');
+      pickers.forEach((picker, index) => {
+        picker.addEventListener('date-select', (e) => {
+          console.log(`%c[DEMO] Picker ${index + 1} selected:`, 'color: #10b981; font-weight: bold', e.detail);
+        });
+      });
+    });
+  </script>
+</body>
+</html>

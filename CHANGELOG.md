@@ -7,8 +7,51 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.0.0-rc03] - 2025-11-11
+
+### Removed
+
+- **Old SCSS File**: Removed `src/scss/_date-picker.scss.old` (replaced by modular SCSS architecture)
+
+### Added
+
+- **Example Files**: Added comprehensive example HTML files
+  - `examples-basic.html` - Basic usage examples
+  - `examples-logging.html` - Logging and debugging examples
+  - `examples-theming.html` - Theming and customization examples
+
+## [1.0.0-rc02] - 2025-11-11
+
+### Added
+
+- **Convenience Package Exports**: Added direct exports for commonly used SCSS files
+  - `@keenmate/web-daterangepicker/scss/variables` - Direct access to SCSS variables
+  - `@keenmate/web-daterangepicker/scss/base` - Direct access to CSS custom properties definitions
+  - Makes it easier to import just the variables or base styles without traversing paths
+
 ### Fixed
 
+- **Dark Theme Color System**: Fixed theming system to support proper dark mode and custom color schemes
+  - **Root Cause**: CSS color properties were missing from month titles and day cells, causing text to default to black
+  - **Added Missing Color Declarations**:
+    - Added `color: var(--drp-text-primary)` to `.drp-date-picker__month-year` in `_header-navigation.scss`
+    - Added `color: var(--drp-text-primary)` to `.drp-date-picker__day` in `_calendar-grid.scss`
+  - **New CSS Variables for Themeable Text Colors**:
+    - Added `--drp-accent-text-color` for text on accent-colored backgrounds (default: white)
+    - Added `--drp-button-text-color` for button text (default: white)
+  - **Replaced Hardcoded Colors**: Converted all hardcoded white text colors to CSS variables:
+    - Selected days, range dates, and drag preview edges now use `var(--drp-accent-text-color)`
+    - Apply button now uses `var(--drp-button-text-color)`
+    - Rolling selector selected items now use `var(--drp-accent-text-color)`
+  - **Updated Dark Theme Example**: Enhanced `examples-theming.html` with proper dark mode colors:
+    - `--drp-text-primary: #f1f5f9` (light text for dark backgrounds)
+    - `--drp-accent-text-color: #ffffff` (white text on blue accents)
+    - `--drp-button-text-color: #ffffff` (white text on buttons)
+  - This enables full theming support where accent colors, backgrounds, and text colors can all be customized independently
+- **SCSS Import Structure**: Fixed web component to use new modular SCSS architecture
+  - Changed `web-component.ts` to import `./scss/main.scss` instead of old monolithic `_date-picker.scss`
+  - Ensures all color properties from modular files are included in the build
+  - Renamed old file to `_date-picker.scss.old` to prevent confusion
 - **Range Mode Selection Border**: Fixed visual bug where the original clicked date retained its selection border when dragging a range from a different date
   - When clicking a date and then dragging from a different date, the picker now correctly clears the old selection
   - Prevents confusing visual state where multiple dates appear selected
@@ -20,6 +63,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Documentation
 
+- **Input Styling Limitation**: Documented Shadow DOM limitation for input field styling
+  - Added comprehensive warning section in Custom Styling documentation page
+  - Explained why component cannot style the `<input>` element directly (Shadow DOM encapsulation)
+  - Provided CSS examples for styling inputs in global styles
+  - Included framework examples for Tailwind CSS and Bootstrap
+  - Cross-referenced with API documentation Known Limitations section
 - **Placeholder Clarification**: Documented that `placeholder` attribute must be set explicitly even when using `display-format-mask`
   - The `display-format-mask` only provides localized format tokens for display
   - The `placeholder` attribute controls the actual input placeholder text

@@ -52,6 +52,7 @@
   align-items: center;
   justify-content: center;
   font-size: var(--drp-font-size-sm);
+  color: var(--drp-text-primary);
   border-radius: var(--drp-border-radius);
   cursor: pointer;
   transition: all var(--drp-transition-fast) var(--drp-easing-snappy);
@@ -76,7 +77,7 @@
   // --------------------------------------
   &--selected {
     background-color: var(--drp-accent-color);
-    color: $drp-day-selected-color;
+    color: var(--drp-accent-text-color);
     font-weight: var(--drp-font-weight-semibold);
 
     &:hover {
@@ -148,7 +149,7 @@
   &--range-start,
   &--range-end {
     background-color: var(--drp-accent-color);
-    color: $drp-day-range-start-color;
+    color: var(--drp-accent-text-color);
     font-weight: var(--drp-font-weight-semibold);
     cursor: grab;
     user-select: none;
@@ -183,7 +184,7 @@
     &.drp-date-picker__day--range-start,
     &.drp-date-picker__day--range-end {
       background-color: color-mix(in srgb, var(--drp-accent-color) $drp-day-drag-preview-edge-bg-opacity * 100%, transparent);
-      color: $drp-color-white;
+      color: var(--drp-accent-text-color);
     }
   }
 
@@ -195,14 +196,17 @@
 }
 
 // ==============================================================================
-// SPECIAL DATE HIGHLIGHTING
+// SPECIAL DATE HIGHLIGHTING (EXAMPLES)
 // ==============================================================================
+// These are example classes showing how to highlight special dates.
+// Applications should define their own classes with appropriate colors.
+// The .holiday and .event classes here use component colors as examples only.
 
 .drp-date-picker__day.holiday {
-  background-color: color-mix(in srgb, $drp-color-holiday $drp-holiday-bg-opacity * 100%, transparent);
+  background-color: color-mix(in srgb, $drp-color-error $drp-holiday-bg-opacity * 100%, transparent);
 
   &:hover:not(.drp-date-picker__day--disabled) {
-    background-color: color-mix(in srgb, $drp-color-holiday $drp-holiday-hover-bg-opacity * 100%, transparent);
+    background-color: color-mix(in srgb, $drp-color-error $drp-holiday-hover-bg-opacity * 100%, transparent);
   }
 }
 

@@ -22,6 +22,7 @@ import * as Selection from './date-picker-selection';
 import * as Interaction from './date-picker-interaction';
 import * as UI from './date-picker-ui';
 import { resolveLocale, getLocaleStrings, getWeekdayNames, getMonthNames } from './date-picker-locales';
+import { initLogger, navigationLogger, setLoggingEnabled } from './logger';
 
 class PureDatePicker {
     input: HTMLInputElement | null;
@@ -56,6 +57,10 @@ class PureDatePicker {
     private calendarContentHeight?: number; // Store calendar height for rolling selector
     private isCalendarActive: boolean = false; // Track if this calendar is actively focused (for inline mode)
 
+    // Async validation state
+    private isValidating: boolean = false;
+    private loadingOverlay?: HTMLElement;
+
     // Floating UI tooltips
     private tooltip?: HTMLElement;
     private tooltipArrow?: HTMLElement;
@@ -75,7 +80,6 @@ class PureDatePicker {
     monthNames: string[] = [];
 
     constructor(inputElement: HTMLInputElement | null, options: DatePickerOptions = {}) {
-        console.log('[DatePicker 4] Constructor called for input:', inputElement);
         this.input = inputElement;
         this.containerElement = options.container || document.body;
         this.options = {
@@ -98,31 +102,37 @@ class PureDatePicker {
             specialDates: options.specialDates,
             isDateDisabled: options.isDateDisabled,
             getDateMetadata: options.getDateMetadata,
-            rangeDisabledHandling: options.rangeDisabledHandling || 'allow',
+            disabledDatesHandling: options.disabledDatesHandling || 'allow',
             highlightDisabledInRange: options.highlightDisabledInRange !== undefined ? options.highlightDisabledInRange : true,
             locale: options.locale || 'auto',
             displayFormatMask: options.displayFormatMask,
             customStrings: options.customStrings,
-            formatSummaryCallback: options.formatSummaryCallback
+            formatSummaryCallback: options.formatSummaryCallback,
+            validateRangeCallback: options.validateRangeCallback,
+            showDebugInfo: options.showDebugInfo || false
         };
+
+        // Enable/disable logging based on showDebugInfo option
+        setLoggingEnabled(this.options.showDebugInfo);
 
         // Detect/set week start day
         this.weekStartDay = Validation.detectWeekStartDay(this.options.weekStartDay);
-        console.log('[DatePicker] Week starts on day:', this.weekStartDay);
+        initLogger.debug('Week starts on day:', this.weekStartDay);
+        initLogger.debug('disabledDatesHandling:', this.options.disabledDatesHandling);
 
         // Initialize internationalization
         this.locale = resolveLocale(this.options.locale);
         this.localeStrings = getLocaleStrings(this.locale, this.options.customStrings);
         this.weekdayNames = getWeekdayNames(this.locale);
         this.monthNames = getMonthNames(this.locale);
-        console.log('[DatePicker] Locale:', this.locale, 'Weekdays:', this.weekdayNames, 'Months:', this.monthNames);
+        initLogger.debug('Locale:', this.locale, 'Weekdays:', this.weekdayNames, 'Months:', this.monthNames);
 
         // Normalize date restrictions
         this.initializeDateRestrictions();
 
         // Parse format to understand structure
         this.formatInfo = this.parseFormat(this.options.dateFormatMask);
-        console.log('[DatePicker] Format info:', this.formatInfo);
+        initLogger.debug('Format info:', this.formatInfo);
 
         // Track previous input value for deletion detection
         this._previousInputValue = '';
@@ -135,7 +145,7 @@ class PureDatePicker {
         for (let i = 0; i < this.options.visibleMonthsCount; i++) {
             const date = new Date(now.getFullYear(), now.getMonth() + i, 1);
             this.monthDates.push(date);
-            console.log(`[DatePicker Init] monthDates[${i}] = ${date.getFullYear()}-${date.getMonth()+1}`);
+            initLogger.debug(`monthDates[${i}] = ${date.getFullYear()}-${date.getMonth()+1}`);
         }
 
         // Initialize displayMonths for range mode
@@ -176,7 +186,7 @@ class PureDatePicker {
     }
 
     init() {
-        console.log('[DatePicker 5] Init called');
+        initLogger.debug('Init called');
         this.createCalendar();
 
         // Only attach input listeners if we have an input element
@@ -185,7 +195,7 @@ class PureDatePicker {
 
             // Parse any pre-filled value in the input
             if (this.input.value) {
-                console.log('[DatePicker] Parsing pre-filled value:', this.input.value);
+                initLogger.debug('Parsing pre-filled value:', this.input.value);
                 this.updateCalendarFromInput();
             }
         }
@@ -200,7 +210,7 @@ class PureDatePicker {
         // Note: for floating mode, renderCalendar() is called on first show() instead of here
         // to avoid rendering days before the calendar is displayed
 
-        console.log('[DatePicker 6] Init complete');
+        initLogger.debug('Init complete');
     }
 
     /**
@@ -331,7 +341,7 @@ class PureDatePicker {
     }
 
     createCalendar() {
-        console.log('[DatePicker 7] Creating calendar');
+        initLogger.debug('Creating calendar');
         this.calendar = document.createElement('div');
         this.calendar.className = 'drp-date-picker';
 
@@ -392,7 +402,7 @@ class PureDatePicker {
         this.calendar.appendChild(actions);
 
         this.containerElement.appendChild(this.calendar);
-        console.log('[DatePicker 7b] Calendar appended to container:', this.calendar);
+        initLogger.debug('Calendar appended to container:', this.calendar);
 
         // Create tooltip for Floating UI
         this.tooltip = document.createElement('div');
@@ -411,16 +421,16 @@ class PureDatePicker {
     attachInputListeners() {
         if (!this.input) return;
 
-        console.log('[DatePicker 8] Attaching input listeners');
+        initLogger.debug('Attaching input listeners');
 
         // Calendar trigger: only attach if mode is 'auto'
         if (this.options.calendarOpenTrigger === 'auto') {
             this.input.addEventListener('click', () => {
-                console.log('[DatePicker 9] Input clicked');
+                initLogger.debug('Input clicked');
                 this.show();
             });
             this.input.addEventListener('focus', () => {
-                console.log('[DatePicker 10] Input focused');
+                initLogger.debug('Input focused');
                 this.show();
             });
         }
@@ -433,7 +443,7 @@ class PureDatePicker {
 
     attachCalendarListeners() {
         // Delegate all click events
-        this.calendar.addEventListener('click', (e) => {
+        this.calendar.addEventListener('click', async (e) => {
             const target = e.target as HTMLElement;
             // Stop propagation to prevent "close on outside click" from firing
             e.stopPropagation();
@@ -449,7 +459,7 @@ class PureDatePicker {
             else if (action === 'clear') this.clearSelection();
             else if (action === 'apply') this.apply();
             else if (target.closest('.drp-date-picker__day:not(.drp-date-picker__day--disabled)')) {
-                this.selectDay(target.closest('.drp-date-picker__day') as HTMLElement);
+                await this.selectDay(target.closest('.drp-date-picker__day') as HTMLElement);
             }
             else if (target.closest('[data-year]')) {
                 const yearElement = target.closest('[data-year]') as HTMLElement;
@@ -519,7 +529,7 @@ class PureDatePicker {
             if (!this.calendar.classList.contains('drp-date-picker--visible')) return;
             if (!this.isCalendarActive) return;
 
-            console.log('[DatePicker Keydown]', e.key, 'Ctrl:', e.ctrlKey, 'Meta:', e.metaKey, 'Shift:', e.shiftKey, 'Alt:', e.altKey);
+            initLogger.debug('Keydown', e.key, 'Ctrl:', e.ctrlKey, 'Meta:', e.metaKey, 'Shift:', e.shiftKey, 'Alt:', e.altKey);
 
             if (e.key === 'Escape') {
                 this.hide();
@@ -536,7 +546,7 @@ class PureDatePicker {
             else if (e.key === 'ArrowLeft') {
                 if (e.ctrlKey || e.metaKey) {
                     // Ctrl+Left: Previous month (same as PageUp - maintain day position)
-                    console.log('[DatePicker] Ctrl+Left: Navigate to previous month');
+                    navigationLogger.debug('Ctrl+Left: Navigate to previous month');
                     const currentDayIndex = this.focusedDayIndex;
                     this.prevMonth(this.activeMonthIndex);
                     setTimeout(() => {
@@ -557,7 +567,7 @@ class PureDatePicker {
             else if (e.key === 'ArrowRight') {
                 if (e.ctrlKey || e.metaKey) {
                     // Ctrl+Right: Next month (same as PageDown - maintain day position)
-                    console.log('[DatePicker] Ctrl+Right: Navigate to next month');
+                    navigationLogger.debug('Ctrl+Right: Navigate to next month');
                     const currentDayIndex = this.focusedDayIndex;
                     this.nextMonth(this.activeMonthIndex);
                     setTimeout(() => {
@@ -598,7 +608,7 @@ class PureDatePicker {
 
                     // Clamp to valid range
                     if (newMonthIndex >= 0 && newMonthIndex < this.monthDates.length) {
-                        console.log(`[DatePicker] Tab: switching from Col${this.activeMonthIndex} to Col${newMonthIndex}`);
+                        navigationLogger.debug(`Tab: switching from Col${this.activeMonthIndex} to Col${newMonthIndex}`);
 
                         // Get current focused day index before switching
                         const currentFocusedIndex = this.focusedDayIndex ?? 0;
@@ -611,7 +621,7 @@ class PureDatePicker {
                         if (newDaysContainer) {
                             const newDays = newDaysContainer.querySelectorAll('.drp-date-picker__day:not(.drp-date-picker__day--other-month)');
                             this.focusedDayIndex = Math.min(currentFocusedIndex, newDays.length - 1);
-                            console.log(`[DatePicker Col${this.activeMonthIndex}] Tab: set focusedDayIndex to ${this.focusedDayIndex}`);
+                            navigationLogger.debug(`Col${this.activeMonthIndex} Tab: set focusedDayIndex to ${this.focusedDayIndex}`);
                         }
 
                         // Re-render to show new focus
@@ -672,12 +682,12 @@ class PureDatePicker {
                 e.preventDefault();
             }
             else if (e.key === 'Home') {
-                console.log('[DatePicker] Home key pressed, Ctrl:', e.ctrlKey, 'Meta:', e.metaKey);
+                navigationLogger.debug('Home key pressed, Ctrl:', e.ctrlKey, 'Meta:', e.metaKey);
                 const currentYear = this.monthDates[this.activeMonthIndex].getFullYear();
                 const currentMonth = this.monthDates[this.activeMonthIndex].getMonth();
 
                 if (e.ctrlKey || e.metaKey) {
-                    console.log('[DatePicker] Ctrl+Home: Navigate to year start');
+                    navigationLogger.debug('Ctrl+Home: Navigate to year start');
                     // Ctrl+Home: Go to January 1st of current year
                     // If already there, go to January 1st of previous year
                     const isJanuary = currentMonth === 0;
@@ -685,11 +695,11 @@ class PureDatePicker {
 
                     if (isJanuary && isFirstDay) {
                         // Already at Jan 1 - go to previous year
-                        console.log('[DatePicker] Already at Jan 1, going to previous year');
+                        navigationLogger.debug('Already at Jan 1, going to previous year');
                         this.monthDates[this.activeMonthIndex] = new Date(currentYear - 1, 0, 1);
                     } else {
                         // Go to Jan 1 of current year
-                        console.log('[DatePicker] Going to Jan 1 of current year');
+                        navigationLogger.debug('Going to Jan 1 of current year');
                         this.monthDates[this.activeMonthIndex] = new Date(currentYear, 0, 1);
                     }
                     this.renderCalendar();
@@ -703,14 +713,14 @@ class PureDatePicker {
                         }
                     }, 0);
                 } else {
-                    console.log('[DatePicker] Home: Navigate to first day (cycles to previous month if already there)');
+                    navigationLogger.debug('Home: Navigate to first day (cycles to previous month if already there)');
                     // Home: Go to first day of current month
                     // If already on first day, go to first day of previous month
                     const isFirstDay = this.focusedDayIndex === 0;
 
                     if (isFirstDay) {
                         // Already on first day - go to previous month, first day
-                        console.log('[DatePicker] Already on first day, going to previous month');
+                        navigationLogger.debug('Already on first day, going to previous month');
                         this.prevMonth(this.activeMonthIndex);
                         setTimeout(() => {
                             const daysContainer = this.calendar.querySelector(`.drp-date-picker__days[data-month-index="${this.activeMonthIndex}"]`);
@@ -737,12 +747,12 @@ class PureDatePicker {
                 e.preventDefault();
             }
             else if (e.key === 'End') {
-                console.log('[DatePicker] End key pressed, Ctrl:', e.ctrlKey, 'Meta:', e.metaKey);
+                navigationLogger.debug('End key pressed, Ctrl:', e.ctrlKey, 'Meta:', e.metaKey);
                 const currentYear = this.monthDates[this.activeMonthIndex].getFullYear();
                 const currentMonth = this.monthDates[this.activeMonthIndex].getMonth();
 
                 if (e.ctrlKey || e.metaKey) {
-                    console.log('[DatePicker] Ctrl+End: Navigate to year end');
+                    navigationLogger.debug('Ctrl+End: Navigate to year end');
                     // Ctrl+End: Go to December 31st of current year
                     // If already there, go to December 31st of next year
                     const isDecember = currentMonth === 11;
@@ -770,7 +780,7 @@ class PureDatePicker {
                         }
                     }, 0);
                 } else {
-                    console.log('[DatePicker] End: Navigate to last day (cycles to next month if already there)');
+                    navigationLogger.debug('End: Navigate to last day (cycles to next month if already there)');
                     // End: Go to last day of current month
                     // If already on last day, go to last day of next month
                     const daysContainer = this.calendar.querySelector(`.drp-date-picker__days[data-month-index="${this.activeMonthIndex}"]`);
@@ -781,7 +791,7 @@ class PureDatePicker {
 
                     if (isLastDay) {
                         // Already on last day - go to next month, last day
-                        console.log('[DatePicker] Already on last day, going to next month');
+                        navigationLogger.debug('Already on last day, going to next month');
                         this.nextMonth(this.activeMonthIndex);
                         setTimeout(() => {
                             const daysContainer = this.calendar.querySelector(`.drp-date-picker__days[data-month-index="${this.activeMonthIndex}"]`);
@@ -920,7 +930,7 @@ class PureDatePicker {
     moveFocus(offset: number) { return Navigation.moveFocus(this, offset); }
 
     // Selection methods - wrappers for pure functions
-    selectDay(dayElement: HTMLElement) { return Selection.selectDay(this, dayElement); }
+    async selectDay(dayElement: HTMLElement) { return await Selection.selectDay(this, dayElement); }
     selectToday() { return Selection.selectToday(this); }
     clearSelection() { return Selection.clearSelection(this); }
     apply() { return Selection.apply(this); }
@@ -929,7 +939,7 @@ class PureDatePicker {
     initDragListeners() { return Interaction.initDragListeners(this); }
     startDrag(event: MouseEvent, type: 'start' | 'end') { return Interaction.startDrag(this, event, type); }
     onDragMove(event: MouseEvent) { return Interaction.onDragMove(this, event); }
-    onDragEnd(event: MouseEvent) { return Interaction.onDragEnd(this, event); }
+    async onDragEnd(event: MouseEvent) { return await Interaction.onDragEnd(this, event); }
     findNearestEnabledDate(targetDate: Date, preferredDirection: string = 'forward') { return Interaction.findNearestEnabledDate(this, targetDate, preferredDirection); }
     handleInputMask(event: Event) { return Interaction.handleInputMask(this, event); }
     applyMask(value: string) { return Interaction.applyMask(this, value); }

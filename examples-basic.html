@@ -1,0 +1,1246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Date Range Picker Web Component Demo</title>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      line-height: 1.6;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 2rem;
+      background: #f9fafb;
+    }
+
+    h1, h2, h3 {
+      color: #111827;
+      margin-top: 2rem;
+    }
+
+    h1 {
+      border-bottom: 2px solid #e5e7eb;
+      padding-bottom: 1rem;
+    }
+
+    .card {
+      background: white;
+      border-radius: 0.5rem;
+      padding: 1.5rem;
+      margin-bottom: 2rem;
+      box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1);
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 1.5rem;
+      margin: 1rem 0;
+    }
+
+    .form-group {
+      margin-bottom: 1rem;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 0.5rem;
+      font-weight: 500;
+      color: #374151;
+    }
+
+    .drp-input {
+      width: 100%;
+      padding: 0.5rem 0.75rem;
+      border: 1px solid #d1d5db;
+      border-radius: 0.375rem;
+      font-size: 1rem;
+      transition: border-color 150ms;
+    }
+
+    .drp-input:focus {
+      outline: none;
+      border-color: #3b82f6;
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    }
+
+    .drp-input:disabled {
+      background: #f3f4f6;
+      cursor: not-allowed;
+    }
+
+    small {
+      display: block;
+      margin-top: 0.25rem;
+      color: #6b7280;
+      font-size: 0.875rem;
+    }
+
+    .code {
+      background: #f3f4f6;
+      border: 1px solid #e5e7eb;
+      border-radius: 0.375rem;
+      padding: 1rem;
+      margin: 1rem 0;
+      font-family: 'Courier New', monospace;
+      font-size: 0.875rem;
+      overflow-x: auto;
+    }
+
+    .features {
+      list-style-position: inside;
+      color: #374151;
+    }
+
+    .features li {
+      margin-bottom: 0.5rem;
+    }
+  </style>
+</head>
+<body>
+  <h1>📅 Date Range Picker Web Component</h1>
+  <p>Lightweight, accessible date picker with excellent keyboard navigation and range selection support.</p>
+
+  <div class="card">
+    <h2>Basic Examples</h2>
+    <div class="grid">
+      <div class="form-group">
+        <label>Single Date Picker</label>
+        <date-range-picker selection-mode="single" placeholder="YYYY-MM-DD"></date-range-picker>
+        <small>Click to open calendar or type date directly</small>
+      </div>
+
+      <div class="form-group">
+        <label>Date Range Picker</label>
+        <date-range-picker selection-mode="range" placeholder="Start Date - End Date"></date-range-picker>
+        <small>Select start and end dates with day/night count</small>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Different Date Formats</h2>
+    <div class="grid">
+      <div class="form-group">
+        <label>ISO Format (YYYY-MM-DD)</label>
+        <date-range-picker date-format-mask="YYYY-MM-DD" placeholder="YYYY-MM-DD"></date-range-picker>
+        <small>Try typing: 20250115 → auto-formats to 2025-01-15</small>
+      </div>
+
+      <div class="form-group">
+        <label>European Format (DD.MM.YYYY)</label>
+        <date-range-picker date-format-mask="DD.MM.YYYY" placeholder="DD.MM.YYYY"></date-range-picker>
+        <small>Try typing: 15012025 → auto-formats to 15.01.2025</small>
+      </div>
+
+      <div class="form-group">
+        <label>US Format (MM/DD/YYYY)</label>
+        <date-range-picker date-format-mask="MM/DD/YYYY" placeholder="MM/DD/YYYY"></date-range-picker>
+        <small>Try typing: 01152025 → auto-formats to 01/15/2025</small>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Internationalization (i18n)</h2>
+    <p>Auto-detect user's locale or explicitly set language with built-in translations for English, German, French, and Spanish.</p>
+    <div class="grid">
+      <div class="form-group">
+        <label>Auto-detect Locale</label>
+        <date-range-picker
+          locale="auto"
+          date-format-mask="YYYY-MM-DD"
+          placeholder="Auto-detected locale">
+        </date-range-picker>
+        <small>Automatically uses your browser's language</small>
+      </div>
+
+      <div class="form-group">
+        <label>Spanish (Español)</label>
+        <date-range-picker
+          locale="es"
+          date-format-mask="YYYY-MM-DD"
+          display-format-mask="dd/mm/aaaa"
+          placeholder="Selecciona una fecha">
+        </date-range-picker>
+        <small>Spanish UI with localized format mask (aaaa = año)</small>
+      </div>
+
+      <div class="form-group">
+        <label>German (Deutsch)</label>
+        <date-range-picker
+          locale="de"
+          date-format-mask="DD.MM.YYYY"
+          display-format-mask="tt.mm.jjjj"
+          placeholder="Datum wählen">
+        </date-range-picker>
+        <small>German UI with localized format mask (jjjj = jahr)</small>
+      </div>
+
+      <div class="form-group">
+        <label>French (Français)</label>
+        <date-range-picker
+          locale="fr"
+          date-format-mask="DD/MM/YYYY"
+          display-format-mask="jj/mm/aaaa"
+          placeholder="Sélectionner une date">
+        </date-range-picker>
+        <small>French UI with localized format mask (aaaa = année)</small>
+      </div>
+
+      <div class="form-group">
+        <label>Spanish Range Picker</label>
+        <date-range-picker
+          selection-mode="range"
+          locale="es"
+          visible-months-count="2"
+          date-format-mask="YYYY-MM-DD"
+          display-format-mask="dd/mm/aaaa"
+          placeholder="Selecciona fechas">
+        </date-range-picker>
+        <small>2-month range picker with Spanish localization</small>
+      </div>
+
+      <div class="form-group">
+        <label>German with Disabled Weekends</label>
+        <date-range-picker
+          selection-mode="range"
+          locale="de"
+          visible-months-count="2"
+          disabled-weekdays="0,6"
+          date-format-mask="DD.MM.YYYY"
+          display-format-mask="tt.mm.jjjj"
+          placeholder="Datumsbereich wählen">
+        </date-range-picker>
+        <small>German with weekends disabled (custom strings require direct PureDatePicker instantiation)</small>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Multi-Month Display</h2>
+    <div class="grid">
+      <div class="form-group">
+        <label>Range with 3 Months</label>
+        <date-range-picker selection-mode="range" visible-months-count="3" placeholder="Select range"></date-range-picker>
+        <small>Great for selecting dates far apart</small>
+      </div>
+
+      <div class="form-group">
+        <label>Single Date with 2 Months</label>
+        <date-range-picker selection-mode="single" visible-months-count="2" placeholder="YYYY-MM-DD"></date-range-picker>
+        <small>Each month has independent navigation</small>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Grid Layout (2×3)</h2>
+    <div class="grid">
+      <div class="form-group">
+        <label>6 Months in Grid (2 rows × 3 columns)</label>
+        <date-range-picker
+          selection-mode="single"
+          visible-months-count="6"
+          month-layout="grid"
+          grid-rows="2"
+          grid-columns="3"
+          placeholder="YYYY-MM-DD">
+        </date-range-picker>
+        <small>Shows 6 months in a 2×3 grid layout with responsive behavior</small>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Pre-filled Values</h2>
+    <div class="grid">
+      <div class="form-group">
+        <label>Single Date with Value</label>
+        <date-range-picker value="2025-11-15" placeholder="YYYY-MM-DD"></date-range-picker>
+      </div>
+
+      <div class="form-group">
+        <label>Date Range with Value</label>
+        <date-range-picker selection-mode="range" value="2025-11-01 to 2025-11-30" placeholder="Start - End"></date-range-picker>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Disabled State</h2>
+    <div class="grid">
+      <div class="form-group">
+        <label>Disabled Picker</label>
+        <date-range-picker disabled value="2025-11-15" placeholder="YYYY-MM-DD"></date-range-picker>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Week Start Day</h2>
+    <div class="grid">
+      <div class="form-group">
+        <label>Auto-detect from Locale (Default)</label>
+        <date-range-picker week-start-day="auto" placeholder="YYYY-MM-DD"></date-range-picker>
+        <small>Week starts on: <span id="detected-week-start"></span></small>
+      </div>
+
+      <div class="form-group">
+        <label>Sunday Start (US Style)</label>
+        <date-range-picker week-start-day="0" placeholder="YYYY-MM-DD"></date-range-picker>
+        <small>Week starts on Sunday (0)</small>
+      </div>
+
+      <div class="form-group">
+        <label>Monday Start (European Style)</label>
+        <date-range-picker week-start-day="1" placeholder="YYYY-MM-DD"></date-range-picker>
+        <small>Week starts on Monday (1)</small>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Date Restrictions</h2>
+    <div class="grid">
+      <div class="form-group">
+        <label>Disable Weekends</label>
+        <date-range-picker disabled-weekdays="0,6" placeholder="YYYY-MM-DD"></date-range-picker>
+        <small>Sunday (0) and Saturday (6) are disabled</small>
+      </div>
+
+      <div class="form-group">
+        <label>Date Range Limits</label>
+        <date-range-picker
+          min-date="2025-11-01"
+          max-date="2025-11-30"
+          placeholder="YYYY-MM-DD">
+        </date-range-picker>
+        <small>Only November 2025 is selectable</small>
+      </div>
+
+      <div class="form-group">
+        <label>Disable Specific Dates</label>
+        <date-range-picker id="disabled-dates-demo" placeholder="YYYY-MM-DD"></date-range-picker>
+        <small>Christmas, New Year, and Thanksgiving disabled</small>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Special Dates (Holidays & Events)</h2>
+    <div class="grid">
+      <div class="form-group">
+        <label>Holiday Calendar</label>
+        <date-range-picker id="holidays-demo" visible-months-count="2" placeholder="YYYY-MM-DD"></date-range-picker>
+        <small>Holidays marked with emojis and custom styling</small>
+      </div>
+
+      <div class="form-group">
+        <label>Cottage Booking Example</label>
+        <date-range-picker id="cottage-demo" selection-mode="range" visible-months-count="2" placeholder="Select dates"></date-range-picker>
+        <small>Some dates are already booked (disabled)</small>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Badge Styles & Content</h2>
+    <div class="grid">
+      <div class="form-group">
+        <label>Emoji Badges (default)</label>
+        <date-range-picker id="badge-top-right" visible-months-count="1" placeholder="Select date"></date-range-picker>
+        <small>Badges appear in rows above dates, aligned to their respective day</small>
+      </div>
+
+      <div class="form-group">
+        <label>Holiday Style Badges</label>
+        <date-range-picker id="badge-top-left" visible-months-count="1" placeholder="Select date"></date-range-picker>
+        <small>Custom styling with holiday class for special events</small>
+      </div>
+
+      <div class="form-group">
+        <label>Event Style Badges</label>
+        <date-range-picker id="badge-bottom-right" visible-months-count="1" placeholder="Select date"></date-range-picker>
+        <small>Custom styling with event class for important dates</small>
+      </div>
+
+      <div class="form-group">
+        <label>Styled Emoji Badges</label>
+        <date-range-picker id="badge-center" visible-months-count="1" placeholder="Select date"></date-range-picker>
+        <small>Various emoji indicators with custom CSS classes</small>
+      </div>
+
+      <div class="form-group">
+        <label>Number Badges</label>
+        <date-range-picker id="badge-numbers" visible-months-count="1" placeholder="Select date"></date-range-picker>
+        <small>Shows prices or counts in badge rows above dates</small>
+      </div>
+
+      <div class="form-group">
+        <label>Text Badges</label>
+        <date-range-picker id="badge-text" visible-months-count="1" placeholder="Select date"></date-range-picker>
+        <small>Short text indicators (H, E, B, etc.) in badge rows</small>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Range Selection Modes (over disabled dates)</h2>
+    <div class="grid">
+      <div class="form-group">
+        <label>Allow Mode (default)</label>
+        <date-range-picker
+          id="mode-allow"
+          selection-mode="range"
+          visible-months-count="2"
+          disabled-weekdays="0,6"
+          disabled-dates-handling="allow"
+          placeholder="Select range"></date-range-picker>
+        <small>Allows range over disabled dates. Returns enabled/disabled arrays.</small>
+        <div id="mode-allow-output" style="margin-top: 8px; font-size: 0.875rem; color: #666;"></div>
+      </div>
+
+      <div class="form-group">
+        <label>Block Mode</label>
+        <date-range-picker
+          id="mode-block"
+          selection-mode="range"
+          visible-months-count="2"
+          disabled-weekdays="0,3,6"
+          disabled-dates-handling="block"
+          show-debug-info
+          placeholder="Select range"></date-range-picker>
+        <small>Blocks range from crossing disabled dates. Snaps to last enabled date. (Sundays, Wednesdays, Saturdays disabled)</small>
+        <div id="mode-block-output" style="margin-top: 8px; font-size: 0.875rem; color: #666;"></div>
+      </div>
+
+      <div class="form-group">
+        <label>Split Mode (no disabled highlighting)</label>
+        <date-range-picker
+          id="mode-split"
+          selection-mode="range"
+          visible-months-count="2"
+          disabled-weekdays="0,6"
+          disabled-dates-handling="split"
+          highlight-disabled-in-range="false"
+          placeholder="Select range"></date-range-picker>
+        <small>Returns multiple ranges split by disabled dates. Weekends not highlighted.</small>
+        <div id="mode-split-output" style="margin-top: 8px; font-size: 0.875rem; color: #666;"></div>
+      </div>
+
+      <div class="form-group">
+        <label>Individual Mode (no disabled highlighting)</label>
+        <date-range-picker
+          id="mode-individual"
+          selection-mode="range"
+          visible-months-count="2"
+          disabled-weekdays="0,6"
+          disabled-dates-handling="individual"
+          highlight-disabled-in-range="false"
+          placeholder="Select range"></date-range-picker>
+        <small>Returns flat array of individual enabled dates. Weekends not highlighted.</small>
+        <div id="mode-individual-output" style="margin-top: 8px; font-size: 0.875rem; color: #666;"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Custom Summary Formatting</h2>
+    <p>Use the <code>formatSummaryCallback</code> option to completely customize the summary display below the calendar.</p>
+    <div class="grid">
+      <div class="form-group">
+        <label>Custom Pricing Display</label>
+        <date-range-picker
+          id="summary-pricing"
+          selection-mode="range"
+          visible-months-count="2"
+          placeholder="Select dates"></date-range-picker>
+        <small>Shows calculated price based on nights</small>
+      </div>
+
+      <div class="form-group">
+        <label>Weekdays Only Counter</label>
+        <date-range-picker
+          id="summary-weekdays"
+          selection-mode="range"
+          visible-months-count="2"
+          disabled-weekdays="0,6"
+          range-disabled-handling="allow"
+          placeholder="Select range"></date-range-picker>
+        <small>Shows weekdays vs weekends breakdown</small>
+      </div>
+
+      <div class="form-group">
+        <label>Multiple Ranges Display</label>
+        <date-range-picker
+          id="summary-split"
+          selection-mode="range"
+          visible-months-count="2"
+          disabled-weekdays="0,6"
+          range-disabled-handling="split"
+          placeholder="Select range"></date-range-picker>
+        <small>Shows count of separate periods (weekends excluded)</small>
+      </div>
+
+      <div class="form-group">
+        <label>Nights Only Display</label>
+        <date-range-picker
+          id="summary-nights"
+          selection-mode="range"
+          visible-months-count="2"
+          placeholder="Select dates"></date-range-picker>
+        <small>Custom format showing only nights</small>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Inline Calendar Display</h2>
+    <p>Display the calendar as a static block element (not a popup).</p>
+    <div class="grid">
+      <div class="form-group">
+        <label>Inline Single Date Calendar</label>
+        <date-range-picker
+          id="inline-single"
+          selection-mode="single"
+          positioning-mode="inline"></date-range-picker>
+        <small>No input field - calendar always visible</small>
+        <div id="inline-single-output" style="margin-top: 8px; font-size: 0.875rem; color: #666;"></div>
+      </div>
+
+      <div class="form-group">
+        <label>Inline Range Calendar (2 months)</label>
+        <date-range-picker
+          id="inline-range"
+          selection-mode="range"
+          positioning-mode="inline"
+          visible-months-count="2"></date-range-picker>
+        <small>Perfect for booking widgets and dashboards</small>
+        <div id="inline-range-output" style="margin-top: 8px; font-size: 0.875rem; color: #666;"></div>
+      </div>
+
+      <div class="form-group">
+        <label>Inline with Disabled Weekends</label>
+        <date-range-picker
+          id="inline-disabled"
+          selection-mode="range"
+          positioning-mode="inline"
+          disabled-weekdays="0,6"
+          disabled-dates-handling="block"></date-range-picker>
+        <small>Great for business day selection</small>
+        <div id="inline-disabled-output" style="margin-top: 8px; font-size: 0.875rem; color: #666;"></div>
+      </div>
+
+      <div class="form-group">
+        <label>Inline with Special Dates</label>
+        <date-range-picker
+          id="inline-holidays"
+          selection-mode="single"
+          positioning-mode="inline"></date-range-picker>
+        <small>Shows holidays and events</small>
+        <div id="inline-holidays-output" style="margin-top: 8px; font-size: 0.875rem; color: #666;"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Inline Grid Layout (2×3)</h2>
+    <p>Display 6 months in a 2×3 grid layout, always visible (not a popup).</p>
+    <div class="form-group">
+      <label>6 Months Grid Calendar (Responsive)</label>
+      <div class="drp-font-md drp-spacing-sm drp-responsive">
+        <date-range-picker
+          id="inline-grid"
+          selection-mode="single"
+          positioning-mode="inline"
+          visible-months-count="6"
+          month-layout="grid"
+          grid-rows="2"
+          grid-columns="3"></date-range-picker>
+      </div>
+      <small>Perfect for dashboards - medium font with compact spacing. Scales down on smaller screens.</small>
+      <div id="inline-grid-output" style="margin-top: 8px; font-size: 0.875rem; color: #666;"></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Position Control</h2>
+    <p>Control where the popup appears relative to the input field.</p>
+    <div class="grid">
+      <div class="form-group">
+        <label>Bottom Center (default for grid)</label>
+        <date-range-picker
+          selection-mode="single"
+          calendar-placement="bottom"
+          placeholder="YYYY-MM-DD"></date-range-picker>
+        <small>Centered below the input</small>
+      </div>
+
+      <div class="form-group">
+        <label>Bottom Start (default for horizontal)</label>
+        <date-range-picker
+          selection-mode="single"
+          calendar-placement="bottom-start"
+          placeholder="YYYY-MM-DD"></date-range-picker>
+        <small>Left-aligned below the input</small>
+      </div>
+
+      <div class="form-group">
+        <label>Bottom End</label>
+        <date-range-picker
+          selection-mode="single"
+          calendar-placement="bottom-end"
+          placeholder="YYYY-MM-DD"></date-range-picker>
+        <small>Right-aligned below the input</small>
+      </div>
+
+      <div class="form-group">
+        <label>Top Center</label>
+        <date-range-picker
+          selection-mode="single"
+          calendar-placement="top"
+          placeholder="YYYY-MM-DD"></date-range-picker>
+        <small>Centered above the input</small>
+      </div>
+
+      <div class="form-group">
+        <label>Top Start</label>
+        <date-range-picker
+          selection-mode="single"
+          calendar-placement="top-start"
+          placeholder="YYYY-MM-DD"></date-range-picker>
+        <small>Left-aligned above the input</small>
+      </div>
+
+      <div class="form-group">
+        <label>Top End</label>
+        <date-range-picker
+          selection-mode="single"
+          calendar-placement="top-end"
+          placeholder="YYYY-MM-DD"></date-range-picker>
+        <small>Right-aligned above the input</small>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Calendar Sizing - Independent Font & Spacing Control</h2>
+    <p>Control font size and spacing independently with CSS wrapper classes:</p>
+    <ul>
+      <li><strong>Font:</strong> <code>.drp-font-xs/sm/md/lg/xl</code> - Controls text size only</li>
+      <li><strong>Spacing:</strong> <code>.drp-spacing-xs/sm/md/lg/xl</code> - Controls gaps/density only</li>
+      <li><strong>Responsive:</strong> <code>.drp-responsive</code> - Auto-scales each at breakpoints</li>
+    </ul>
+
+    <h3>Independent Control Examples</h3>
+    <div class="grid">
+      <div class="form-group">
+        <label>Large Font + Compact Spacing</label>
+        <div class="drp-font-lg drp-spacing-xs">
+          <date-range-picker
+            selection-mode="single"
+            placeholder="YYYY-MM-DD"></date-range-picker>
+        </div>
+        <small>Readable text in a tight layout</small>
+      </div>
+
+      <div class="form-group">
+        <label>Small Font + Spacious Layout</label>
+        <div class="drp-font-sm drp-spacing-lg">
+          <date-range-picker
+            selection-mode="single"
+            placeholder="YYYY-MM-DD"></date-range-picker>
+        </div>
+        <small>Compact text with generous spacing</small>
+      </div>
+
+      <div class="form-group">
+        <label>XL Font + XL Spacing</label>
+        <div class="drp-font-xl drp-spacing-xl">
+          <date-range-picker
+            selection-mode="single"
+            placeholder="YYYY-MM-DD"></date-range-picker>
+        </div>
+        <small>Maximum size for everything</small>
+      </div>
+    </div>
+
+    <h3>Responsive Combinations</h3>
+    <p>Add <code>.drp-responsive</code> to scale font and spacing independently at breakpoints.</p>
+    <div class="grid">
+      <div class="form-group">
+        <label>Large Text, Always Compact</label>
+        <div class="drp-font-lg drp-spacing-xs drp-responsive">
+          <date-range-picker
+            selection-mode="single"
+            placeholder="YYYY-MM-DD"></date-range-picker>
+        </div>
+        <small>Font scales responsively, spacing stays compact</small>
+      </div>
+
+      <div class="form-group">
+        <label>Medium Text, Responsive Spacing</label>
+        <div class="drp-font-md drp-spacing-lg drp-responsive">
+          <date-range-picker
+            selection-mode="single"
+            placeholder="YYYY-MM-DD"></date-range-picker>
+        </div>
+        <small>Fixed font, spacing adapts to screen size</small>
+      </div>
+
+      <div class="form-group">
+        <label>Both Responsive</label>
+        <div class="drp-font-lg drp-spacing-lg drp-responsive">
+          <date-range-picker
+            selection-mode="single"
+            placeholder="YYYY-MM-DD"></date-range-picker>
+        </div>
+        <small>Font and spacing both scale down on smaller screens</small>
+      </div>
+    </div>
+
+    <h3>Grid Layout Sizing</h3>
+    <div class="form-group">
+      <label>Compact 2×3 Grid (Small Font + XS Spacing)</label>
+      <div class="drp-font-sm drp-spacing-xs drp-responsive">
+        <date-range-picker
+          id="grid-small"
+          selection-mode="single"
+          positioning-mode="inline"
+          visible-months-count="6"
+          month-layout="grid"
+          grid-rows="2"
+          grid-columns="3"></date-range-picker>
+      </div>
+      <small>Dense dashboard calendar - small text with minimal gaps</small>
+    </div>
+
+    <div class="form-group">
+      <label>Touch-Friendly 2×3 Grid (LG Font + LG Spacing)</label>
+      <div class="drp-font-lg drp-spacing-lg">
+        <date-range-picker
+          id="grid-large"
+          selection-mode="single"
+          positioning-mode="inline"
+          visible-months-count="6"
+          month-layout="grid"
+          grid-rows="2"
+          grid-columns="3"></date-range-picker>
+      </div>
+      <small>Large calendar with generous touch targets - fixed size</small>
+    </div>
+
+    <div class="form-group">
+      <label>Readable Compact (MD Font + SM Spacing)</label>
+      <div class="drp-font-md drp-spacing-sm drp-responsive">
+        <date-range-picker
+          id="single-xl"
+          selection-mode="single"
+          positioning-mode="inline"></date-range-picker>
+      </div>
+      <small>Standard text with slightly tighter spacing - scales responsively</small>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Keyboard Shortcuts</h2>
+    <ul class="features">
+      <li><strong>↑ ↓</strong> - Navigate up/down by week</li>
+      <li><strong>← →</strong> - Navigate left/right by day</li>
+      <li><strong>Ctrl+← / Ctrl+→</strong> - Previous / next month</li>
+      <li><strong>Home</strong> - First day of current month</li>
+      <li><strong>End</strong> - Last day of current month</li>
+      <li><strong>Ctrl+Home</strong> - January 1st of current year (repeat for previous year)</li>
+      <li><strong>Ctrl+End</strong> - December 31st of current year (repeat for next year)</li>
+      <li><strong>PageUp / PageDown</strong> - Previous / next month</li>
+      <li><strong>Enter</strong> - Select focused day</li>
+      <li><strong>Escape</strong> - Close calendar</li>
+      <li><strong>Tab / Shift+Tab</strong> - Switch between month columns (multi-month mode)</li>
+      <li><strong>T</strong> - Jump to today</li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <h2>Features</h2>
+    <ul class="features">
+      <li>🎯 <strong>Input Masking:</strong> Auto-format dates as you type</li>
+      <li>⌨️ <strong>Keyboard Navigation:</strong> Full keyboard support for accessibility</li>
+      <li>📅 <strong>Rolling Selector:</strong> Quick month/year selection with scrollable lists</li>
+      <li>📊 <strong>Multi-Month:</strong> Show multiple months side by side</li>
+      <li>🎨 <strong>Themeable:</strong> All styles use CSS custom properties (--drp-*)</li>
+      <li>🖱️ <strong>Drag-to-Adjust:</strong> Drag range endpoints to adjust selection</li>
+      <li>🌐 <strong>Multiple Formats:</strong> YYYY-MM-DD, DD.MM.YYYY, MM/DD/YYYY, etc.</li>
+      <li>🌍 <strong>Internationalization:</strong> Built-in locales (en, de, fr, es) with auto-detection and custom strings</li>
+      <li>🌍 <strong>Locale-Aware:</strong> Auto-detect week start day from user's locale</li>
+      <li>🚫 <strong>Date Restrictions:</strong> Min/max dates, disabled days/dates, custom logic</li>
+      <li>🎉 <strong>Special Dates:</strong> Highlight holidays, events with labels & styling</li>
+      <li>✨ <strong>Modern:</strong> Web Component with Shadow DOM</li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <h2>Programmatic API</h2>
+    <div class="form-group">
+      <label>API Demo</label>
+      <date-range-picker id="api-demo" selection-mode="range"></date-range-picker>
+      <div style="margin-top: 1rem; display: flex; gap: 0.5rem;">
+        <button onclick="document.getElementById('api-demo').show()" style="padding: 0.5rem 1rem; border: 1px solid #d1d5db; border-radius: 0.375rem; cursor: pointer;">Show</button>
+        <button onclick="document.getElementById('api-demo').hide()" style="padding: 0.5rem 1rem; border: 1px solid #d1d5db; border-radius: 0.375rem; cursor: pointer;">Hide</button>
+        <button onclick="document.getElementById('api-demo').toggle()" style="padding: 0.5rem 1rem; border: 1px solid #d1d5db; border-radius: 0.375rem; cursor: pointer;">Toggle</button>
+        <button onclick="document.getElementById('api-demo').clear()" style="padding: 0.5rem 1rem; border: 1px solid #d1d5db; border-radius: 0.375rem; cursor: pointer;">Clear</button>
+        <button onclick="alert(document.getElementById('api-demo').getValue())" style="padding: 0.5rem 1rem; border: 1px solid #d1d5db; border-radius: 0.375rem; cursor: pointer;">Get Value</button>
+      </div>
+    </div>
+
+    <div class="code">
+const picker = document.querySelector('date-range-picker');
+
+// Methods
+picker.show();        // Show calendar
+picker.hide();        // Hide calendar
+picker.toggle();      // Toggle calendar
+picker.clear();       // Clear selection
+picker.getValue();    // Get current value
+picker.setValue('2025-11-15'); // Set value
+
+// Properties
+picker.mode = 'range';
+picker.format = 'DD.MM.YYYY';
+picker.value = '2025-11-15';
+
+// Events
+picker.addEventListener('date-select', (e) => {
+  console.log('Selected:', e.detail);
+});
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Usage</h2>
+    <div class="code">
+&lt;!-- HTML --&gt;
+&lt;date-range-picker
+  selection-mode="range"
+  date-format-mask="YYYY-MM-DD"
+  visible-months-count="2"
+  placeholder="Select dates"
+&gt;&lt;/date-range-picker&gt;
+
+&lt;script type="module"&gt;
+  import '@keenmate/web-daterangepicker';
+
+  const picker = document.querySelector('date-range-picker');
+  picker.addEventListener('date-select', (e) => {
+    console.log('Date selected:', e.detail.formattedValue);
+  });
+&lt;/script&gt;
+    </div>
+  </div>
+
+  <script type="module" src="/src/index.ts"></script>
+
+  <script>
+    // Wait for web components to be defined
+    customElements.whenDefined('date-range-picker').then(() => {
+      // Add event listeners to demo the events
+      document.querySelectorAll('date-range-picker').forEach(picker => {
+        picker.addEventListener('date-select', (e) => {
+          console.log('Date selected:', e.detail);
+        });
+      });
+
+      // Display detected week start day
+      const weekStartSpan = document.getElementById('detected-week-start');
+      if (weekStartSpan) {
+        try {
+          const locale = new Intl.Locale(navigator.language);
+          if ('weekInfo' in locale && locale.weekInfo && 'firstDay' in locale.weekInfo) {
+            const firstDay = locale.weekInfo.firstDay;
+            const dayName = firstDay === 7 ? 'Sunday' : ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'][firstDay - 1];
+            weekStartSpan.textContent = dayName;
+          } else {
+            weekStartSpan.textContent = 'Monday (default)';
+          }
+        } catch (e) {
+          weekStartSpan.textContent = 'Monday (default)';
+        }
+      }
+
+      // Setup disabled dates demo
+      const disabledDatesDemo = document.getElementById('disabled-dates-demo');
+      if (disabledDatesDemo) {
+        disabledDatesDemo.disabledDates = [
+          '2025-12-25', // Christmas
+          '2025-01-01', // New Year
+          '2025-11-28', // Thanksgiving 2025
+          '2025-07-04'  // Independence Day
+        ];
+      }
+
+      // Setup holidays demo
+      const holidaysDemo = document.getElementById('holidays-demo');
+      if (holidaysDemo) {
+        holidaysDemo.specialDates = [
+          { date: '2025-12-25', class: 'holiday', label: '🎄', tooltip: 'Christmas Day' },
+          { date: '2025-12-24', class: 'holiday', label: '🎅', tooltip: 'Christmas Eve' },
+          { date: '2025-01-01', class: 'holiday', label: '🎉', tooltip: 'New Year\'s Day' },
+          { date: '2025-07-04', class: 'holiday', label: '🎆', tooltip: 'Independence Day' },
+          { date: '2025-10-31', class: 'event', label: '🎃', tooltip: 'Halloween' },
+          { date: '2025-02-14', class: 'event', label: '❤️', tooltip: 'Valentine\'s Day' },
+          { date: '2025-03-17', class: 'event', label: '☘️', tooltip: 'St. Patrick\'s Day' },
+          { date: '2025-11-28', class: 'holiday', label: '🦃', tooltip: 'Thanksgiving' },
+          { date: '2025-12-31', class: 'event', label: '🥳', tooltip: 'New Year\'s Eve' }
+        ];
+      }
+
+      // Setup cottage booking demo (simulated bookings)
+      const cottageDemo = document.getElementById('cottage-demo');
+      if (cottageDemo) {
+        // Simulate already booked date ranges
+        const bookedRanges = [
+          { start: new Date(2025, 10, 10), end: new Date(2025, 10, 17) }, // Nov 10-17
+          { start: new Date(2025, 10, 24), end: new Date(2025, 10, 30) }, // Nov 24-30
+          { start: new Date(2025, 11, 20), end: new Date(2025, 11, 27) }  // Dec 20-27
+        ];
+
+        cottageDemo.isDateDisabled = (date) => {
+          // Normalize date to midnight for comparison
+          const checkDate = new Date(date);
+          checkDate.setHours(0, 0, 0, 0);
+
+          return bookedRanges.some(range => {
+            const start = new Date(range.start);
+            const end = new Date(range.end);
+            start.setHours(0, 0, 0, 0);
+            end.setHours(0, 0, 0, 0);
+            return checkDate >= start && checkDate <= end;
+          });
+        };
+
+        cottageDemo.getDateInfo = (date) => {
+          const checkDate = new Date(date);
+          checkDate.setHours(0, 0, 0, 0);
+
+          // Check if date is in a booked range
+          for (const range of bookedRanges) {
+            const start = new Date(range.start);
+            const end = new Date(range.end);
+            start.setHours(0, 0, 0, 0);
+            end.setHours(0, 0, 0, 0);
+
+            if (checkDate >= start && checkDate <= end) {
+              return {
+                disabled: true,
+                class: 'booked',
+                tooltip: 'Already booked'
+              };
+            }
+          }
+
+          return null;
+        };
+      }
+
+      // Setup badge style examples
+      const badgeTopRight = document.getElementById('badge-top-right');
+      if (badgeTopRight) {
+        badgeTopRight.specialDates = [
+          { date: '2025-11-05', label: '🎉', tooltip: 'Party event' },
+          { date: '2025-11-12', label: '⭐', tooltip: 'Star event' },
+          { date: '2025-11-19', label: '🎂', tooltip: 'Birthday' },
+          { date: '2025-11-26', label: '🎯', tooltip: 'Target date' }
+        ];
+      }
+
+      const badgeTopLeft = document.getElementById('badge-top-left');
+      if (badgeTopLeft) {
+        badgeTopLeft.specialDates = [
+          { date: '2025-11-05', label: '🎉', class: 'holiday', tooltip: 'Holiday celebration' },
+          { date: '2025-11-12', label: '⭐', class: 'holiday', tooltip: 'Special holiday' },
+          { date: '2025-11-19', label: '🎂', class: 'holiday', tooltip: 'Birthday holiday' },
+          { date: '2025-11-26', label: '🎯', class: 'holiday', tooltip: 'Important holiday' }
+        ];
+      }
+
+      const badgeBottomRight = document.getElementById('badge-bottom-right');
+      if (badgeBottomRight) {
+        badgeBottomRight.specialDates = [
+          { date: '2025-11-05', label: '🎉', class: 'event', tooltip: 'Event day' },
+          { date: '2025-11-12', label: '⭐', class: 'event', tooltip: 'Star event' },
+          { date: '2025-11-19', label: '🎂', class: 'event', tooltip: 'Birthday event' },
+          { date: '2025-11-26', label: '🎯', class: 'event', tooltip: 'Target event' }
+        ];
+      }
+
+      const badgeCenter = document.getElementById('badge-center');
+      if (badgeCenter) {
+        badgeCenter.specialDates = [
+          { date: '2025-11-05', label: '🎉', class: 'badge-emoji', tooltip: 'Celebration' },
+          { date: '2025-11-12', label: '⭐', class: 'badge-emoji', tooltip: 'Featured date' },
+          { date: '2025-11-19', label: '🎂', class: 'badge-emoji', tooltip: 'Birthday' },
+          { date: '2025-11-26', label: '🎯', class: 'badge-emoji', tooltip: 'Goal date' }
+        ];
+      }
+
+      const badgeNumbers = document.getElementById('badge-numbers');
+      if (badgeNumbers) {
+        badgeNumbers.specialDates = [
+          { date: '2025-11-05', label: '$99', class: 'badge-number', tooltip: 'Price: $99' },
+          { date: '2025-11-12', label: '$149', class: 'badge-number', tooltip: 'Price: $149' },
+          { date: '2025-11-19', label: '$79', class: 'badge-number', tooltip: 'Price: $79' },
+          { date: '2025-11-26', label: '$199', class: 'badge-number', tooltip: 'Price: $199' },
+          { date: '2025-11-15', label: '5', class: 'badge-count', tooltip: '5 spots left' },
+          { date: '2025-11-22', label: '2', class: 'badge-count', tooltip: '2 spots left' }
+        ];
+      }
+
+      const badgeText = document.getElementById('badge-text');
+      if (badgeText) {
+        badgeText.specialDates = [
+          { date: '2025-11-05', label: 'H', class: 'badge-text holiday-text', tooltip: 'Holiday' },
+          { date: '2025-11-12', label: 'E', class: 'badge-text event-text', tooltip: 'Event' },
+          { date: '2025-11-19', label: 'B', class: 'badge-text birthday-text', tooltip: 'Birthday' },
+          { date: '2025-11-26', label: 'M', class: 'badge-text meeting-text', tooltip: 'Meeting' },
+          { date: '2025-11-08', label: 'VIP', class: 'badge-text vip-text', tooltip: 'VIP Event' }
+        ];
+      }
+
+      // Setup range mode examples
+      const modeAllow = document.getElementById('mode-allow');
+      if (modeAllow) {
+        modeAllow.addEventListener('date-select', (e) => {
+          const output = document.getElementById('mode-allow-output');
+          if (output && e.detail.enabledDates && e.detail.disabledDates) {
+            output.innerHTML = `
+              <strong>Enabled:</strong> ${e.detail.enabledDates.length} days<br>
+              <strong>Disabled:</strong> ${e.detail.disabledDates.length} days<br>
+              <strong>Total:</strong> ${e.detail.getTotalDays()} days
+            `;
+          }
+        });
+      }
+
+      const modeBlock = document.getElementById('mode-block');
+      if (modeBlock) {
+        modeBlock.addEventListener('date-select', (e) => {
+          const output = document.getElementById('mode-block-output');
+          if (output && e.detail.dates) {
+            output.innerHTML = `
+              <strong>Selected:</strong> ${e.detail.dates.length} enabled days<br>
+              <strong>Range:</strong> ${e.detail.formattedValue}
+            `;
+          }
+        });
+      }
+
+      const modeSplit = document.getElementById('mode-split');
+      if (modeSplit) {
+        modeSplit.addEventListener('date-select', (e) => {
+          const output = document.getElementById('mode-split-output');
+          if (output && e.detail.dateRanges) {
+            output.innerHTML = `
+              <strong>Ranges:</strong> ${e.detail.dateRanges.length}<br>
+              <strong>Total enabled days:</strong> ${e.detail.dates.length}<br>
+              <strong>Formatted:</strong> ${e.detail.formattedValue}
+            `;
+          }
+        });
+      }
+
+      const modeIndividual = document.getElementById('mode-individual');
+      if (modeIndividual) {
+        modeIndividual.addEventListener('date-select', (e) => {
+          const output = document.getElementById('mode-individual-output');
+          if (output && e.detail.dates) {
+            output.innerHTML = `
+              <strong>Individual dates:</strong> ${e.detail.dates.length}<br>
+              <strong>First 5:</strong> ${e.detail.dates.slice(0, 5).map(d => d.toLocaleDateString()).join(', ')}${e.detail.dates.length > 5 ? '...' : ''}
+            `;
+          }
+        });
+      }
+
+      // Setup inline calendar examples
+      const inlineSingle = document.getElementById('inline-single');
+      if (inlineSingle) {
+        inlineSingle.addEventListener('date-select', (e) => {
+          const output = document.getElementById('inline-single-output');
+          if (output && e.detail.date) {
+            output.innerHTML = `<strong>Selected:</strong> ${e.detail.date.toLocaleDateString()}`;
+          }
+        });
+      }
+
+      const inlineRange = document.getElementById('inline-range');
+      if (inlineRange) {
+        inlineRange.addEventListener('date-select', (e) => {
+          const output = document.getElementById('inline-range-output');
+          if (output && e.detail.dateRange) {
+            const nights = Math.floor(
+              (e.detail.dateRange.end - e.detail.dateRange.start) / (1000*60*60*24)
+            );
+            output.innerHTML = `
+              <strong>Check-in:</strong> ${e.detail.dateRange.start.toLocaleDateString()}<br>
+              <strong>Check-out:</strong> ${e.detail.dateRange.end.toLocaleDateString()}<br>
+              <strong>Nights:</strong> ${nights}
+            `;
+          }
+        });
+      }
+
+      const inlineDisabled = document.getElementById('inline-disabled');
+      if (inlineDisabled) {
+        inlineDisabled.addEventListener('date-select', (e) => {
+          const output = document.getElementById('inline-disabled-output');
+          if (output && e.detail.dates) {
+            output.innerHTML = `
+              <strong>Business days:</strong> ${e.detail.dates.length}<br>
+              <strong>Range:</strong> ${e.detail.formattedValue}
+            `;
+          }
+        });
+      }
+
+      const inlineHolidays = document.getElementById('inline-holidays');
+      if (inlineHolidays) {
+        // Add some holidays
+        inlineHolidays.specialDates = [
+          { date: '2025-12-25', class: 'holiday', label: '🎄', tooltip: 'Christmas Day' },
+          { date: '2025-12-24', class: 'holiday', label: '🎅', tooltip: 'Christmas Eve' },
+          { date: '2025-01-01', class: 'holiday', label: '🎉', tooltip: 'New Year\'s Day' },
+          { date: '2025-11-28', class: 'holiday', label: '🦃', tooltip: 'Thanksgiving' }
+        ];
+
+        inlineHolidays.addEventListener('date-select', (e) => {
+          const output = document.getElementById('inline-holidays-output');
+          if (output && e.detail.date) {
+            output.innerHTML = `<strong>Selected:</strong> ${e.detail.date.toLocaleDateString()}`;
+          }
+        });
+      }
+
+      const inlineGrid = document.getElementById('inline-grid');
+      if (inlineGrid) {
+        inlineGrid.addEventListener('date-select', (e) => {
+          const output = document.getElementById('inline-grid-output');
+          if (output && e.detail.date) {
+            output.innerHTML = `<strong>Selected:</strong> ${e.detail.date.toLocaleDateString()}`;
+          }
+        });
+      }
+
+      // Setup sizing examples
+      const gridSmall = document.getElementById('grid-small');
+      if (gridSmall) {
+        gridSmall.addEventListener('date-select', (e) => {
+          if (e.detail.date) {
+            console.log('Small grid selected:', e.detail.date.toLocaleDateString());
+          }
+        });
+      }
+
+      const gridLarge = document.getElementById('grid-large');
+      if (gridLarge) {
+        gridLarge.addEventListener('date-select', (e) => {
+          if (e.detail.date) {
+            console.log('Large grid selected:', e.detail.date.toLocaleDateString());
+          }
+        });
+      }
+
+      const singleXL = document.getElementById('single-xl');
+      if (singleXL) {
+        singleXL.addEventListener('date-select', (e) => {
+          if (e.detail.date) {
+            console.log('XL calendar selected:', e.detail.date.toLocaleDateString());
+          }
+        });
+      }
+
+      // Setup custom summary formatting examples
+      const summaryPricing = document.getElementById('summary-pricing');
+      if (summaryPricing && summaryPricing.picker) {
+        summaryPricing.picker.options.formatSummaryCallback = (data) => {
+          const pricePerNight = 150;
+          const total = data.nights * pricePerNight;
+          const prefix = data.isPreview ? `<span style="opacity: 0.7;">${data.localeStrings.preview}: </span>` : '';
+
+          return `
+            ${prefix}
+            <div style="display: flex; justify-content: space-between; width: 100%; gap: 1rem;">
+              <span>${data.nights} ${data.nights === 1 ? data.localeStrings.night : data.localeStrings.nights}</span>
+              <span style="font-weight: bold; color: #10b981;">$${total}</span>
+            </div>
+          `;
+        };
+      }
+
+      const summaryWeekdays = document.getElementById('summary-weekdays');
+      if (summaryWeekdays && summaryWeekdays.picker) {
+        summaryWeekdays.picker.options.formatSummaryCallback = (data) => {
+          if (data.enabledDates && data.disabledDates) {
+            const prefix = data.isPreview ? `<span style="opacity: 0.7;">${data.localeStrings.preview}: </span>` : '';
+
+            return `
+              ${prefix}
+              <div style="font-size: 0.9em;">
+                <div><strong>${data.enabledDates.length}</strong> weekdays</div>
+                <div style="opacity: 0.7; font-size: 0.85em;">${data.disabledDates.length} weekends (excluded)</div>
+              </div>
+            `;
+          }
+          return `${data.days} ${data.localeStrings.days}`;
+        };
+      }
+
+      const summarySplit = document.getElementById('summary-split');
+      if (summarySplit && summarySplit.picker) {
+        summarySplit.picker.options.formatSummaryCallback = (data) => {
+          if (data.dateRanges && data.dateRanges.length > 1) {
+            const prefix = data.isPreview ? `<span style="opacity: 0.7;">${data.localeStrings.preview}: </span>` : '';
+
+            return `
+              ${prefix}
+              <div style="font-size: 0.9em;">
+                <div><strong>${data.dateRanges.length}</strong> separate periods</div>
+                <div style="opacity: 0.7; font-size: 0.85em;">${data.days} ${data.localeStrings.days} total</div>
+              </div>
+            `;
+          } else {
+            return `${data.days} ${data.localeStrings.days}, ${data.nights} ${data.localeStrings.nights}`;
+          }
+        };
+      }
+
+      const summaryNights = document.getElementById('summary-nights');
+      if (summaryNights && summaryNights.picker) {
+        summaryNights.picker.options.formatSummaryCallback = (data) => {
+          const prefix = data.isPreview ? `<span style="opacity: 0.7;">${data.localeStrings.preview}: </span>` : '';
+
+          return `
+            ${prefix}
+            <strong style="font-size: 1.1em; color: #3b82f6;">${data.nights}</strong>
+            <span> ${data.nights === 1 ? data.localeStrings.night : data.localeStrings.nights}</span>
+          `;
+        };
+      }
+    });
+  </script>
+
+  <style>
+    /* Custom styling for booked dates in cottage demo */
+    .drp-date-picker__day.booked {
+      background-color: rgba(239, 68, 68, 0.15);
+      text-decoration: line-through;
+    }
+
+    /* Note: Badge positioning styles are now in the Shadow DOM (SCSS file) */
+  </style>
+</body>
+</html>

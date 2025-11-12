@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Theming & Customization Examples - Date Range Picker</title>
+  <link rel="stylesheet" href="dist/style.css">
+  <style>
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 2rem;
+      background: #f9fafb;
+    }
+
+    h1 {
+      color: #111827;
+      border-bottom: 2px solid #e5e7eb;
+      padding-bottom: 1rem;
+      margin-bottom: 2rem;
+    }
+
+    .back-link {
+      display: inline-block;
+      margin-bottom: 1rem;
+      color: #667eea;
+      text-decoration: none;
+      font-weight: 500;
+    }
+
+    .back-link:hover {
+      text-decoration: underline;
+    }
+
+    .test-section {
+      background: white;
+      margin-bottom: 2rem;
+      padding: 1.5rem;
+      border: 1px solid #e5e7eb;
+      border-radius: 0.5rem;
+      box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1);
+    }
+
+    .test-section h2 {
+      margin-top: 0;
+      margin-bottom: 0.5rem;
+      font-size: 1.25rem;
+      color: #111827;
+    }
+
+    .test-section p {
+      margin-bottom: 1rem;
+      color: #6b7280;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 0.5rem;
+      font-weight: 600;
+      color: #374151;
+    }
+
+    .success {
+      margin-top: 1rem;
+      padding: 0.75rem;
+      background-color: #d1fae5;
+      border: 1px solid #10b981;
+      border-radius: 0.375rem;
+      color: #065f46;
+      font-weight: 500;
+    }
+
+    .info {
+      margin-top: 1rem;
+      padding: 0.75rem;
+      background-color: #dbeafe;
+      border: 1px solid #3b82f6;
+      border-radius: 0.375rem;
+      color: #1e40af;
+    }
+
+    .code-block {
+      background: #1f2937;
+      color: #f9fafb;
+      padding: 1rem;
+      border-radius: 0.375rem;
+      overflow-x: auto;
+      font-family: 'Courier New', monospace;
+      font-size: 0.875rem;
+      margin-top: 1rem;
+    }
+
+    /* Default picker - no overrides */
+    date-range-picker.default {
+      /* Uses component defaults */
+    }
+
+    /* Green theme */
+    date-range-picker.theme-green {
+      --drp-accent-color: #10b981;
+      --drp-accent-color-hover: #059669;
+    }
+
+    /* Purple theme */
+    date-range-picker.theme-purple {
+      --drp-accent-color: #8b5cf6;
+      --drp-accent-color-hover: #7c3aed;
+    }
+
+    /* Red theme */
+    date-range-picker.theme-red {
+      --drp-accent-color: #ef4444;
+      --drp-accent-color-hover: #dc2626;
+    }
+
+    /* Orange theme */
+    date-range-picker.theme-orange {
+      --drp-accent-color: #f97316;
+      --drp-accent-color-hover: #ea580c;
+    }
+
+    /* Dark theme */
+    date-range-picker.theme-dark {
+      --drp-card-bg: #1e293b;
+      --drp-text-primary: #f1f5f9;
+      --drp-text-secondary: #cbd5e1;
+      --drp-border-color: #334155;
+      --drp-accent-color: #3b82f6;
+      --drp-accent-color-hover: #2563eb;
+      --drp-primary-bg: #334155;
+      --drp-primary-bg-hover: #475569;
+      --drp-accent-text-color: #ffffff;
+      --drp-button-text-color: #ffffff;
+    }
+
+    /* Large size with rounded corners */
+    date-range-picker.custom-large {
+      --drp-border-radius: 1rem;
+      --drp-font-size-base: 1.125rem;
+      --drp-spacing-md: 1.25rem;
+    }
+
+    /* Compact theme */
+    date-range-picker.theme-compact {
+      --drp-spacing-xs: 0.125rem;
+      --drp-spacing-sm: 0.25rem;
+      --drp-spacing-md: 0.5rem;
+      --drp-font-size-base: 0.875rem;
+      --drp-border-radius: 0.25rem;
+    }
+
+    /* Pastel blue theme */
+    date-range-picker.theme-pastel {
+      --drp-card-bg: #fef3c7;
+      --drp-border-color: #fbbf24;
+      --drp-accent-color: #3b82f6;
+      --drp-accent-color-hover: #2563eb;
+      --drp-primary-bg: #fed7aa;
+      --drp-primary-bg-hover: #fdba74;
+    }
+  </style>
+</head>
+<body>
+  <a href="index.html" class="back-link">← Back to Examples</a>
+
+  <h1>🎨 Theming & Customization Examples</h1>
+
+  <div class="test-section">
+    <h2>Overview: How CSS Variable Theming Works</h2>
+    <div class="info">
+      <strong>✅ Shadow DOM + CSS Variables = Powerful Theming</strong><br><br>
+      This component uses <strong>:host</strong> to define CSS variables inside the shadow DOM. This means:
+      <ul style="margin: 0.5rem 0 0 1.5rem;">
+        <li>Variables are accessible to component styles</li>
+        <li>You can override them from your page CSS</li>
+        <li>Each instance can have a different theme</li>
+      </ul>
+    </div>
+    <div class="code-block">/* Your page CSS */
+date-range-picker.theme-green {
+  --drp-accent-color: #10b981;
+  --drp-accent-color-hover: #059669;
+}</div>
+  </div>
+
+  <div class="test-section">
+    <h2>✅ Test 1: Default Theme (Blue)</h2>
+    <p>Uses component's default CSS variables</p>
+    <label>Select a date:</label>
+    <date-range-picker
+      class="default"
+      selection-mode="single"
+      placeholder="Default theme">
+    </date-range-picker>
+    <div class="success">
+      ✓ If this picker appears with blue accent color, defaults are working
+    </div>
+  </div>
+
+  <div class="test-section">
+    <h2>✅ Test 2: Color Theme Overrides</h2>
+    <p>Override --drp-accent-color to change the theme color</p>
+
+    <label>Green Theme:</label>
+    <date-range-picker
+      class="theme-green"
+      selection-mode="single"
+      placeholder="Green theme">
+    </date-range-picker>
+
+    <label style="margin-top: 1rem;">Purple Theme:</label>
+    <date-range-picker
+      class="theme-purple"
+      selection-mode="single"
+      placeholder="Purple theme">
+    </date-range-picker>
+
+    <label style="margin-top: 1rem;">Red Theme:</label>
+    <date-range-picker
+      class="theme-red"
+      selection-mode="single"
+      placeholder="Red theme">
+    </date-range-picker>
+
+    <label style="margin-top: 1rem;">Orange Theme:</label>
+    <date-range-picker
+      class="theme-orange"
+      selection-mode="single"
+      placeholder="Orange theme">
+    </date-range-picker>
+
+    <div class="success">
+      ✓ If selected dates appear in different colors, CSS variable override is working!
+    </div>
+  </div>
+
+  <div class="test-section">
+    <h2>✅ Test 3: Dark Theme (Multiple Variables)</h2>
+    <p>Overrides multiple variables for complete dark mode</p>
+    <label>Select a date:</label>
+    <date-range-picker
+      class="theme-dark"
+      selection-mode="single"
+      placeholder="Dark theme">
+    </date-range-picker>
+    <div class="success">
+      ✓ If calendar has dark background and light text, multiple variable override is working!
+    </div>
+    <div class="code-block">date-range-picker.theme-dark {
+  --drp-card-bg: #1e293b;
+  --drp-text-primary: #f1f5f9;
+  --drp-text-secondary: #cbd5e1;
+  --drp-border-color: #334155;
+  --drp-accent-color: #3b82f6;
+  --drp-accent-color-hover: #2563eb;
+  --drp-primary-bg: #334155;
+  --drp-primary-bg-hover: #475569;
+  --drp-accent-text-color: #ffffff;
+  --drp-button-text-color: #ffffff;
+}</div>
+  </div>
+
+  <div class="test-section">
+    <h2>✅ Test 4: Custom Sizing & Spacing</h2>
+    <p>Overrides spacing, font size, and border radius</p>
+    <label>Large with rounded corners:</label>
+    <date-range-picker
+      class="custom-large"
+      selection-mode="single"
+      placeholder="Custom large theme">
+    </date-range-picker>
+
+    <label style="margin-top: 1rem;">Compact theme:</label>
+    <date-range-picker
+      class="theme-compact"
+      selection-mode="single"
+      placeholder="Compact theme">
+    </date-range-picker>
+
+    <div class="success">
+      ✓ If calendars have different sizes and spacing, sizing overrides are working!
+    </div>
+  </div>
+
+  <div class="test-section">
+    <h2>✅ Test 5: Range Mode with Themes</h2>
+    <p>Range selection works with all themes</p>
+
+    <label>Green theme range:</label>
+    <date-range-picker
+      class="theme-green"
+      selection-mode="range"
+      visible-months-count="2"
+      placeholder="Range with green theme">
+    </date-range-picker>
+
+    <label style="margin-top: 1rem;">Dark theme range:</label>
+    <date-range-picker
+      class="theme-dark"
+      selection-mode="range"
+      visible-months-count="2"
+      placeholder="Range with dark theme">
+    </date-range-picker>
+
+    <div class="success">
+      ✓ If range selections appear in themed colors, CSS variables work in range mode too!
+    </div>
+  </div>
+
+  <div class="test-section">
+    <h2>✅ Test 6: Pastel Theme (Custom Background)</h2>
+    <p>Completely custom color scheme</p>
+    <label>Pastel theme:</label>
+    <date-range-picker
+      class="theme-pastel"
+      selection-mode="single"
+      placeholder="Pastel theme">
+    </date-range-picker>
+    <div class="success">
+      ✓ Background, borders, and accents all customized
+    </div>
+  </div>
+
+  <div class="test-section">
+    <h2>Available CSS Custom Properties</h2>
+    <p>All variables you can override with <code>--drp-</code> prefix:</p>
+
+    <h3 style="margin-top: 1.5rem; font-size: 1.1rem;">Colors</h3>
+    <div class="code-block">--drp-card-bg              /* Calendar background */
+--drp-border-color          /* Border color */
+--drp-primary-bg            /* Primary background (hover states) */
+--drp-primary-bg-hover      /* Primary background hover */
+--drp-accent-color          /* Accent color (selected, focused) */
+--drp-accent-color-hover    /* Accent color hover */
+--drp-text-primary          /* Primary text color */
+--drp-text-secondary        /* Secondary text color */</div>
+
+    <h3 style="margin-top: 1.5rem; font-size: 1.1rem;">Spacing</h3>
+    <div class="code-block">--drp-spacing-xs            /* Extra small spacing */
+--drp-spacing-sm            /* Small spacing */
+--drp-spacing-md            /* Medium spacing */
+--drp-spacing-lg            /* Large spacing */
+--drp-spacing-xl            /* Extra large spacing */</div>
+
+    <h3 style="margin-top: 1.5rem; font-size: 1.1rem;">Typography</h3>
+    <div class="code-block">--drp-font-size-2xs         /* Extra extra small */
+--drp-font-size-xs          /* Extra small */
+--drp-font-size-sm          /* Small */
+--drp-font-size-base        /* Base font size */
+--drp-font-size-lg          /* Large */
+--drp-font-size-xl          /* Extra large */
+--drp-font-size-2xl         /* Extra extra large */
+--drp-font-weight-medium    /* Medium weight */
+--drp-font-weight-semibold  /* Semibold weight */</div>
+
+    <h3 style="margin-top: 1.5rem; font-size: 1.1rem;">Borders & Other</h3>
+    <div class="code-block">--drp-border-width-base     /* Base border width */
+--drp-border-radius         /* Border radius */
+--drp-shadow-xl             /* Extra large shadow */
+--drp-transition-fast       /* Fast transition duration */</div>
+  </div>
+
+  <div class="test-section">
+    <h2>Dynamic Theme Switching</h2>
+    <p>Change themes at runtime with JavaScript</p>
+    <label>Dynamic theme picker:</label>
+    <date-range-picker
+      id="dynamic-picker"
+      class="theme-green"
+      selection-mode="single"
+      placeholder="Dynamic theme">
+    </date-range-picker>
+    <div style="margin-top: 1rem; display: flex; gap: 0.5rem; flex-wrap: wrap;">
+      <button onclick="switchTheme('default')" style="padding: 0.5rem 1rem; border: 1px solid #d1d5db; border-radius: 0.375rem; cursor: pointer; background: #3b82f6; color: white;">Blue</button>
+      <button onclick="switchTheme('theme-green')" style="padding: 0.5rem 1rem; border: 1px solid #d1d5db; border-radius: 0.375rem; cursor: pointer; background: #10b981; color: white;">Green</button>
+      <button onclick="switchTheme('theme-purple')" style="padding: 0.5rem 1rem; border: 1px solid #d1d5db; border-radius: 0.375rem; cursor: pointer; background: #8b5cf6; color: white;">Purple</button>
+      <button onclick="switchTheme('theme-red')" style="padding: 0.5rem 1rem; border: 1px solid #d1d5db; border-radius: 0.375rem; cursor: pointer; background: #ef4444; color: white;">Red</button>
+      <button onclick="switchTheme('theme-dark')" style="padding: 0.5rem 1rem; border: 1px solid #d1d5db; border-radius: 0.375rem; cursor: pointer; background: #1f2937; color: white;">Dark</button>
+    </div>
+    <div class="code-block" style="margin-top: 1rem;">// Switch theme dynamically
+const picker = document.getElementById('dynamic-picker');
+
+function switchTheme(newTheme) {
+  picker.className = newTheme;
+}</div>
+  </div>
+
+  <script type="module" src="dist/date-range-picker.js"></script>
+
+  <script>
+    // Dynamic theme switching
+    function switchTheme(newTheme) {
+      const picker = document.getElementById('dynamic-picker');
+      picker.className = newTheme;
+      console.log('Theme switched to:', newTheme);
+    }
+
+    // Log to console when components are ready
+    document.addEventListener('DOMContentLoaded', () => {
+      console.log('✅ Theming examples loaded');
+      console.log('📋 Instructions:');
+      console.log('1. Click each input to open the calendar');
+      console.log('2. Check if the accent colors match the theme');
+      console.log('3. Try the dynamic theme switcher at the bottom');
+      console.log('');
+      console.log('✅ If all themes work correctly, :host CSS variables are working!');
+    });
+  </script>
+</body>
+</html>

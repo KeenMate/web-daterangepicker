@@ -10,6 +10,7 @@
 // ├── _badges.scss             - Badge system for events/markers
 // ├── _summary-actions.scss    - Selection summary and action buttons
 // ├── _tooltips.scss           - Floating UI tooltips
+// ├── _loading.scss            - Loading overlay and spinner for async validation
 // ├── _modifiers.scss          - Size variants, font/spacing scaling, responsive
 // └── main.scss                - This file (imports all partials)
 //
@@ -25,4 +26,5 @@
 @use 'badges';
 @use 'summary-actions';
 @use 'tooltips';
+@use 'loading';
 @use 'modifiers';

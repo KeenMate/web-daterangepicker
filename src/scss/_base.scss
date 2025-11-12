@@ -9,8 +9,9 @@
 // CSS CUSTOM PROPERTIES (CSS VARIABLES)
 // ==============================================================================
 // Define CSS custom properties with SCSS fallbacks for runtime customization
+// Using :host instead of :root for proper shadow DOM support
 
-:root {
+:host {
   // Colors
   --drp-card-bg: #{$drp-calendar-bg};
   --drp-border-color: #{$drp-border-color};
@@ -20,6 +21,8 @@
   --drp-accent-color-hover: #{$drp-color-accent-dark};
   --drp-text-primary: #{$drp-color-neutral-darkest};
   --drp-text-secondary: #{$drp-color-neutral-dark};
+  --drp-accent-text-color: #{$drp-color-white};
+  --drp-button-text-color: #{$drp-color-white};
 
   // Spacing
   --drp-spacing-xs: #{$drp-spacing-xs};

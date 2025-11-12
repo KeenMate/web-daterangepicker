@@ -1,6 +1,6 @@
 import { PureDatePicker } from './date-picker';
 import type { DatePickerOptions, DateRange, DecoratedDate, DateInfo } from './types';
-import styles from './scss/_date-picker.scss?inline';
+import styles from './scss/main.scss?inline';
 
 export class DateRangePickerElement extends HTMLElement {
     private picker?: PureDatePicker;
@@ -16,9 +16,9 @@ export class DateRangePickerElement extends HTMLElement {
     static get observedAttributes() {
         return [
             'selection-mode', 'date-format-mask', 'visible-months-count', 'calendar-open-trigger', 'value', 'disabled', 'placeholder',
-            'week-start-day', 'min-date', 'max-date', 'disabled-weekdays', 'range-disabled-handling',
+            'week-start-day', 'min-date', 'max-date', 'disabled-weekdays', 'disabled-dates-handling',
             'highlight-disabled-in-range', 'positioning-mode', 'month-layout', 'grid-rows', 'grid-columns', 'calendar-placement',
-            'locale', 'display-format-mask'
+            'locale', 'display-format-mask', 'show-debug-info'
         ];
     }
 
@@ -154,10 +154,11 @@ export class DateRangePickerElement extends HTMLElement {
             specialDates: this._specialDates,
             isDateDisabled: this._isDateDisabled,
             getDateMetadata: this._getDateMetadata,
-            rangeDisabledHandling: (this.getAttribute('range-disabled-handling') as 'allow' | 'block' | 'split' | 'individual') || undefined,
+            disabledDatesHandling: (this.getAttribute('disabled-dates-handling') as 'allow' | 'prevent' | 'block' | 'split' | 'individual') || undefined,
             highlightDisabledInRange: this.hasAttribute('highlight-disabled-in-range') ? this.getAttribute('highlight-disabled-in-range') === 'true' : undefined,
             locale: this.getAttribute('locale') || 'auto',
-            displayFormatMask: this.getAttribute('display-format-mask') || undefined
+            displayFormatMask: this.getAttribute('display-format-mask') || undefined,
+            showDebugInfo: this.hasAttribute('show-debug-info')
         };
 
         // For inline mode, pass null as input element
@@ -182,7 +183,7 @@ export class DateRangePickerElement extends HTMLElement {
             return;
         }
 
-        const mode = this.picker.options.rangeDisabledHandling;
+        const mode = this.picker.options.disabledDatesHandling;
 
         if (!(date instanceof Date) && date.start && date.end) {
             // Range selection

@@ -1,3 +1,27 @@
+/**
+ * Result from async range validation callback
+ * Tells the component what action to take with the selected range
+ */
+export interface AsyncValidationResult {
+  /**
+   * Action to take:
+   * - 'accept': Use the proposed range as-is
+   * - 'adjust': Use adjustedStartDate/adjustedEndDate instead
+   * - 'restore': Revert to the previous selection before this operation
+   * - 'clear': Clear the selection entirely
+   */
+  action: 'accept' | 'adjust' | 'restore' | 'clear';
+
+  /** If action is 'adjust', the new start date to use */
+  adjustedStartDate?: Date;
+
+  /** If action is 'adjust', the new end date to use */
+  adjustedEndDate?: Date;
+
+  /** Optional message to log or display to user */
+  message?: string;
+}
+
 export interface DatePickerOptions {
   selectionMode?: 'single' | 'range';
   calendarPlacement?: string;
@@ -30,11 +54,12 @@ export interface DatePickerOptions {
   getDateMetadata?: (date: Date) => DateInfo | null; // Custom styling/labels
 
   // Range selection behavior over disabled dates
-  rangeDisabledHandling?: 'allow' | 'block' | 'split' | 'individual';
+  disabledDatesHandling?: 'allow' | 'prevent' | 'block' | 'split' | 'individual';
   // - 'allow': Allow ranges over disabled dates (default)
-  // - 'block': Prevent selections that span disabled dates
-  // - 'split': Return multiple ranges split by disabled dates
-  // - 'individual': Return array of individual enabled dates
+  // - 'prevent': Prevent selections that cross disabled dates (selection attempt is blocked)
+  // - 'block': Snap selection to last enabled date before disabled gap
+  // - 'split': Return multiple ranges split by disabled dates (event formatting only)
+  // - 'individual': Return flat array of enabled dates (event formatting only)
 
   // Visual highlighting of disabled dates in selected range
   highlightDisabledInRange?: boolean; // Default: true. Set to false to only highlight enabled dates in range.
@@ -46,6 +71,45 @@ export interface DatePickerOptions {
 
   // Custom summary formatting
   formatSummaryCallback?: (data: SummaryCallbackData) => string; // Custom function to format the summary display (receives all selection data, returns HTML string)
+
+  /**
+   * Async callback for custom range validation (e.g., API call to check availability)
+   * Called after user completes a range selection (via drag or click), AFTER local
+   * disabled dates validation passes.
+   *
+   * Use cases:
+   * - Call API to validate date range availability
+   * - Check business rules (min/max nights, blackout periods, etc.)
+   * - Adjust dates based on server-side logic
+   *
+   * @param startDate - Proposed range start date
+   * @param endDate - Proposed range end date
+   * @returns Promise resolving to validation result with action to take
+   *
+   * @example
+   * validateRangeCallback: async (start, end) => {
+   *   const response = await fetch('/api/validate-dates', {
+   *     method: 'POST',
+   *     body: JSON.stringify({ start, end })
+   *   });
+   *   const data = await response.json();
+   *   if (data.available) {
+   *     return { action: 'accept' };
+   *   } else if (data.suggestedEnd) {
+   *     return {
+   *       action: 'adjust',
+   *       adjustedStartDate: start,
+   *       adjustedEndDate: new Date(data.suggestedEnd)
+   *     };
+   *   } else {
+   *     return { action: 'restore', message: 'Dates not available' };
+   *   }
+   * }
+   */
+  validateRangeCallback?: (startDate: Date, endDate: Date) => Promise<AsyncValidationResult>;
+
+  // Debug mode - enables detailed console logging for troubleshooting
+  showDebugInfo?: boolean;
 }
 
 export interface LocaleStrings {

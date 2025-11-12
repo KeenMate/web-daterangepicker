@@ -5,6 +5,8 @@
  * rolling selector, and keyboard focus movement.
  */
 
+import { navigationLogger } from './logger';
+
 /**
  * Check if a given month has any enabled (non-disabled) days
  * Used to determine if navigation buttons should be disabled
@@ -38,7 +40,7 @@ export function selectYear(picker: any, year: number, monthIndex: number) {
     // Update only this specific month's year
     const oldYear = picker.monthDates[monthIndex].getFullYear();
     picker.monthDates[monthIndex].setFullYear(year);
-    console.log(`[DatePicker Col${monthIndex}] selectYear - changed from ${oldYear} to ${year}`);
+    navigationLogger.debug(`selectYear() Col${monthIndex} - changed from ${oldYear} to ${year}`);
 
     // Check for collisions with adjacent columns
     checkAndResolveCollisions(picker, monthIndex);
@@ -51,7 +53,7 @@ export function selectMonth(picker: any, month: number, monthIndex: number) {
     // Update only this specific month's month
     const oldMonth = picker.monthDates[monthIndex].getMonth();
     picker.monthDates[monthIndex].setMonth(month);
-    console.log(`[DatePicker Col${monthIndex}] selectMonth - changed from ${oldMonth+1} to ${month+1}`);
+    navigationLogger.debug(`selectMonth() Col${monthIndex} - changed from ${oldMonth+1} to ${month+1}`);
 
     // Check for collisions with adjacent columns
     checkAndResolveCollisions(picker, monthIndex);
@@ -68,7 +70,7 @@ export function checkAndResolveCollisions(picker: any, changedIdx: number) {
     if (changedIdx < picker.monthDates.length - 1) {
         const nextDate = picker.monthDates[changedIdx + 1];
         if (isSameOrAfterMonth(changedDate, nextDate)) {
-            console.log(`[DatePicker Col${changedIdx}] Collision with Col${changedIdx+1}, shifting forward`);
+            navigationLogger.debug(`checkAndResolveCollisions() Col${changedIdx} - collision with Col${changedIdx+1}, shifting forward`);
             // Move next column to be 1 month after changed column
             const newNextDate = new Date(changedDate.getFullYear(), changedDate.getMonth() + 1, 1);
             picker.monthDates[changedIdx + 1] = newNextDate;
@@ -81,7 +83,7 @@ export function checkAndResolveCollisions(picker: any, changedIdx: number) {
     if (changedIdx > 0) {
         const prevDate = picker.monthDates[changedIdx - 1];
         if (isSameOrAfterMonth(prevDate, changedDate)) {
-            console.log(`[DatePicker Col${changedIdx}] Collision with Col${changedIdx-1}, shifting backward`);
+            navigationLogger.debug(`checkAndResolveCollisions() Col${changedIdx} - collision with Col${changedIdx-1}, shifting backward`);
             // Move previous column to be 1 month before changed column
             const newPrevDate = new Date(changedDate.getFullYear(), changedDate.getMonth() - 1, 1);
             picker.monthDates[changedIdx - 1] = newPrevDate;
@@ -116,13 +118,13 @@ export function prevMonth(picker: any, monthIndex: number) {
     const oldDate = picker.monthDates[idx];
     const newDate = new Date(oldDate.getFullYear(), oldDate.getMonth() - 1, 1);
     picker.monthDates[idx] = newDate;
-    console.log(`[DatePicker Col${idx}] prevMonth - changed from ${oldDate.getFullYear()}-${oldDate.getMonth()+1} to ${newDate.getFullYear()}-${newDate.getMonth()+1}`);
+    navigationLogger.debug(`prevMonth() Col${idx} - changed from ${oldDate.getFullYear()}-${oldDate.getMonth()+1} to ${newDate.getFullYear()}-${newDate.getMonth()+1}`);
 
     // If moving backward causes overlap with previous column, shift previous columns back
     if (idx > 0) {
         const prevDate = picker.monthDates[idx - 1];
         if (isSameOrAfterMonth(prevDate, newDate)) {
-            console.log(`[DatePicker Col${idx}] Collision detected with Col${idx-1}, shifting previous columns back`);
+            navigationLogger.debug(`prevMonth() Col${idx} - collision detected with Col${idx-1}, shifting previous columns back`);
             // Recursively move previous column back
             prevMonth(picker, idx - 1);
         }
@@ -143,13 +145,13 @@ export function nextMonth(picker: any, monthIndex: number) {
     const oldDate = picker.monthDates[idx];
     const newDate = new Date(oldDate.getFullYear(), oldDate.getMonth() + 1, 1);
     picker.monthDates[idx] = newDate;
-    console.log(`[DatePicker Col${idx}] nextMonth - changed from ${oldDate.getFullYear()}-${oldDate.getMonth()+1} to ${newDate.getFullYear()}-${newDate.getMonth()+1}`);
+    navigationLogger.debug(`nextMonth() Col${idx} - changed from ${oldDate.getFullYear()}-${oldDate.getMonth()+1} to ${newDate.getFullYear()}-${newDate.getMonth()+1}`);
 
     // If moving forward causes overlap with next column, shift next columns forward
     if (idx < picker.monthDates.length - 1) {
         const nextDate = picker.monthDates[idx + 1];
         if (isSameOrAfterMonth(newDate, nextDate)) {
-            console.log(`[DatePicker Col${idx}] Collision detected with Col${idx+1}, shifting next columns forward`);
+            navigationLogger.debug(`nextMonth() Col${idx} - collision detected with Col${idx+1}, shifting next columns forward`);
             // Recursively move next column forward
             nextMonth(picker, idx + 1);
         }
@@ -200,15 +202,15 @@ export function findNextEnabledDayIndex(picker: any, startIndex: number, offset:
 
 export function moveFocus(picker: any, offset: number) {
     // Only get days from the active month column
-    console.log(`[DatePicker Col${picker.activeMonthIndex}] moveFocus(${offset}) - focusedDayIndex:`, picker.focusedDayIndex);
+    navigationLogger.debug(`moveFocus(${offset}) Col${picker.activeMonthIndex} - focusedDayIndex:`, picker.focusedDayIndex);
     const daysContainer = picker.calendar.querySelector(`.drp-date-picker__days[data-month-index="${picker.activeMonthIndex}"]`);
     if (!daysContainer) {
-        console.log(`[DatePicker Col${picker.activeMonthIndex}] ERROR: daysContainer not found!`);
+        navigationLogger.debug(`moveFocus() Col${picker.activeMonthIndex} - ERROR: daysContainer not found!`);
         return;
     }
 
     const days = daysContainer.querySelectorAll('.drp-date-picker__day:not(.drp-date-picker__day--other-month)');
-    console.log(`[DatePicker Col${picker.activeMonthIndex}] Found ${days.length} days in column`);
+    navigationLogger.debug(`moveFocus() Col${picker.activeMonthIndex} - found ${days.length} days in column`);
     if (days.length === 0) return;
 
     // Initialize focus if not set
@@ -216,7 +218,7 @@ export function moveFocus(picker: any, offset: number) {
         // Find today's day in the calendar as the starting point
         const todayIndex = Array.from(days).findIndex(day => day.classList.contains('drp-date-picker__day--today'));
         picker.focusedDayIndex = todayIndex !== -1 ? todayIndex : 0;
-        console.log(`[DatePicker Col${picker.activeMonthIndex}] Initialized focusedDayIndex to ${picker.focusedDayIndex} (today or first day), will move by offset ${offset}`);
+        navigationLogger.debug(`moveFocus() Col${picker.activeMonthIndex} - initialized focusedDayIndex to ${picker.focusedDayIndex} (today or first day), will move by offset ${offset}`);
     }
 
     // Remove old focus (if any)
@@ -232,7 +234,7 @@ export function moveFocus(picker: any, offset: number) {
         // For left arrow (offset -1), just go to last enabled day of previous month
         // For up arrow (offset -7), maintain weekday column
         if (offset === -1) {
-            console.log(`[DatePicker Col${savedMonthIndex}] Edge navigation LEFT: going to last enabled day of prev month`);
+            navigationLogger.debug(`moveFocus() Col${savedMonthIndex} - edge navigation LEFT: going to last enabled day of prev month`);
             prevMonth(picker, picker.activeMonthIndex);
             setTimeout(() => {
                 const newContainer = picker.calendar.querySelector(`.drp-date-picker__month[data-month-index="${savedMonthIndex}"] .drp-date-picker__days`);
@@ -256,7 +258,7 @@ export function moveFocus(picker: any, offset: number) {
                 const currentDate = new Date(year, month, day);
                 const targetWeekday = currentDate.getDay();
 
-                console.log(`[DatePicker Col${savedMonthIndex}] Edge navigation UP: current day ${day} is weekday ${targetWeekday}, going to prev month`);
+                navigationLogger.debug(`moveFocus() Col${savedMonthIndex} - edge navigation UP: current day ${day} is weekday ${targetWeekday}, going to prev month`);
                 prevMonth(picker, picker.activeMonthIndex);
                 setTimeout(() => {
                     const newContainer = picker.calendar.querySelector(`.drp-date-picker__month[data-month-index="${savedMonthIndex}"] .drp-date-picker__days`);
@@ -272,7 +274,7 @@ export function moveFocus(picker: any, offset: number) {
                         const offsetDays = (lastWeekday - targetWeekday + 7) % 7;
                         picker.focusedDayIndex = newDays.length - 1 - offsetDays;
 
-                        console.log(`[DatePicker Col${savedMonthIndex}] Last day weekday ${lastWeekday}, target ${targetWeekday}, focusing on day ${picker.focusedDayIndex+1}`);
+                        navigationLogger.debug(`moveFocus() Col${savedMonthIndex} - last day weekday ${lastWeekday}, target ${targetWeekday}, focusing on day ${picker.focusedDayIndex+1}`);
                         newDays[picker.focusedDayIndex]?.classList.add('drp-date-picker__day--focused');
                         newDays[picker.focusedDayIndex]?.scrollIntoView({ block: 'nearest' });
                     }
@@ -286,7 +288,7 @@ export function moveFocus(picker: any, offset: number) {
         // For right arrow (offset +1), just go to first enabled day of next month
         // For down arrow (offset +7), maintain weekday column
         if (offset === 1) {
-            console.log(`[DatePicker Col${savedMonthIndex}] Edge navigation RIGHT: going to first enabled day of next month`);
+            navigationLogger.debug(`moveFocus() Col${savedMonthIndex} - edge navigation RIGHT: going to first enabled day of next month`);
             nextMonth(picker, picker.activeMonthIndex);
             setTimeout(() => {
                 const newContainer = picker.calendar.querySelector(`.drp-date-picker__month[data-month-index="${savedMonthIndex}"] .drp-date-picker__days`);
@@ -310,7 +312,7 @@ export function moveFocus(picker: any, offset: number) {
                 const currentDate = new Date(year, month, day);
                 const targetWeekday = currentDate.getDay();
 
-                console.log(`[DatePicker Col${savedMonthIndex}] Edge navigation DOWN: current day ${day} is weekday ${targetWeekday}, going to next month`);
+                navigationLogger.debug(`moveFocus() Col${savedMonthIndex} - edge navigation DOWN: current day ${day} is weekday ${targetWeekday}, going to next month`);
                 nextMonth(picker, picker.activeMonthIndex);
                 setTimeout(() => {
                     const newContainer = picker.calendar.querySelector(`.drp-date-picker__month[data-month-index="${savedMonthIndex}"] .drp-date-picker__days`);
@@ -326,7 +328,7 @@ export function moveFocus(picker: any, offset: number) {
                         const offsetDays = (targetWeekday - firstWeekday + 7) % 7;
                         picker.focusedDayIndex = offsetDays;
 
-                        console.log(`[DatePicker Col${savedMonthIndex}] First day weekday ${firstWeekday}, target ${targetWeekday}, focusing on day ${picker.focusedDayIndex+1}`);
+                        navigationLogger.debug(`moveFocus() Col${savedMonthIndex} - first day weekday ${firstWeekday}, target ${targetWeekday}, focusing on day ${picker.focusedDayIndex+1}`);
                         newDays[picker.focusedDayIndex]?.classList.add('drp-date-picker__day--focused');
                         newDays[picker.focusedDayIndex]?.scrollIntoView({ block: 'nearest' });
                     }
@@ -378,7 +380,7 @@ export function moveFocus(picker: any, offset: number) {
         days[picker.focusedDayIndex]?.scrollIntoView({ block: 'nearest' });
     } else {
         // No enabled day found, don't move
-        console.log('[DatePicker] No enabled day found in search range');
+        navigationLogger.debug('moveFocus() - no enabled day found in search range');
         days[picker.focusedDayIndex]?.classList.add('drp-date-picker__day--focused');
     }
 }

@@ -47,39 +47,20 @@ $drp-spacing-xl: 2rem !default;
 
 // Neutral Colors
 $drp-color-white: #ffffff !default;
-$drp-color-neutral-lightest: #f9fafb !default;
 $drp-color-neutral-lighter: #f3f4f6 !default;
 $drp-color-neutral-light: #e5e7eb !default;
-$drp-color-neutral: #d1d5db !default;
-$drp-color-neutral-medium: #9ca3af !default;
 $drp-color-neutral-dark: #6b7280 !default;
-$drp-color-neutral-darker: #4b5563 !default;
 $drp-color-neutral-darkest: #111827 !default;
 
 // Accent Colors (Blue)
-$drp-color-accent-lightest: #eff6ff !default;
-$drp-color-accent-lighter: #dbeafe !default;
-$drp-color-accent-light: #93c5fd !default;
 $drp-color-accent: #3b82f6 !default;
 $drp-color-accent-dark: #2563eb !default;
-$drp-color-accent-darker: #1d4ed8 !default;
 
 // Error/Danger Colors (Red)
-$drp-color-error-light: #fecaca !default;
 $drp-color-error: #ef4444 !default;
-$drp-color-error-dark: #dc2626 !default;
 
 // Success Colors (Green)
-$drp-color-success-light: #bbf7d0 !default;
 $drp-color-success: #10b981 !default;
-$drp-color-success-dark: #059669 !default;
-
-// Special Event Colors
-$drp-color-holiday: #ef4444 !default;
-$drp-color-event: #3b82f6 !default;
-$drp-color-birthday: #ec4899 !default;
-$drp-color-meeting: #8b5cf6 !default;
-$drp-color-vip: #f59e0b !default;
 
 // ==============================================================================
 // TYPOGRAPHY SCALE
@@ -93,19 +74,8 @@ $drp-font-size-lg: $font-size-lg !default;
 $drp-font-size-xl: $font-size-xl !default;
 $drp-font-size-2xl: $font-size-2xl !default;
 
-$drp-font-weight-normal: 400 !default;
 $drp-font-weight-medium: 500 !default;
 $drp-font-weight-semibold: 600 !default;
-$drp-font-weight-bold: 700 !default;
-
-$drp-line-height-none: 1 !default;
-$drp-line-height-tight: 1.25 !default;
-$drp-line-height-normal: 1.5 !default;
-$drp-line-height-relaxed: 1.75 !default;
-
-$drp-letter-spacing-tight: -0.025em !default;
-$drp-letter-spacing-normal: 0 !default;
-$drp-letter-spacing-wide: 0.025em !default;
 
 // ==============================================================================
 // BORDERS & SHADOWS
@@ -123,9 +93,6 @@ $drp-border-color: $drp-color-neutral-light !default;
 $drp-border-color-hover: $drp-color-accent !default;
 $drp-border-color-focus: $drp-color-accent !default;
 
-$drp-shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05) !default;
-$drp-shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1) !default;
-$drp-shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1) !default;
 $drp-shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1) !default;
 
 // ==============================================================================
@@ -133,23 +100,13 @@ $drp-shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0
 // ==============================================================================
 
 $drp-transition-fast: 150ms !default;
-$drp-transition-normal: 200ms !default;
-$drp-transition-slow: 300ms !default;
-
-$drp-easing-linear: linear !default;
-$drp-easing-ease: ease !default;
 $drp-easing-snappy: cubic-bezier(0.4, 0.0, 0.2, 1) !default;
-$drp-easing-smooth: cubic-bezier(0.4, 0.0, 0.6, 1) !default;
 
 // ==============================================================================
 // Z-INDEX LAYERS
 // ==============================================================================
 
-$drp-z-index-base: 1 !default;
-$drp-z-index-sticky: 100 !default;
 $drp-z-index-dropdown: 9500 !default;
-$drp-z-index-overlay: 9000 !default;
-$drp-z-index-popover: 9600 !default;
 $drp-z-index-tooltip: 9999 !default;
 
 // ==============================================================================
@@ -315,14 +272,7 @@ $drp-badge-count-color: $drp-color-white !default;
 $drp-badge-text-bg: $drp-color-neutral-dark !default;
 $drp-badge-text-color: $drp-color-white !default;
 
-// Badge Event Type Colors
-$drp-badge-holiday-bg: $drp-color-holiday !default;
-$drp-badge-event-bg: $drp-color-event !default;
-$drp-badge-birthday-bg: $drp-color-birthday !default;
-$drp-badge-meeting-bg: $drp-color-meeting !default;
-$drp-badge-vip-bg: $drp-color-vip !default;
-
-// Special Date Highlighting
+// Special Date Highlighting (for calendar day background tinting)
 $drp-holiday-bg-opacity: 0.10 !default;
 $drp-holiday-hover-bg-opacity: 0.20 !default;
 $drp-event-bg-opacity: 0.10 !default;

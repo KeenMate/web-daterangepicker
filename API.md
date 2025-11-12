@@ -6,18 +6,66 @@ Complete API documentation for the Web Date Range Picker component.
 
 ## Table of Contents
 
-1. [Web Component Attributes](#web-component-attributes)
-2. [DatePicker Options](#datepicker-options)
-3. [Public Methods](#public-methods)
-4. [Events & Event Detail](#events--event-detail)
-5. [CSS Classes](#css-classes)
-6. [CSS Custom Properties](#css-custom-properties)
-7. [TypeScript Interfaces](#typescript-interfaces)
-8. [Keyboard Navigation](#keyboard-navigation)
-9. [Property Accessors](#property-accessors)
-10. [Browser Support](#browser-support)
-11. [Advanced Usage Examples](#advanced-usage-examples)
-12. [Migration Guide](#migration-guide)
+1. [Package Exports](#package-exports)
+2. [Web Component Attributes](#web-component-attributes)
+3. [DatePicker Options](#datepicker-options)
+4. [Public Methods](#public-methods)
+5. [Events & Event Detail](#events--event-detail)
+6. [Debugging & Logging](#debugging--logging)
+7. [CSS Classes](#css-classes)
+8. [CSS Custom Properties](#css-custom-properties)
+9. [TypeScript Interfaces](#typescript-interfaces)
+10. [Keyboard Navigation](#keyboard-navigation)
+11. [Property Accessors](#property-accessors)
+12. [Browser Support](#browser-support)
+13. [Advanced Usage Examples](#advanced-usage-examples)
+14. [Known Limitations](#known-limitations)
+15. [Migration Guide](#migration-guide)
+
+---
+
+## Package Exports
+
+The package provides multiple exports for different use cases:
+
+### Component & Styles
+
+```javascript
+// Import the web component (auto-registers as <date-range-picker>)
+import '@keenmate/web-daterangepicker';
+
+// Import compiled CSS
+import '@keenmate/web-daterangepicker/style.css';
+
+// Import TypeScript types
+import type { DatePickerOptions, DateRange, DecoratedDate } from '@keenmate/web-daterangepicker';
+```
+
+### SCSS Customization
+
+```scss
+// Import all SCSS (main entry point)
+@import '@keenmate/web-daterangepicker/scss';
+
+// Or import specific SCSS modules
+@import '@keenmate/web-daterangepicker/scss/variables';  // SCSS variables only
+@import '@keenmate/web-daterangepicker/scss/base';       // CSS custom properties definitions
+@import '@keenmate/web-daterangepicker/src/scss/_calendar-grid.scss';  // Individual modules
+```
+
+### Available Exports
+
+| Export | Path | Description |
+|--------|------|-------------|
+| Main component | `@keenmate/web-daterangepicker` | ES module + UMD, auto-registers web component |
+| Compiled CSS | `@keenmate/web-daterangepicker/style.css` | Production-ready CSS bundle |
+| SCSS entry point | `@keenmate/web-daterangepicker/scss` | Main SCSS file importing all modules |
+| SCSS variables | `@keenmate/web-daterangepicker/scss/variables` | SCSS variables (`$drp-*`) |
+| CSS custom properties | `@keenmate/web-daterangepicker/scss/base` | CSS variables (`:host { --drp-* }`) |
+| Individual SCSS files | `@keenmate/web-daterangepicker/src/scss/*` | Any SCSS module by path |
+| Dist files | `@keenmate/web-daterangepicker/dist/*` | Any dist file by path |
+
+**Note:** When importing SCSS files, you can customize the component by overriding SCSS variables before importing, or by overriding CSS custom properties in your CSS.
 
 ---
 
@@ -47,6 +95,7 @@ All attributes can be set directly on the `<date-range-picker>` HTML element.
 | `calendar-placement` | `string` | Smart default* | Floating UI placement: `'bottom'`, `'top'`, `'left'`, `'right'`, `'bottom-start'`, `'bottom-end'`, `'top-start'`, `'top-end'`, etc. |
 | `locale` | `string \| 'auto'` | `'auto'` | Locale for UI strings and date formatting. Use `'auto'` for browser detection, or specify: `'en'`, `'de'`, `'fr'`, `'es'` |
 | `display-format-mask` | `string` | Same as `date-format-mask` | Localized format mask shown to users (e.g., `'dd/mm/aaaa'` in Spanish). Validation still uses `date-format-mask` |
+| `show-debug-info` | `boolean` | `false` | When present, enables detailed debug logging to browser console. See [Debugging & Logging](#debugging--logging) |
 
 **Smart default positioning:**
 - Grid layouts: `'bottom'` (centered)
@@ -301,6 +350,154 @@ picker.addEventListener('date-select', (e) => {
 
 ---
 
+## Debugging & Logging
+
+The date picker includes a professional logging system powered by [loglevel](https://github.com/pimterry/loglevel) that helps you debug issues during development.
+
+### Enabling Debug Logging
+
+Add the `show-debug-info` attribute to any picker instance to enable debug logging for that specific instance:
+
+```html
+<date-range-picker show-debug-info></date-range-picker>
+```
+
+### Log Categories
+
+The logging system is organized into specialized categories, each prefixed with a timestamp and category name:
+
+| Category | Logger Name | What It Logs |
+|----------|-------------|--------------|
+| **INIT** | `initLogger` | Component initialization, configuration, and setup |
+| **NAVIGATION** | `navigationLogger` | Month/year navigation, keyboard focus movement, collision detection |
+| **UI** | `uiLogger` | Calendar show/hide, positioning, floating UI calculations |
+| **RENDERING** | `renderingLogger` | Calendar rendering, DOM updates |
+| **SELECTION** | `selectionLogger` | Date selection, range completion |
+| **VALIDATION** | `validationLogger` | Date validation, disabled date checking |
+| **DRAG** | `dragLogger` | Drag-to-adjust operations, drag preview |
+| **INTERACTION** | `interactionLogger` | Input masking, user input parsing |
+
+### Log Message Format
+
+All log messages follow a consistent format with function context:
+
+```
+[HH:mm:ss.SSS] [LEVEL] [CATEGORY] functionName() [context] - message
+```
+
+**Examples:**
+```
+[14:23:15.842] [DEBUG] [NAVIGATION] moveFocus() Col0 - found 31 days in column
+[14:23:15.845] [DEBUG] [SELECTION] selectDay() Col1 - activeMonthIndex: 1
+[14:23:15.850] [DEBUG] [VALIDATION] validateRangeAsync called - mode: block
+[14:23:15.852] [DEBUG] [DRAG] onDragMove - mode: block, start: Mon Jan 01 2025, end: Fri Jan 05 2025
+```
+
+### Log Levels
+
+The library uses these log levels:
+
+| Level | When Used | Visibility |
+|-------|-----------|------------|
+| `silent` | Default (production) | No logging |
+| `error` | Critical errors (async validation failures, etc.) | Always visible |
+| `warn` | Warnings (invalid inputs, validation failures) | Always visible |
+| `info` | Not currently used | - |
+| `debug` | Development debugging | Only when `show-debug-info` is enabled |
+| `trace` | Not currently used | - |
+
+### Console Output Example
+
+When `show-debug-info` is enabled, you'll see detailed logs in your browser console:
+
+```
+[14:23:15.420] [DEBUG] [INIT] Week starts on day: 1
+[14:23:15.421] [DEBUG] [INIT] disabledDatesHandling: block
+[14:23:15.422] [DEBUG] [INIT] Locale: en Weekdays: (7) ['Mo', 'Tu', ...] Months: (12) ['January', ...]
+[14:23:15.423] [DEBUG] [INIT] Format info: {separator: '-', parts: {...}, maxLength: 10}
+[14:23:15.425] [DEBUG] [INIT] Creating calendar
+[14:23:15.428] [DEBUG] [RENDERING] renderCalendar() called
+[14:23:15.430] [DEBUG] [UI] show() - adding visible class
+[14:23:15.432] [DEBUG] [UI] position() - FloatingUI computed - x: 245, y: 380, placement: 'bottom-start'
+```
+
+### Filtering Logs by Category
+
+You can filter browser console output by category name. In Chrome DevTools Console:
+
+- Filter by category: Type `DRAG` or `SELECTION` in the filter box
+- Filter by function: Type `moveFocus()` or `selectDay()`
+- Filter by column: Type `Col0` or `Col1` for multi-month navigation
+
+### Programmatic Control
+
+Access the logging system directly via JavaScript:
+
+```javascript
+import { setLoggingEnabled, setLogLevel } from '@keenmate/web-daterangepicker';
+
+// Enable/disable all logging
+setLoggingEnabled(true);  // Turn on debug logging
+setLoggingEnabled(false); // Turn off debug logging
+
+// Set specific log level
+setLogLevel('debug');  // Show debug and above
+setLogLevel('warn');   // Show only warnings and errors
+setLogLevel('silent'); // Disable all logging
+```
+
+### Per-Category Loggers
+
+For advanced debugging, import individual category loggers:
+
+```javascript
+import {
+  initLogger,
+  navigationLogger,
+  uiLogger,
+  renderingLogger,
+  selectionLogger,
+  validationLogger,
+  dragLogger,
+  interactionLogger
+} from '@keenmate/web-daterangepicker';
+
+// Set level for specific category only
+navigationLogger.setLevel('debug');
+dragLogger.setLevel('trace');
+```
+
+### Best Practices
+
+1. **Development**: Enable `show-debug-info` on problematic picker instances only to reduce console noise
+2. **Production**: Never ship with `show-debug-info` enabled
+3. **Debugging Selection Issues**: Look for `SELECTION` and `VALIDATION` logs
+4. **Debugging Navigation**: Look for `NAVIGATION` logs with `Col` markers
+5. **Debugging Input Masking**: Look for `INTERACTION` logs with `updateCalendarFromInput`
+6. **Debugging Drag Issues**: Look for `DRAG` logs showing mode and range preview
+
+### Example: Debugging Block Mode
+
+```html
+<date-range-picker
+  selection-mode="range"
+  disabled-weekdays="0,6"
+  disabled-dates-handling="block"
+  show-debug-info>
+</date-range-picker>
+```
+
+Console output when selecting a range:
+```
+[14:30:45.120] [DEBUG] [SELECTION] selectDay() Col0 - activeMonthIndex: 0
+[14:30:45.122] [DEBUG] [VALIDATION] validateRangeAsync called - mode: block, start: Mon Jan 01 2025, end: Sat Jan 06 2025
+[14:30:45.123] [DEBUG] [VALIDATION] Checking BLOCK mode
+[14:30:45.124] [DEBUG] [VALIDATION] BLOCK mode - range contains disabled dates, adjusting
+[14:30:45.125] [DEBUG] [VALIDATION] BLOCK mode - adjusted end: Fri Jan 05 2025
+```
+
+---
+
 ## CSS Classes
 
 ### Wrapper Classes (Applied to Parent Element)
@@ -467,7 +664,28 @@ You can also add any custom class names for complete control.
 
 ## CSS Custom Properties
 
-All CSS variables use the `--drp-` prefix and can be overridden:
+All CSS variables use the `--drp-` prefix and can be overridden from page-level CSS.
+
+### How It Works
+
+The component defines CSS variables using `:host` in its shadow DOM styles. This allows you to override them from your page-level CSS by targeting the web component element:
+
+```css
+/* Your page CSS */
+date-range-picker {
+  --drp-accent-color: #10b981;
+  --drp-border-radius: 0.5rem;
+}
+```
+
+**Why `:host`?** CSS variables defined with `:host` inside shadow DOM are:
+- ✅ Accessible to all styles inside the shadow DOM
+- ✅ Overridable from page-level CSS (as shown above)
+- ✅ Scoped to each component instance
+
+**Note:** If you see `:root` mentioned in old documentation or examples, it has been replaced with `:host` for proper shadow DOM support. Using `:root` inside shadow DOM doesn't work correctly.
+
+### Available Variables
 
 ### Colors
 
@@ -481,6 +699,8 @@ All CSS variables use the `--drp-` prefix and can be overridden:
 | `--drp-accent-color-hover` | `#2563eb` | Accent color hover |
 | `--drp-text-primary` | `#111827` | Primary text color |
 | `--drp-text-secondary` | `#6b7280` | Secondary text color |
+| `--drp-accent-text-color` | `#ffffff` | Text color on accent backgrounds |
+| `--drp-button-text-color` | `#ffffff` | Button text color |
 
 ### Spacing
 
@@ -529,15 +749,71 @@ All CSS variables use the `--drp-` prefix and can be overridden:
 | `--drp-grid-rows` | (dynamic) | Grid rows count (set automatically) |
 | `--drp-grid-columns` | (dynamic) | Grid columns count (set automatically) |
 
-### Theming Example
+### Theming Examples
+
+#### Basic Theme Override
 
 ```css
-date-range-picker {
+/* Target specific picker instances with classes */
+date-range-picker.custom-theme {
   --drp-accent-color: #10b981;
   --drp-accent-color-hover: #059669;
   --drp-border-radius: 0.5rem;
   --drp-font-size-base: 1.125rem;
 }
+```
+
+#### Dark Theme
+
+```css
+date-range-picker.dark-theme {
+  --drp-card-bg: #1e293b;
+  --drp-text-primary: #f1f5f9;
+  --drp-text-secondary: #cbd5e1;
+  --drp-border-color: #334155;
+  --drp-accent-color: #3b82f6;
+  --drp-accent-color-hover: #2563eb;
+  --drp-primary-bg: #334155;
+  --drp-primary-bg-hover: #475569;
+  --drp-accent-text-color: #ffffff;
+  --drp-button-text-color: #ffffff;
+}
+```
+
+#### Multiple Themes
+
+```css
+/* Blue theme */
+date-range-picker.theme-blue {
+  --drp-accent-color: #3b82f6;
+  --drp-accent-color-hover: #2563eb;
+}
+
+/* Green theme */
+date-range-picker.theme-green {
+  --drp-accent-color: #10b981;
+  --drp-accent-color-hover: #059669;
+}
+
+/* Purple theme */
+date-range-picker.theme-purple {
+  --drp-accent-color: #8b5cf6;
+  --drp-accent-color-hover: #7c3aed;
+}
+```
+
+#### Dynamic Theme Switching
+
+```javascript
+// Change theme at runtime
+const picker = document.querySelector('date-range-picker');
+
+// Apply dark theme
+picker.classList.add('dark-theme');
+
+// Switch to different color theme
+picker.classList.remove('theme-blue');
+picker.classList.add('theme-green');
 ```
 
 ---
@@ -1132,6 +1408,238 @@ The callback receives an object with the following properties:
 | `dates` | `Date[]` | Individual/Split mode | Array of selected dates |
 | `enabledDates` | `Date[]` | Allow mode | Enabled dates in range |
 | `disabledDates` | `Date[]` | Allow mode | Disabled dates in range |
+
+---
+
+## Known Limitations
+
+### Input Field Styling
+
+**The component cannot style the `<input>` element directly due to Shadow DOM encapsulation.**
+
+#### Why This Happens
+
+The date picker is built as a web component using Shadow DOM for style encapsulation. This architectural decision provides several benefits:
+
+- **Style isolation**: Component styles don't leak to your page
+- **Predictable styling**: Your global CSS doesn't break the calendar
+- **Encapsulation**: Clean API boundary between component and consumer
+
+However, Shadow DOM creates a barrier:
+- The `<input>` element lives in the **light DOM** (your page)
+- The calendar popup lives in the **shadow DOM** (component internals)
+- Styles inside shadow DOM **cannot reach out** to style light DOM elements
+
+#### What the Component Provides
+
+The component adds minimal decoration to the input:
+
+```html
+<div class="drp-date-picker-input">
+  <input type="text" />  <!-- Your input, must be styled by you -->
+  <!-- Calendar icon (📅) added via CSS ::after -->
+</div>
+```
+
+**Available SCSS variables (for icon only):**
+- `$drp-input-padding-h` - Horizontal padding for icon positioning
+- `$drp-input-icon-opacity` - Opacity of the calendar icon
+
+#### How to Style Your Input
+
+**You must style the input element using your own CSS** in your application:
+
+```css
+/* Your global CSS or component styles */
+date-range-picker input {
+  padding: 0.75rem;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.375rem;
+  font-size: 1rem;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+date-range-picker input:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+date-range-picker input:disabled {
+  background-color: #f3f4f6;
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+```
+
+#### Wrapper Class Approach
+
+The component adds a `.drp-date-picker-input` wrapper class that you can target:
+
+```css
+/* Style the wrapper */
+.drp-date-picker-input {
+  position: relative;
+}
+
+/* Style the input inside the wrapper */
+.drp-date-picker-input input {
+  padding: 0.75rem 2.5rem 0.75rem 0.75rem; /* Extra padding-right for icon */
+  border: 1px solid #d1d5db;
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
+  transition: border-color 150ms;
+}
+
+.drp-date-picker-input input:hover {
+  border-color: #9ca3af;
+}
+
+.drp-date-picker-input input:focus {
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+```
+
+#### Alternative: Use Your Own Input
+
+Instead of letting the component create the input, you can provide your own pre-styled input:
+
+```html
+<date-range-picker>
+  <input
+    type="text"
+    class="my-custom-input"
+    placeholder="Select date"
+  />
+</date-range-picker>
+```
+
+```css
+/* Your custom input class */
+.my-custom-input {
+  /* Full control over input styling */
+  padding: 1rem;
+  border: 2px solid #3b82f6;
+  border-radius: 9999px;
+  font-size: 1.125rem;
+  /* ... */
+}
+```
+
+#### What DOES Work
+
+These CSS properties **do work** on the input element:
+
+✅ All basic styling:
+- `padding`, `margin`, `border`, `border-radius`
+- `background-color`, `color`, `font-size`, `font-family`
+- `width`, `height`, `box-sizing`
+- Pseudo-classes: `:hover`, `:focus`, `:disabled`, `:placeholder`
+- Transitions and animations
+
+✅ Flexbox/Grid parent styling:
+- Wrap the `<date-range-picker>` in a flex/grid container
+- Control layout and positioning normally
+
+#### What Does NOT Work
+
+These approaches **will not work**:
+
+❌ Trying to style from inside shadow DOM:
+```css
+/* Inside component SCSS - THIS WON'T WORK */
+input {
+  border: 1px solid red; /* Cannot reach light DOM */
+}
+```
+
+❌ CSS variables in shadow DOM to style input:
+```css
+/* Inside component - THIS WON'T WORK */
+:host {
+  --input-border-color: red;
+}
+
+/* Light DOM input cannot access shadow DOM variables */
+```
+
+❌ Using `::part()` or `::slotted()` on input:
+- Input is not in a slot or exposed as a part
+
+#### Framework-Specific Examples
+
+**Vue 3 / Scoped Styles:**
+```vue
+<template>
+  <date-range-picker></date-range-picker>
+</template>
+
+<style scoped>
+/* :deep() pierces component boundary */
+date-range-picker :deep(input) {
+  padding: 1rem;
+  border: 1px solid #ccc;
+}
+</style>
+```
+
+**React / CSS Modules:**
+```jsx
+<div className={styles.pickerWrapper}>
+  <date-range-picker></date-range-picker>
+</div>
+```
+
+```css
+/* styles.module.css */
+.pickerWrapper input {
+  padding: 1rem;
+  border: 1px solid #ccc;
+  border-radius: 0.5rem;
+}
+```
+
+**Svelte:**
+```svelte
+<date-range-picker></date-range-picker>
+
+<style>
+  :global(date-range-picker input) {
+    padding: 1rem;
+    border: 1px solid #ccc;
+  }
+</style>
+```
+
+#### Design System Integration
+
+If you're using a design system (Material UI, Bootstrap, Tailwind, etc.), apply your input classes directly:
+
+**Tailwind CSS:**
+```html
+<date-range-picker>
+  <input
+    type="text"
+    class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+  />
+</date-range-picker>
+```
+
+**Bootstrap:**
+```html
+<date-range-picker>
+  <input type="text" class="form-control" />
+</date-range-picker>
+```
+
+#### Summary
+
+- ✅ **Calendar styling**: Fully controlled by component SCSS variables and CSS custom properties
+- ❌ **Input styling**: Must be handled by you in your application CSS
+- 💡 **Reason**: Shadow DOM encapsulation keeps calendar styles isolated but prevents styling light DOM elements
+- 🎯 **Solution**: Style `date-range-picker input` selector in your global/component CSS
 
 ---
 

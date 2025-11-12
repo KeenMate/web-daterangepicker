@@ -6,10 +6,11 @@
  */
 
 import { hasEnabledDaysInMonth } from './date-picker-navigation';
+import { renderingLogger } from './logger';
 
 export function renderCalendar(picker: any) {
-    console.log(`[DatePicker 18] renderCalendar called, showingRollingSelector:`, picker.showingRollingSelector, `activeCol: ${picker.activeMonthIndex}`);
-    console.log('[DatePicker 18] monthDates array:', picker.monthDates.map((d: Date, i: number) => `Col${i}: ${d.getFullYear()}-${d.getMonth()+1}`).join(', '));
+    renderingLogger.debug(`[DatePicker 18] renderCalendar called, showingRollingSelector:`, picker.showingRollingSelector, `activeCol: ${picker.activeMonthIndex}`);
+    renderingLogger.debug('[DatePicker 18] monthDates array:', picker.monthDates.map((d: Date, i: number) => `Col${i}: ${d.getFullYear()}-${d.getMonth()+1}`).join(', '));
 
     // Render each month
     for (let i = 0; i < picker.options.visibleMonthsCount; i++) {
@@ -37,7 +38,7 @@ export function renderCalendar(picker: any) {
                     const weekdaysMargin = parseInt(weekdaysStyle.marginBottom) || 0;
 
                     picker.calendarContentHeight = weekdaysHeight + weekdaysMargin + daysHeight;
-                    console.log('[DatePicker] Captured calendar content height:', {
+                    renderingLogger.debug('[DatePicker] Captured calendar content height:', {
                         weekdaysHeight: weekdaysHeight,
                         weekdaysMargin: weekdaysMargin,
                         daysHeight: daysHeight,
@@ -61,7 +62,7 @@ export function renderCalendar(picker: any) {
                     // Log when applying to visible rolling selector
                     if (isVisible) {
                         const actualHeight = (rollingSelector as HTMLElement).offsetHeight;
-                        console.log(`[DatePicker] Applied height to rolling selector ${i}:`, {
+                        renderingLogger.debug(`[DatePicker] Applied height to rolling selector ${i}:`, {
                             targetHeight: picker.calendarContentHeight,
                             actualHeight: actualHeight,
                             difference: actualHeight - picker.calendarContentHeight
@@ -91,7 +92,7 @@ export function renderCalendar(picker: any) {
 }
 
 export function renderNormalView(picker: any, monthIndex: number) {
-    console.log(`[DatePicker Col${monthIndex} 19] renderNormalView called for month`, monthIndex);
+    renderingLogger.debug(`[DatePicker Col${monthIndex} 19] renderNormalView called for month`, monthIndex);
     const monthContainer = picker.calendar.querySelector(`.drp-date-picker__month[data-month-index="${monthIndex}"]`);
     if (!monthContainer) return;
 
@@ -158,14 +159,14 @@ export function renderNormalView(picker: any, monthIndex: number) {
 }
 
 export function renderDays(picker: any, monthIndex: number, date: Date) {
-    console.log(`[DatePicker Col${monthIndex} 20] renderDays called for month`, monthIndex);
+    renderingLogger.debug(`[DatePicker Col${monthIndex} 20] renderDays called for month`, monthIndex);
     const monthContainer = picker.calendar.querySelector(`.drp-date-picker__month[data-month-index="${monthIndex}"]`);
     if (!monthContainer) return;
 
     const daysContainer = monthContainer.querySelector('.drp-date-picker__days');
     const year = date.getFullYear();
     const month = date.getMonth();
-    console.log(`[DatePicker Col${monthIndex} 21] Rendering days for:`, year, month + 1);
+    renderingLogger.debug(`[DatePicker Col${monthIndex} 21] Rendering days for:`, year, month + 1);
 
     // Get first day of month and number of days
     const firstDayRaw = new Date(year, month, 1).getDay();
@@ -365,8 +366,8 @@ export function updateSummary(picker: any) {
         let dateRanges: any[] | undefined;
 
         // For individual and split modes, count only enabled dates
-        if (picker.options.rangeDisabledHandling === 'individual' ||
-            picker.options.rangeDisabledHandling === 'split') {
+        if (picker.options.disabledDatesHandling === 'individual' ||
+            picker.options.disabledDatesHandling === 'split') {
             enabledDates = picker.getEnabledDatesInRange(
                 picker.selectedStartDate,
                 picker.selectedEndDate
@@ -375,13 +376,13 @@ export function updateSummary(picker: any) {
             dates = enabledDates;
 
             // For split mode, also get the date ranges
-            if (picker.options.rangeDisabledHandling === 'split') {
+            if (picker.options.disabledDatesHandling === 'split') {
                 dateRanges = picker.splitRangeByDisabled(
                     picker.selectedStartDate,
                     picker.selectedEndDate
                 );
             }
-        } else if (picker.options.rangeDisabledHandling === 'allow') {
+        } else if (picker.options.disabledDatesHandling === 'allow') {
             // For allow mode, get both enabled and disabled dates
             enabledDates = picker.getEnabledDatesInRange(
                 picker.selectedStartDate,
@@ -414,7 +415,7 @@ export function updateSummary(picker: any) {
                 startDate: picker.selectedStartDate,
                 endDate: picker.selectedEndDate,
                 selectionMode: picker.options.selectionMode,
-                rangeDisabledHandling: picker.options.rangeDisabledHandling,
+                disabledDatesHandling: picker.options.disabledDatesHandling,
                 localeStrings: picker.localeStrings,
                 isPreview: false
             };
@@ -454,8 +455,8 @@ export function updateSummaryWithPreview(picker: any) {
         let dateRanges: any[] | undefined;
 
         // For individual and split modes, count only enabled dates
-        if (picker.options.rangeDisabledHandling === 'individual' ||
-            picker.options.rangeDisabledHandling === 'split') {
+        if (picker.options.disabledDatesHandling === 'individual' ||
+            picker.options.disabledDatesHandling === 'split') {
             enabledDates = picker.getEnabledDatesInRange(
                 picker.dragPreviewStart,
                 picker.dragPreviewEnd
@@ -464,13 +465,13 @@ export function updateSummaryWithPreview(picker: any) {
             dates = enabledDates;
 
             // For split mode, also get the date ranges
-            if (picker.options.rangeDisabledHandling === 'split') {
+            if (picker.options.disabledDatesHandling === 'split') {
                 dateRanges = picker.splitRangeByDisabled(
                     picker.dragPreviewStart,
                     picker.dragPreviewEnd
                 );
             }
-        } else if (picker.options.rangeDisabledHandling === 'allow') {
+        } else if (picker.options.disabledDatesHandling === 'allow') {
             // For allow mode, get both enabled and disabled dates
             enabledDates = picker.getEnabledDatesInRange(
                 picker.dragPreviewStart,
@@ -503,7 +504,7 @@ export function updateSummaryWithPreview(picker: any) {
                 startDate: picker.dragPreviewStart,
                 endDate: picker.dragPreviewEnd,
                 selectionMode: picker.options.selectionMode,
-                rangeDisabledHandling: picker.options.rangeDisabledHandling,
+                disabledDatesHandling: picker.options.disabledDatesHandling,
                 localeStrings: picker.localeStrings,
                 isPreview: true
             };
@@ -536,7 +537,7 @@ export function updateDragPreview(picker: any) {
     if (!picker.dragPreviewStart || !picker.dragPreviewEnd) return;
 
     // Check if picker is an invalid range in 'block' mode
-    const isBlockMode = picker.options.rangeDisabledHandling === 'block';
+    const isBlockMode = picker.options.disabledDatesHandling === 'block';
     const hasDisabledInRange = isBlockMode && picker.hasDisabledDatesInRange(picker.dragPreviewStart, picker.dragPreviewEnd);
 
     // Add preview classes to days in the preview range (including other-month days)

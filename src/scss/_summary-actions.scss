@@ -72,7 +72,7 @@
   // Apply Button (primary action)
   &--apply {
     background-color: var(--drp-accent-color);
-    color: $drp-button-apply-color;
+    color: var(--drp-button-text-color);
     border-color: var(--drp-accent-color);
 
     &:hover {

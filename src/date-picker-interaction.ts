@@ -5,6 +5,10 @@
  * and input masking.
  */
 
+import { validateRangeAsync } from './date-picker-selection';
+import { dragLogger, interactionLogger } from './logger';
+import log from './logger';
+
 // === DRAG FUNCTIONALITY ===
 
 export function initDragListeners(picker: any) {
@@ -132,11 +136,11 @@ export function startDrag(picker: any, event: MouseEvent, type: 'start' | 'end',
     // Add dragging class to the day being dragged
     clickedElement.classList.add('drp-date-picker__day--dragging');
 
-    console.log(`[DatePicker Drag] Started dragging ${type} date`);
+    dragLogger.debug(`Started dragging ${type} date`);
 
     // Add document-level listeners
     picker.onDragMoveBound = (e: MouseEvent) => onDragMove(picker, e);
-    picker.onDragEndBound = (e: MouseEvent) => onDragEnd(picker, e);
+    picker.onDragEndBound = async (e: MouseEvent) => await onDragEnd(picker, e);
     document.addEventListener('mousemove', picker.onDragMoveBound);
     document.addEventListener('mouseup', picker.onDragEndBound);
 
@@ -237,54 +241,76 @@ export function onDragMove(picker: any, event: MouseEvent) {
         }
     }
 
-    // For 'block' mode, prevent range from crossing disabled dates
-    if (picker.options.rangeDisabledHandling === 'block' && picker.dragPreviewStart && picker.dragPreviewEnd) {
-        if (picker.hasDisabledDatesInRange(picker.dragPreviewStart, picker.dragPreviewEnd)) {
+    // Validate drag preview for all modes
+    if (picker.dragPreviewStart && picker.dragPreviewEnd) {
+        const mode = picker.options.disabledDatesHandling;
+        dragLogger.debug('onDragMove - mode:', mode, 'start:', picker.dragPreviewStart, 'end:', picker.dragPreviewEnd);
+
+        if (mode === 'prevent' && picker.hasDisabledDatesInRange(picker.dragPreviewStart, picker.dragPreviewEnd)) {
+            dragLogger.debug('PREVENT mode - range contains disabled dates, blocking preview update');
+            // Don't update preview if range contains disabled dates
+            return;
+        } else if (mode === 'block' && picker.hasDisabledDatesInRange(picker.dragPreviewStart, picker.dragPreviewEnd)) {
+            dragLogger.debug('BLOCK mode - range contains disabled dates, adjusting preview');
             // Adjust the preview to stop at the last enabled date before the gap
             if (picker.draggingType === 'start' && picker.originalEndDate) {
                 // Moving start, so find last enabled before hitting a disabled date going toward end
                 const lastEnabled = picker.findLastEnabledBeforeGap(picker.dragPreviewStart, picker.originalEndDate);
+                dragLogger.debug('BLOCK mode - adjusted end (dragging start):', lastEnabled);
                 picker.dragPreviewEnd = lastEnabled;
             } else if (picker.originalStartDate) {
                 // Moving end, so find last enabled before hitting a disabled date going from start
                 const lastEnabled = picker.findLastEnabledBeforeGap(picker.originalStartDate, picker.dragPreviewEnd);
+                dragLogger.debug('BLOCK mode - adjusted end (dragging end):', lastEnabled);
                 picker.dragPreviewEnd = lastEnabled;
             }
         }
+        // For 'allow' mode (default), no local validation - let it through
     }
 
     // Update preview visuals
     picker.updateDragPreview();
 }
 
-export function onDragEnd(picker: any, event: MouseEvent) {
+export async function onDragEnd(picker: any, event: MouseEvent) {
     if (!picker.isDragging) return;
 
-    console.log(`[DatePicker Drag] Ended dragging, finalizing selection`);
+    dragLogger.debug('Ended dragging, finalizing selection');
 
-    // Finalize the selection
+    // Finalize the selection with validation
     if (picker.dragPreviewStart && picker.dragPreviewEnd) {
         // Ensure both dates are enabled (snap if necessary)
-        picker.selectedStartDate = findNearestEnabledDate(picker, picker.dragPreviewStart, 'forward');
-        picker.selectedEndDate = findNearestEnabledDate(picker, picker.dragPreviewEnd, 'backward');
-
-        // For 'block' mode, if there are disabled dates in range, snap to last enabled before gap
-        if (picker.options.rangeDisabledHandling === 'block' &&
-            picker.hasDisabledDatesInRange(picker.selectedStartDate, picker.selectedEndDate)) {
-            picker.selectedEndDate = picker.findLastEnabledBeforeGap(picker.selectedStartDate, picker.selectedEndDate);
-        }
+        let startDate = findNearestEnabledDate(picker, picker.dragPreviewStart, 'forward');
+        let endDate = findNearestEnabledDate(picker, picker.dragPreviewEnd, 'backward');
 
         // Ensure start is before end after snapping
-        if (picker.selectedStartDate > picker.selectedEndDate) {
-            [picker.selectedStartDate, picker.selectedEndDate] = [picker.selectedEndDate, picker.selectedStartDate];
+        if (startDate > endDate) {
+            [startDate, endDate] = [endDate, startDate];
         }
 
-        if (picker.input) {
-            picker.input.value = `${picker.formatDate(picker.selectedStartDate)} - ${picker.formatDate(picker.selectedEndDate)}`;
-        }
+        // Validate the range (local + async)
+        dragLogger.debug('onDragEnd - calling validateRangeAsync with:', startDate, endDate);
+        const validation = await validateRangeAsync(picker, startDate, endDate);
+        dragLogger.debug('onDragEnd - validation result:', validation);
 
-        if (picker.options.onSelect) {
-            picker.options.onSelect({ start: picker.selectedStartDate, end: picker.selectedEndDate });
+        if (!validation.isValid) {
+            // Validation failed - restore previous state or clear
+            if (validation.message) {
+                log.warn('onDragEnd() - drag validation failed:', validation.message);
+            }
+            // Range was already cleared if action was 'clear'
+        } else {
+            // Apply validated/adjusted dates
+            picker.selectedStartDate = validation.adjustedStart || startDate;
+            picker.selectedEndDate = validation.adjustedEnd || endDate;
+
+            if (picker.input) {
+                picker.input.value = `${picker.formatDate(picker.selectedStartDate)} - ${picker.formatDate(picker.selectedEndDate)}`;
+            }
+
+            if (picker.options.onSelect) {
+                picker.options.onSelect({ start: picker.selectedStartDate, end: picker.selectedEndDate });
+            }
         }
     }
 
@@ -319,6 +345,38 @@ export function onDragEnd(picker: any, event: MouseEvent) {
     // Re-render to show final selection
     picker.renderCalendar();
     picker.updateSummary();
+
+    // Update focus to the end date after rendering (for drag operations)
+    if (picker.selectedEndDate) {
+        const finalEndDate = picker.selectedEndDate;
+        for (let colIndex = 0; colIndex < picker.monthDates.length; colIndex++) {
+            const monthDate = picker.monthDates[colIndex];
+            if (finalEndDate.getFullYear() === monthDate.getFullYear() && finalEndDate.getMonth() === monthDate.getMonth()) {
+                picker.activeMonthIndex = colIndex;
+
+                const daysContainer = picker.calendar.querySelector(`.drp-date-picker__days[data-month-index="${colIndex}"]`);
+                if (daysContainer) {
+                    const days = daysContainer.querySelectorAll('.drp-date-picker__day:not(.drp-date-picker__day--other-month)');
+                    const endDayIndex = Array.from(days).findIndex((day: Element) => {
+                        const dateAttr = (day as HTMLElement).dataset.date;
+                        if (!dateAttr) return false;
+                        const [year, month, dayNum] = dateAttr.split('-').map(Number);
+                        const dayDate = new Date(year, month, dayNum);
+                        return picker.isSameDay(dayDate, finalEndDate);
+                    });
+                    if (endDayIndex !== -1) {
+                        picker.focusedDayIndex = endDayIndex;
+                        // Re-apply the focused class to the correct day
+                        days.forEach((day: Element) => day.classList.remove('drp-date-picker__day--focused'));
+                        if (days[endDayIndex]) {
+                            (days[endDayIndex] as HTMLElement).classList.add('drp-date-picker__day--focused');
+                        }
+                    }
+                }
+                break;
+            }
+        }
+    }
 }
 
 /**
@@ -628,12 +686,12 @@ export function updateCalendarFromInput(picker: any) {
     if (!picker.input) return;
 
     const value = picker.input.value;
-    console.log('[DatePicker] updateCalendarFromInput - value:', value);
+    interactionLogger.debug('updateCalendarFromInput - value:', value);
 
     if (!value) return;
 
     const { separator, parts, maxLength } = picker.formatInfo;
-    console.log('[DatePicker] Format info:', { separator, parts, maxLength });
+    interactionLogger.debug('Format info:', { separator, parts, maxLength });
 
     // For range mode, split by " to " first
     if (picker.options.selectionMode === 'range' && value.includes(' to ')) {
@@ -641,7 +699,7 @@ export function updateCalendarFromInput(picker: any) {
         const startValue = rangeParts[0];
         const endValue = rangeParts[1];
 
-        console.log('[DatePicker] Range parts - start:', startValue, 'end:', endValue);
+        interactionLogger.debug('Range parts - start:', startValue, 'end:', endValue);
 
         // Parse start date
         parseAndUpdateSingleDate(picker, startValue, 'start');
@@ -693,7 +751,7 @@ export function parseAndUpdateSingleDate(picker: any, value: string, dateType: s
         }
     });
 
-    console.log(`[DatePicker] parseAndUpdateSingleDate(${dateType}) - year:`, year, 'month:', month, 'day:', day);
+    interactionLogger.debug(`parseAndUpdateSingleDate(${dateType}) - year:`, year, 'month:', month, 'day:', day);
 
     // Update calendar display if we have year or month
     if (year !== null || month !== null) {
@@ -750,7 +808,7 @@ export function parseAndUpdateSingleDate(picker: any, value: string, dateType: s
                 picker.updateSummary();
             }
 
-            console.log(`[DatePicker] Set ${dateType} date:`, date);
+            interactionLogger.debug(`Set ${dateType} date:`, date);
         }
     }
 }
