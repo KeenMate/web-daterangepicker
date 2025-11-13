@@ -7,6 +7,132 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.0.0-rc07] - 2025-11-13
+
+### Changed
+
+- **BREAKING: Calendar Trigger Modes Renamed**: Replaced `calendar-open-trigger` values for better clarity
+  - **Old values**: `"auto"` | `"button"`
+  - **New values**: `"focus"` | `"typing"` | `"manual"`
+  - **Migration Guide**:
+    - `"auto"` → `"focus"` (default behavior - opens on input focus)
+    - `"button"` → `"manual"` (opens only via button click or programmatic calls)
+    - NEW: `"typing"` mode opens calendar when user starts typing
+  - **Files Updated**:
+    - `src/types.ts`: Updated DatePickerOptions interface
+    - `src/date-picker.ts`: Implemented three distinct trigger modes with proper event listeners
+    - `src/web-component.ts`: Updated attribute parsing, default is now `"focus"`
+  - **New Examples**: Added "Calendar Trigger Modes" section in `examples-basic.html` demonstrating all three modes
+
+### Added
+
+- **Typing Trigger Mode**: New `calendar-open-trigger="typing"` mode that opens calendar when user starts typing in the input
+  - Useful for search-as-you-type interfaces
+  - Calendar opens automatically when input value length > 0
+  - Example: Start typing "2025" and calendar opens showing that year
+
+## [1.0.0-rc06] - 2025-11-13
+
+### Fixed
+
+- **Critical: Month Offset Bug**: Fixed +1 month offset when parsing `data-date` attributes
+  - **Root Cause**: `data-date` stores months in 1-based format (1-12), but JavaScript `Date` constructor expects 0-based months (0-11)
+  - **Impact**: When selecting November 3-4, the range was actually created for December 3-4. Drag interactions also selected wrong months.
+  - **Files Fixed**:
+    - `src/date-picker-selection.ts` (lines 99, 193): Added `month - 1` when creating Date from selected day and when tracking focused day
+    - `src/date-picker-interaction.ts` (lines 100, 222, 373): Added `month - 1` in drag start, drag move, and drag end handlers
+    - `src/date-picker-navigation.ts` (lines 179, 258, 312): Added `month - 1` in keyboard navigation functions
+    - `src/date-picker-rendering.ts` (line 739): Added `month - 1` in updateDragPreview to fix drag visual preview
+  - **Test File**: Added `test-month-bug.html` to verify fix with 3 test cases (single date, range, cross-month)
+  - Now `data-date="2025-11-12"` correctly creates November 12, not December 12
+
+- **Missing Function Import**: Fixed `normalizeDate is not defined` error
+  - **Location**: `src/date-picker.ts` line 152
+  - **Fix**: Changed `normalizeDate()` to `Validation.normalizeDate()` to use proper namespace
+  - This error prevented ALL date pickers from initializing
+
+- **Missing Script Import**: Fixed custom rendering examples not displaying
+  - **Location**: `examples-custom-rendering.html`
+  - **Fix**: Added `<script type="module" src="/src/index.ts"></script>` to load web component
+  - All 6 custom rendering examples now work correctly
+
+## [1.0.0-rc05] - 2025-11-13
+
+### Added
+
+- **Custom Day Cell Rendering**: Added comprehensive customization API with slots and render callbacks
+  - **Named Slots per Day**: Declarative HTML customization using `<div slot="day-YYYY-MM-DD">`
+    - Example: `<div slot="day-2025-01-15">Custom content</div>`
+    - Perfect for marking specific special dates, events, or holidays
+    - Highest priority - overrides callbacks and default rendering
+
+  - **`renderDay` Callback**: Full replacement of day cell content
+    - Signature: `(data: DayRenderData) => HTMLElement | string | null`
+    - Replaces entire day cell content with custom rendering
+    - Use for dynamic content like prices, availability, complex layouts
+    - Second priority - used when no slot exists for that day
+
+  - **`renderDayContent` Callback**: Augmentation of default day cell
+    - Signature: `(data: DayRenderData) => HTMLElement | string | null`
+    - Adds content to default day number display
+    - Use for badges, icons, indicators that accompany the day number
+    - Third priority - used when no slot and no `renderDay`
+
+  - **DayRenderData Interface**: Complete context provided to callbacks
+    - Date information: `date` (Date object), `dateString` (ISO format), `dayNumber` (1-31)
+    - State flags: `isDisabled`, `isSelected`, `isStartDate`, `isEndDate`, `isInRange`, `isToday`, `isWeekend`
+    - Context: `monthIndex`, `element` (default rendered element), `picker` (picker instance)
+
+  - **Priority System**: Three-tier rendering with clear precedence
+    1. Per-day slots (highest) - declarative HTML for specific dates
+    2. `renderDay` callback - programmatic full replacement
+    3. `renderDayContent` callback - programmatic augmentation
+    4. Default rendering (lowest) - built-in day number display
+
+  - **Web Component Integration**: Properties exposed on `<date-range-picker>` element
+    - `picker.renderDay = (data) => { ... }` - Set callback via JavaScript
+    - `picker.renderDayContent = (data) => { ... }` - Set callback via JavaScript
+    - Callbacks trigger automatic re-render when changed
+
+  - **Examples File**: Created `examples-custom-rendering.html` with 6 complete examples
+    - Per-day slots with events and holidays
+    - Hotel booking with dynamic pricing
+    - Event calendar with indicators
+    - Weekend highlighting based on state
+    - Mixed slots + callbacks pattern
+    - Real-world booking system with totals
+
+  - **Files Modified**:
+    - `src/types.ts`: Added `DayRenderData` interface and `renderDay`/`renderDayContent` options
+    - `src/date-picker.ts`: Added callback options to constructor (lines 117-118)
+    - `src/date-picker-rendering.ts`:
+      - Refactored `renderDays()` to wrap content in `<slot>` tags (line 377)
+      - Added `processRenderCallbacks()` function to handle callback execution (lines 391-490)
+      - Checks slot content, calls callbacks, injects results into DOM
+    - `src/web-component.ts`:
+      - Added `_renderDay` and `_renderDayContent` private properties
+      - Added public getters/setters with auto re-render (lines 429-456)
+      - Pass callbacks to picker options (lines 172-173)
+
+### Technical Details
+
+- **Slot Implementation**: Uses HTML `<slot>` elements with named slots for each day
+  - Slot names follow format: `day-YYYY-MM-DD` (e.g., `day-2025-01-15`)
+  - Default content is day number, replaced by user's slotted content
+  - Uses `assignedNodes()` to detect if user provided content
+
+- **Callback Processing**: Runs after DOM update in `renderDays()`
+  - Queries all `.drp-date-picker__day` elements
+  - Builds `DayRenderData` object with complete state
+  - Checks for slot content first (skip callback if slot exists)
+  - Executes callback and injects result (HTML string or HTMLElement)
+  - Error handling with try-catch and console logging
+
+- **State Classes**: Component ALWAYS adds state CSS classes to container
+  - `drp-date-picker__day--disabled`, `--selected`, `--range-start`, etc.
+  - Users can leverage these for styling or ignore for complete custom styling
+  - Hybrid approach: component manages container, callbacks manage content
+
 ## [1.0.0-rc04] - 2025-11-13
 
 ### Added

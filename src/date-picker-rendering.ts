@@ -347,15 +347,20 @@ export function renderDays(picker: any, monthIndex: number, date: Date) {
             if (picker.isToday(dayData.date)) classes.push('drp-date-picker__day--today');
 
             // Selected
-            if (picker.options.selectionMode === 'single' && picker.isSameDay(dayData.date, picker.selectedDate)) {
+            const isSelected = picker.options.selectionMode === 'single' && picker.isSameDay(dayData.date, picker.selectedDate);
+            if (isSelected) {
                 classes.push('drp-date-picker__day--selected');
             }
 
             // Range
+            const isStartDate = picker.options.selectionMode === 'range' && picker.isSameDay(dayData.date, picker.selectedStartDate);
+            const isEndDate = picker.options.selectionMode === 'range' && picker.isSameDay(dayData.date, picker.selectedEndDate);
+            const isInRange = picker.options.selectionMode === 'range' && picker.isInRange(dayData.date);
+
             if (picker.options.selectionMode === 'range') {
-                if (picker.isSameDay(dayData.date, picker.selectedStartDate)) classes.push('drp-date-picker__day--range-start');
-                if (picker.isSameDay(dayData.date, picker.selectedEndDate)) classes.push('drp-date-picker__day--range-end');
-                if (picker.isInRange(dayData.date)) {
+                if (isStartDate) classes.push('drp-date-picker__day--range-start');
+                if (isEndDate) classes.push('drp-date-picker__day--range-end');
+                if (isInRange) {
                     // Only highlight if not disabled, or if highlightDisabledInRange is true
                     if (!isDisabled || picker.options.highlightDisabledInRange) {
                         classes.push('drp-date-picker__day--in-range');
@@ -363,14 +368,125 @@ export function renderDays(picker: any, monthIndex: number, date: Date) {
                 }
             }
 
-            html += `<div class="${classes.join(' ')}" data-date="${dayData.year}-${dayData.month}-${dayData.day}">${dayData.day}</div>`;
+            // Format date as YYYY-MM-DD for slot names and data attributes
+            const dateStr = `${dayData.year}-${String(dayData.month + 1).padStart(2, '0')}-${String(dayData.day).padStart(2, '0')}`;
+
+            // Render day cell with slot support
+            // Priority: per-day slot > renderDay callback > renderDayContent callback > default
+            html += `<div class="${classes.join(' ')}" data-date="${dateStr}" data-day-number="${dayData.day}">`;
+            html += `<slot name="day-${dateStr}">${dayData.day}</slot>`;
+            html += `</div>`;
         }
         html += '</div>';
     }
 
     if (daysContainer) {
         daysContainer.innerHTML = html;
+
+        // Process render callbacks after DOM is updated
+        processRenderCallbacks(picker, monthIndex, daysContainer as HTMLElement);
     }
+}
+
+/**
+ * Process renderDay and renderDayContent callbacks for all day cells
+ * Called after HTML is rendered to apply custom rendering
+ */
+function processRenderCallbacks(picker: any, monthIndex: number, daysContainer: HTMLElement) {
+    // Skip if no callbacks are defined
+    if (!picker.options.renderDay && !picker.options.renderDayContent) {
+        return;
+    }
+
+    // Get all day cells (not badge cells)
+    const dayCells = daysContainer.querySelectorAll('.drp-date-picker__day');
+
+    dayCells.forEach((dayCell: Element) => {
+        const element = dayCell as HTMLElement;
+        const dateStr = element.getAttribute('data-date');
+        const dayNumber = parseInt(element.getAttribute('data-day-number') || '0', 10);
+
+        if (!dateStr) return;
+
+        // Parse date from data-date attribute (YYYY-MM-DD format)
+        const [yearStr, monthStr, dayStr] = dateStr.split('-');
+        const date = new Date(parseInt(yearStr), parseInt(monthStr) - 1, parseInt(dayStr));
+
+        // Check if per-day slot has content (user provided custom HTML)
+        const slot = element.querySelector(`slot[name="day-${dateStr}"]`);
+        const hasSlotContent = slot && (slot as HTMLSlotElement).assignedNodes().length > 0;
+
+        // If slot has content, skip callback processing (slot takes priority)
+        if (hasSlotContent) {
+            return;
+        }
+
+        // Build DayRenderData object
+        const isDisabled = picker.isDateDisabledInternal(date);
+        const isToday = picker.isToday(date);
+        const isWeekend = date.getDay() === 0 || date.getDay() === 6;
+
+        const isSelected = picker.options.selectionMode === 'single' && picker.isSameDay(date, picker.selectedDate);
+        const isStartDate = picker.options.selectionMode === 'range' && picker.isSameDay(date, picker.selectedStartDate);
+        const isEndDate = picker.options.selectionMode === 'range' && picker.isSameDay(date, picker.selectedEndDate);
+        const isInRange = picker.options.selectionMode === 'range' && picker.isInRange(date);
+
+        const renderData = {
+            date: date,
+            dateString: dateStr,
+            dayNumber: dayNumber,
+            isDisabled: isDisabled,
+            isSelected: isSelected || isStartDate || isEndDate,
+            isStartDate: isStartDate,
+            isEndDate: isEndDate,
+            isInRange: isInRange,
+            isToday: isToday,
+            isWeekend: isWeekend,
+            monthIndex: monthIndex,
+            element: element,
+            picker: picker
+        };
+
+        // Priority: renderDay (full replacement) > renderDayContent (augmentation)
+        if (picker.options.renderDay) {
+            try {
+                const result = picker.options.renderDay(renderData);
+                if (result !== null && result !== undefined) {
+                    // Replace slot content with callback result
+                    if (typeof result === 'string') {
+                        if (slot) {
+                            slot.innerHTML = result;
+                        }
+                    } else if (result instanceof HTMLElement) {
+                        if (slot) {
+                            slot.innerHTML = '';
+                            slot.appendChild(result);
+                        }
+                    }
+                }
+            } catch (error) {
+                console.error('[DatePicker] Error in renderDay callback:', error);
+            }
+        } else if (picker.options.renderDayContent) {
+            try {
+                const result = picker.options.renderDayContent(renderData);
+                if (result !== null && result !== undefined) {
+                    // Append to default content (augmentation)
+                    if (typeof result === 'string') {
+                        if (slot) {
+                            slot.innerHTML += result;
+                        }
+                    } else if (result instanceof HTMLElement) {
+                        if (slot) {
+                            slot.appendChild(result);
+                        }
+                    }
+                }
+            } catch (error) {
+                console.error('[DatePicker] Error in renderDayContent callback:', error);
+            }
+        }
+    });
 }
 
 export function renderRollingSelector(picker: any, monthIndex: number) {
@@ -620,7 +736,7 @@ export function updateDragPreview(picker: any) {
         if (!dateAttr) return;
 
         const [year, month, dayNum] = dateAttr.split('-').map(Number);
-        const date = new Date(year, month, dayNum);
+        const date = new Date(year, month - 1, dayNum); // month is 1-based in data-date, but Date constructor expects 0-based
 
         if (date >= picker.dragPreviewStart! && date <= picker.dragPreviewEnd!) {
             day.classList.add('drp-date-picker__day--drag-preview');

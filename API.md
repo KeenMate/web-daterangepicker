@@ -78,7 +78,7 @@ All attributes can be set directly on the `<date-range-picker>` HTML element.
 | `selection-mode` | `'single' \| 'range'` | `'single'` | Selection mode: single date or date range |
 | `date-format-mask` | `string` | `'YYYY-MM-DD'` | Date format string. Supports YYYY/YY, MM/M, DD/D with separators `-`, `/`, `.` |
 | `visible-months-count` | `number` | `1` (single), `2` (range) | Number of calendar months to display simultaneously |
-| `calendar-open-trigger` | `'auto' \| 'button'` | `'auto'` | Calendar trigger: `'auto'` (click/focus) or `'button'` (button only) |
+| `calendar-open-trigger` | `'focus' \| 'typing' \| 'manual'` | `'focus'` | Calendar trigger: `'focus'` (opens on input focus), `'typing'` (opens when typing starts), or `'manual'` (opens only via button/code) |
 | `value` | `string` | `''` | Current input value (formatted date string) |
 | `disabled` | `boolean` | `false` | When present, disables the input element |
 | `placeholder` | `string` | `undefined` | Input placeholder text |
@@ -161,7 +161,7 @@ When instantiating `PureDatePicker` directly (not using web component), pass the
 | `calendarPlacement` | `string` | `'bottom-start'` or `'bottom'` | Floating UI placement |
 | `visibleMonthsCount` | `number` | `1` or `2` | Number of months to display |
 | `dateFormatMask` | `string` | `'YYYY-MM-DD'` | Date format pattern |
-| `calendarOpenTrigger` | `'auto' \| 'button'` | `'auto'` | How calendar is triggered |
+| `calendarOpenTrigger` | `'focus' \| 'typing' \| 'manual'` | `'focus'` | How calendar is triggered: `'focus'` (on input focus), `'typing'` (when typing starts), `'manual'` (button/code only) |
 | `onSelect` | `(date: Date \| DateRange) => void` | `undefined` | Callback when date is selected |
 | `container` | `HTMLElement` | `document.body` | Where to append calendar (for web component, uses shadow root) |
 | `positioningMode` | `'inline' \| 'floating'` | `'floating'` | Display mode |
@@ -1644,6 +1644,36 @@ If you're using a design system (Material UI, Bootstrap, Tailwind, etc.), apply 
 ---
 
 ## Migration Guide
+
+### From v1.0.0-rc06 and Earlier: Calendar Trigger Modes
+
+Starting in **v1.0.0-rc07**, the `calendar-open-trigger` attribute values have been renamed for better clarity:
+
+**Old values (deprecated):**
+- `"auto"` - Calendar opened on click/focus
+- `"button"` - Calendar opened only via button/code
+
+**New values (current):**
+- `"focus"` (default) - Calendar opens when input receives focus
+- `"typing"` - Calendar opens when user starts typing
+- `"manual"` - Calendar opens only via button click or programmatic calls
+
+**Migration:**
+
+```html
+<!-- OLD -->
+<date-range-picker calendar-open-trigger="auto"></date-range-picker>
+<date-range-picker calendar-open-trigger="button"></date-range-picker>
+
+<!-- NEW -->
+<date-range-picker calendar-open-trigger="focus"></date-range-picker>
+<date-range-picker calendar-open-trigger="manual"></date-range-picker>
+```
+
+**Changes:**
+- `"auto"` → `"focus"` (opens on input focus, same behavior)
+- `"button"` → `"manual"` (opens only via button/code, same behavior)
+- **NEW:** `"typing"` mode opens calendar when user starts typing
 
 ### From v0.x Size Classes
 

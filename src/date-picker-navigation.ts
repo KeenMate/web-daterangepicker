@@ -176,7 +176,7 @@ export function findNextEnabledDayIndex(picker: any, startIndex: number, offset:
             const dateAttr = dayElement.dataset.date;
             if (dateAttr) {
                 const [year, month, day] = dateAttr.split('-').map(Number);
-                const date = new Date(year, month, day);
+                const date = new Date(year, month - 1, day); // month is 1-based in data-date, but Date constructor expects 0-based
 
                 // Check if this date is enabled
                 if (!picker.isDateDisabledInternal(date)) {
@@ -255,7 +255,7 @@ export function moveFocus(picker: any, offset: number) {
             const dateAttr = currentDay.dataset.date;
             if (dateAttr) {
                 const [year, month, day] = dateAttr.split('-').map(Number);
-                const currentDate = new Date(year, month, day);
+                const currentDate = new Date(year, month - 1, day); // month is 1-based in data-date, but Date constructor expects 0-based
                 const targetWeekday = currentDate.getDay();
 
                 navigationLogger.debug(`moveFocus() Col${savedMonthIndex} - edge navigation UP: current day ${day} is weekday ${targetWeekday}, going to prev month`);
@@ -269,7 +269,7 @@ export function moveFocus(picker: any, offset: number) {
                     const lastDateAttr = lastDayElement.dataset.date;
                     if (lastDateAttr) {
                         const [lastYear, lastMonth, lastDayNum] = lastDateAttr.split('-').map(Number);
-                        const lastDay = new Date(lastYear, lastMonth, lastDayNum);
+                        const lastDay = new Date(lastYear, lastMonth - 1, lastDayNum); // month is 1-based in data-date, but Date constructor expects 0-based
                         const lastWeekday = lastDay.getDay();
                         const offsetDays = (lastWeekday - targetWeekday + 7) % 7;
                         picker.focusedDayIndex = newDays.length - 1 - offsetDays;
@@ -309,7 +309,7 @@ export function moveFocus(picker: any, offset: number) {
             const dateAttr = currentDay.dataset.date;
             if (dateAttr) {
                 const [year, month, day] = dateAttr.split('-').map(Number);
-                const currentDate = new Date(year, month, day);
+                const currentDate = new Date(year, month - 1, day); // month is 1-based in data-date, but Date constructor expects 0-based
                 const targetWeekday = currentDate.getDay();
 
                 navigationLogger.debug(`moveFocus() Col${savedMonthIndex} - edge navigation DOWN: current day ${day} is weekday ${targetWeekday}, going to next month`);
@@ -323,7 +323,7 @@ export function moveFocus(picker: any, offset: number) {
                     const firstDateAttr = firstDayElement.dataset.date;
                     if (firstDateAttr) {
                         const [firstYear, firstMonth, firstDayNum] = firstDateAttr.split('-').map(Number);
-                        const firstDay = new Date(firstYear, firstMonth, firstDayNum);
+                        const firstDay = new Date(firstYear, firstMonth - 1, firstDayNum); // month is 1-based in data-date, but Date constructor expects 0-based
                         const firstWeekday = firstDay.getDay();
                         const offsetDays = (targetWeekday - firstWeekday + 7) % 7;
                         picker.focusedDayIndex = offsetDays;

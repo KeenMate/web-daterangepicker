@@ -1,5 +1,5 @@
 import { PureDatePicker } from './date-picker';
-import type { DatePickerOptions, DateRange, DecoratedDate, DateInfo } from './types';
+import type { DatePickerOptions, DateRange, DecoratedDate, DateInfo, DayRenderData } from './types';
 import styles from './scss/main.scss?inline';
 
 export class DateRangePickerElement extends HTMLElement {
@@ -12,6 +12,8 @@ export class DateRangePickerElement extends HTMLElement {
     private _disabledDates?: (Date | string)[];
     private _isDateDisabled?: (date: Date) => boolean;
     private _getDateMetadata?: (date: Date) => DateInfo | null;
+    private _renderDay?: (data: DayRenderData) => HTMLElement | string | null;
+    private _renderDayContent?: (data: DayRenderData) => HTMLElement | string | null;
 
     static get observedAttributes() {
         return [
@@ -133,7 +135,7 @@ export class DateRangePickerElement extends HTMLElement {
             selectionMode: (this.getAttribute('selection-mode') as 'single' | 'range') || 'single',
             dateFormatMask: this.getAttribute('date-format-mask') || 'YYYY-MM-DD',
             visibleMonthsCount: parseInt(this.getAttribute('visible-months-count') || '0') || undefined,
-            calendarOpenTrigger: (this.getAttribute('calendar-open-trigger') as 'auto' | 'button') || 'auto',
+            calendarOpenTrigger: (this.getAttribute('calendar-open-trigger') as 'focus' | 'typing' | 'manual') || 'focus',
             onSelect: (date) => this.handleDateSelect(date),
             container: this.shadow as unknown as HTMLElement, // Append calendar to shadow root
             positioningMode: display as 'inline' | 'floating',
@@ -164,7 +166,11 @@ export class DateRangePickerElement extends HTMLElement {
 
             // Rolling selector configuration
             rollingYearRange: this.getAttribute('rolling-year-range') || undefined,
-            rollingMonthRange: this.getAttribute('rolling-month-range') || undefined
+            rollingMonthRange: this.getAttribute('rolling-month-range') || undefined,
+
+            // Custom rendering
+            renderDay: this._renderDay,
+            renderDayContent: this._renderDayContent
         };
 
         // For inline mode, pass null as input element
@@ -417,6 +423,35 @@ export class DateRangePickerElement extends HTMLElement {
         if (this.picker) {
             this.picker.destroy();
             this.initializePicker();
+        }
+    }
+
+    // Custom rendering properties
+    get renderDay(): ((data: DayRenderData) => HTMLElement | string | null) | undefined {
+        return this._renderDay;
+    }
+
+    set renderDay(value: ((data: DayRenderData) => HTMLElement | string | null) | undefined) {
+        this._renderDay = value;
+        if (this.picker) {
+            // Update the picker's options without destroying
+            this.picker.options.renderDay = value;
+            // Trigger re-render
+            this.picker.render();
+        }
+    }
+
+    get renderDayContent(): ((data: DayRenderData) => HTMLElement | string | null) | undefined {
+        return this._renderDayContent;
+    }
+
+    set renderDayContent(value: ((data: DayRenderData) => HTMLElement | string | null) | undefined) {
+        this._renderDayContent = value;
+        if (this.picker) {
+            // Update the picker's options without destroying
+            this.picker.options.renderDayContent = value;
+            // Trigger re-render
+            this.picker.render();
         }
     }
 }

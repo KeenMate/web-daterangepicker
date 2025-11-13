@@ -113,7 +113,9 @@ class PureDatePicker {
             validateRangeCallback: options.validateRangeCallback,
             showDebugInfo: options.showDebugInfo || false,
             rollingYearRange: options.rollingYearRange,
-            rollingMonthRange: options.rollingMonthRange
+            rollingMonthRange: options.rollingMonthRange,
+            renderDay: options.renderDay,
+            renderDayContent: options.renderDayContent
         };
 
         // Enable/disable logging based on showDebugInfo option
@@ -147,7 +149,7 @@ class PureDatePicker {
         let initialDisplayDate: Date;
         if (this.options.initialDate) {
             // Use explicit initialDate if provided
-            const parsedDate = normalizeDate(this.options.initialDate);
+            const parsedDate = Validation.normalizeDate(this.options.initialDate);
             initialDisplayDate = parsedDate || new Date();
             initLogger.debug(`Using initialDate: ${initialDisplayDate.toISOString()}`);
         } else if (this.options.rollingYearRange || this.options.rollingMonthRange) {
@@ -496,19 +498,27 @@ class PureDatePicker {
 
         initLogger.debug('Attaching input listeners');
 
-        // Calendar trigger: only attach if mode is 'auto'
-        if (this.options.calendarOpenTrigger === 'auto') {
-            this.input.addEventListener('click', () => {
-                initLogger.debug('Input clicked');
+        // Calendar trigger modes
+        const triggerMode = this.options.calendarOpenTrigger || 'focus'; // default to 'focus' for backward compatibility
+
+        if (triggerMode === 'focus') {
+            // Open on focus only (not on click)
+            this.input.addEventListener('focus', () => {
+                initLogger.debug('Input focused - opening calendar');
                 this.show();
             });
-            this.input.addEventListener('focus', () => {
-                initLogger.debug('Input focused');
-                this.show();
+        } else if (triggerMode === 'typing') {
+            // Open when user starts typing
+            this.input.addEventListener('input', (e) => {
+                if (!this.isVisible && this.input && this.input.value.length > 0) {
+                    initLogger.debug('User started typing - opening calendar');
+                    this.show();
+                }
             });
         }
+        // 'manual' mode: no automatic trigger, calendar only opens via .show()/.toggle() methods
 
-        // Input masking handlers
+        // Input masking handlers (always attached regardless of trigger mode)
         this.input.addEventListener('input', (e) => this.handleInputMask(e));
         this.input.addEventListener('keydown', (e) => this.handleKeydown(e));
         this.input.addEventListener('paste', (e) => this.handlePaste(e));

@@ -96,7 +96,7 @@ export async function selectDay(picker: any, dayElement: HTMLElement) {
 
     // Parse the date from the element
     const [year, month, day] = dayElement.dataset.date.split('-').map(Number);
-    const date = new Date(year, month, day);
+    const date = new Date(year, month - 1, day); // month is 1-based in data-date, but Date constructor expects 0-based
 
     // Check if this is an "other month" day
     const isOtherMonth = dayElement.classList.contains('drp-date-picker__day--other-month');
@@ -190,7 +190,7 @@ export async function selectDay(picker: any, dayElement: HTMLElement) {
                         const dateAttr = (day as HTMLElement).dataset.date;
                         if (!dateAttr) return false;
                         const [year, month, dayNum] = dateAttr.split('-').map(Number);
-                        const dayDate = new Date(year, month, dayNum);
+                        const dayDate = new Date(year, month - 1, dayNum); // month is 1-based in data-date, but Date constructor expects 0-based
                         return picker.isSameDay(dayDate, finalEndDate);
                     });
                     if (endDayIndex !== -1) {

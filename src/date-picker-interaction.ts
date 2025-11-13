@@ -97,7 +97,7 @@ export function startDrag(picker: any, event: MouseEvent, type: 'start' | 'end',
     let clickedDate: Date | null = null;
     if (dateAttr) {
         const [year, month, day] = dateAttr.split('-').map(Number);
-        clickedDate = new Date(year, month, day);
+        clickedDate = new Date(year, month - 1, day); // month is 1-based in data-date, but Date constructor expects 0-based
     }
 
     // If no selection exists (drawing from scratch), use the clicked day as the start point
@@ -219,7 +219,7 @@ export function onDragMove(picker: any, event: MouseEvent) {
 
     // Parse the date from the day element
     const [year, month, day] = dateAttr.split('-').map(Number);
-    let hoveredDate = new Date(year, month, day);
+    let hoveredDate = new Date(year, month - 1, day); // month is 1-based in data-date, but Date constructor expects 0-based
 
     // If hovering over a disabled day, snap to nearest enabled date
     if (dayElement.classList.contains('drp-date-picker__day--disabled')) {
@@ -370,7 +370,7 @@ export async function onDragEnd(picker: any, event: MouseEvent) {
                         const dateAttr = (day as HTMLElement).dataset.date;
                         if (!dateAttr) return false;
                         const [year, month, dayNum] = dateAttr.split('-').map(Number);
-                        const dayDate = new Date(year, month, dayNum);
+                        const dayDate = new Date(year, month - 1, dayNum); // month is 1-based in data-date, but Date constructor expects 0-based
                         return picker.isSameDay(dayDate, finalEndDate);
                     });
                     if (endDayIndex !== -1) {

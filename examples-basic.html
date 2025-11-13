@@ -100,11 +100,87 @@
     .features li {
       margin-bottom: 0.5rem;
     }
+
+    .header-nav {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      margin-bottom: 1rem;
+    }
+
+    .back-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      color: #6366f1;
+      text-decoration: none;
+      font-weight: 500;
+      padding: 0.5rem 1rem;
+      border-radius: 0.375rem;
+      transition: background-color 150ms;
+    }
+
+    .back-link:hover {
+      background-color: #eef2ff;
+    }
+
+    .page-title {
+      margin: 0;
+      color: #111827;
+    }
+
+    .page-description {
+      color: #6b7280;
+      margin-top: 0.5rem;
+      font-size: 1.125rem;
+    }
+
+    /* Calendar button styles */
+    .date-input-group {
+      display: flex;
+      gap: 0.5rem;
+      align-items: stretch;
+    }
+
+    .date-input-group date-range-picker {
+      flex: 1;
+    }
+
+    .calendar-btn {
+      padding: 0.375rem 0.625rem;
+      border: 1px solid #d1d5db;
+      border-radius: 0.375rem;
+      cursor: pointer;
+      background: white;
+      font-size: 1rem;
+      transition: all 150ms;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 36px;
+      line-height: 1;
+    }
+
+    .calendar-btn:hover {
+      background: #f3f4f6;
+      border-color: #9ca3af;
+    }
+
+    .calendar-btn:active {
+      background: #e5e7eb;
+    }
   </style>
 </head>
 <body>
-  <h1>📅 Date Range Picker Web Component</h1>
-  <p>Lightweight, accessible date picker with excellent keyboard navigation and range selection support.</p>
+  <div class="header-nav">
+    <a href="index.html" class="back-link">
+      <span>←</span>
+      <span>All Examples</span>
+    </a>
+  </div>
+
+  <h1 class="page-title">📅 Basic Examples</h1>
+  <p class="page-description">Comprehensive demos showing all features: single/range modes, formats, localization, multi-month layouts, and more.</p>
 
   <div class="card">
     <h2>Basic Examples</h2>
@@ -121,6 +197,82 @@
         <small>Select start and end dates with day/night count</small>
       </div>
     </div>
+  </div>
+
+  <div class="card">
+    <h2>Calendar Trigger Modes</h2>
+    <p>The <code>calendar-open-trigger</code> attribute controls when the calendar opens. Three modes are available: <code>focus</code> (opens on focus), <code>typing</code> (opens when typing starts), and <code>manual</code> (opens only via button).</p>
+    <div class="grid">
+      <div class="form-group">
+        <label>Focus Mode (default)</label>
+        <div class="date-input-group">
+          <date-range-picker
+            id="picker-focus"
+            selection-mode="single"
+            date-format-mask="YYYY-MM-DD"
+            calendar-open-trigger="focus"
+            placeholder="Click to focus">
+          </date-range-picker>
+          <button
+            class="calendar-btn"
+            data-calendar-button
+            onclick="document.getElementById('picker-focus').toggle()"
+            title="Toggle calendar">
+            📅
+          </button>
+        </div>
+        <small>📌 Calendar opens when input receives focus (tab or click)</small>
+      </div>
+
+      <div class="form-group">
+        <label>Typing Mode</label>
+        <div class="date-input-group">
+          <date-range-picker
+            id="picker-typing"
+            selection-mode="single"
+            date-format-mask="YYYY-MM-DD"
+            calendar-open-trigger="typing"
+            placeholder="Start typing...">
+          </date-range-picker>
+          <button
+            class="calendar-btn"
+            data-calendar-button
+            onclick="document.getElementById('picker-typing').toggle()"
+            title="Toggle calendar">
+            📅
+          </button>
+        </div>
+        <small>⌨️ Calendar opens when you start typing (e.g., "2025")</small>
+      </div>
+
+      <div class="form-group">
+        <label>Manual Mode</label>
+        <div class="date-input-group">
+          <date-range-picker
+            id="picker-manual"
+            selection-mode="single"
+            date-format-mask="YYYY-MM-DD"
+            calendar-open-trigger="manual"
+            placeholder="Use button to open">
+          </date-range-picker>
+          <button
+            class="calendar-btn"
+            data-calendar-button
+            onclick="document.getElementById('picker-manual').toggle()"
+            title="Toggle calendar">
+            📅
+          </button>
+        </div>
+        <small>🔘 Calendar only opens via button click or .show()/.toggle()</small>
+      </div>
+    </div>
+    <p style="margin-top: 1rem; padding: 0.75rem; background: #eff6ff; border-left: 3px solid #3b82f6; border-radius: 0.25rem; font-size: 0.875rem;">
+      <strong>💡 Trigger Modes:</strong><br>
+      • <code>focus</code> - Opens on input focus (default behavior)<br>
+      • <code>typing</code> - Opens when user starts typing in the input<br>
+      • <code>manual</code> - Only opens via button click or programmatic calls (.show()/.toggle())<br>
+      <em>Note: Add <code>data-calendar-button</code> to buttons to prevent calendar from closing when clicked.</em>
+    </p>
   </div>
 
   <div class="card">

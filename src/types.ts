@@ -27,7 +27,7 @@ export interface DatePickerOptions {
   calendarPlacement?: string;
   visibleMonthsCount?: number;
   dateFormatMask?: string;
-  calendarOpenTrigger?: 'auto' | 'button';
+  calendarOpenTrigger?: 'focus' | 'typing' | 'manual';
   onSelect?: (date: Date | DateRange) => void;
   container?: HTMLElement; // Where to append the calendar (default: document.body)
   positioningMode?: 'inline' | 'floating'; // Display mode: 'inline' = static block, 'floating' = popup (default: 'floating')
@@ -59,6 +59,10 @@ export interface DatePickerOptions {
   // Advanced callbacks
   isDateDisabled?: (date: Date) => boolean; // Custom disable logic
   getDateMetadata?: (date: Date) => DateInfo | null; // Custom styling/labels
+
+  // Custom rendering
+  renderDay?: (data: DayRenderData) => HTMLElement | string | null; // Full replacement - return element/HTML to completely replace day cell content
+  renderDayContent?: (data: DayRenderData) => HTMLElement | string | null; // Augmentation - return element/HTML to add to default day cell
 
   // Range selection behavior over disabled dates
   disabledDatesHandling?: 'allow' | 'prevent' | 'block' | 'split' | 'individual';
@@ -214,4 +218,29 @@ export interface SummaryCallbackData {
 
   // Preview flag (true when dragging)
   isPreview?: boolean;
+}
+
+/**
+ * Data passed to renderDay and renderDayContent callbacks
+ * Provides complete context about the day being rendered
+ */
+export interface DayRenderData {
+  // Date information
+  date: Date;                  // JavaScript Date object for this day
+  dateString: string;          // ISO format YYYY-MM-DD
+  dayNumber: number;           // Day of month (1-31)
+
+  // State flags
+  isDisabled: boolean;         // Day is disabled (cannot be selected)
+  isSelected: boolean;         // Day is selected (single mode or start/end in range mode)
+  isStartDate: boolean;        // Day is the range start date
+  isEndDate: boolean;          // Day is the range end date
+  isInRange: boolean;          // Day is between start and end dates
+  isToday: boolean;            // Day is today's date
+  isWeekend: boolean;          // Day is Saturday or Sunday
+
+  // Context
+  monthIndex: number;          // Which month column this day appears in (0-based)
+  element: HTMLElement;        // Default rendered element (for augmentation pattern)
+  picker: any;                 // Reference to PureDatePicker instance (for calling methods)
 }
