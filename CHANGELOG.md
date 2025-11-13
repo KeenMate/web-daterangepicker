@@ -7,7 +7,95 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.0.0-rc04] - 2025-11-13
+
+### Added
+
+- **Rolling Selector Range Constraints**: Added `rollingYearRange` and `rollingMonthRange` options to limit date selection
+  - `rollingYearRange`: Control which years appear in rolling selector and are selectable
+    - Examples: `"2025"` (single year), `"2024-2026"` (range)
+    - Acts as PRIMARY constraint - dates outside this range are disabled
+  - `rollingMonthRange`: Control which months appear in rolling selector and are selectable
+    - Format: `"MM-MM"` (e.g., `"06-08"` for summer months, `"11-12"` for year-end)
+    - Acts as PRIMARY constraint - dates outside this range are disabled
+  - Both options filter the rolling selector lists AND disable dates in the calendar grid
+  - Added to `types.ts`, `date-picker.ts`, `web-component.ts` as `rolling-year-range` and `rolling-month-range` attributes
+  - Default year range changed from ±50 years to ±1 year (3 years total) when no constraints specified
+
+- **Initial Date Option**: Added `initialDate` option to control which month/year displays when calendar opens
+  - Format: Date object or date string (e.g., `"2024-10-01"`)
+  - Web component attribute: `initial-date`
+  - Smart defaults when not specified:
+    - If rolling ranges set: Uses first day of first allowed year/month
+    - Else if today is before `minDate`: Uses `minDate`
+    - Else if today is after `maxDate`: Uses `maxDate`
+    - Else: Uses today
+  - Added to `types.ts`, `date-picker.ts`, `web-component.ts`
+
+- **Rolling Selector Examples**: Added comprehensive examples section in `examples-basic.html`
+  - Current Year Only
+  - Limited to 2025 (via date constraints)
+  - Summer Months Only (June-August)
+  - Q4 Business Planning (Oct-Dec 2024)
+  - Year-End Booking (Nov-Dec only)
+  - Multi-Year Range (2024-2026)
+
+### Fixed
+
+- **Rolling Selector Parameters Not Working**: Fixed critical bug where `rollingYearRange` and `rollingMonthRange` were not being applied
+  - Root cause: Options were read by web component but never copied to `this.options` in `PureDatePicker` constructor
+  - Added missing properties to options object in `date-picker.ts` (lines 114-115)
+
+- **Date Validation Logic**: Made rolling ranges PRIMARY constraints, min/max dates SECONDARY
+  - Updated `isDateDisabledInternal()` to check year/month ranges FIRST before other constraints
+  - Example: `rolling-month-range="06-07"` only allows June-July dates, even if `min-date/max-date` span full year
+  - If ranges are outside min/max dates, all dates are disabled (correct behavior)
+  - Added parser helper methods `parseYearRange()` and `parseMonthRange()` to picker class
+
+- **Rolling Selector Width Jump**: Fixed calendar width shrinking by ~0.5rem when opening month/year selector
+  - Root cause: Rolling selector had different gap spacing than calendar grid
+  - Solution 1: Changed rolling selector gap from `--drp-spacing-md` to `--drp-spacing-xs` in `_header-navigation.scss`
+  - Solution 2: Added dynamic width calculation (like height) in `date-picker-rendering.ts`
+    - Captures `offsetWidth` of days grid on first render
+    - Rounds up with `Math.ceil()` for consistency
+    - Sets explicit `style.width` on rolling selector
+  - Calendar now maintains consistent width when toggling views
+
+- **Auto-scroll on Rolling Selector Open**: Removed automatic scroll-to-selected-item behavior
+  - Removed `scrollIntoView()` calls from `renderRollingSelector()` (lines 395, 414 in `date-picker-rendering.ts`)
+  - Selector now stays at top position when opened, providing better UX
+
+- **Month Range Rendering**: Fixed month list to only show months within configured range
+  - Changed from rendering all 12 months (with some disabled) to only rendering months in `rolling-month-range`
+  - Loop now iterates from `monthRange.min` to `monthRange.max` only
+  - Disabled validation still applies to rendered months based on min/max dates
+
+- **Year Range Default**: Reduced default year range for better UX
+  - Changed from ±50 years (101 years!) to ±1 year (3 years total)
+  - When `min-date/max-date` set but no `rolling-year-range`, automatically constrains to years from those dates
+  - Much more sensible default for most use cases
+
+### Changed
+
+- **Validation Logic Priority**: Rolling selector ranges now act as primary constraints
+  - Order of validation in `isDateDisabledInternal()`:
+    1. Check `rollingYearRange` - disable if outside year range
+    2. Check `rollingMonthRange` - disable if outside month range
+    3. Check `minDate/maxDate` - disable if outside date range
+    4. Check disabled weekdays, disabled dates, custom callbacks
+  - This ensures month/year ranges define the "allowed universe" of dates
+
 ## [1.0.0-rc03] - 2025-11-11
+
+### Fixed
+
+- **Range Mode Selection Border (Multi-Month)**: Completed fix for visual bug where original clicked date retained focused styling when dragging a range from a different month column
+  - Previously only worked within same month column
+  - Now properly clears both visual classes and focus state across all month columns in multi-month display
+  - Fixed in `date-picker-interaction.ts` lines 119-125:
+    - Clears `focusedDayIndex` to prevent re-applying focus during re-render
+    - Removes all selection-related CSS classes (`--range-start`, `--range-end`, `--selected`, `--focused`) from all day elements
+  - Ensures clean visual state when starting new range from different month
 
 ### Removed
 

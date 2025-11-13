@@ -333,6 +333,80 @@
   </div>
 
   <div class="card">
+    <h2>Rolling Selector Constraints (Year/Month Picker)</h2>
+    <p>Configure which years and months appear in the rolling selector, and automatically disable unavailable options based on minDate/maxDate.</p>
+    <div class="grid">
+      <div class="form-group">
+        <label>Limited to 2025 Only</label>
+        <date-range-picker
+          selection-mode="single"
+          min-date="2025-01-01"
+          max-date="2025-12-31"
+          placeholder="YYYY-MM-DD">
+        </date-range-picker>
+        <small>Click month/year to open rolling selector - only 2025 is enabled (other years disabled)</small>
+      </div>
+
+      <div class="form-group">
+        <label>Custom Year Range (2024-2026)</label>
+        <date-range-picker
+          selection-mode="single"
+          rolling-year-range="2024-2026"
+          placeholder="YYYY-MM-DD">
+        </date-range-picker>
+        <small>Rolling selector only shows years 2024, 2025, 2026 (instead of ±50 years)</small>
+      </div>
+
+      <div class="form-group">
+        <label>Summer Months Only (June-August)</label>
+        <date-range-picker
+          selection-mode="single"
+          rolling-month-range="06-08"
+          rolling-year-range="2024-2026"
+          placeholder="YYYY-MM-DD">
+        </date-range-picker>
+        <small>Rolling selector only shows June, July, August in years 2024-2026</small>
+      </div>
+
+      <div class="form-group">
+        <label>Q4 Business Planning (Oct-Dec 2024)</label>
+        <date-range-picker
+          selection-mode="range"
+          rolling-year-range="2024"
+          rolling-month-range="10-12"
+          min-date="2024-10-01"
+          max-date="2024-12-31"
+          visible-months-count="2"
+          placeholder="Select dates">
+        </date-range-picker>
+        <small>Only year 2024, only Oct/Nov/Dec visible and enabled</small>
+      </div>
+
+      <div class="form-group">
+        <label>Year-End Booking (Nov-Dec only)</label>
+        <date-range-picker
+          selection-mode="range"
+          rolling-month-range="11-12"
+          rolling-year-range="2024-2025"
+          visible-months-count="2"
+          placeholder="Select dates">
+        </date-range-picker>
+        <small>Years 2024-2025 available, but only November and December months selectable</small>
+      </div>
+
+      <div class="form-group">
+        <label>Current Year Only</label>
+        <date-range-picker
+          selection-mode="single"
+          rolling-year-range="2025"
+          placeholder="YYYY-MM-DD">
+        </date-range-picker>
+        <small>Rolling selector locked to 2025 - no other years shown</small>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
     <h2>Special Dates (Holidays & Events)</h2>
     <div class="grid">
       <div class="form-group">
@@ -840,6 +914,76 @@ picker.addEventListener('date-select', (e) => {
     console.log('Date selected:', e.detail.formattedValue);
   });
 &lt;/script&gt;
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Rolling Selector Constraints</h2>
+    <p>Control which years and months appear in the rolling selector (year/month picker) to guide users to valid date ranges.</p>
+    <div class="grid">
+      <div class="form-group">
+        <label>Current Year Only</label>
+        <date-range-picker
+          selection-mode="single"
+          rolling-year-range="2025"
+          placeholder="YYYY-MM-DD">
+        </date-range-picker>
+        <small>Rolling selector shows only 2025 in year list</small>
+      </div>
+
+      <div class="form-group">
+        <label>Limited to 2025 (via date constraints)</label>
+        <date-range-picker
+          selection-mode="single"
+          min-date="2025-01-01"
+          max-date="2025-12-31"
+          placeholder="YYYY-MM-DD">
+        </date-range-picker>
+        <small>Auto-constrained: only 2025 shows (based on min/max dates)</small>
+      </div>
+
+      <div class="form-group">
+        <label>Summer Months Only (Jun-Aug)</label>
+        <date-range-picker
+          selection-mode="range"
+          rolling-month-range="06-08"
+          placeholder="Select summer dates">
+        </date-range-picker>
+        <small>Rolling selector shows only June, July, August</small>
+      </div>
+
+      <div class="form-group">
+        <label>Q4 Business Planning (Oct-Dec 2024)</label>
+        <date-range-picker
+          selection-mode="range"
+          rolling-year-range="2024"
+          rolling-month-range="10-12"
+          initial-date="2024-10-01"
+          placeholder="Q4 dates">
+        </date-range-picker>
+        <small>Limited to Oct/Nov/Dec 2024 only (opens to Oct 2024)</small>
+      </div>
+
+      <div class="form-group">
+        <label>Year-End Booking (Nov-Dec only)</label>
+        <date-range-picker
+          selection-mode="range"
+          rolling-month-range="11-12"
+          placeholder="Year-end booking">
+        </date-range-picker>
+        <small>Only November and December months available</small>
+      </div>
+
+      <div class="form-group">
+        <label>Multi-Year Range (2024-2026)</label>
+        <date-range-picker
+          selection-mode="single"
+          rolling-year-range="2024-2026"
+          initial-date="2024-06-01"
+          placeholder="YYYY-MM-DD">
+        </date-range-picker>
+        <small>Rolling selector shows 2024, 2025, and 2026 (opens to Jun 2024)</small>
+      </div>
     </div>
   </div>
 

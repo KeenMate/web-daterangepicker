@@ -55,6 +55,7 @@ class PureDatePicker {
     private isFirstRender: boolean = true;
     private lockedPlacement?: string; // Store the initial placement to prevent jumping
     private calendarContentHeight?: number; // Store calendar height for rolling selector
+    private calendarContentWidth?: number; // Store calendar width for rolling selector
     private isCalendarActive: boolean = false; // Track if this calendar is actively focused (for inline mode)
 
     // Async validation state
@@ -97,6 +98,7 @@ class PureDatePicker {
             weekStartDay: options.weekStartDay !== undefined ? options.weekStartDay : 'auto',
             minDate: options.minDate,
             maxDate: options.maxDate,
+            initialDate: options.initialDate,
             disabledDates: options.disabledDates,
             disabledWeekdays: options.disabledWeekdays,
             specialDates: options.specialDates,
@@ -109,7 +111,9 @@ class PureDatePicker {
             customStrings: options.customStrings,
             formatSummaryCallback: options.formatSummaryCallback,
             validateRangeCallback: options.validateRangeCallback,
-            showDebugInfo: options.showDebugInfo || false
+            showDebugInfo: options.showDebugInfo || false,
+            rollingYearRange: options.rollingYearRange,
+            rollingMonthRange: options.rollingMonthRange
         };
 
         // Enable/disable logging based on showDebugInfo option
@@ -139,11 +143,41 @@ class PureDatePicker {
 
         this.currentDate = new Date();
 
+        // Determine initial display date
+        let initialDisplayDate: Date;
+        if (this.options.initialDate) {
+            // Use explicit initialDate if provided
+            const parsedDate = normalizeDate(this.options.initialDate);
+            initialDisplayDate = parsedDate || new Date();
+            initLogger.debug(`Using initialDate: ${initialDisplayDate.toISOString()}`);
+        } else if (this.options.rollingYearRange || this.options.rollingMonthRange) {
+            // If rolling ranges are set, use first allowed year/month
+            const yearRange = this.options.rollingYearRange ? this.parseYearRange(this.options.rollingYearRange) : null;
+            const monthRange = this.options.rollingMonthRange ? this.parseMonthRange(this.options.rollingMonthRange) : null;
+
+            const year = yearRange ? yearRange.min : new Date().getFullYear();
+            const month = monthRange ? monthRange.min - 1 : 0; // Convert to 0-based
+
+            initialDisplayDate = new Date(year, month, 1);
+            initLogger.debug(`Using first allowed year/month as initial: ${initialDisplayDate.toISOString()}`);
+        } else if (this.normalizedMinDate && this.normalizedMinDate > new Date()) {
+            // If today is before minDate, start at minDate
+            initialDisplayDate = new Date(this.normalizedMinDate);
+            initLogger.debug(`Using minDate as initial: ${initialDisplayDate.toISOString()}`);
+        } else if (this.normalizedMaxDate && this.normalizedMaxDate < new Date()) {
+            // If today is after maxDate, start at maxDate
+            initialDisplayDate = new Date(this.normalizedMaxDate);
+            initLogger.debug(`Using maxDate as initial: ${initialDisplayDate.toISOString()}`);
+        } else {
+            // Default to current date
+            initialDisplayDate = new Date();
+            initLogger.debug(`Using current date as initial: ${initialDisplayDate.toISOString()}`);
+        }
+
         // Initialize separate dates for each month
         this.monthDates = [];
-        const now = new Date();
         for (let i = 0; i < this.options.visibleMonthsCount; i++) {
-            const date = new Date(now.getFullYear(), now.getMonth() + i, 1);
+            const date = new Date(initialDisplayDate.getFullYear(), initialDisplayDate.getMonth() + i, 1);
             this.monthDates.push(date);
             initLogger.debug(`monthDates[${i}] = ${date.getFullYear()}-${date.getMonth()+1}`);
         }
@@ -152,7 +186,7 @@ class PureDatePicker {
         if (this.options.selectionMode === 'range') {
             this.displayMonths = [];
             for (let i = 0; i < this.options.visibleMonthsCount; i++) {
-                const date = new Date(now.getFullYear(), now.getMonth() + i, 1);
+                const date = new Date(initialDisplayDate.getFullYear(), initialDisplayDate.getMonth() + i, 1);
                 this.displayMonths.push({
                     month: date.getMonth(),
                     year: date.getFullYear()
@@ -249,9 +283,48 @@ class PureDatePicker {
     }
 
     /**
+     * Parse year range string to min/max values
+     */
+    private parseYearRange(range: string): { min: number, max: number } {
+        if (range.includes('-')) {
+            const [minStr, maxStr] = range.split('-');
+            return { min: parseInt(minStr, 10), max: parseInt(maxStr, 10) };
+        } else {
+            const year = parseInt(range, 10);
+            return { min: year, max: year };
+        }
+    }
+
+    /**
+     * Parse month range string to min/max values
+     */
+    private parseMonthRange(range: string): { min: number, max: number } {
+        const [minStr, maxStr] = range.split('-');
+        return { min: parseInt(minStr, 10), max: parseInt(maxStr, 10) };
+    }
+
+    /**
      * Check if a date should be disabled
      */
     isDateDisabledInternal(date: Date): boolean {
+        // FIRST: Check rolling selector ranges (primary constraints)
+        if (this.options.rollingYearRange) {
+            const yearRange = this.parseYearRange(this.options.rollingYearRange);
+            const year = date.getFullYear();
+            if (year < yearRange.min || year > yearRange.max) {
+                return true; // Outside allowed year range
+            }
+        }
+
+        if (this.options.rollingMonthRange) {
+            const monthRange = this.parseMonthRange(this.options.rollingMonthRange);
+            const month = date.getMonth() + 1; // Convert to 1-12
+            if (month < monthRange.min || month > monthRange.max) {
+                return true; // Outside allowed month range
+            }
+        }
+
+        // SECOND: Check secondary constraints (min/max dates, disabled dates, etc.)
         return Validation.isDateDisabled(
             date,
             this.normalizedMinDate,
@@ -463,6 +536,10 @@ class PureDatePicker {
             }
             else if (target.closest('[data-year]')) {
                 const yearElement = target.closest('[data-year]') as HTMLElement;
+                // Ignore clicks on disabled years
+                if (yearElement.classList.contains('drp-date-picker__rolling-item--disabled')) {
+                    return;
+                }
                 const year = yearElement.dataset.year;
                 const monthIdx = yearElement.dataset.monthIndex;
                 if (year && monthIdx) {
@@ -471,6 +548,10 @@ class PureDatePicker {
             }
             else if (target.closest('[data-month]')) {
                 const monthElement = target.closest('[data-month]') as HTMLElement;
+                // Ignore clicks on disabled months
+                if (monthElement.classList.contains('drp-date-picker__rolling-item--disabled')) {
+                    return;
+                }
                 const month = monthElement.dataset.month;
                 const monthIdx = monthElement.dataset.monthIndex;
                 if (month && monthIdx) {

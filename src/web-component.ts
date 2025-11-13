@@ -18,7 +18,8 @@ export class DateRangePickerElement extends HTMLElement {
             'selection-mode', 'date-format-mask', 'visible-months-count', 'calendar-open-trigger', 'value', 'disabled', 'placeholder',
             'week-start-day', 'min-date', 'max-date', 'disabled-weekdays', 'disabled-dates-handling',
             'highlight-disabled-in-range', 'positioning-mode', 'month-layout', 'grid-rows', 'grid-columns', 'calendar-placement',
-            'locale', 'display-format-mask', 'show-debug-info'
+            'locale', 'display-format-mask', 'show-debug-info',
+            'initial-date', 'rolling-year-range', 'rolling-month-range'
         ];
     }
 
@@ -149,6 +150,7 @@ export class DateRangePickerElement extends HTMLElement {
             weekStartDay: weekStartDay,
             minDate: this.getAttribute('min-date') || undefined,
             maxDate: this.getAttribute('max-date') || undefined,
+            initialDate: this.getAttribute('initial-date') || undefined,
             disabledWeekdays: disabledWeekdays,
             disabledDates: this._disabledDates,
             specialDates: this._specialDates,
@@ -158,7 +160,11 @@ export class DateRangePickerElement extends HTMLElement {
             highlightDisabledInRange: this.hasAttribute('highlight-disabled-in-range') ? this.getAttribute('highlight-disabled-in-range') === 'true' : undefined,
             locale: this.getAttribute('locale') || 'auto',
             displayFormatMask: this.getAttribute('display-format-mask') || undefined,
-            showDebugInfo: this.hasAttribute('show-debug-info')
+            showDebugInfo: this.hasAttribute('show-debug-info'),
+
+            // Rolling selector configuration
+            rollingYearRange: this.getAttribute('rolling-year-range') || undefined,
+            rollingMonthRange: this.getAttribute('rolling-month-range') || undefined
         };
 
         // For inline mode, pass null as input element

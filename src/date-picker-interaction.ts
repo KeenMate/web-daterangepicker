@@ -115,6 +115,15 @@ export function startDrag(picker: any, event: MouseEvent, type: 'start' | 'end',
             // Clear the old selection and start fresh
             picker.selectedStartDate = null;
             picker.selectedEndDate = null;
+
+            // Clear focus state to prevent re-applying focused class during re-render
+            picker.focusedDayIndex = null;
+
+            // Remove visual selection classes from ALL previously selected days (across all months)
+            picker.calendar.querySelectorAll('.drp-date-picker__day--range-start, .drp-date-picker__day--range-end, .drp-date-picker__day--selected, .drp-date-picker__day--focused').forEach(day => {
+                day.classList.remove('drp-date-picker__day--range-start', 'drp-date-picker__day--range-end', 'drp-date-picker__day--selected', 'drp-date-picker__day--focused');
+            });
+
             picker.originalStartDate = clickedDate;
             picker.originalEndDate = null;
             picker.draggingType = 'end';

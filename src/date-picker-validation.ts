@@ -118,6 +118,27 @@ export function isDateDisabled(
 }
 
 /**
+ * Check if a year has any enabled days (considering all constraints)
+ * Used for rolling selector to determine if a year should be disabled
+ */
+export function hasEnabledDaysInYear(picker: any, year: number): boolean {
+    // Check each month in the year
+    for (let month = 0; month < 12; month++) {
+        const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+        // Check if any day in this month is enabled
+        for (let day = 1; day <= daysInMonth; day++) {
+            const testDate = new Date(year, month, day);
+            if (!picker.isDateDisabledInternal(testDate)) {
+                return true; // Found at least one enabled day
+            }
+        }
+    }
+
+    return false; // No enabled days in entire year
+}
+
+/**
  * Check if there are any disabled dates in a range
  */
 export function hasDisabledDatesInRange(

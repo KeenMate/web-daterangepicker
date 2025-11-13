@@ -217,3 +217,21 @@
     background-color: color-mix(in srgb, $drp-color-success $drp-event-hover-bg-opacity * 100%, transparent);
   }
 }
+
+// ==============================================================================
+// ROLLING SELECTOR - DISABLED ITEMS
+// ==============================================================================
+// Styling for disabled years/months in the rolling selector
+// (e.g., when outside rollingYearRange/rollingMonthRange or minDate/maxDate)
+
+.drp-date-picker__rolling-item--disabled {
+  color: var(--drp-text-secondary);
+  opacity: 0.4;
+  cursor: not-allowed;
+  pointer-events: none; // Prevent clicking
+  text-decoration: line-through;
+
+  &:hover {
+    background-color: transparent;
+  }
+}

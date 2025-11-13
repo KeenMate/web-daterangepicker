@@ -46,6 +46,13 @@ export interface DatePickerOptions {
   disabledDates?: (Date | string)[]; // Specific dates to disable
   disabledWeekdays?: number[]; // Days of week to disable (0 = Sunday, 6 = Saturday)
 
+  // Initial display date
+  initialDate?: Date | string; // Date to display when calendar opens. If not set, uses today or minDate if constrained.
+
+  // Rolling selector configuration
+  rollingYearRange?: string; // Year range to display in rolling selector. Examples: "2024" (single year), "2022-2026" (range). Default: currentYear ± 50
+  rollingMonthRange?: string; // Month range to display in rolling selector. Format: "MM-MM". Examples: "01-12" (all), "06-08" (summer), "11-12" (year-end). Default: "01-12"
+
   // Special dates (holidays, events, etc.)
   specialDates?: DecoratedDate[];
 
