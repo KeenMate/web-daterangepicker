@@ -12,7 +12,55 @@
 // Using :host instead of :root for proper shadow DOM support
 
 :host {
-  // Colors
+  // ===========================================================================
+  // SIZING SCALE SYSTEM (THREE INDEPENDENT MULTIPLIERS)
+  // ===========================================================================
+  // Three independent multipliers for fine-grained control:
+  // - font-scale: Controls text sizes only
+  // - spacing-scale: Controls gaps, padding, margins only
+  // - cell-scale: Controls day cell dimensions and structural sizes only
+
+  --drp-font-scale: #{$drp-density-md};    // Default to 1.0 (medium)
+  --drp-spacing-scale: #{$drp-density-md}; // Default to 1.0 (medium)
+  --drp-cell-scale: #{$drp-density-md};    // Default to 1.0 (medium)
+
+  // ===========================================================================
+  // BASE SPACING (semantic meaning never changes)
+  // ===========================================================================
+
+  --drp-spacing-xs-base: #{$drp-spacing-xs};   // Always 0.25rem (4px)
+  --drp-spacing-sm-base: #{$drp-spacing-sm};   // Always 0.5rem (8px)
+  --drp-spacing-md-base: #{$drp-spacing-md};   // Always 1rem (16px)
+  --drp-spacing-lg-base: #{$drp-spacing-lg};   // Always 1.5rem (24px)
+  --drp-spacing-xl-base: #{$drp-spacing-xl};   // Always 2rem (32px)
+
+  // Computed spacing (base × spacing-scale)
+  --drp-spacing-xs: calc(var(--drp-spacing-xs-base) * var(--drp-spacing-scale));
+  --drp-spacing-sm: calc(var(--drp-spacing-sm-base) * var(--drp-spacing-scale));
+  --drp-spacing-md: calc(var(--drp-spacing-md-base) * var(--drp-spacing-scale));
+  --drp-spacing-lg: calc(var(--drp-spacing-lg-base) * var(--drp-spacing-scale));
+  --drp-spacing-xl: calc(var(--drp-spacing-xl-base) * var(--drp-spacing-scale));
+
+  // ===========================================================================
+  // BASE TYPOGRAPHY (semantic meaning never changes)
+  // ===========================================================================
+
+  --drp-font-size-2xs-base: #{$drp-font-size-2xs};  // Always 0.625rem
+  --drp-font-size-xs-base: #{$drp-font-size-xs};    // Always 0.75rem
+  --drp-font-size-sm-base: #{$drp-font-size-sm};    // Always 0.875rem
+  --drp-font-size-base-base: #{$drp-font-size-base}; // Always 1rem
+  --drp-font-size-lg-base: #{$drp-font-size-lg};    // Always 1.125rem
+  --drp-font-size-xl-base: #{$drp-font-size-xl};    // Always 1.25rem
+  --drp-font-size-2xl-base: #{$drp-font-size-2xl};  // Always 1.5rem
+
+  // Font weights (not affected by density)
+  --drp-font-weight-medium: #{$drp-font-weight-medium};
+  --drp-font-weight-semibold: #{$drp-font-weight-semibold};
+
+  // ===========================================================================
+  // COLORS (not affected by density)
+  // ===========================================================================
+
   --drp-card-bg: #{$drp-calendar-bg};
   --drp-border-color: #{$drp-border-color};
   --drp-primary-bg: #{$drp-color-neutral-lighter};
@@ -24,39 +72,16 @@
   --drp-accent-text-color: #{$drp-color-white};
   --drp-button-text-color: #{$drp-color-white};
 
-  // Spacing
-  --drp-spacing-xs: #{$drp-spacing-xs};
-  --drp-spacing-sm: #{$drp-spacing-sm};
-  --drp-spacing-md: #{$drp-spacing-md};
-  --drp-spacing-lg: #{$drp-spacing-lg};
-  --drp-spacing-xl: #{$drp-spacing-xl};
+  // ===========================================================================
+  // OTHER PROPERTIES (not affected by density)
+  // ===========================================================================
 
-  // Typography
-  --drp-font-size-2xs: #{$drp-font-size-2xs};
-  --drp-font-size-xs: #{$drp-font-size-xs};
-  --drp-font-size-sm: #{$drp-font-size-sm};
-  --drp-font-size-base: #{$drp-font-size-base};
-  --drp-font-size-lg: #{$drp-font-size-lg};
-  --drp-font-size-xl: #{$drp-font-size-xl};
-  --drp-font-size-2xl: #{$drp-font-size-2xl};
-  --drp-font-weight-medium: #{$drp-font-weight-medium};
-  --drp-font-weight-semibold: #{$drp-font-weight-semibold};
-
-  // Borders
   --drp-border-width-base: #{$drp-border-width-base};
   --drp-border-radius: #{$drp-border-radius};
-
-  // Shadows
   --drp-shadow-xl: #{$drp-shadow-xl};
-
-  // Transitions
   --drp-transition-fast: #{$drp-transition-fast};
   --drp-easing-snappy: #{$drp-easing-snappy};
-
-  // Input
   --drp-input-padding-h: #{$drp-input-padding-h};
-
-  // Grid
   --drp-grid-columns: #{$drp-grid-columns};
   --drp-grid-rows: #{$drp-grid-rows};
 }
@@ -96,6 +121,16 @@
   max-width: $drp-calendar-max-width;
   box-sizing: border-box;
   user-select: none;
+
+  // Computed font sizes (base × font-scale)
+  // Must be defined here (not in :host) so they use the correct --drp-font-scale value
+  --drp-font-size-2xs: calc(var(--drp-font-size-2xs-base) * var(--drp-font-scale));
+  --drp-font-size-xs: calc(var(--drp-font-size-xs-base) * var(--drp-font-scale));
+  --drp-font-size-sm: calc(var(--drp-font-size-sm-base) * var(--drp-font-scale));
+  --drp-font-size-base: calc(var(--drp-font-size-base-base) * var(--drp-font-scale));
+  --drp-font-size-lg: calc(var(--drp-font-size-lg-base) * var(--drp-font-scale));
+  --drp-font-size-xl: calc(var(--drp-font-size-xl-base) * var(--drp-font-scale));
+  --drp-font-size-2xl: calc(var(--drp-font-size-2xl-base) * var(--drp-font-scale));
 
   // Hide by default
   &:not(.drp-date-picker--visible) {
@@ -156,11 +191,12 @@
 
 .drp-date-picker__month {
   flex: 1;
-  min-width: $drp-month-min-width;
+  // Scale month width with cell-scale for proper cell sizing
+  min-width: calc(#{$drp-month-min-width} * var(--drp-cell-scale));
 
   // Allow shrinking for inline mode
   .drp-date-picker--inline & {
-    min-width: $drp-month-min-width-inline;
+    min-width: calc(#{$drp-month-min-width-inline} * var(--drp-cell-scale));
   }
 
   // Grid layout: remove min-width to allow proper grid sizing

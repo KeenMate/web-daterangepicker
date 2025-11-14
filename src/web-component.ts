@@ -2,7 +2,7 @@ import { PureDatePicker } from './date-picker';
 import type { DatePickerOptions, DateRange, DecoratedDate, DateInfo, DayRenderData } from './types';
 import styles from './scss/main.scss?inline';
 
-export class DateRangePickerElement extends HTMLElement {
+export class WebDaterangepickerElement extends HTMLElement {
     private picker?: PureDatePicker;
     private inputElement?: HTMLInputElement;
     private shadow: ShadowRoot;
@@ -21,13 +21,48 @@ export class DateRangePickerElement extends HTMLElement {
             'week-start-day', 'min-date', 'max-date', 'disabled-weekdays', 'disabled-dates-handling',
             'highlight-disabled-in-range', 'positioning-mode', 'month-layout', 'grid-rows', 'grid-columns', 'calendar-placement',
             'locale', 'display-format-mask', 'show-debug-info',
-            'initial-date', 'rolling-year-range', 'rolling-month-range'
+            'initial-date', 'rolling-year-range', 'rolling-month-range',
+            'spacing', 'font-size', 'cell-size', 'enable-transitions'
         ];
     }
 
     constructor() {
         super();
         this.shadow = this.attachShadow({ mode: 'open' });
+    }
+
+    private applySizeStyles() {
+        // Target the calendar element inside shadow DOM
+        const calendar = this.shadow.querySelector('.drp-date-picker') as HTMLElement;
+        if (!calendar) return; // Calendar not created yet
+
+        const spacing = this.getAttribute('spacing');
+        const fontSize = this.getAttribute('font-size');
+        const cellSize = this.getAttribute('cell-size');
+        const enableTransitions = this.hasAttribute('enable-transitions');
+
+        // Remove existing size classes
+        calendar.classList.remove('drp-spacing-xs', 'drp-spacing-sm', 'drp-spacing-lg', 'drp-spacing-xl');
+        calendar.classList.remove('drp-font-xs', 'drp-font-sm', 'drp-font-lg', 'drp-font-xl');
+        calendar.classList.remove('drp-cell-xs', 'drp-cell-sm', 'drp-cell-lg', 'drp-cell-xl');
+
+        // Add new size classes (md is default, no class needed)
+        if (spacing && spacing !== 'md') {
+            calendar.classList.add(`drp-spacing-${spacing}`);
+        }
+        if (fontSize && fontSize !== 'md') {
+            calendar.classList.add(`drp-font-${fontSize}`);
+        }
+        if (cellSize && cellSize !== 'md') {
+            calendar.classList.add(`drp-cell-${cellSize}`);
+        }
+
+        // Handle transitions (opt-in for performance)
+        if (enableTransitions) {
+            calendar.classList.add('drp-transitions-enabled');
+        } else {
+            calendar.classList.remove('drp-transitions-enabled');
+        }
     }
 
     connectedCallback() {
@@ -43,6 +78,16 @@ export class DateRangePickerElement extends HTMLElement {
 
     attributeChangedCallback(name: string, oldValue: string | null, newValue: string | null) {
         if (oldValue === newValue) return;
+
+        // Handle size and transition attributes without re-initializing picker
+        if (name === 'spacing' || name === 'font-size' || name === 'cell-size' || name === 'enable-transitions') {
+            this.applySizeStyles();
+            // Re-render picker if it exists to update rolling selector dimensions
+            if (this.picker && name === 'cell-size') {
+                this.picker.render();
+            }
+            return;
+        }
 
         // Re-initialize picker if it exists and attributes changed
         if (this.picker && name !== 'value' && name !== 'placeholder') {
@@ -177,6 +222,10 @@ export class DateRangePickerElement extends HTMLElement {
         const inputElement = display === 'inline' ? null : this.inputElement;
         this.picker = new PureDatePicker(inputElement, options);
         // Calendar is automatically appended to shadow root via container option
+
+        // Apply size styles to the calendar inside shadow DOM
+        // Use setTimeout to ensure DOM is fully rendered
+        setTimeout(() => this.applySizeStyles(), 0);
     }
 
     private handleDateSelect(date: Date | DateRange) {
@@ -377,6 +426,43 @@ export class DateRangePickerElement extends HTMLElement {
         }
     }
 
+    // Size properties
+    get spacing(): string {
+        return this.getAttribute('spacing') || 'md';
+    }
+
+    set spacing(value: string) {
+        this.setAttribute('spacing', value);
+    }
+
+    get fontSize(): string {
+        return this.getAttribute('font-size') || 'md';
+    }
+
+    set fontSize(value: string) {
+        this.setAttribute('font-size', value);
+    }
+
+    get cellSize(): string {
+        return this.getAttribute('cell-size') || 'md';
+    }
+
+    set cellSize(value: string) {
+        this.setAttribute('cell-size', value);
+    }
+
+    get enableTransitions(): boolean {
+        return this.hasAttribute('enable-transitions');
+    }
+
+    set enableTransitions(value: boolean) {
+        if (value) {
+            this.setAttribute('enable-transitions', '');
+        } else {
+            this.removeAttribute('enable-transitions');
+        }
+    }
+
     // Complex data properties (not attributes)
     get specialDates(): DecoratedDate[] | undefined {
         return this._specialDates;
@@ -457,6 +543,6 @@ export class DateRangePickerElement extends HTMLElement {
 }
 
 // Register the custom element
-if (!customElements.get('date-range-picker')) {
-    customElements.define('date-range-picker', DateRangePickerElement);
+if (!customElements.get('web-daterangepicker')) {
+    customElements.define('web-daterangepicker', WebDaterangepickerElement);
 }

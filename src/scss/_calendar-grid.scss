@@ -55,8 +55,8 @@
   color: var(--drp-text-primary);
   border-radius: var(--drp-border-radius);
   cursor: pointer;
-  transition: all var(--drp-transition-fast) var(--drp-easing-snappy);
-  border: $drp-day-border-width solid $drp-day-border-color;
+  // Scale border width with cell-scale
+  border: calc(#{$drp-day-border-width} * var(--drp-cell-scale)) solid $drp-day-border-color;
   position: relative; // For absolute positioning of labels
 
   &:hover:not(.drp-date-picker__day--disabled):not(.drp-date-picker__day--other-month) {
@@ -89,8 +89,9 @@
   // Focused (keyboard navigation)
   // --------------------------------------
   &--focused {
-    outline: $drp-day-focused-outline-width solid var(--drp-accent-color);
-    outline-offset: $drp-day-focused-outline-offset;
+    // Scale outline with cell-scale
+    outline: calc(#{$drp-day-focused-outline-width} * var(--drp-cell-scale)) solid var(--drp-accent-color);
+    outline-offset: calc(#{$drp-day-focused-outline-offset} * var(--drp-cell-scale));
   }
 
   // --------------------------------------
@@ -179,7 +180,8 @@
 
   &--drag-preview {
     background-color: color-mix(in srgb, var(--drp-accent-color) $drp-day-drag-preview-bg-opacity * 100%, transparent);
-    border: $drp-day-border-width $drp-day-drag-preview-border-style var(--drp-accent-color);
+    // Scale border width with cell-scale
+    border: calc(#{$drp-day-border-width} * var(--drp-cell-scale)) $drp-day-drag-preview-border-style var(--drp-accent-color);
 
     &.drp-date-picker__day--range-start,
     &.drp-date-picker__day--range-end {

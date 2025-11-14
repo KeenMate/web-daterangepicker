@@ -25,9 +25,9 @@ export default defineConfig({
   build: {
     lib: {
       entry: resolve(__dirname, 'src/index.ts'),
-      name: 'DateRangePicker',  // UMD global name
+      name: 'WebDaterangepicker',  // UMD global name
       formats: ['es', 'umd'],
-      fileName: (format) => `date-range-picker.${format === 'es' ? 'js' : 'umd.js'}`
+      fileName: (format) => `web-daterangepicker.${format === 'es' ? 'js' : 'umd.js'}`
     },
     rollupOptions: {
       // Floating UI will be bundled into the component

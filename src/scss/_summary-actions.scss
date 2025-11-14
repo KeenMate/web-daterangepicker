@@ -52,7 +52,6 @@
   cursor: pointer;
   font-size: var(--drp-font-size-sm);
   font-weight: var(--drp-font-weight-medium);
-  transition: all var(--drp-transition-fast) var(--drp-easing-snappy);
 
   &:hover {
     background-color: var(--drp-primary-bg);

@@ -156,6 +156,6 @@ npm run package   # Create package
 
 ### Output Files
 Build creates `dist/` with:
-- `date-range-picker.js` - ES module format
-- `date-range-picker.umd.js` - UMD format for CDN/legacy
+- `web-daterangepicker.js` - ES module format
+- `web-daterangepicker.umd.js` - UMD format for CDN/legacy
 - `index.d.ts` - TypeScript declarations

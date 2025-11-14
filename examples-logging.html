@@ -268,12 +268,12 @@
 &lt;/date-range-picker&gt;</div>
 
     <label>Try it - Open console (F12) and interact:</label>
-    <date-range-picker
+    <web-daterangepicker
       id="basic-debug"
       selection-mode="single"
       show-debug-info
       placeholder="Click to see logs">
-    </date-range-picker>
+    </web-daterangepicker>
 
     <div class="success">
       ✅ Open your browser console (F12) and click the input to see initialization and UI logs
@@ -292,7 +292,7 @@
     <h2>Example 2: Range Selection with Validation Logs</h2>
     <p>See validation logs when selecting date ranges with disabled dates:</p>
     <label>Range picker with disabled weekends:</label>
-    <date-range-picker
+    <web-daterangepicker
       id="range-debug"
       selection-mode="range"
       visible-months-count="2"
@@ -300,7 +300,7 @@
       disabled-dates-handling="block"
       show-debug-info
       placeholder="Select a range">
-    </date-range-picker>
+    </web-daterangepicker>
 
     <div class="info">
       💡 Try selecting a range that crosses weekends. Watch the console for <strong>VALIDATION</strong> logs showing how the component adjusts the range.
@@ -317,13 +317,13 @@
     <h2>Example 3: Navigation & Rendering Logs</h2>
     <p>Track calendar navigation and rendering:</p>
     <label>Multi-month picker:</label>
-    <date-range-picker
+    <web-daterangepicker
       id="nav-debug"
       selection-mode="single"
       visible-months-count="3"
       show-debug-info
       placeholder="Navigate months">
-    </date-range-picker>
+    </web-daterangepicker>
 
     <div class="info">
       💡 Click the navigation arrows to switch months. Watch for <strong>NAVIGATION</strong> and <strong>RENDERING</strong> logs.
@@ -342,14 +342,14 @@
     <h2>Example 4: Drag-to-Adjust Logs</h2>
     <p>Track drag interactions in range mode:</p>
     <label>Range picker with drag support:</label>
-    <date-range-picker
+    <web-daterangepicker
       id="drag-debug"
       selection-mode="range"
       visible-months-count="2"
       value="2025-11-10 to 2025-11-20"
       show-debug-info
       placeholder="Select and drag">
-    </date-range-picker>
+    </web-daterangepicker>
 
     <div class="info">
       💡 Select a range, then drag the start or end dates. Watch for <strong>DRAG</strong> logs showing drag start, preview, and end.

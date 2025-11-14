@@ -31,7 +31,7 @@ The package provides multiple exports for different use cases:
 ### Component & Styles
 
 ```javascript
-// Import the web component (auto-registers as <date-range-picker>)
+// Import the web component (auto-registers as <web-daterangepicker>)
 import '@keenmate/web-daterangepicker';
 
 // Import compiled CSS
@@ -71,7 +71,7 @@ import type { DatePickerOptions, DateRange, DecoratedDate } from '@keenmate/web-
 
 ## Web Component Attributes
 
-All attributes can be set directly on the `<date-range-picker>` HTML element.
+All attributes can be set directly on the `<web-daterangepicker>` HTML element.
 
 | Attribute | Type | Default | Description |
 |-----------|------|---------|-------------|
@@ -116,37 +116,37 @@ The `range-disabled-handling` attribute controls behavior when selecting ranges 
 
 ```html
 <!-- Basic single date picker -->
-<date-range-picker
+<web-daterangepicker
   selection-mode="single"
   date-format-mask="DD.MM.YYYY"
   placeholder="Select date">
-</date-range-picker>
+</web-daterangepicker>
 
 <!-- Range picker with weekend restriction -->
-<date-range-picker
+<web-daterangepicker
   selection-mode="range"
   disabled-weekdays="0,6"
   range-disabled-handling="block">
-</date-range-picker>
+</web-daterangepicker>
 
 <!-- 6-month grid calendar -->
-<date-range-picker
+<web-daterangepicker
   selection-mode="single"
   positioning-mode="inline"
   visible-months-count="6"
   month-layout="grid"
   grid-rows="2"
   grid-columns="3">
-</date-range-picker>
+</web-daterangepicker>
 
 <!-- Spanish localization with localized display format -->
-<date-range-picker
+<web-daterangepicker
   selection-mode="single"
   locale="es"
   date-format-mask="YYYY-MM-DD"
   display-format-mask="dd/mm/aaaa"
   placeholder="Selecciona una fecha">
-</date-range-picker>
+</web-daterangepicker>
 ```
 
 ---
@@ -223,7 +223,7 @@ const pickerES = new PureDatePicker(inputElement, {
 
 ### Web Component Methods
 
-Available on `<date-range-picker>` element:
+Available on `<web-daterangepicker>` element:
 
 | Method | Signature | Description |
 |--------|-----------|-------------|
@@ -236,7 +236,7 @@ Available on `<date-range-picker>` element:
 
 **Example:**
 ```javascript
-const picker = document.querySelector('date-range-picker');
+const picker = document.querySelector('web-daterangepicker');
 
 picker.show();
 picker.setInputValue('2025-12-25');
@@ -313,7 +313,7 @@ The `event.detail` object contains different properties depending on the mode an
 ### Event Examples
 
 ```javascript
-const picker = document.querySelector('date-range-picker');
+const picker = document.querySelector('web-daterangepicker');
 
 // Single mode
 picker.addEventListener('date-select', (e) => {
@@ -359,7 +359,7 @@ The date picker includes a professional logging system powered by [loglevel](htt
 Add the `show-debug-info` attribute to any picker instance to enable debug logging for that specific instance:
 
 ```html
-<date-range-picker show-debug-info></date-range-picker>
+<web-daterangepicker show-debug-info></web-daterangepicker>
 ```
 
 ### Log Categories
@@ -479,12 +479,12 @@ dragLogger.setLevel('trace');
 ### Example: Debugging Block Mode
 
 ```html
-<date-range-picker
+<web-daterangepicker
   selection-mode="range"
   disabled-weekdays="0,6"
   disabled-dates-handling="block"
   show-debug-info>
-</date-range-picker>
+</web-daterangepicker>
 ```
 
 Console output when selecting a range:
@@ -502,7 +502,7 @@ Console output when selecting a range:
 
 ### Wrapper Classes (Applied to Parent Element)
 
-Wrap the `<date-range-picker>` in a `<div>` with these classes for styling control:
+Wrap the `<web-daterangepicker>` in a `<div>` with these classes for styling control:
 
 #### Font Size Classes
 
@@ -538,17 +538,17 @@ Control gaps and padding independently of font size:
 ```html
 <!-- Large readable text in compact layout -->
 <div class="drp-font-lg drp-spacing-xs">
-  <date-range-picker></date-range-picker>
+  <web-daterangepicker></web-daterangepicker>
 </div>
 
 <!-- Small text with generous spacing -->
 <div class="drp-font-sm drp-spacing-lg">
-  <date-range-picker></date-range-picker>
+  <web-daterangepicker></web-daterangepicker>
 </div>
 
 <!-- Responsive: both font and spacing scale down on mobile -->
 <div class="drp-font-lg drp-spacing-lg drp-responsive">
-  <date-range-picker></date-range-picker>
+  <web-daterangepicker></web-daterangepicker>
 </div>
 ```
 
@@ -672,7 +672,7 @@ The component defines CSS variables using `:host` in its shadow DOM styles. This
 
 ```css
 /* Your page CSS */
-date-range-picker {
+web-daterangepicker {
   --drp-accent-color: #10b981;
   --drp-border-radius: 0.5rem;
 }
@@ -755,7 +755,7 @@ date-range-picker {
 
 ```css
 /* Target specific picker instances with classes */
-date-range-picker.custom-theme {
+web-daterangepicker.custom-theme {
   --drp-accent-color: #10b981;
   --drp-accent-color-hover: #059669;
   --drp-border-radius: 0.5rem;
@@ -766,7 +766,7 @@ date-range-picker.custom-theme {
 #### Dark Theme
 
 ```css
-date-range-picker.dark-theme {
+web-daterangepicker.dark-theme {
   --drp-card-bg: #1e293b;
   --drp-text-primary: #f1f5f9;
   --drp-text-secondary: #cbd5e1;
@@ -784,19 +784,19 @@ date-range-picker.dark-theme {
 
 ```css
 /* Blue theme */
-date-range-picker.theme-blue {
+web-daterangepicker.theme-blue {
   --drp-accent-color: #3b82f6;
   --drp-accent-color-hover: #2563eb;
 }
 
 /* Green theme */
-date-range-picker.theme-green {
+web-daterangepicker.theme-green {
   --drp-accent-color: #10b981;
   --drp-accent-color-hover: #059669;
 }
 
 /* Purple theme */
-date-range-picker.theme-purple {
+web-daterangepicker.theme-purple {
   --drp-accent-color: #8b5cf6;
   --drp-accent-color-hover: #7c3aed;
 }
@@ -806,7 +806,7 @@ date-range-picker.theme-purple {
 
 ```javascript
 // Change theme at runtime
-const picker = document.querySelector('date-range-picker');
+const picker = document.querySelector('web-daterangepicker');
 
 // Apply dark theme
 picker.classList.add('dark-theme');
@@ -1044,7 +1044,7 @@ The web component provides convenient property accessors for JavaScript:
 ### Example
 
 ```javascript
-const picker = document.querySelector('date-range-picker');
+const picker = document.querySelector('web-daterangepicker');
 
 // Get/set via properties
 picker.mode = 'range';
@@ -1092,7 +1092,7 @@ The component uses `Intl.Locale` API with `weekInfo` for automatic week start de
 ### Custom Date Styling with `getDateInfo`
 
 ```javascript
-const picker = document.querySelector('date-range-picker');
+const picker = document.querySelector('web-daterangepicker');
 
 // Mark weekends with a custom class
 picker.getDateInfo = (date) => {
@@ -1155,7 +1155,7 @@ The date picker provides comprehensive i18n support with automatic browser detec
 
 ```html
 <!-- Auto-detect user's browser locale -->
-<date-range-picker locale="auto"></date-range-picker>
+<web-daterangepicker locale="auto"></web-daterangepicker>
 ```
 
 The picker will:
@@ -1168,16 +1168,16 @@ The picker will:
 
 ```html
 <!-- Spanish -->
-<date-range-picker locale="es"></date-range-picker>
+<web-daterangepicker locale="es"></web-daterangepicker>
 
 <!-- German -->
-<date-range-picker locale="de"></date-range-picker>
+<web-daterangepicker locale="de"></web-daterangepicker>
 
 <!-- French -->
-<date-range-picker locale="fr"></date-range-picker>
+<web-daterangepicker locale="fr"></web-daterangepicker>
 
 <!-- English (explicit) -->
-<date-range-picker locale="en"></date-range-picker>
+<web-daterangepicker locale="en"></web-daterangepicker>
 ```
 
 #### Dual Mask System
@@ -1186,18 +1186,18 @@ Use `date-format-mask` for validation (English tokens) and `display-format-mask`
 
 ```html
 <!-- Spanish: Show "dd/mm/aaaa" to users, validate with "YYYY-MM-DD" -->
-<date-range-picker
+<web-daterangepicker
   date-format-mask="YYYY-MM-DD"
   display-format-mask="dd/mm/aaaa"
   locale="es">
-</date-range-picker>
+</web-daterangepicker>
 
 <!-- German: Show "tt.mm.jjjj" to users, validate with "DD.MM.YYYY" -->
-<date-range-picker
+<web-daterangepicker
   date-format-mask="DD.MM.YYYY"
   display-format-mask="tt.mm.jjjj"
   locale="de">
-</date-range-picker>
+</web-daterangepicker>
 ```
 
 **How it works:**
@@ -1208,7 +1208,7 @@ Use `date-format-mask` for validation (English tokens) and `display-format-mask`
 #### Custom String Overrides
 
 ```javascript
-const picker = document.querySelector('date-range-picker');
+const picker = document.querySelector('web-daterangepicker');
 
 // Override specific strings while keeping rest of locale
 picker.picker.options.customStrings = {
@@ -1239,7 +1239,7 @@ const picker = new PureDatePicker(input, {
 #### Complete Spanish Example
 
 ```html
-<date-range-picker
+<web-daterangepicker
   id="spanish-picker"
   selection-mode="range"
   locale="es"
@@ -1247,7 +1247,7 @@ const picker = new PureDatePicker(input, {
   display-format-mask="dd/mm/aaaa"
   placeholder="Selecciona fechas"
   visible-months-count="2">
-</date-range-picker>
+</web-daterangepicker>
 
 <script>
   const picker = document.getElementById('spanish-picker');
@@ -1451,7 +1451,7 @@ The component adds minimal decoration to the input:
 
 ```css
 /* Your global CSS or component styles */
-date-range-picker input {
+web-daterangepicker input {
   padding: 0.75rem;
   border: 1px solid #e5e7eb;
   border-radius: 0.375rem;
@@ -1460,13 +1460,13 @@ date-range-picker input {
   box-sizing: border-box;
 }
 
-date-range-picker input:focus {
+web-daterangepicker input:focus {
   outline: none;
   border-color: #3b82f6;
   box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
 }
 
-date-range-picker input:disabled {
+web-daterangepicker input:disabled {
   background-color: #f3f4f6;
   cursor: not-allowed;
   opacity: 0.6;
@@ -1507,13 +1507,13 @@ The component adds a `.drp-date-picker-input` wrapper class that you can target:
 Instead of letting the component create the input, you can provide your own pre-styled input:
 
 ```html
-<date-range-picker>
+<web-daterangepicker>
   <input
     type="text"
     class="my-custom-input"
     placeholder="Select date"
   />
-</date-range-picker>
+</web-daterangepicker>
 ```
 
 ```css
@@ -1540,7 +1540,7 @@ These CSS properties **do work** on the input element:
 - Transitions and animations
 
 ✅ Flexbox/Grid parent styling:
-- Wrap the `<date-range-picker>` in a flex/grid container
+- Wrap the `<web-daterangepicker>` in a flex/grid container
 - Control layout and positioning normally
 
 #### What Does NOT Work
@@ -1573,12 +1573,12 @@ input {
 **Vue 3 / Scoped Styles:**
 ```vue
 <template>
-  <date-range-picker></date-range-picker>
+  <web-daterangepicker></web-daterangepicker>
 </template>
 
 <style scoped>
 /* :deep() pierces component boundary */
-date-range-picker :deep(input) {
+web-daterangepicker :deep(input) {
   padding: 1rem;
   border: 1px solid #ccc;
 }
@@ -1588,7 +1588,7 @@ date-range-picker :deep(input) {
 **React / CSS Modules:**
 ```jsx
 <div className={styles.pickerWrapper}>
-  <date-range-picker></date-range-picker>
+  <web-daterangepicker></web-daterangepicker>
 </div>
 ```
 
@@ -1603,10 +1603,10 @@ date-range-picker :deep(input) {
 
 **Svelte:**
 ```svelte
-<date-range-picker></date-range-picker>
+<web-daterangepicker></web-daterangepicker>
 
 <style>
-  :global(date-range-picker input) {
+  :global(web-daterangepicker input) {
     padding: 1rem;
     border: 1px solid #ccc;
   }
@@ -1619,19 +1619,19 @@ If you're using a design system (Material UI, Bootstrap, Tailwind, etc.), apply 
 
 **Tailwind CSS:**
 ```html
-<date-range-picker>
+<web-daterangepicker>
   <input
     type="text"
     class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
   />
-</date-range-picker>
+</web-daterangepicker>
 ```
 
 **Bootstrap:**
 ```html
-<date-range-picker>
+<web-daterangepicker>
   <input type="text" class="form-control" />
-</date-range-picker>
+</web-daterangepicker>
 ```
 
 #### Summary
@@ -1639,7 +1639,7 @@ If you're using a design system (Material UI, Bootstrap, Tailwind, etc.), apply 
 - ✅ **Calendar styling**: Fully controlled by component SCSS variables and CSS custom properties
 - ❌ **Input styling**: Must be handled by you in your application CSS
 - 💡 **Reason**: Shadow DOM encapsulation keeps calendar styles isolated but prevents styling light DOM elements
-- 🎯 **Solution**: Style `date-range-picker input` selector in your global/component CSS
+- 🎯 **Solution**: Style `web-daterangepicker input` selector in your global/component CSS
 
 ---
 
@@ -1662,12 +1662,12 @@ Starting in **v1.0.0-rc07**, the `calendar-open-trigger` attribute values have b
 
 ```html
 <!-- OLD -->
-<date-range-picker calendar-open-trigger="auto"></date-range-picker>
-<date-range-picker calendar-open-trigger="button"></date-range-picker>
+<web-daterangepicker calendar-open-trigger="auto"></web-daterangepicker>
+<web-daterangepicker calendar-open-trigger="button"></web-daterangepicker>
 
 <!-- NEW -->
-<date-range-picker calendar-open-trigger="focus"></date-range-picker>
-<date-range-picker calendar-open-trigger="manual"></date-range-picker>
+<web-daterangepicker calendar-open-trigger="focus"></web-daterangepicker>
+<web-daterangepicker calendar-open-trigger="manual"></web-daterangepicker>
 ```
 
 **Changes:**
@@ -1682,17 +1682,17 @@ The old `.drp-size-*` classes have been replaced with independent font and spaci
 ```html
 <!-- OLD (v0.x) -->
 <div class="drp-size-lg">
-  <date-range-picker></date-range-picker>
+  <web-daterangepicker></web-daterangepicker>
 </div>
 
 <!-- NEW (v1.0+) -->
 <div class="drp-font-lg drp-spacing-lg">
-  <date-range-picker></date-range-picker>
+  <web-daterangepicker></web-daterangepicker>
 </div>
 
 <!-- Or mix independently -->
 <div class="drp-font-lg drp-spacing-xs">
-  <date-range-picker></date-range-picker>
+  <web-daterangepicker></web-daterangepicker>
 </div>
 ```
 

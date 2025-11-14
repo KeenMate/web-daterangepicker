@@ -142,7 +142,7 @@
       align-items: stretch;
     }
 
-    .date-input-group date-range-picker {
+    .date-input-group web-daterangepicker {
       flex: 1;
     }
 
@@ -187,13 +187,13 @@
     <div class="grid">
       <div class="form-group">
         <label>Single Date Picker</label>
-        <date-range-picker selection-mode="single" placeholder="YYYY-MM-DD"></date-range-picker>
+        <web-daterangepicker selection-mode="single" placeholder="YYYY-MM-DD"></web-daterangepicker>
         <small>Click to open calendar or type date directly</small>
       </div>
 
       <div class="form-group">
         <label>Date Range Picker</label>
-        <date-range-picker selection-mode="range" placeholder="Start Date - End Date"></date-range-picker>
+        <web-daterangepicker selection-mode="range" placeholder="Start Date - End Date"></web-daterangepicker>
         <small>Select start and end dates with day/night count</small>
       </div>
     </div>
@@ -206,13 +206,13 @@
       <div class="form-group">
         <label>Focus Mode (default)</label>
         <div class="date-input-group">
-          <date-range-picker
+          <web-daterangepicker
             id="picker-focus"
             selection-mode="single"
             date-format-mask="YYYY-MM-DD"
             calendar-open-trigger="focus"
             placeholder="Click to focus">
-          </date-range-picker>
+          </web-daterangepicker>
           <button
             class="calendar-btn"
             data-calendar-button
@@ -227,13 +227,13 @@
       <div class="form-group">
         <label>Typing Mode</label>
         <div class="date-input-group">
-          <date-range-picker
+          <web-daterangepicker
             id="picker-typing"
             selection-mode="single"
             date-format-mask="YYYY-MM-DD"
             calendar-open-trigger="typing"
             placeholder="Start typing...">
-          </date-range-picker>
+          </web-daterangepicker>
           <button
             class="calendar-btn"
             data-calendar-button
@@ -248,13 +248,13 @@
       <div class="form-group">
         <label>Manual Mode</label>
         <div class="date-input-group">
-          <date-range-picker
+          <web-daterangepicker
             id="picker-manual"
             selection-mode="single"
             date-format-mask="YYYY-MM-DD"
             calendar-open-trigger="manual"
             placeholder="Use button to open">
-          </date-range-picker>
+          </web-daterangepicker>
           <button
             class="calendar-btn"
             data-calendar-button
@@ -280,19 +280,19 @@
     <div class="grid">
       <div class="form-group">
         <label>ISO Format (YYYY-MM-DD)</label>
-        <date-range-picker date-format-mask="YYYY-MM-DD" placeholder="YYYY-MM-DD"></date-range-picker>
+        <web-daterangepicker date-format-mask="YYYY-MM-DD" placeholder="YYYY-MM-DD"></web-daterangepicker>
         <small>Try typing: 20250115 → auto-formats to 2025-01-15</small>
       </div>
 
       <div class="form-group">
         <label>European Format (DD.MM.YYYY)</label>
-        <date-range-picker date-format-mask="DD.MM.YYYY" placeholder="DD.MM.YYYY"></date-range-picker>
+        <web-daterangepicker date-format-mask="DD.MM.YYYY" placeholder="DD.MM.YYYY"></web-daterangepicker>
         <small>Try typing: 15012025 → auto-formats to 15.01.2025</small>
       </div>
 
       <div class="form-group">
         <label>US Format (MM/DD/YYYY)</label>
-        <date-range-picker date-format-mask="MM/DD/YYYY" placeholder="MM/DD/YYYY"></date-range-picker>
+        <web-daterangepicker date-format-mask="MM/DD/YYYY" placeholder="MM/DD/YYYY"></web-daterangepicker>
         <small>Try typing: 01152025 → auto-formats to 01/15/2025</small>
       </div>
     </div>
@@ -304,63 +304,63 @@
     <div class="grid">
       <div class="form-group">
         <label>Auto-detect Locale</label>
-        <date-range-picker
+        <web-daterangepicker
           locale="auto"
           date-format-mask="YYYY-MM-DD"
           placeholder="Auto-detected locale">
-        </date-range-picker>
+        </web-daterangepicker>
         <small>Automatically uses your browser's language</small>
       </div>
 
       <div class="form-group">
         <label>Spanish (Español)</label>
-        <date-range-picker
+        <web-daterangepicker
           locale="es"
           date-format-mask="YYYY-MM-DD"
           display-format-mask="dd/mm/aaaa"
           placeholder="Selecciona una fecha">
-        </date-range-picker>
+        </web-daterangepicker>
         <small>Spanish UI with localized format mask (aaaa = año)</small>
       </div>
 
       <div class="form-group">
         <label>German (Deutsch)</label>
-        <date-range-picker
+        <web-daterangepicker
           locale="de"
           date-format-mask="DD.MM.YYYY"
           display-format-mask="tt.mm.jjjj"
           placeholder="Datum wählen">
-        </date-range-picker>
+        </web-daterangepicker>
         <small>German UI with localized format mask (jjjj = jahr)</small>
       </div>
 
       <div class="form-group">
         <label>French (Français)</label>
-        <date-range-picker
+        <web-daterangepicker
           locale="fr"
           date-format-mask="DD/MM/YYYY"
           display-format-mask="jj/mm/aaaa"
           placeholder="Sélectionner une date">
-        </date-range-picker>
+        </web-daterangepicker>
         <small>French UI with localized format mask (aaaa = année)</small>
       </div>
 
       <div class="form-group">
         <label>Spanish Range Picker</label>
-        <date-range-picker
+        <web-daterangepicker
           selection-mode="range"
           locale="es"
           visible-months-count="2"
           date-format-mask="YYYY-MM-DD"
           display-format-mask="dd/mm/aaaa"
           placeholder="Selecciona fechas">
-        </date-range-picker>
+        </web-daterangepicker>
         <small>2-month range picker with Spanish localization</small>
       </div>
 
       <div class="form-group">
         <label>German with Disabled Weekends</label>
-        <date-range-picker
+        <web-daterangepicker
           selection-mode="range"
           locale="de"
           visible-months-count="2"
@@ -368,7 +368,7 @@
           date-format-mask="DD.MM.YYYY"
           display-format-mask="tt.mm.jjjj"
           placeholder="Datumsbereich wählen">
-        </date-range-picker>
+        </web-daterangepicker>
         <small>German with weekends disabled (custom strings require direct PureDatePicker instantiation)</small>
       </div>
     </div>
@@ -379,13 +379,13 @@
     <div class="grid">
       <div class="form-group">
         <label>Range with 3 Months</label>
-        <date-range-picker selection-mode="range" visible-months-count="3" placeholder="Select range"></date-range-picker>
+        <web-daterangepicker selection-mode="range" visible-months-count="3" placeholder="Select range"></web-daterangepicker>
         <small>Great for selecting dates far apart</small>
       </div>
 
       <div class="form-group">
         <label>Single Date with 2 Months</label>
-        <date-range-picker selection-mode="single" visible-months-count="2" placeholder="YYYY-MM-DD"></date-range-picker>
+        <web-daterangepicker selection-mode="single" visible-months-count="2" placeholder="YYYY-MM-DD"></web-daterangepicker>
         <small>Each month has independent navigation</small>
       </div>
     </div>
@@ -396,14 +396,14 @@
     <div class="grid">
       <div class="form-group">
         <label>6 Months in Grid (2 rows × 3 columns)</label>
-        <date-range-picker
+        <web-daterangepicker
           selection-mode="single"
           visible-months-count="6"
           month-layout="grid"
           grid-rows="2"
           grid-columns="3"
           placeholder="YYYY-MM-DD">
-        </date-range-picker>
+        </web-daterangepicker>
         <small>Shows 6 months in a 2×3 grid layout with responsive behavior</small>
       </div>
     </div>
@@ -414,12 +414,12 @@
     <div class="grid">
       <div class="form-group">
         <label>Single Date with Value</label>
-        <date-range-picker value="2025-11-15" placeholder="YYYY-MM-DD"></date-range-picker>
+        <web-daterangepicker value="2025-11-15" placeholder="YYYY-MM-DD"></web-daterangepicker>
       </div>
 
       <div class="form-group">
         <label>Date Range with Value</label>
-        <date-range-picker selection-mode="range" value="2025-11-01 to 2025-11-30" placeholder="Start - End"></date-range-picker>
+        <web-daterangepicker selection-mode="range" value="2025-11-01 to 2025-11-30" placeholder="Start - End"></web-daterangepicker>
       </div>
     </div>
   </div>
@@ -429,7 +429,7 @@
     <div class="grid">
       <div class="form-group">
         <label>Disabled Picker</label>
-        <date-range-picker disabled value="2025-11-15" placeholder="YYYY-MM-DD"></date-range-picker>
+        <web-daterangepicker disabled value="2025-11-15" placeholder="YYYY-MM-DD"></web-daterangepicker>
       </div>
     </div>
   </div>
@@ -439,19 +439,19 @@
     <div class="grid">
       <div class="form-group">
         <label>Auto-detect from Locale (Default)</label>
-        <date-range-picker week-start-day="auto" placeholder="YYYY-MM-DD"></date-range-picker>
+        <web-daterangepicker week-start-day="auto" placeholder="YYYY-MM-DD"></web-daterangepicker>
         <small>Week starts on: <span id="detected-week-start"></span></small>
       </div>
 
       <div class="form-group">
         <label>Sunday Start (US Style)</label>
-        <date-range-picker week-start-day="0" placeholder="YYYY-MM-DD"></date-range-picker>
+        <web-daterangepicker week-start-day="0" placeholder="YYYY-MM-DD"></web-daterangepicker>
         <small>Week starts on Sunday (0)</small>
       </div>
 
       <div class="form-group">
         <label>Monday Start (European Style)</label>
-        <date-range-picker week-start-day="1" placeholder="YYYY-MM-DD"></date-range-picker>
+        <web-daterangepicker week-start-day="1" placeholder="YYYY-MM-DD"></web-daterangepicker>
         <small>Week starts on Monday (1)</small>
       </div>
     </div>
@@ -462,23 +462,23 @@
     <div class="grid">
       <div class="form-group">
         <label>Disable Weekends</label>
-        <date-range-picker disabled-weekdays="0,6" placeholder="YYYY-MM-DD"></date-range-picker>
+        <web-daterangepicker disabled-weekdays="0,6" placeholder="YYYY-MM-DD"></web-daterangepicker>
         <small>Sunday (0) and Saturday (6) are disabled</small>
       </div>
 
       <div class="form-group">
         <label>Date Range Limits</label>
-        <date-range-picker
+        <web-daterangepicker
           min-date="2025-11-01"
           max-date="2025-11-30"
           placeholder="YYYY-MM-DD">
-        </date-range-picker>
+        </web-daterangepicker>
         <small>Only November 2025 is selectable</small>
       </div>
 
       <div class="form-group">
         <label>Disable Specific Dates</label>
-        <date-range-picker id="disabled-dates-demo" placeholder="YYYY-MM-DD"></date-range-picker>
+        <web-daterangepicker id="disabled-dates-demo" placeholder="YYYY-MM-DD"></web-daterangepicker>
         <small>Christmas, New Year, and Thanksgiving disabled</small>
       </div>
     </div>
@@ -490,39 +490,39 @@
     <div class="grid">
       <div class="form-group">
         <label>Limited to 2025 Only</label>
-        <date-range-picker
+        <web-daterangepicker
           selection-mode="single"
           min-date="2025-01-01"
           max-date="2025-12-31"
           placeholder="YYYY-MM-DD">
-        </date-range-picker>
+        </web-daterangepicker>
         <small>Click month/year to open rolling selector - only 2025 is enabled (other years disabled)</small>
       </div>
 
       <div class="form-group">
         <label>Custom Year Range (2024-2026)</label>
-        <date-range-picker
+        <web-daterangepicker
           selection-mode="single"
           rolling-year-range="2024-2026"
           placeholder="YYYY-MM-DD">
-        </date-range-picker>
+        </web-daterangepicker>
         <small>Rolling selector only shows years 2024, 2025, 2026 (instead of ±50 years)</small>
       </div>
 
       <div class="form-group">
         <label>Summer Months Only (June-August)</label>
-        <date-range-picker
+        <web-daterangepicker
           selection-mode="single"
           rolling-month-range="06-08"
           rolling-year-range="2024-2026"
           placeholder="YYYY-MM-DD">
-        </date-range-picker>
+        </web-daterangepicker>
         <small>Rolling selector only shows June, July, August in years 2024-2026</small>
       </div>
 
       <div class="form-group">
         <label>Q4 Business Planning (Oct-Dec 2024)</label>
-        <date-range-picker
+        <web-daterangepicker
           selection-mode="range"
           rolling-year-range="2024"
           rolling-month-range="10-12"
@@ -530,29 +530,29 @@
           max-date="2024-12-31"
           visible-months-count="2"
           placeholder="Select dates">
-        </date-range-picker>
+        </web-daterangepicker>
         <small>Only year 2024, only Oct/Nov/Dec visible and enabled</small>
       </div>
 
       <div class="form-group">
         <label>Year-End Booking (Nov-Dec only)</label>
-        <date-range-picker
+        <web-daterangepicker
           selection-mode="range"
           rolling-month-range="11-12"
           rolling-year-range="2024-2025"
           visible-months-count="2"
           placeholder="Select dates">
-        </date-range-picker>
+        </web-daterangepicker>
         <small>Years 2024-2025 available, but only November and December months selectable</small>
       </div>
 
       <div class="form-group">
         <label>Current Year Only</label>
-        <date-range-picker
+        <web-daterangepicker
           selection-mode="single"
           rolling-year-range="2025"
           placeholder="YYYY-MM-DD">
-        </date-range-picker>
+        </web-daterangepicker>
         <small>Rolling selector locked to 2025 - no other years shown</small>
       </div>
     </div>
@@ -563,13 +563,13 @@
     <div class="grid">
       <div class="form-group">
         <label>Holiday Calendar</label>
-        <date-range-picker id="holidays-demo" visible-months-count="2" placeholder="YYYY-MM-DD"></date-range-picker>
+        <web-daterangepicker id="holidays-demo" visible-months-count="2" placeholder="YYYY-MM-DD"></web-daterangepicker>
         <small>Holidays marked with emojis and custom styling</small>
       </div>
 
       <div class="form-group">
         <label>Cottage Booking Example</label>
-        <date-range-picker id="cottage-demo" selection-mode="range" visible-months-count="2" placeholder="Select dates"></date-range-picker>
+        <web-daterangepicker id="cottage-demo" selection-mode="range" visible-months-count="2" placeholder="Select dates"></web-daterangepicker>
         <small>Some dates are already booked (disabled)</small>
       </div>
     </div>
@@ -580,37 +580,37 @@
     <div class="grid">
       <div class="form-group">
         <label>Emoji Badges (default)</label>
-        <date-range-picker id="badge-top-right" visible-months-count="1" placeholder="Select date"></date-range-picker>
+        <web-daterangepicker id="badge-top-right" visible-months-count="1" placeholder="Select date"></web-daterangepicker>
         <small>Badges appear in rows above dates, aligned to their respective day</small>
       </div>
 
       <div class="form-group">
         <label>Holiday Style Badges</label>
-        <date-range-picker id="badge-top-left" visible-months-count="1" placeholder="Select date"></date-range-picker>
+        <web-daterangepicker id="badge-top-left" visible-months-count="1" placeholder="Select date"></web-daterangepicker>
         <small>Custom styling with holiday class for special events</small>
       </div>
 
       <div class="form-group">
         <label>Event Style Badges</label>
-        <date-range-picker id="badge-bottom-right" visible-months-count="1" placeholder="Select date"></date-range-picker>
+        <web-daterangepicker id="badge-bottom-right" visible-months-count="1" placeholder="Select date"></web-daterangepicker>
         <small>Custom styling with event class for important dates</small>
       </div>
 
       <div class="form-group">
         <label>Styled Emoji Badges</label>
-        <date-range-picker id="badge-center" visible-months-count="1" placeholder="Select date"></date-range-picker>
+        <web-daterangepicker id="badge-center" visible-months-count="1" placeholder="Select date"></web-daterangepicker>
         <small>Various emoji indicators with custom CSS classes</small>
       </div>
 
       <div class="form-group">
         <label>Number Badges</label>
-        <date-range-picker id="badge-numbers" visible-months-count="1" placeholder="Select date"></date-range-picker>
+        <web-daterangepicker id="badge-numbers" visible-months-count="1" placeholder="Select date"></web-daterangepicker>
         <small>Shows prices or counts in badge rows above dates</small>
       </div>
 
       <div class="form-group">
         <label>Text Badges</label>
-        <date-range-picker id="badge-text" visible-months-count="1" placeholder="Select date"></date-range-picker>
+        <web-daterangepicker id="badge-text" visible-months-count="1" placeholder="Select date"></web-daterangepicker>
         <small>Short text indicators (H, E, B, etc.) in badge rows</small>
       </div>
     </div>
@@ -621,55 +621,55 @@
     <div class="grid">
       <div class="form-group">
         <label>Allow Mode (default)</label>
-        <date-range-picker
+        <web-daterangepicker
           id="mode-allow"
           selection-mode="range"
           visible-months-count="2"
           disabled-weekdays="0,6"
           disabled-dates-handling="allow"
-          placeholder="Select range"></date-range-picker>
+          placeholder="Select range"></web-daterangepicker>
         <small>Allows range over disabled dates. Returns enabled/disabled arrays.</small>
         <div id="mode-allow-output" style="margin-top: 8px; font-size: 0.875rem; color: #666;"></div>
       </div>
 
       <div class="form-group">
         <label>Block Mode</label>
-        <date-range-picker
+        <web-daterangepicker
           id="mode-block"
           selection-mode="range"
           visible-months-count="2"
           disabled-weekdays="0,3,6"
           disabled-dates-handling="block"
           show-debug-info
-          placeholder="Select range"></date-range-picker>
+          placeholder="Select range"></web-daterangepicker>
         <small>Blocks range from crossing disabled dates. Snaps to last enabled date. (Sundays, Wednesdays, Saturdays disabled)</small>
         <div id="mode-block-output" style="margin-top: 8px; font-size: 0.875rem; color: #666;"></div>
       </div>
 
       <div class="form-group">
         <label>Split Mode (no disabled highlighting)</label>
-        <date-range-picker
+        <web-daterangepicker
           id="mode-split"
           selection-mode="range"
           visible-months-count="2"
           disabled-weekdays="0,6"
           disabled-dates-handling="split"
           highlight-disabled-in-range="false"
-          placeholder="Select range"></date-range-picker>
+          placeholder="Select range"></web-daterangepicker>
         <small>Returns multiple ranges split by disabled dates. Weekends not highlighted.</small>
         <div id="mode-split-output" style="margin-top: 8px; font-size: 0.875rem; color: #666;"></div>
       </div>
 
       <div class="form-group">
         <label>Individual Mode (no disabled highlighting)</label>
-        <date-range-picker
+        <web-daterangepicker
           id="mode-individual"
           selection-mode="range"
           visible-months-count="2"
           disabled-weekdays="0,6"
           disabled-dates-handling="individual"
           highlight-disabled-in-range="false"
-          placeholder="Select range"></date-range-picker>
+          placeholder="Select range"></web-daterangepicker>
         <small>Returns flat array of individual enabled dates. Weekends not highlighted.</small>
         <div id="mode-individual-output" style="margin-top: 8px; font-size: 0.875rem; color: #666;"></div>
       </div>
@@ -682,45 +682,45 @@
     <div class="grid">
       <div class="form-group">
         <label>Custom Pricing Display</label>
-        <date-range-picker
+        <web-daterangepicker
           id="summary-pricing"
           selection-mode="range"
           visible-months-count="2"
-          placeholder="Select dates"></date-range-picker>
+          placeholder="Select dates"></web-daterangepicker>
         <small>Shows calculated price based on nights</small>
       </div>
 
       <div class="form-group">
         <label>Weekdays Only Counter</label>
-        <date-range-picker
+        <web-daterangepicker
           id="summary-weekdays"
           selection-mode="range"
           visible-months-count="2"
           disabled-weekdays="0,6"
           range-disabled-handling="allow"
-          placeholder="Select range"></date-range-picker>
+          placeholder="Select range"></web-daterangepicker>
         <small>Shows weekdays vs weekends breakdown</small>
       </div>
 
       <div class="form-group">
         <label>Multiple Ranges Display</label>
-        <date-range-picker
+        <web-daterangepicker
           id="summary-split"
           selection-mode="range"
           visible-months-count="2"
           disabled-weekdays="0,6"
           range-disabled-handling="split"
-          placeholder="Select range"></date-range-picker>
+          placeholder="Select range"></web-daterangepicker>
         <small>Shows count of separate periods (weekends excluded)</small>
       </div>
 
       <div class="form-group">
         <label>Nights Only Display</label>
-        <date-range-picker
+        <web-daterangepicker
           id="summary-nights"
           selection-mode="range"
           visible-months-count="2"
-          placeholder="Select dates"></date-range-picker>
+          placeholder="Select dates"></web-daterangepicker>
         <small>Custom format showing only nights</small>
       </div>
     </div>
@@ -732,66 +732,46 @@
     <div class="grid">
       <div class="form-group">
         <label>Inline Single Date Calendar</label>
-        <date-range-picker
+        <web-daterangepicker
           id="inline-single"
           selection-mode="single"
-          positioning-mode="inline"></date-range-picker>
+          positioning-mode="inline"></web-daterangepicker>
         <small>No input field - calendar always visible</small>
         <div id="inline-single-output" style="margin-top: 8px; font-size: 0.875rem; color: #666;"></div>
       </div>
 
       <div class="form-group">
         <label>Inline Range Calendar (2 months)</label>
-        <date-range-picker
+        <web-daterangepicker
           id="inline-range"
           selection-mode="range"
           positioning-mode="inline"
-          visible-months-count="2"></date-range-picker>
+          visible-months-count="2"></web-daterangepicker>
         <small>Perfect for booking widgets and dashboards</small>
         <div id="inline-range-output" style="margin-top: 8px; font-size: 0.875rem; color: #666;"></div>
       </div>
 
       <div class="form-group">
         <label>Inline with Disabled Weekends</label>
-        <date-range-picker
+        <web-daterangepicker
           id="inline-disabled"
           selection-mode="range"
           positioning-mode="inline"
           disabled-weekdays="0,6"
-          disabled-dates-handling="block"></date-range-picker>
+          disabled-dates-handling="block"></web-daterangepicker>
         <small>Great for business day selection</small>
         <div id="inline-disabled-output" style="margin-top: 8px; font-size: 0.875rem; color: #666;"></div>
       </div>
 
       <div class="form-group">
         <label>Inline with Special Dates</label>
-        <date-range-picker
+        <web-daterangepicker
           id="inline-holidays"
           selection-mode="single"
-          positioning-mode="inline"></date-range-picker>
+          positioning-mode="inline"></web-daterangepicker>
         <small>Shows holidays and events</small>
         <div id="inline-holidays-output" style="margin-top: 8px; font-size: 0.875rem; color: #666;"></div>
       </div>
-    </div>
-  </div>
-
-  <div class="card">
-    <h2>Inline Grid Layout (2×3)</h2>
-    <p>Display 6 months in a 2×3 grid layout, always visible (not a popup).</p>
-    <div class="form-group">
-      <label>6 Months Grid Calendar (Responsive)</label>
-      <div class="drp-font-md drp-spacing-sm drp-responsive">
-        <date-range-picker
-          id="inline-grid"
-          selection-mode="single"
-          positioning-mode="inline"
-          visible-months-count="6"
-          month-layout="grid"
-          grid-rows="2"
-          grid-columns="3"></date-range-picker>
-      </div>
-      <small>Perfect for dashboards - medium font with compact spacing. Scales down on smaller screens.</small>
-      <div id="inline-grid-output" style="margin-top: 8px; font-size: 0.875rem; color: #666;"></div>
     </div>
   </div>
 
@@ -801,176 +781,57 @@
     <div class="grid">
       <div class="form-group">
         <label>Bottom Center (default for grid)</label>
-        <date-range-picker
+        <web-daterangepicker
           selection-mode="single"
           calendar-placement="bottom"
-          placeholder="YYYY-MM-DD"></date-range-picker>
+          placeholder="YYYY-MM-DD"></web-daterangepicker>
         <small>Centered below the input</small>
       </div>
 
       <div class="form-group">
         <label>Bottom Start (default for horizontal)</label>
-        <date-range-picker
+        <web-daterangepicker
           selection-mode="single"
           calendar-placement="bottom-start"
-          placeholder="YYYY-MM-DD"></date-range-picker>
+          placeholder="YYYY-MM-DD"></web-daterangepicker>
         <small>Left-aligned below the input</small>
       </div>
 
       <div class="form-group">
         <label>Bottom End</label>
-        <date-range-picker
+        <web-daterangepicker
           selection-mode="single"
           calendar-placement="bottom-end"
-          placeholder="YYYY-MM-DD"></date-range-picker>
+          placeholder="YYYY-MM-DD"></web-daterangepicker>
         <small>Right-aligned below the input</small>
       </div>
 
       <div class="form-group">
         <label>Top Center</label>
-        <date-range-picker
+        <web-daterangepicker
           selection-mode="single"
           calendar-placement="top"
-          placeholder="YYYY-MM-DD"></date-range-picker>
+          placeholder="YYYY-MM-DD"></web-daterangepicker>
         <small>Centered above the input</small>
       </div>
 
       <div class="form-group">
         <label>Top Start</label>
-        <date-range-picker
+        <web-daterangepicker
           selection-mode="single"
           calendar-placement="top-start"
-          placeholder="YYYY-MM-DD"></date-range-picker>
+          placeholder="YYYY-MM-DD"></web-daterangepicker>
         <small>Left-aligned above the input</small>
       </div>
 
       <div class="form-group">
         <label>Top End</label>
-        <date-range-picker
+        <web-daterangepicker
           selection-mode="single"
           calendar-placement="top-end"
-          placeholder="YYYY-MM-DD"></date-range-picker>
+          placeholder="YYYY-MM-DD"></web-daterangepicker>
         <small>Right-aligned above the input</small>
       </div>
-    </div>
-  </div>
-
-  <div class="card">
-    <h2>Calendar Sizing - Independent Font & Spacing Control</h2>
-    <p>Control font size and spacing independently with CSS wrapper classes:</p>
-    <ul>
-      <li><strong>Font:</strong> <code>.drp-font-xs/sm/md/lg/xl</code> - Controls text size only</li>
-      <li><strong>Spacing:</strong> <code>.drp-spacing-xs/sm/md/lg/xl</code> - Controls gaps/density only</li>
-      <li><strong>Responsive:</strong> <code>.drp-responsive</code> - Auto-scales each at breakpoints</li>
-    </ul>
-
-    <h3>Independent Control Examples</h3>
-    <div class="grid">
-      <div class="form-group">
-        <label>Large Font + Compact Spacing</label>
-        <div class="drp-font-lg drp-spacing-xs">
-          <date-range-picker
-            selection-mode="single"
-            placeholder="YYYY-MM-DD"></date-range-picker>
-        </div>
-        <small>Readable text in a tight layout</small>
-      </div>
-
-      <div class="form-group">
-        <label>Small Font + Spacious Layout</label>
-        <div class="drp-font-sm drp-spacing-lg">
-          <date-range-picker
-            selection-mode="single"
-            placeholder="YYYY-MM-DD"></date-range-picker>
-        </div>
-        <small>Compact text with generous spacing</small>
-      </div>
-
-      <div class="form-group">
-        <label>XL Font + XL Spacing</label>
-        <div class="drp-font-xl drp-spacing-xl">
-          <date-range-picker
-            selection-mode="single"
-            placeholder="YYYY-MM-DD"></date-range-picker>
-        </div>
-        <small>Maximum size for everything</small>
-      </div>
-    </div>
-
-    <h3>Responsive Combinations</h3>
-    <p>Add <code>.drp-responsive</code> to scale font and spacing independently at breakpoints.</p>
-    <div class="grid">
-      <div class="form-group">
-        <label>Large Text, Always Compact</label>
-        <div class="drp-font-lg drp-spacing-xs drp-responsive">
-          <date-range-picker
-            selection-mode="single"
-            placeholder="YYYY-MM-DD"></date-range-picker>
-        </div>
-        <small>Font scales responsively, spacing stays compact</small>
-      </div>
-
-      <div class="form-group">
-        <label>Medium Text, Responsive Spacing</label>
-        <div class="drp-font-md drp-spacing-lg drp-responsive">
-          <date-range-picker
-            selection-mode="single"
-            placeholder="YYYY-MM-DD"></date-range-picker>
-        </div>
-        <small>Fixed font, spacing adapts to screen size</small>
-      </div>
-
-      <div class="form-group">
-        <label>Both Responsive</label>
-        <div class="drp-font-lg drp-spacing-lg drp-responsive">
-          <date-range-picker
-            selection-mode="single"
-            placeholder="YYYY-MM-DD"></date-range-picker>
-        </div>
-        <small>Font and spacing both scale down on smaller screens</small>
-      </div>
-    </div>
-
-    <h3>Grid Layout Sizing</h3>
-    <div class="form-group">
-      <label>Compact 2×3 Grid (Small Font + XS Spacing)</label>
-      <div class="drp-font-sm drp-spacing-xs drp-responsive">
-        <date-range-picker
-          id="grid-small"
-          selection-mode="single"
-          positioning-mode="inline"
-          visible-months-count="6"
-          month-layout="grid"
-          grid-rows="2"
-          grid-columns="3"></date-range-picker>
-      </div>
-      <small>Dense dashboard calendar - small text with minimal gaps</small>
-    </div>
-
-    <div class="form-group">
-      <label>Touch-Friendly 2×3 Grid (LG Font + LG Spacing)</label>
-      <div class="drp-font-lg drp-spacing-lg">
-        <date-range-picker
-          id="grid-large"
-          selection-mode="single"
-          positioning-mode="inline"
-          visible-months-count="6"
-          month-layout="grid"
-          grid-rows="2"
-          grid-columns="3"></date-range-picker>
-      </div>
-      <small>Large calendar with generous touch targets - fixed size</small>
-    </div>
-
-    <div class="form-group">
-      <label>Readable Compact (MD Font + SM Spacing)</label>
-      <div class="drp-font-md drp-spacing-sm drp-responsive">
-        <date-range-picker
-          id="single-xl"
-          selection-mode="single"
-          positioning-mode="inline"></date-range-picker>
-      </div>
-      <small>Standard text with slightly tighter spacing - scales responsively</small>
     </div>
   </div>
 
@@ -1014,7 +875,7 @@
     <h2>Programmatic API</h2>
     <div class="form-group">
       <label>API Demo</label>
-      <date-range-picker id="api-demo" selection-mode="range"></date-range-picker>
+      <web-daterangepicker id="api-demo" selection-mode="range"></web-daterangepicker>
       <div style="margin-top: 1rem; display: flex; gap: 0.5rem;">
         <button onclick="document.getElementById('api-demo').show()" style="padding: 0.5rem 1rem; border: 1px solid #d1d5db; border-radius: 0.375rem; cursor: pointer;">Show</button>
         <button onclick="document.getElementById('api-demo').hide()" style="padding: 0.5rem 1rem; border: 1px solid #d1d5db; border-radius: 0.375rem; cursor: pointer;">Hide</button>
@@ -1075,65 +936,65 @@ picker.addEventListener('date-select', (e) => {
     <div class="grid">
       <div class="form-group">
         <label>Current Year Only</label>
-        <date-range-picker
+        <web-daterangepicker
           selection-mode="single"
           rolling-year-range="2025"
           placeholder="YYYY-MM-DD">
-        </date-range-picker>
+        </web-daterangepicker>
         <small>Rolling selector shows only 2025 in year list</small>
       </div>
 
       <div class="form-group">
         <label>Limited to 2025 (via date constraints)</label>
-        <date-range-picker
+        <web-daterangepicker
           selection-mode="single"
           min-date="2025-01-01"
           max-date="2025-12-31"
           placeholder="YYYY-MM-DD">
-        </date-range-picker>
+        </web-daterangepicker>
         <small>Auto-constrained: only 2025 shows (based on min/max dates)</small>
       </div>
 
       <div class="form-group">
         <label>Summer Months Only (Jun-Aug)</label>
-        <date-range-picker
+        <web-daterangepicker
           selection-mode="range"
           rolling-month-range="06-08"
           placeholder="Select summer dates">
-        </date-range-picker>
+        </web-daterangepicker>
         <small>Rolling selector shows only June, July, August</small>
       </div>
 
       <div class="form-group">
         <label>Q4 Business Planning (Oct-Dec 2024)</label>
-        <date-range-picker
+        <web-daterangepicker
           selection-mode="range"
           rolling-year-range="2024"
           rolling-month-range="10-12"
           initial-date="2024-10-01"
           placeholder="Q4 dates">
-        </date-range-picker>
+        </web-daterangepicker>
         <small>Limited to Oct/Nov/Dec 2024 only (opens to Oct 2024)</small>
       </div>
 
       <div class="form-group">
         <label>Year-End Booking (Nov-Dec only)</label>
-        <date-range-picker
+        <web-daterangepicker
           selection-mode="range"
           rolling-month-range="11-12"
           placeholder="Year-end booking">
-        </date-range-picker>
+        </web-daterangepicker>
         <small>Only November and December months available</small>
       </div>
 
       <div class="form-group">
         <label>Multi-Year Range (2024-2026)</label>
-        <date-range-picker
+        <web-daterangepicker
           selection-mode="single"
           rolling-year-range="2024-2026"
           initial-date="2024-06-01"
           placeholder="YYYY-MM-DD">
-        </date-range-picker>
+        </web-daterangepicker>
         <small>Rolling selector shows 2024, 2025, and 2026 (opens to Jun 2024)</small>
       </div>
     </div>
@@ -1417,44 +1278,6 @@ picker.addEventListener('date-select', (e) => {
           const output = document.getElementById('inline-holidays-output');
           if (output && e.detail.date) {
             output.innerHTML = `<strong>Selected:</strong> ${e.detail.date.toLocaleDateString()}`;
-          }
-        });
-      }
-
-      const inlineGrid = document.getElementById('inline-grid');
-      if (inlineGrid) {
-        inlineGrid.addEventListener('date-select', (e) => {
-          const output = document.getElementById('inline-grid-output');
-          if (output && e.detail.date) {
-            output.innerHTML = `<strong>Selected:</strong> ${e.detail.date.toLocaleDateString()}`;
-          }
-        });
-      }
-
-      // Setup sizing examples
-      const gridSmall = document.getElementById('grid-small');
-      if (gridSmall) {
-        gridSmall.addEventListener('date-select', (e) => {
-          if (e.detail.date) {
-            console.log('Small grid selected:', e.detail.date.toLocaleDateString());
-          }
-        });
-      }
-
-      const gridLarge = document.getElementById('grid-large');
-      if (gridLarge) {
-        gridLarge.addEventListener('date-select', (e) => {
-          if (e.detail.date) {
-            console.log('Large grid selected:', e.detail.date.toLocaleDateString());
-          }
-        });
-      }
-
-      const singleXL = document.getElementById('single-xl');
-      if (singleXL) {
-        singleXL.addEventListener('date-select', (e) => {
-          if (e.detail.date) {
-            console.log('XL calendar selected:', e.detail.date.toLocaleDateString());
           }
         });
       }

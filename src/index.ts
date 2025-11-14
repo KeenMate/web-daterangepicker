@@ -2,10 +2,10 @@
 import './scss/main.scss';
 
 // Import web component for auto-registration
-import { DateRangePickerElement } from './web-component';
+import { WebDaterangepickerElement } from './web-component';
 
 // Export the web component
-export { DateRangePickerElement } from './web-component';
+export { WebDaterangepickerElement } from './web-component';
 
 // Export the base class if users want direct access
 export { PureDatePicker } from './date-picker';
@@ -17,7 +17,7 @@ export type { DatePickerOptions, DateRange, FormatInfo, MonthDisplay, DatePicker
 // GLOBAL API INTERFACE
 // ==============================================================================
 
-export interface GlobalDateRangePickerAPI {
+export interface GlobalWebDaterangepickerAPI {
     version: () => string;
     config: {
         name: string;
@@ -39,14 +39,14 @@ export interface GlobalDateRangePickerAPI {
 declare global {
     interface Window {
         keenmate?: {
-            daterangepicker?: GlobalDateRangePickerAPI;
+            daterangepicker?: GlobalWebDaterangepickerAPI;
         };
     }
 }
 
 // Helper function to get all instances
 function getAllInstances(): HTMLElement[] {
-    return Array.from(document.querySelectorAll('date-range-picker'));
+    return Array.from(document.querySelectorAll('web-daterangepicker'));
 }
 
 // Initialize global API
@@ -63,8 +63,8 @@ if (typeof window !== 'undefined') {
             homepage: __HOMEPAGE__
         },
         register: () => {
-            if (typeof customElements !== 'undefined' && !customElements.get('date-range-picker')) {
-                customElements.define('date-range-picker', DateRangePickerElement);
+            if (typeof customElements !== 'undefined' && !customElements.get('web-daterangepicker')) {
+                customElements.define('web-daterangepicker', WebDaterangepickerElement);
             }
         },
         getInstances: () => getAllInstances()

@@ -1,0 +1,602 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Custom Rendering - Date Range Picker Examples</title>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      line-height: 1.6;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 2rem;
+      background: #f9fafb;
+    }
+
+    h1, h2, h3 {
+      color: #111827;
+      margin-top: 2rem;
+    }
+
+    h1 {
+      border-bottom: 2px solid #e5e7eb;
+      padding-bottom: 1rem;
+    }
+
+    .card {
+      background: white;
+      border-radius: 0.5rem;
+      padding: 1.5rem;
+      margin-bottom: 2rem;
+      box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1);
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 1.5rem;
+      margin: 1rem 0;
+    }
+
+    .form-group {
+      margin-bottom: 1rem;
+    }
+
+    label {
+      display: block;
+      font-weight: 600;
+      color: #374151;
+      margin-bottom: 0.5rem;
+    }
+
+    .description {
+      color: #6b7280;
+      font-size: 0.875rem;
+      margin-bottom: 1rem;
+    }
+
+    code {
+      background: #f3f4f6;
+      padding: 0.125rem 0.375rem;
+      border-radius: 0.25rem;
+      font-family: 'Courier New', monospace;
+      font-size: 0.875em;
+    }
+
+    pre {
+      background: #1f2937;
+      color: #f9fafb;
+      padding: 1rem;
+      border-radius: 0.5rem;
+      overflow-x: auto;
+      font-size: 0.875rem;
+      margin: 1rem 0;
+    }
+
+    pre code {
+      background: none;
+      color: inherit;
+      padding: 0;
+    }
+
+    /* Custom day cell styles for examples */
+    .event-dot {
+      display: inline-block;
+      width: 6px;
+      height: 6px;
+      background: #ef4444;
+      border-radius: 50%;
+      margin-left: 4px;
+      vertical-align: middle;
+    }
+
+    .custom-day-content {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 2px;
+    }
+
+    .day-label {
+      font-size: 10px;
+      color: #6b7280;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .price-tag {
+      font-size: 10px;
+      font-weight: 600;
+      color: #059669;
+      background: #d1fae5;
+      padding: 1px 4px;
+      border-radius: 3px;
+    }
+
+    .weekend-day {
+      background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+      border-radius: 4px;
+    }
+
+    .emoji-day {
+      font-size: 18px;
+      line-height: 1;
+    }
+
+    .header-nav {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      margin-bottom: 1rem;
+    }
+
+    .back-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      color: #6366f1;
+      text-decoration: none;
+      font-weight: 500;
+      padding: 0.5rem 1rem;
+      border-radius: 0.375rem;
+      transition: background-color 150ms;
+    }
+
+    .back-link:hover {
+      background-color: #eef2ff;
+    }
+
+    .page-title {
+      margin: 0 0 0.5rem 0;
+      color: #111827;
+    }
+
+    .page-description {
+      color: #6b7280;
+      margin-top: 0.5rem;
+      margin-bottom: 2rem;
+      font-size: 1.125rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="header-nav">
+    <a href="index.html" class="back-link">
+      <span>←</span>
+      <span>All Examples</span>
+    </a>
+  </div>
+
+  <h1 class="page-title">🎨 Custom Rendering</h1>
+  <p class="page-description">Advanced customization with slots and render callbacks. Create custom day cells with dynamic content, pricing, and event indicators.</p>
+
+  <!-- Example 1: Per-Day Slots (Declarative) -->
+  <div class="card">
+    <h2>1. Per-Day Slots (Declarative HTML)</h2>
+    <p class="description">
+      Use named slots like <code>slot="day-2025-01-15"</code> to customize specific dates with HTML.
+      This is the simplest approach for marking special dates.
+    </p>
+
+    <div class="form-group">
+      <label>Date Picker with Special Events</label>
+      <web-daterangepicker id="slots-example" date-format-mask="YYYY-MM-DD" min-date="2025-01-01" max-date="2025-01-31">
+        <!-- Meeting on Jan 15 -->
+        <div slot="day-2025-01-15" class="custom-day-content">
+          <strong>15</strong>
+          <span class="event-dot"></span>
+        </div>
+
+        <!-- Holiday on Jan 20 -->
+        <div slot="day-2025-01-20" class="custom-day-content">
+          <span class="emoji-day">🎉</span>
+          <small>Holiday</small>
+        </div>
+
+        <!-- Deadline on Jan 25 -->
+        <div slot="day-2025-01-25" class="custom-day-content">
+          <strong>25</strong>
+          <span style="font-size: 10px; color: #dc2626;">⚠️ Due</span>
+        </div>
+      </web-daterangepicker>
+    </div>
+
+    <pre><code>&lt;date-range-picker&gt;
+  &lt;div slot="day-2025-01-15" class="custom-day-content"&gt;
+    &lt;strong&gt;15&lt;/strong&gt;
+    &lt;span class="event-dot"&gt;&lt;/span&gt;
+  &lt;/div&gt;
+
+  &lt;div slot="day-2025-01-20" class="custom-day-content"&gt;
+    &lt;span class="emoji-day"&gt;🎉&lt;/span&gt;
+    &lt;small&gt;Holiday&lt;/small&gt;
+  &lt;/div&gt;
+&lt;/date-range-picker&gt;</code></pre>
+  </div>
+
+  <!-- Example 2: renderDay Callback (Full Replacement) -->
+  <div class="card">
+    <h2>2. renderDay Callback (Full Replacement)</h2>
+    <p class="description">
+      Use <code>picker.renderDay</code> to completely replace day cell content with custom logic.
+      Perfect for dynamic data like prices, availability, or complex styling.
+    </p>
+
+    <div class="form-group">
+      <label>Hotel Booking with Prices</label>
+      <web-daterangepicker id="callback-full" selection-mode="range" date-format-mask="YYYY-MM-DD" min-date="2025-02-01" max-date="2025-02-28"></web-daterangepicker>
+    </div>
+
+    <pre><code>const picker = document.getElementById('callback-full');
+
+// Simulated price data
+const prices = {
+  '2025-02-14': 299, // Valentine's Day premium
+  '2025-02-15': 199,
+  '2025-02-21': 149,
+  '2025-02-22': 149
+};
+
+picker.renderDay = (data) => {
+  const price = prices[data.dateString];
+
+  const container = document.createElement('div');
+  container.className = 'custom-day-content';
+
+  const dayNum = document.createElement('strong');
+  dayNum.textContent = data.dayNumber;
+  container.appendChild(dayNum);
+
+  if (price) {
+    const priceTag = document.createElement('span');
+    priceTag.className = 'price-tag';
+    priceTag.textContent = `$${price}`;
+    container.appendChild(priceTag);
+  }
+
+  return container;
+};</code></pre>
+  </div>
+
+  <!-- Example 3: renderDayContent Callback (Augmentation) -->
+  <div class="card">
+    <h2>3. renderDayContent Callback (Augmentation)</h2>
+    <p class="description">
+      Use <code>picker.renderDayContent</code> to ADD content to the default day cell rendering.
+      The day number is rendered by the component, your callback adds extra elements.
+    </p>
+
+    <div class="form-group">
+      <label>Calendar with Event Indicators</label>
+      <web-daterangepicker id="callback-augment" date-format-mask="YYYY-MM-DD" min-date="2025-03-01" max-date="2025-03-31"></web-daterangepicker>
+    </div>
+
+    <pre><code>const picker = document.getElementById('callback-augment');
+
+// Simulated events
+const events = {
+  '2025-03-05': true,
+  '2025-03-12': true,
+  '2025-03-19': true,
+  '2025-03-26': true
+};
+
+picker.renderDayContent = (data) => {
+  // Check if this date has an event
+  if (events[data.dateString]) {
+    const dot = document.createElement('span');
+    dot.className = 'event-dot';
+    return dot;
+  }
+  return null; // No extra content
+};</code></pre>
+  </div>
+
+  <!-- Example 4: Weekends Highlighting -->
+  <div class="card">
+    <h2>4. Dynamic Styling Based on State</h2>
+    <p class="description">
+      Access state flags like <code>isWeekend</code>, <code>isToday</code>, <code>isDisabled</code> to apply custom styling.
+    </p>
+
+    <div class="form-group">
+      <label>Highlight Weekends</label>
+      <web-daterangepicker id="callback-weekends" date-format-mask="YYYY-MM-DD" min-date="2025-04-01" max-date="2025-04-30"></web-daterangepicker>
+    </div>
+
+    <pre><code>const picker = document.getElementById('callback-weekends');
+
+picker.renderDay = (data) => {
+  const container = document.createElement('div');
+
+  if (data.isWeekend && !data.isDisabled) {
+    container.className = 'weekend-day';
+  }
+
+  const dayNum = document.createElement('strong');
+  dayNum.textContent = data.dayNumber;
+  container.appendChild(dayNum);
+
+  if (data.isWeekend) {
+    const label = document.createElement('span');
+    label.className = 'day-label';
+    label.textContent = 'Weekend';
+    container.appendChild(label);
+  }
+
+  return container;
+};</code></pre>
+  </div>
+
+  <!-- Example 5: Mixed - Slots + Callbacks -->
+  <div class="card">
+    <h2>5. Combining Slots and Callbacks</h2>
+    <p class="description">
+      Per-day slots take priority over callbacks. Use slots for specific dates, callbacks for patterns.
+    </p>
+
+    <div class="form-group">
+      <label>General Pattern + Special Dates</label>
+      <web-daterangepicker id="callback-mixed" date-format-mask="YYYY-MM-DD" min-date="2025-05-01" max-date="2025-05-31">
+        <!-- Slot for specific holiday -->
+        <div slot="day-2025-05-25" class="custom-day-content">
+          <span class="emoji-day">🎖️</span>
+          <small style="font-size: 9px;">Memorial</small>
+        </div>
+      </web-daterangepicker>
+    </div>
+
+    <pre><code>const picker = document.getElementById('callback-mixed');
+
+// Callback applies to all weekends
+picker.renderDayContent = (data) => {
+  // This won't apply to May 25 (has slot)
+  if (data.isWeekend) {
+    return '☀️';
+  }
+  return null;
+};</code></pre>
+  </div>
+
+  <!-- Example 6: Complex Use Case - Booking System -->
+  <div class="card">
+    <h2>6. Real-World: Booking System</h2>
+    <p class="description">
+      Complete example showing availability, pricing, and booking state.
+    </p>
+
+    <div class="form-group">
+      <label>Vacation Rental Booking</label>
+      <web-daterangepicker id="booking-system" selection-mode="range" date-format-mask="YYYY-MM-DD" min-date="2025-06-01" max-date="2025-06-30"></web-daterangepicker>
+    </div>
+
+    <div id="booking-info" style="margin-top: 1rem; padding: 1rem; background: #f3f4f6; border-radius: 0.5rem; display: none;">
+      <strong>Booking Details:</strong>
+      <div id="booking-details"></div>
+    </div>
+
+    <pre><code>const picker = document.getElementById('booking-system');
+
+const bookingData = {
+  '2025-06-07': { available: true, price: 180, booked: false },
+  '2025-06-08': { available: true, price: 180, booked: false },
+  '2025-06-14': { available: true, price: 220, booked: false },
+  '2025-06-15': { available: true, price: 220, booked: false },
+  '2025-06-21': { available: false, price: 0, booked: true },
+  '2025-06-22': { available: false, price: 0, booked: true }
+};
+
+picker.renderDay = (data) => {
+  const info = bookingData[data.dateString];
+
+  const container = document.createElement('div');
+  container.style.display = 'flex';
+  container.style.flexDirection = 'column';
+  container.style.alignItems = 'center';
+  container.style.gap = '2px';
+
+  const dayNum = document.createElement('strong');
+  dayNum.textContent = data.dayNumber;
+  container.appendChild(dayNum);
+
+  if (info) {
+    const label = document.createElement('span');
+    label.style.fontSize = '10px';
+    label.style.fontWeight = '600';
+
+    if (info.booked) {
+      label.textContent = 'Booked';
+      label.style.color = '#dc2626';
+    } else if (info.available) {
+      label.textContent = `$${info.price}`;
+      label.style.color = '#059669';
+    }
+
+    container.appendChild(label);
+  }
+
+  return container;
+};</code></pre>
+  </div>
+
+  <script type="module" src="/src/index.ts"></script>
+  <script type="module">
+    // Example 2: Hotel pricing callback
+    const callbackFull = document.getElementById('callback-full');
+    if (callbackFull) {
+      const prices = {
+        '2025-02-14': 299,
+        '2025-02-15': 199,
+        '2025-02-16': 179,
+        '2025-02-21': 149,
+        '2025-02-22': 149,
+        '2025-02-28': 169
+      };
+
+      callbackFull.renderDay = (data) => {
+        const price = prices[data.dateString];
+
+        const container = document.createElement('div');
+        container.className = 'custom-day-content';
+
+        const dayNum = document.createElement('strong');
+        dayNum.textContent = data.dayNumber;
+        container.appendChild(dayNum);
+
+        if (price) {
+          const priceTag = document.createElement('span');
+          priceTag.className = 'price-tag';
+          priceTag.textContent = `$${price}`;
+          container.appendChild(priceTag);
+        }
+
+        return container;
+      };
+    }
+
+    // Example 3: Event indicators callback
+    const callbackAugment = document.getElementById('callback-augment');
+    if (callbackAugment) {
+      const events = {
+        '2025-03-05': true,
+        '2025-03-12': true,
+        '2025-03-19': true,
+        '2025-03-26': true
+      };
+
+      callbackAugment.renderDayContent = (data) => {
+        if (events[data.dateString]) {
+          const dot = document.createElement('span');
+          dot.className = 'event-dot';
+          return dot;
+        }
+        return null;
+      };
+    }
+
+    // Example 4: Weekend highlighting
+    const callbackWeekends = document.getElementById('callback-weekends');
+    if (callbackWeekends) {
+      callbackWeekends.renderDay = (data) => {
+        const container = document.createElement('div');
+        container.className = 'custom-day-content';
+
+        if (data.isWeekend && !data.isDisabled) {
+          container.classList.add('weekend-day');
+        }
+
+        const dayNum = document.createElement('strong');
+        dayNum.textContent = data.dayNumber;
+        container.appendChild(dayNum);
+
+        if (data.isWeekend) {
+          const label = document.createElement('span');
+          label.className = 'day-label';
+          label.textContent = data.date.getDay() === 0 ? 'Sun' : 'Sat';
+          container.appendChild(label);
+        }
+
+        return container;
+      };
+    }
+
+    // Example 5: Mixed slots and callbacks
+    const callbackMixed = document.getElementById('callback-mixed');
+    if (callbackMixed) {
+      callbackMixed.renderDayContent = (data) => {
+        if (data.isWeekend) {
+          return '☀️';
+        }
+        return null;
+      };
+    }
+
+    // Example 6: Booking system
+    const bookingSystem = document.getElementById('booking-system');
+    if (bookingSystem) {
+      const bookingData = {
+        '2025-06-07': { available: true, price: 180, booked: false },
+        '2025-06-08': { available: true, price: 180, booked: false },
+        '2025-06-14': { available: true, price: 220, booked: false },
+        '2025-06-15': { available: true, price: 220, booked: false },
+        '2025-06-21': { available: false, price: 0, booked: true },
+        '2025-06-22': { available: false, price: 0, booked: true },
+        '2025-06-28': { available: true, price: 190, booked: false },
+        '2025-06-29': { available: true, price: 190, booked: false }
+      };
+
+      bookingSystem.renderDay = (data) => {
+        const info = bookingData[data.dateString];
+
+        const container = document.createElement('div');
+        container.style.display = 'flex';
+        container.style.flexDirection = 'column';
+        container.style.alignItems = 'center';
+        container.style.gap = '2px';
+
+        const dayNum = document.createElement('strong');
+        dayNum.textContent = data.dayNumber;
+        container.appendChild(dayNum);
+
+        if (info) {
+          const label = document.createElement('span');
+          label.style.fontSize = '10px';
+          label.style.fontWeight = '600';
+
+          if (info.booked) {
+            label.textContent = 'Booked';
+            label.style.color = '#dc2626';
+          } else if (info.available) {
+            label.textContent = `$${info.price}`;
+            label.style.color = '#059669';
+          }
+
+          container.appendChild(label);
+        }
+
+        return container;
+      };
+
+      // Show booking details on selection
+      bookingSystem.addEventListener('date-select', (event) => {
+        const info = document.getElementById('booking-info');
+        const details = document.getElementById('booking-details');
+
+        if (event.detail.dateRange) {
+          const start = event.detail.dateRange.start;
+          const end = event.detail.dateRange.end;
+          let totalPrice = 0;
+          let availableDays = 0;
+
+          // Calculate total
+          const current = new Date(start);
+          while (current <= end) {
+            const dateStr = current.toISOString().split('T')[0];
+            const dayInfo = bookingData[dateStr];
+            if (dayInfo && dayInfo.available) {
+              totalPrice += dayInfo.price;
+              availableDays++;
+            }
+            current.setDate(current.getDate() + 1);
+          }
+
+          info.style.display = 'block';
+          details.innerHTML = `
+            <div>Check-in: ${start.toLocaleDateString()}</div>
+            <div>Check-out: ${end.toLocaleDateString()}</div>
+            <div>Available nights: ${availableDays}</div>
+            <div style="margin-top: 0.5rem; font-size: 1.25rem; color: #059669;">
+              <strong>Total: $${totalPrice}</strong>
+            </div>
+          `;
+        }
+      });
+    }
+  </script>
+</body>
+</html>

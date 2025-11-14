@@ -1,18 +1,18 @@
 {
   "name": "@keenmate/web-daterangepicker",
-  "version": "1.0.0-rc07",
+  "version": "1.0.0-rc08",
   "description": "Lightweight date picker web component with excellent keyboard navigation and range selection",
   "type": "module",
-  "main": "./dist/date-range-picker.umd.js",
-  "module": "./dist/date-range-picker.js",
+  "main": "./dist/web-daterangepicker.umd.js",
+  "module": "./dist/web-daterangepicker.js",
   "types": "./dist/index.d.ts",
   "style": "./dist/style.css",
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
-      "import": "./dist/date-range-picker.js",
-      "require": "./dist/date-range-picker.umd.js",
-      "default": "./dist/date-range-picker.js"
+      "import": "./dist/web-daterangepicker.js",
+      "require": "./dist/web-daterangepicker.umd.js",
+      "default": "./dist/web-daterangepicker.js"
     },
     "./style.css": "./dist/style.css",
     "./scss": "./src/scss/main.scss",
@@ -23,8 +23,8 @@
     "./package.json": "./package.json"
   },
   "sideEffects": [
-    "./dist/date-range-picker.js",
-    "./dist/date-range-picker.umd.js",
+    "./dist/web-daterangepicker.js",
+    "./dist/web-daterangepicker.umd.js",
     "*.css"
   ],
   "files": [
@@ -44,7 +44,8 @@
   },
   "keywords": [
     "datepicker",
-    "date-range-picker",
+    "web-daterangepicker",
+    "daterangepicker",
     "date-picker",
     "web-component",
     "custom-element",

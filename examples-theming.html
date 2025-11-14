@@ -217,11 +217,11 @@ date-range-picker.theme-green {
     <h2>✅ Test 1: Default Theme (Blue)</h2>
     <p>Uses component's default CSS variables</p>
     <label>Select a date:</label>
-    <date-range-picker
+    <web-daterangepicker
       class="default"
       selection-mode="single"
       placeholder="Default theme">
-    </date-range-picker>
+    </web-daterangepicker>
     <div class="success">
       ✓ If this picker appears with blue accent color, defaults are working
     </div>
@@ -232,32 +232,32 @@ date-range-picker.theme-green {
     <p>Override --drp-accent-color to change the theme color</p>
 
     <label>Green Theme:</label>
-    <date-range-picker
+    <web-daterangepicker
       class="theme-green"
       selection-mode="single"
       placeholder="Green theme">
-    </date-range-picker>
+    </web-daterangepicker>
 
     <label style="margin-top: 1rem;">Purple Theme:</label>
-    <date-range-picker
+    <web-daterangepicker
       class="theme-purple"
       selection-mode="single"
       placeholder="Purple theme">
-    </date-range-picker>
+    </web-daterangepicker>
 
     <label style="margin-top: 1rem;">Red Theme:</label>
-    <date-range-picker
+    <web-daterangepicker
       class="theme-red"
       selection-mode="single"
       placeholder="Red theme">
-    </date-range-picker>
+    </web-daterangepicker>
 
     <label style="margin-top: 1rem;">Orange Theme:</label>
-    <date-range-picker
+    <web-daterangepicker
       class="theme-orange"
       selection-mode="single"
       placeholder="Orange theme">
-    </date-range-picker>
+    </web-daterangepicker>
 
     <div class="success">
       ✓ If selected dates appear in different colors, CSS variable override is working!
@@ -268,11 +268,11 @@ date-range-picker.theme-green {
     <h2>✅ Test 3: Dark Theme (Multiple Variables)</h2>
     <p>Overrides multiple variables for complete dark mode</p>
     <label>Select a date:</label>
-    <date-range-picker
+    <web-daterangepicker
       class="theme-dark"
       selection-mode="single"
       placeholder="Dark theme">
-    </date-range-picker>
+    </web-daterangepicker>
     <div class="success">
       ✓ If calendar has dark background and light text, multiple variable override is working!
     </div>
@@ -294,18 +294,18 @@ date-range-picker.theme-green {
     <h2>✅ Test 4: Custom Sizing & Spacing</h2>
     <p>Overrides spacing, font size, and border radius</p>
     <label>Large with rounded corners:</label>
-    <date-range-picker
+    <web-daterangepicker
       class="custom-large"
       selection-mode="single"
       placeholder="Custom large theme">
-    </date-range-picker>
+    </web-daterangepicker>
 
     <label style="margin-top: 1rem;">Compact theme:</label>
-    <date-range-picker
+    <web-daterangepicker
       class="theme-compact"
       selection-mode="single"
       placeholder="Compact theme">
-    </date-range-picker>
+    </web-daterangepicker>
 
     <div class="success">
       ✓ If calendars have different sizes and spacing, sizing overrides are working!
@@ -317,20 +317,20 @@ date-range-picker.theme-green {
     <p>Range selection works with all themes</p>
 
     <label>Green theme range:</label>
-    <date-range-picker
+    <web-daterangepicker
       class="theme-green"
       selection-mode="range"
       visible-months-count="2"
       placeholder="Range with green theme">
-    </date-range-picker>
+    </web-daterangepicker>
 
     <label style="margin-top: 1rem;">Dark theme range:</label>
-    <date-range-picker
+    <web-daterangepicker
       class="theme-dark"
       selection-mode="range"
       visible-months-count="2"
       placeholder="Range with dark theme">
-    </date-range-picker>
+    </web-daterangepicker>
 
     <div class="success">
       ✓ If range selections appear in themed colors, CSS variables work in range mode too!
@@ -341,11 +341,11 @@ date-range-picker.theme-green {
     <h2>✅ Test 6: Pastel Theme (Custom Background)</h2>
     <p>Completely custom color scheme</p>
     <label>Pastel theme:</label>
-    <date-range-picker
+    <web-daterangepicker
       class="theme-pastel"
       selection-mode="single"
       placeholder="Pastel theme">
-    </date-range-picker>
+    </web-daterangepicker>
     <div class="success">
       ✓ Background, borders, and accents all customized
     </div>
@@ -394,12 +394,12 @@ date-range-picker.theme-green {
     <h2>Dynamic Theme Switching</h2>
     <p>Change themes at runtime with JavaScript</p>
     <label>Dynamic theme picker:</label>
-    <date-range-picker
+    <web-daterangepicker
       id="dynamic-picker"
       class="theme-green"
       selection-mode="single"
       placeholder="Dynamic theme">
-    </date-range-picker>
+    </web-daterangepicker>
     <div style="margin-top: 1rem; display: flex; gap: 0.5rem; flex-wrap: wrap;">
       <button onclick="switchTheme('default')" style="padding: 0.5rem 1rem; border: 1px solid #d1d5db; border-radius: 0.375rem; cursor: pointer; background: #3b82f6; color: white;">Blue</button>
       <button onclick="switchTheme('theme-green')" style="padding: 0.5rem 1rem; border: 1px solid #d1d5db; border-radius: 0.375rem; cursor: pointer; background: #10b981; color: white;">Green</button>

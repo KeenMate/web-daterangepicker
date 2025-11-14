@@ -29,24 +29,24 @@ publish-dry: build ## Publish to npm (dry run)
 	npm publish --dry-run
 	@echo "Dry-run complete - Review the output above"
 
-publish: build ## Publish to npm
+publish: clean-dist build ## Publish to npm
 	@echo "WARNING: This will publish to npm registry"
 	@echo "Press Ctrl+C to cancel, or Enter to continue..."
-	@read -r
+	@pause
 	@echo "Publishing to npm..."
 	npm publish
 	@echo "Published successfully"
 
 clean: ## Clean build artifacts and node_modules
 	@echo "Cleaning build artifacts..."
-	rm -rf dist
-	rm -rf node_modules
-	rm -f *.tgz
+	@if exist dist rmdir /s /q dist
+	@if exist node_modules rmdir /s /q node_modules
+	@if exist *.tgz del /q *.tgz
 	@echo "Clean complete"
 
 clean-dist: ## Clean only dist folder
 	@echo "Cleaning dist folder..."
-	rm -rf dist
+	@if exist dist rmdir /s /q dist
 	@echo "Dist cleaned"
 
 preview: build ## Preview production build

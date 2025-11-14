@@ -1,6 +1,6 @@
 # Build Instructions
 
-This document explains how to build and develop the date-range-picker component.
+This document explains how to build and develop the web-daterangepicker component.
 
 ## Quick Start
 
@@ -122,8 +122,8 @@ This:
 2. Bundles the code with Vite
 3. Processes SCSS to CSS
 4. Creates two output formats:
-   - `dist/date-range-picker.js` (ES module)
-   - `dist/date-range-picker.umd.js` (UMD format)
+   - `dist/web-daterangepicker.js` (ES module)
+   - `dist/web-daterangepicker.umd.js` (UMD format)
 5. Generates TypeScript declarations (`dist/index.d.ts`)
 
 ### 4. Testing Locally
@@ -135,7 +135,7 @@ Create a package and test it in another project:
 make package
 
 # In another project, install it
-npm install /path/to/date-range-picker-0.1.0.tgz
+npm install /path/to/web-daterangepicker-0.1.0.tgz
 ```
 
 ### 5. Publishing
@@ -184,8 +184,8 @@ After running `make build`, the `dist/` folder contains:
 
 ```
 dist/
-├── date-range-picker.js      # ES module (modern bundlers)
-├── date-range-picker.umd.js  # UMD format (legacy/CDN)
+├── web-daterangepicker.js      # ES module (modern bundlers)
+├── web-daterangepicker.umd.js  # UMD format (legacy/CDN)
 └── index.d.ts                # TypeScript declarations
 ```
 

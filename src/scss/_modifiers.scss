@@ -1,358 +1,256 @@
 // ==============================================================================
 // DATE RANGE PICKER - MODIFIERS
 // ==============================================================================
-// Size variants, font scaling, spacing scaling, and responsive modifiers
+// Three independent sizing systems for fine-grained control
 
 @use 'variables' as *;
 
 // ==============================================================================
-// FONT SIZE CLASSES
+// FONT SCALE CLASSES
 // ==============================================================================
-// Control text sizing only, independent of spacing
-// Example: <div class="drp-font-lg"><date-range-picker ...></div>
+// Controls text sizing only
+// Example: font-size="lg" makes text 1.5× larger
 
-.drp-font-xs {
-  --drp-font-size-2xs: #{$font-size-2xs * $drp-size-xs-multiplier};
-  --drp-font-size-xs: #{$font-size-xs * $drp-size-xs-multiplier};
-  --drp-font-size-sm: #{$font-size-sm * $drp-size-xs-multiplier};
-  --drp-font-size-base: #{$font-size-base * $drp-size-xs-multiplier};
-  --drp-font-size-lg: #{$font-size-lg * $drp-size-xs-multiplier};
-  --drp-font-size-xl: #{$font-size-xl * $drp-size-xs-multiplier};
-  --drp-font-size-2xl: #{$font-size-2xl * $drp-size-xs-multiplier};
+.drp-date-picker.drp-font-xs {
+  --drp-font-scale: #{$drp-density-xs}; // 0.6× scale (60%)
 }
 
-.drp-font-sm {
-  --drp-font-size-2xs: #{$font-size-2xs * $drp-size-sm-multiplier};
-  --drp-font-size-xs: #{$font-size-xs * $drp-size-sm-multiplier};
-  --drp-font-size-sm: #{$font-size-sm * $drp-size-sm-multiplier};
-  --drp-font-size-base: #{$font-size-base * $drp-size-sm-multiplier};
-  --drp-font-size-lg: #{$font-size-lg * $drp-size-sm-multiplier};
-  --drp-font-size-xl: #{$font-size-xl * $drp-size-sm-multiplier};
-  --drp-font-size-2xl: #{$font-size-2xl * $drp-size-sm-multiplier};
+.drp-date-picker.drp-font-sm {
+  --drp-font-scale: #{$drp-density-sm}; // 0.8× scale (80%)
 }
 
-.drp-font-md {
-  // Uses default :host values
+.drp-date-picker.drp-font-md {
+  --drp-font-scale: #{$drp-density-md}; // 1.0× scale (100%, default)
 }
 
-.drp-font-lg {
-  --drp-font-size-2xs: #{$font-size-2xs * $drp-size-lg-multiplier};
-  --drp-font-size-xs: #{$font-size-xs * $drp-size-lg-multiplier};
-  --drp-font-size-sm: #{$font-size-sm * $drp-size-lg-multiplier};
-  --drp-font-size-base: #{$font-size-base * $drp-size-lg-multiplier};
-  --drp-font-size-lg: #{$font-size-lg * $drp-size-lg-multiplier};
-  --drp-font-size-xl: #{$font-size-xl * $drp-size-lg-multiplier};
-  --drp-font-size-2xl: #{$font-size-2xl * $drp-size-lg-multiplier};
+.drp-date-picker.drp-font-lg {
+  --drp-font-scale: #{$drp-density-lg}; // 1.5× scale (150%)
 }
 
-.drp-font-xl {
-  --drp-font-size-2xs: #{$font-size-2xs * $drp-size-xl-multiplier};
-  --drp-font-size-xs: #{$font-size-xs * $drp-size-xl-multiplier};
-  --drp-font-size-sm: #{$font-size-sm * $drp-size-xl-multiplier};
-  --drp-font-size-base: #{$font-size-base * $drp-size-xl-multiplier};
-  --drp-font-size-lg: #{$font-size-lg * $drp-size-xl-multiplier};
-  --drp-font-size-xl: #{$font-size-xl * $drp-size-xl-multiplier};
-  --drp-font-size-2xl: #{$font-size-2xl * $drp-size-xl-multiplier};
+.drp-date-picker.drp-font-xl {
+  --drp-font-scale: #{$drp-density-xl}; // 2.0× scale (200%)
 }
 
 // ==============================================================================
-// SPACING/DENSITY CLASSES
+// SPACING SCALE CLASSES
 // ==============================================================================
-// Control gaps, padding, and calendar width only
-// Example: <div class="drp-spacing-sm"><date-range-picker ...></div>
+// Controls gaps, padding, margins only
+// Example: spacing="xs" makes layout 0.6× more compact
 
-.drp-spacing-xs {
-  --drp-spacing-xs: #{$drp-spacing-xs * $drp-size-xs-multiplier};
-  --drp-spacing-sm: #{$drp-spacing-sm * $drp-size-xs-multiplier};
-  --drp-spacing-md: #{$drp-spacing-md * $drp-size-xs-multiplier};
-  --drp-spacing-lg: #{$drp-spacing-lg * $drp-size-xs-multiplier};
-  --drp-spacing-xl: #{$drp-spacing-xl * $drp-size-xs-multiplier};
-
-  .drp-date-picker__month {
-    min-width: #{$drp-month-min-width * $drp-size-xs-multiplier};
-  }
+.drp-date-picker.drp-spacing-xs {
+  --drp-spacing-scale: #{$drp-density-xs}; // 0.6× scale (60%)
 }
 
-.drp-spacing-sm {
-  --drp-spacing-xs: #{$drp-spacing-xs * $drp-size-sm-multiplier};
-  --drp-spacing-sm: #{$drp-spacing-sm * $drp-size-sm-multiplier};
-  --drp-spacing-md: #{$drp-spacing-md * $drp-size-sm-multiplier};
-  --drp-spacing-lg: #{$drp-spacing-lg * $drp-size-sm-multiplier};
-  --drp-spacing-xl: #{$drp-spacing-xl * $drp-size-sm-multiplier};
-
-  .drp-date-picker__month {
-    min-width: #{$drp-month-min-width * $drp-size-sm-multiplier};
-  }
+.drp-date-picker.drp-spacing-sm {
+  --drp-spacing-scale: #{$drp-density-sm}; // 0.8× scale (80%)
 }
 
-.drp-spacing-md {
-  // Uses default :host values
+.drp-date-picker.drp-spacing-md {
+  --drp-spacing-scale: #{$drp-density-md}; // 1.0× scale (100%, default)
 }
 
-.drp-spacing-lg {
-  --drp-spacing-xs: #{$drp-spacing-xs * $drp-size-lg-multiplier};
-  --drp-spacing-sm: #{$drp-spacing-sm * $drp-size-lg-multiplier};
-  --drp-spacing-md: #{$drp-spacing-md * $drp-size-lg-multiplier};
-  --drp-spacing-lg: #{$drp-spacing-lg * $drp-size-lg-multiplier};
-  --drp-spacing-xl: #{$drp-spacing-xl * $drp-size-lg-multiplier};
-
-  .drp-date-picker__month {
-    min-width: #{$drp-month-min-width * $drp-size-lg-multiplier};
-  }
+.drp-date-picker.drp-spacing-lg {
+  --drp-spacing-scale: #{$drp-density-lg}; // 1.5× scale (150%)
 }
 
-.drp-spacing-xl {
-  --drp-spacing-xs: #{$drp-spacing-xs * $drp-size-xl-multiplier};
-  --drp-spacing-sm: #{$drp-spacing-sm * $drp-size-xl-multiplier};
-  --drp-spacing-md: #{$drp-spacing-md * $drp-size-xl-multiplier};
-  --drp-spacing-lg: #{$drp-spacing-lg * $drp-size-xl-multiplier};
-  --drp-spacing-xl: #{$drp-spacing-xl * $drp-size-xl-multiplier};
+.drp-date-picker.drp-spacing-xl {
+  --drp-spacing-scale: #{$drp-density-xl}; // 2.0× scale (200%)
+}
 
-  .drp-date-picker__month {
-    min-width: #{$drp-month-min-width * $drp-size-xl-multiplier};
-  }
+// ==============================================================================
+// CELL SCALE CLASSES
+// ==============================================================================
+// Controls day cell dimensions and structural sizes only
+// Example: cell-size="sm" makes cells 0.8× smaller
+
+.drp-date-picker.drp-cell-xs {
+  --drp-cell-scale: #{$drp-density-xs}; // 0.6× scale (60%)
+}
+
+.drp-date-picker.drp-cell-sm {
+  --drp-cell-scale: #{$drp-density-sm}; // 0.8× scale (80%)
+}
+
+.drp-date-picker.drp-cell-md {
+  --drp-cell-scale: #{$drp-density-md}; // 1.0× scale (100%, default)
+}
+
+.drp-date-picker.drp-cell-lg {
+  --drp-cell-scale: #{$drp-density-lg}; // 1.5× scale (150%)
+}
+
+.drp-date-picker.drp-cell-xl {
+  --drp-cell-scale: #{$drp-density-xl}; // 2.0× scale (200%)
 }
 
 // ==============================================================================
 // RESPONSIVE SCALING
 // ==============================================================================
-// Scales font and spacing independently at breakpoints
-// Example: <div class="drp-font-lg drp-spacing-xl drp-responsive">
+// Automatically reduces scale at smaller breakpoints for each sizing system
+// Example: xl (2.0×) → lg (1.5×) @ 1200px → md (1.0×) @ 768px
 
 .drp-responsive {
-  // Font XL: xl → lg @ 1200px → md @ 768px
+  // Font scale responsive adjustments
   &.drp-font-xl {
     @media (max-width: 1200px) {
-      --drp-font-size-2xs: #{$font-size-2xs * $drp-size-lg-multiplier};
-      --drp-font-size-xs: #{$font-size-xs * $drp-size-lg-multiplier};
-      --drp-font-size-sm: #{$font-size-sm * $drp-size-lg-multiplier};
-      --drp-font-size-base: #{$font-size-base * $drp-size-lg-multiplier};
-      --drp-font-size-lg: #{$font-size-lg * $drp-size-lg-multiplier};
-      --drp-font-size-xl: #{$font-size-xl * $drp-size-lg-multiplier};
-      --drp-font-size-2xl: #{$font-size-2xl * $drp-size-lg-multiplier};
+      --drp-font-scale: #{$drp-density-lg};
     }
     @media (max-width: 768px) {
-      --drp-font-size-2xs: #{$font-size-2xs};
-      --drp-font-size-xs: #{$font-size-xs};
-      --drp-font-size-sm: #{$font-size-sm};
-      --drp-font-size-base: #{$font-size-base};
-      --drp-font-size-lg: #{$font-size-lg};
-      --drp-font-size-xl: #{$font-size-xl};
-      --drp-font-size-2xl: #{$font-size-2xl};
+      --drp-font-scale: #{$drp-density-md};
     }
   }
 
-  // Font LG: lg → md @ 1200px → sm @ 768px
   &.drp-font-lg {
     @media (max-width: 1200px) {
-      --drp-font-size-2xs: #{$font-size-2xs};
-      --drp-font-size-xs: #{$font-size-xs};
-      --drp-font-size-sm: #{$font-size-sm};
-      --drp-font-size-base: #{$font-size-base};
-      --drp-font-size-lg: #{$font-size-lg};
-      --drp-font-size-xl: #{$font-size-xl};
-      --drp-font-size-2xl: #{$font-size-2xl};
+      --drp-font-scale: #{$drp-density-md};
     }
     @media (max-width: 768px) {
-      --drp-font-size-2xs: #{$font-size-2xs * $drp-size-sm-multiplier};
-      --drp-font-size-xs: #{$font-size-xs * $drp-size-sm-multiplier};
-      --drp-font-size-sm: #{$font-size-sm * $drp-size-sm-multiplier};
-      --drp-font-size-base: #{$font-size-base * $drp-size-sm-multiplier};
-      --drp-font-size-lg: #{$font-size-lg * $drp-size-sm-multiplier};
-      --drp-font-size-xl: #{$font-size-xl * $drp-size-sm-multiplier};
-      --drp-font-size-2xl: #{$font-size-2xl * $drp-size-sm-multiplier};
+      --drp-font-scale: #{$drp-density-sm};
     }
   }
 
-  // Font MD: md → sm @ 768px
   &.drp-font-md {
     @media (max-width: 768px) {
-      --drp-font-size-2xs: #{$font-size-2xs * $drp-size-sm-multiplier};
-      --drp-font-size-xs: #{$font-size-xs * $drp-size-sm-multiplier};
-      --drp-font-size-sm: #{$font-size-sm * $drp-size-sm-multiplier};
-      --drp-font-size-base: #{$font-size-base * $drp-size-sm-multiplier};
-      --drp-font-size-lg: #{$font-size-lg * $drp-size-sm-multiplier};
-      --drp-font-size-xl: #{$font-size-xl * $drp-size-sm-multiplier};
-      --drp-font-size-2xl: #{$font-size-2xl * $drp-size-sm-multiplier};
+      --drp-font-scale: #{$drp-density-sm};
     }
   }
 
-  // Font SM: sm → xs @ 768px
   &.drp-font-sm {
     @media (max-width: 768px) {
-      --drp-font-size-2xs: #{$font-size-2xs * $drp-size-xs-multiplier};
-      --drp-font-size-xs: #{$font-size-xs * $drp-size-xs-multiplier};
-      --drp-font-size-sm: #{$font-size-sm * $drp-size-xs-multiplier};
-      --drp-font-size-base: #{$font-size-base * $drp-size-xs-multiplier};
-      --drp-font-size-lg: #{$font-size-lg * $drp-size-xs-multiplier};
-      --drp-font-size-xl: #{$font-size-xl * $drp-size-xs-multiplier};
-      --drp-font-size-2xl: #{$font-size-2xl * $drp-size-xs-multiplier};
+      --drp-font-scale: #{$drp-density-xs};
     }
   }
 
-  // Spacing XL: xl → lg @ 1200px → md @ 768px
+  // Spacing scale responsive adjustments
   &.drp-spacing-xl {
     @media (max-width: 1200px) {
-      --drp-spacing-xs: #{$drp-spacing-xs * $drp-size-lg-multiplier};
-      --drp-spacing-sm: #{$drp-spacing-sm * $drp-size-lg-multiplier};
-      --drp-spacing-md: #{$drp-spacing-md * $drp-size-lg-multiplier};
-      --drp-spacing-lg: #{$drp-spacing-lg * $drp-size-lg-multiplier};
-      --drp-spacing-xl: #{$drp-spacing-xl * $drp-size-lg-multiplier};
-      .drp-date-picker__month {
-        min-width: #{$drp-month-min-width * $drp-size-lg-multiplier};
-      }
+      --drp-spacing-scale: #{$drp-density-lg};
     }
     @media (max-width: 768px) {
-      --drp-spacing-xs: #{$drp-spacing-xs};
-      --drp-spacing-sm: #{$drp-spacing-sm};
-      --drp-spacing-md: #{$drp-spacing-md};
-      --drp-spacing-lg: #{$drp-spacing-lg};
-      --drp-spacing-xl: #{$drp-spacing-xl};
-      .drp-date-picker__month {
-        min-width: #{$drp-month-min-width};
-      }
+      --drp-spacing-scale: #{$drp-density-md};
     }
   }
 
-  // Spacing LG: lg → md @ 1200px → sm @ 768px
   &.drp-spacing-lg {
     @media (max-width: 1200px) {
-      --drp-spacing-xs: #{$drp-spacing-xs};
-      --drp-spacing-sm: #{$drp-spacing-sm};
-      --drp-spacing-md: #{$drp-spacing-md};
-      --drp-spacing-lg: #{$drp-spacing-lg};
-      --drp-spacing-xl: #{$drp-spacing-xl};
-      .drp-date-picker__month {
-        min-width: #{$drp-month-min-width};
-      }
+      --drp-spacing-scale: #{$drp-density-md};
     }
     @media (max-width: 768px) {
-      --drp-spacing-xs: #{$drp-spacing-xs * $drp-size-sm-multiplier};
-      --drp-spacing-sm: #{$drp-spacing-sm * $drp-size-sm-multiplier};
-      --drp-spacing-md: #{$drp-spacing-md * $drp-size-sm-multiplier};
-      --drp-spacing-lg: #{$drp-spacing-lg * $drp-size-sm-multiplier};
-      --drp-spacing-xl: #{$drp-spacing-xl * $drp-size-sm-multiplier};
-      .drp-date-picker__month {
-        min-width: #{$drp-month-min-width * $drp-size-sm-multiplier};
-      }
+      --drp-spacing-scale: #{$drp-density-sm};
     }
   }
 
-  // Spacing MD: md → sm @ 768px
   &.drp-spacing-md {
     @media (max-width: 768px) {
-      --drp-spacing-xs: #{$drp-spacing-xs * $drp-size-sm-multiplier};
-      --drp-spacing-sm: #{$drp-spacing-sm * $drp-size-sm-multiplier};
-      --drp-spacing-md: #{$drp-spacing-md * $drp-size-sm-multiplier};
-      --drp-spacing-lg: #{$drp-spacing-lg * $drp-size-sm-multiplier};
-      --drp-spacing-xl: #{$drp-spacing-xl * $drp-size-sm-multiplier};
-      .drp-date-picker__month {
-        min-width: #{$drp-month-min-width * $drp-size-sm-multiplier};
-      }
+      --drp-spacing-scale: #{$drp-density-sm};
     }
   }
 
-  // Spacing SM: sm → xs @ 768px
   &.drp-spacing-sm {
     @media (max-width: 768px) {
-      --drp-spacing-xs: #{$drp-spacing-xs * $drp-size-xs-multiplier};
-      --drp-spacing-sm: #{$drp-spacing-sm * $drp-size-xs-multiplier};
-      --drp-spacing-md: #{$drp-spacing-md * $drp-size-xs-multiplier};
-      --drp-spacing-lg: #{$drp-spacing-lg * $drp-size-xs-multiplier};
-      --drp-spacing-xl: #{$drp-spacing-xl * $drp-size-xs-multiplier};
-      .drp-date-picker__month {
-        min-width: #{$drp-month-min-width * $drp-size-xs-multiplier};
-      }
+      --drp-spacing-scale: #{$drp-density-xs};
+    }
+  }
+
+  // Cell scale responsive adjustments
+  &.drp-cell-xl {
+    @media (max-width: 1200px) {
+      --drp-cell-scale: #{$drp-density-lg};
+    }
+    @media (max-width: 768px) {
+      --drp-cell-scale: #{$drp-density-md};
+    }
+  }
+
+  &.drp-cell-lg {
+    @media (max-width: 1200px) {
+      --drp-cell-scale: #{$drp-density-md};
+    }
+    @media (max-width: 768px) {
+      --drp-cell-scale: #{$drp-density-sm};
+    }
+  }
+
+  &.drp-cell-md {
+    @media (max-width: 768px) {
+      --drp-cell-scale: #{$drp-density-sm};
+    }
+  }
+
+  &.drp-cell-sm {
+    @media (max-width: 768px) {
+      --drp-cell-scale: #{$drp-density-xs};
     }
   }
 }
 
 // ==============================================================================
-// SIZE VARIANT MODIFIERS (LEGACY - FOR BACKWARD COMPATIBILITY)
+// SIZE VARIANT MODIFIERS (LEGACY - DEPRECATED)
 // ==============================================================================
-// These provide complete size presets with both font and spacing adjustments
+// These are deprecated in favor of the three independent scale systems above
+// Kept for backward compatibility only - will be removed in v3.0.0
+// Migration: Use spacing="xs" font-size="xs" cell-size="xs" attributes instead
 
 .drp-date-picker--xs {
-  padding: var(--drp-spacing-sm);
-  min-width: 240px;
-
-  .drp-date-picker__month-year {
-    font-size: var(--drp-font-size-xs);
-    padding: var(--drp-spacing-xs) var(--drp-spacing-sm);
-  }
-
-  .drp-date-picker__nav {
-    width: 1.5rem;
-    height: 1.5rem;
-    font-size: var(--drp-font-size-sm);
-  }
-
-  .drp-date-picker__weekday {
-    font-size: var(--drp-font-size-2xs);
-  }
-
-  .drp-date-picker__day {
-    font-size: var(--drp-font-size-xs);
-  }
+  --drp-font-scale: #{$drp-density-xs};
+  --drp-spacing-scale: #{$drp-density-xs};
+  --drp-cell-scale: #{$drp-density-xs};
+  min-width: calc(280px * #{$drp-density-xs});
 }
 
 .drp-date-picker--sm {
-  padding: var(--drp-spacing-sm);
-  min-width: 260px;
-
-  .drp-date-picker__month-year {
-    font-size: var(--drp-font-size-sm);
-    padding: var(--drp-spacing-xs) var(--drp-spacing-sm);
-  }
-
-  .drp-date-picker__nav {
-    width: 1.75rem;
-    height: 1.75rem;
-    font-size: var(--drp-font-size-base);
-  }
-
-  .drp-date-picker__day {
-    font-size: var(--drp-font-size-xs);
-  }
+  --drp-font-scale: #{$drp-density-sm};
+  --drp-spacing-scale: #{$drp-density-sm};
+  --drp-cell-scale: #{$drp-density-sm};
+  min-width: calc(280px * #{$drp-density-sm});
 }
 
 .drp-date-picker--lg {
-  padding: var(--drp-spacing-lg);
-  min-width: 320px;
-
-  .drp-date-picker__month-year {
-    font-size: var(--drp-font-size-lg);
-    padding: var(--drp-spacing-md) var(--drp-spacing-lg);
-  }
-
-  .drp-date-picker__nav {
-    width: 2.5rem;
-    height: 2.5rem;
-    font-size: var(--drp-font-size-xl);
-  }
-
-  .drp-date-picker__day {
-    font-size: var(--drp-font-size-base);
-  }
+  --drp-font-scale: #{$drp-density-lg};
+  --drp-spacing-scale: #{$drp-density-lg};
+  --drp-cell-scale: #{$drp-density-lg};
+  min-width: calc(280px * #{$drp-density-lg});
 }
 
 .drp-date-picker--xl {
-  padding: var(--drp-spacing-xl);
-  min-width: 360px;
+  --drp-font-scale: #{$drp-density-xl};
+  --drp-spacing-scale: #{$drp-density-xl};
+  --drp-cell-scale: #{$drp-density-xl};
+  min-width: calc(280px * #{$drp-density-xl});
+}
 
-  .drp-date-picker__month-year {
-    font-size: var(--drp-font-size-xl);
-    padding: var(--drp-spacing-lg) var(--drp-spacing-xl);
+// ==============================================================================
+// TRANSITIONS (OPT-IN FOR PERFORMANCE)
+// ==============================================================================
+// By default, no transitions for maximum performance
+// Add enable-transitions attribute to enable smooth animations
+
+.drp-date-picker.drp-transitions-enabled {
+  // Badges - scale animation on hover
+  .drp-date-picker__badge-cell {
+    transition: transform var(--drp-transition-fast) var(--drp-easing-snappy);
   }
 
+  // Nav buttons - background and border changes
   .drp-date-picker__nav {
-    width: 3rem;
-    height: 3rem;
-    font-size: var(--drp-font-size-2xl);
+    transition: background-color var(--drp-transition-fast) var(--drp-easing-snappy),
+                border-color var(--drp-transition-fast) var(--drp-easing-snappy);
   }
 
-  .drp-date-picker__day {
-    font-size: var(--drp-font-size-lg);
+  // Action buttons - background and border changes
+  .drp-date-picker__action-btn {
+    transition: background-color var(--drp-transition-fast) var(--drp-easing-snappy),
+                border-color var(--drp-transition-fast) var(--drp-easing-snappy);
+  }
+
+  // Month/year selector - background change
+  .drp-date-picker__month-year {
+    transition: background-color var(--drp-transition-fast) var(--drp-easing-snappy);
+  }
+
+  // Rolling selector items - background change
+  .drp-date-picker__rolling-item {
+    transition: background-color var(--drp-transition-fast) var(--drp-easing-snappy);
   }
 }
 

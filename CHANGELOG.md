@@ -7,6 +7,56 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Breaking Changes
+
+- **Component renamed** from `date-range-picker` to `web-daterangepicker` for consistency with package name and other web components
+  - Update all HTML tags: `<web-daterangepicker>` → `<web-daterangepicker>`
+  - Update JavaScript selectors: `querySelector('web-daterangepicker')` → `querySelector('web-daterangepicker')`
+  - Import paths and build output file names have changed accordingly
+  - UMD global name changed from `DateRangePicker` to `WebDaterangepicker`
+
+### Added
+
+- **Size Control Attributes**: New `spacing` and `font-size` attributes for easy calendar sizing
+  - **`spacing` attribute**: Controls gaps, padding, and calendar width
+  - **`font-size` attribute**: Controls all text sizing
+  - **Values**: `"xs"` (0.7×) | `"sm"` (0.85×) | `"md"` (1.0×, default) | `"lg"` (1.2×) | `"xl"` (1.4×)
+  - **Usage**:
+    ```html
+    <!-- Small compact picker -->
+    <web-daterangepicker spacing="sm" font-size="sm"></web-daterangepicker>
+
+    <!-- Large picker for desktop -->
+    <web-daterangepicker spacing="lg" font-size="lg"></web-daterangepicker>
+
+    <!-- Independent control: large text, compact spacing -->
+    <web-daterangepicker spacing="sm" font-size="lg"></web-daterangepicker>
+    ```
+  - **JavaScript API**:
+    ```javascript
+    const picker = document.querySelector('web-daterangepicker');
+    picker.spacing = 'lg';      // Property setter
+    picker.fontSize = 'xl';     // Property setter
+    ```
+  - **Implementation**: Applies existing `.drp-spacing-*` and `.drp-font-*` CSS classes to the component element
+  - **Benefits**:
+    - No wrapper divs needed (works with Shadow DOM)
+    - Dynamic sizing via JavaScript properties
+    - Independent font and spacing control
+    - No re-initialization when size changes (just CSS updates)
+  - **Files Modified**:
+    - `src/web-component.ts`: Added size attribute handling, `applySizeStyles()` method, getters/setters
+  - **Replaces**: Wrapper div approach with CSS classes (though CSS classes still work for advanced use)
+
+## [1.0.0-rc08] - 2025-11-13
+
+### Fixed
+
+- **Critical: RC07 was published without today's fixes**: RC07 was built from outdated dist folder (Nov 12 build)
+  - This version correctly includes all fixes from rc06 and rc07
+  - Updated Makefile: `make publish` now runs `clean-dist` before building
+  - Ensures published package always contains latest source code changes
+
 ## [1.0.0-rc07] - 2025-11-13
 
 ### Changed
@@ -89,7 +139,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     3. `renderDayContent` callback - programmatic augmentation
     4. Default rendering (lowest) - built-in day number display
 
-  - **Web Component Integration**: Properties exposed on `<date-range-picker>` element
+  - **Web Component Integration**: Properties exposed on `<web-daterangepicker>` element
     - `picker.renderDay = (data) => { ... }` - Set callback via JavaScript
     - `picker.renderDayContent = (data) => { ... }` - Set callback via JavaScript
     - Callbacks trigger automatic re-render when changed
@@ -323,15 +373,15 @@ Complete i18n support with automatic locale detection, built-in translations, an
 
 ```html
 <!-- Spanish with auto-detection -->
-<date-range-picker locale="auto"></date-range-picker>
+<web-daterangepicker locale="auto"></web-daterangepicker>
 
 <!-- Explicit Spanish with localized display mask -->
-<date-range-picker
+<web-daterangepicker
   locale="es"
   date-format-mask="YYYY-MM-DD"
   display-format-mask="dd/mm/aaaa"
   placeholder="Selecciona una fecha">
-</date-range-picker>
+</web-daterangepicker>
 ```
 
 ```javascript
@@ -412,7 +462,7 @@ const picker = new PureDatePicker(input, {
 
 ```html
 <!-- BEFORE (v1.0.0-rc01) -->
-<date-range-picker
+<web-daterangepicker
   mode="range"
   format="DD/MM/YYYY"
   months-to-show="2"
@@ -422,10 +472,10 @@ const picker = new PureDatePicker(input, {
   display="floating"
   layout="grid"
   position="bottom">
-</date-range-picker>
+</web-daterangepicker>
 
 <!-- AFTER (v2.0.0) -->
-<date-range-picker
+<web-daterangepicker
   selection-mode="range"
   date-format-mask="DD/MM/YYYY"
   visible-months-count="2"
@@ -435,7 +485,7 @@ const picker = new PureDatePicker(input, {
   positioning-mode="floating"
   month-layout="grid"
   calendar-placement="bottom">
-</date-range-picker>
+</web-daterangepicker>
 ```
 
 #### For JavaScript/TypeScript Users
@@ -574,17 +624,17 @@ Old combined size classes have been replaced with independent font and spacing c
 ```html
 <!-- Before (v0.x) -->
 <div class="drp-size-lg">
-  <date-range-picker></date-range-picker>
+  <web-daterangepicker></web-daterangepicker>
 </div>
 
 <!-- After (v1.0.0-rc01) -->
 <div class="drp-font-lg drp-spacing-lg">
-  <date-range-picker></date-range-picker>
+  <web-daterangepicker></web-daterangepicker>
 </div>
 
 <!-- Or mix sizes independently -->
 <div class="drp-font-lg drp-spacing-xs">
-  <date-range-picker></date-range-picker>
+  <web-daterangepicker></web-daterangepicker>
 </div>
 ```
 

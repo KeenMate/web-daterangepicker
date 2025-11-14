@@ -28,19 +28,19 @@ npm install @keenmate/web-daterangepicker
 
 ```html
 <!-- Single date picker -->
-<date-range-picker
+<web-daterangepicker
   mode="single"
   format="YYYY-MM-DD"
   placeholder="Select date"
-></date-range-picker>
+></web-daterangepicker>
 
 <!-- Date range picker -->
-<date-range-picker
+<web-daterangepicker
   mode="range"
   format="YYYY-MM-DD"
   months-to-show="2"
   placeholder="Select date range"
-></date-range-picker>
+></web-daterangepicker>
 ```
 
 ### With JavaScript/TypeScript
@@ -52,7 +52,7 @@ import '@keenmate/web-daterangepicker';
 // Or import styles separately if needed
 import '@keenmate/web-daterangepicker/style.css';
 
-const picker = document.querySelector('date-range-picker');
+const picker = document.querySelector('web-daterangepicker');
 
 // Listen for date selection
 picker.addEventListener('date-select', (e) => {
@@ -139,13 +139,13 @@ Control which day the week starts on (auto-detected by default from user's local
 
 ```html
 <!-- Auto-detect from locale (default) -->
-<date-range-picker week-start-day="auto"></date-range-picker>
+<web-daterangepicker week-start-day="auto"></web-daterangepicker>
 
 <!-- Force Sunday start -->
-<date-range-picker week-start-day="0"></date-range-picker>
+<web-daterangepicker week-start-day="0"></web-daterangepicker>
 
 <!-- Force Monday start (common in Europe) -->
-<date-range-picker week-start-day="1"></date-range-picker>
+<web-daterangepicker week-start-day="1"></web-daterangepicker>
 ```
 
 ### Disabled Dates & Date Restrictions
@@ -154,19 +154,19 @@ Control which day the week starts on (auto-detected by default from user's local
 
 ```html
 <!-- Disable weekends -->
-<date-range-picker disabled-days="0,6"></date-range-picker>
+<web-daterangepicker disabled-days="0,6"></web-daterangepicker>
 
 <!-- Date range restriction -->
-<date-range-picker
+<web-daterangepicker
   min-date="2025-01-01"
   max-date="2025-12-31">
-</date-range-picker>
+</web-daterangepicker>
 ```
 
 #### Complex Restrictions (JavaScript)
 
 ```javascript
-const picker = document.querySelector('date-range-picker');
+const picker = document.querySelector('web-daterangepicker');
 
 // Disable specific dates (e.g., public holidays)
 picker.disabledDates = [
@@ -189,7 +189,7 @@ picker.isDateDisabled = (date) => {
 Add visual indicators and labels to specific dates:
 
 ```javascript
-const picker = document.querySelector('date-range-picker');
+const picker = document.querySelector('web-daterangepicker');
 
 picker.specialDates = [
   {
@@ -247,17 +247,17 @@ picker.getDateInfo = (date) => {
 
 ```css
 /* Holiday styling (predefined class) */
-date-range-picker::part(calendar) .pa-date-picker__day.holiday {
+web-daterangepicker::part(calendar) .pa-date-picker__day.holiday {
   background-color: rgba(239, 68, 68, 0.1);
 }
 
 /* Event styling (predefined class) */
-date-range-picker::part(calendar) .pa-date-picker__day.event {
+web-daterangepicker::part(calendar) .pa-date-picker__day.event {
   background-color: rgba(16, 185, 129, 0.1);
 }
 
 /* Custom class example */
-date-range-picker::part(calendar) .pa-date-picker__day.peak-season {
+web-daterangepicker::part(calendar) .pa-date-picker__day.peak-season {
   background-color: rgba(251, 191, 36, 0.15);
   font-weight: 600;
 }
@@ -272,11 +272,11 @@ When selecting date ranges that include disabled dates (e.g., selecting a workin
 Allows range selections over disabled dates. Returns both enabled and disabled date arrays:
 
 ```html
-<date-range-picker
+<web-daterangepicker
   mode="range"
   disabled-days="0,6"
   range-disabled-mode="allow">
-</date-range-picker>
+</web-daterangepicker>
 
 <script>
 picker.addEventListener('date-select', (e) => {
@@ -295,10 +295,10 @@ picker.addEventListener('date-select', (e) => {
 Prevents range selections from crossing disabled dates. Automatically snaps to the last enabled date before the gap:
 
 ```html
-<date-range-picker
+<web-daterangepicker
   mode="range"
   range-disabled-mode="block">
-</date-range-picker>
+</web-daterangepicker>
 ```
 
 When dragging from day 1 to day 7 with days 4-5 disabled, the selection will automatically snap to days 1-3.
@@ -310,11 +310,11 @@ When dragging from day 1 to day 7 with days 4-5 disabled, the selection will aut
 Returns multiple date ranges separated by disabled dates:
 
 ```html
-<date-range-picker
+<web-daterangepicker
   mode="range"
   disabled-days="0,6"
   range-disabled-mode="split">
-</date-range-picker>
+</web-daterangepicker>
 
 <script>
 picker.addEventListener('date-select', (e) => {
@@ -333,11 +333,11 @@ picker.addEventListener('date-select', (e) => {
 Returns a flat array of individual enabled dates:
 
 ```html
-<date-range-picker
+<web-daterangepicker
   mode="range"
   disabled-days="0,6"
   range-disabled-mode="individual">
-</date-range-picker>
+</web-daterangepicker>
 
 <script>
 picker.addEventListener('date-select', (e) => {
@@ -366,19 +366,19 @@ By default, when you select a range that includes disabled dates, all dates (bot
 
 ```html
 <!-- Default: highlights all dates in range, including disabled weekends -->
-<date-range-picker
+<web-daterangepicker
   mode="range"
   disabled-days="0,6"
   range-disabled-mode="split">
-</date-range-picker>
+</web-daterangepicker>
 
 <!-- Only highlight enabled dates (Mon-Fri), skip weekends -->
-<date-range-picker
+<web-daterangepicker
   mode="range"
   disabled-days="0,6"
   range-disabled-mode="split"
   highlight-disabled-in-range="false">
-</date-range-picker>
+</web-daterangepicker>
 ```
 
 **When to use `highlight-disabled-in-range="false"`:**

@@ -107,7 +107,18 @@ export function renderCalendar(picker: any) {
                 const rollingSelector = monthContainer.querySelector('.drp-date-picker__rolling-selector');
                 if (rollingSelector) {
                     const isVisible = rollingSelector.classList.contains('drp-date-picker__rolling-selector--visible');
-                    (rollingSelector as HTMLElement).style.height = `${picker.calendarContentHeight}px`;
+
+                    // Get the current cell-scale multiplier from CSS
+                    const calendarElement = picker.calendar.querySelector('.drp-date-picker');
+                    const cellScale = calendarElement
+                        ? parseFloat(getComputedStyle(calendarElement).getPropertyValue('--drp-cell-scale') || '1')
+                        : 1;
+
+                    // Apply scaled height (height needs scaling because it's measured at base scale)
+                    const scaledHeight = picker.calendarContentHeight * cellScale;
+                    (rollingSelector as HTMLElement).style.height = `${scaledHeight}px`;
+
+                    // Apply width to match days grid exactly (already measured at current scale, no scaling needed)
                     if (picker.calendarContentWidth) {
                         (rollingSelector as HTMLElement).style.width = `${picker.calendarContentWidth}px`;
                     }
@@ -115,14 +126,12 @@ export function renderCalendar(picker: any) {
                     // Log when applying to visible rolling selector
                     if (isVisible) {
                         const actualHeight = (rollingSelector as HTMLElement).offsetHeight;
-                        const actualWidth = (rollingSelector as HTMLElement).offsetWidth;
                         renderingLogger.debug(`[DatePicker] Applied dimensions to rolling selector ${i}:`, {
-                            targetHeight: picker.calendarContentHeight,
+                            baseHeight: picker.calendarContentHeight,
+                            cellScale: cellScale,
+                            targetHeight: scaledHeight,
                             actualHeight: actualHeight,
-                            heightDifference: actualHeight - picker.calendarContentHeight,
-                            targetWidth: picker.calendarContentWidth,
-                            actualWidth: actualWidth,
-                            widthDifference: actualWidth - (picker.calendarContentWidth || 0)
+                            heightDifference: actualHeight - scaledHeight
                         });
                     }
                 }

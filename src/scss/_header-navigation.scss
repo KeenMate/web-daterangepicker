@@ -30,7 +30,6 @@
   padding: var(--drp-spacing-sm) var(--drp-spacing-md);
   border-radius: var(--drp-border-radius);
   cursor: pointer;
-  transition: background-color var(--drp-transition-fast) var(--drp-easing-snappy);
 
   &:hover {
     background-color: var(--drp-primary-bg);
@@ -46,8 +45,9 @@
 // ==============================================================================
 
 .drp-date-picker__nav {
-  width: $drp-nav-size;
-  height: $drp-nav-size;
+  // Scale nav button size with cell-scale
+  width: calc(#{$drp-nav-size} * var(--drp-cell-scale));
+  height: calc(#{$drp-nav-size} * var(--drp-cell-scale));
   display: flex;
   align-items: center;
   justify-content: center;
@@ -55,7 +55,6 @@
   border-radius: var(--drp-border-radius);
   background: transparent;
   cursor: pointer;
-  transition: all var(--drp-transition-fast) var(--drp-easing-snappy);
   font-size: var(--drp-font-size-lg);
   color: var(--drp-text-primary);
 
@@ -146,7 +145,8 @@
   text-align: center;
   cursor: pointer;
   font-size: var(--drp-font-size-sm);
-  transition: background-color var(--drp-transition-fast) var(--drp-easing-snappy);
+  // Scale item height with cell-scale for consistent sizing
+  min-height: calc(#{$drp-rolling-item-min-height} * var(--drp-cell-scale));
 
   &:hover {
     background-color: var(--drp-primary-bg);
