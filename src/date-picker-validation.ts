@@ -85,8 +85,7 @@ export function isDateDisabled(
     normalizedMinDate: Date | null,
     normalizedMaxDate: Date | null,
     normalizedDisabledDates: Set<string>,
-    disabledDays: number[] | undefined,
-    isDateDisabledCallback: ((date: Date) => boolean) | undefined
+    disabledDays: number[] | undefined
 ): boolean {
     const dateKey = formatDateKey(date);
     const dayOfWeek = date.getDay();
@@ -106,11 +105,6 @@ export function isDateDisabled(
 
     // Check specific disabled dates
     if (normalizedDisabledDates.has(dateKey)) {
-        return true;
-    }
-
-    // Check custom callback
-    if (isDateDisabledCallback && isDateDisabledCallback(date)) {
         return true;
     }
 

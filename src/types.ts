@@ -127,7 +127,6 @@ export interface DatePickerOptions {
   isDisabledMember?: string;        // Property containing disabled flag (default: 'isDisabled')
 
   // Advanced callbacks
-  isDateDisabled?: (date: Date) => boolean; // Custom disable logic
   getDateMetadataCallback?: (date: Date) => DateInfo | null; // Custom styling/labels
 
   // Custom rendering

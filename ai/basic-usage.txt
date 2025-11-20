@@ -6,12 +6,19 @@ TWO USAGE MODES
 1. Web Component (HTML attributes)
 2. JavaScript API (programmatic control)
 
-CRITICAL: Some features are JavaScript API ONLY:
-- formatSummaryCallback - custom summary formatting
+CRITICAL: Most callbacks are available as web component PROPERTIES:
+- formatSummaryCallback - custom summary formatting (WEB COMPONENT PROPERTY)
+- getDateMetadataCallback - dynamic date metadata (WEB COMPONENT PROPERTY)
+- badgeTooltipCallback - custom badge tooltips (WEB COMPONENT PROPERTY)
+- dayTooltipCallback - custom day tooltips (WEB COMPONENT PROPERTY)
+- renderDayCallback - custom day rendering (WEB COMPONENT PROPERTY)
+- renderDayContentCallback - custom day content (WEB COMPONENT PROPERTY)
+- customStylesCallback - inject custom styles to shadow DOM (WEB COMPONENT PROPERTY)
+- beforeDateSelect - validation callback (WEB COMPONENT PROPERTY)
+
+JavaScript API ONLY (not available on web component):
 - customStrings - custom UI button labels
 - actionButtons - custom button configuration
-- beforeDateSelect - validation callback
-- All callback-based features
 
 WEB COMPONENT (Simple HTML)
 ----------------------------
@@ -47,6 +54,69 @@ All kebab-case, string values:
   show-apply-button="true"
   auto-close="selection">
 </web-daterangepicker>
+
+WEB COMPONENT CALLBACKS (Properties, Not Attributes)
+------------------------------------------------------
+Callbacks CANNOT be set via HTML attributes. Set them as JavaScript properties:
+
+<web-daterangepicker id="my-picker" selection-mode="range"></web-daterangepicker>
+
+<script>
+  const picker = document.getElementById('my-picker');
+
+  // Custom summary formatting
+  picker.formatSummaryCallback = (data) => {
+    const total = data.nights * 150;
+    return `${data.nights} nights × $150 = $${total}`;
+  };
+
+  // Custom date metadata
+  picker.getDateMetadataCallback = (date) => {
+    if (isHoliday(date)) {
+      return {
+        isDisabled: true,
+        badgeText: '🎉',
+        badgeClass: 'holiday'
+      };
+    }
+    return null;
+  };
+
+  // Custom tooltips
+  picker.dayTooltipCallback = (data) => {
+    return `Click to select ${data.date.toLocaleDateString()}`;
+  };
+
+  // Custom rendering
+  picker.renderDayContentCallback = (data) => {
+    const div = document.createElement('div');
+    div.textContent = data.dayNumber;
+    if (data.isWeekend) {
+      div.style.color = 'blue';
+    }
+    return div;
+  };
+
+  // Custom styles injected to shadow DOM
+  picker.customStylesCallback = () => `
+    .drp-date-picker__day--weekend {
+      background-color: #f0f9ff;
+    }
+  `;
+
+  // Validation before selection
+  picker.beforeDateSelect = async (selection) => {
+    const isAvailable = await checkAvailability(selection);
+    return {
+      isValid: isAvailable,
+      errorMessage: isAvailable ? null : 'Dates not available'
+    };
+  };
+</script>
+
+IMPORTANT: These callbacks trigger re-initialization when set, so set them
+AFTER the web component is connected to the DOM (e.g., in DOMContentLoaded
+or after the element is created).
 
 JAVASCRIPT API (Full Control)
 ------------------------------
@@ -218,8 +288,9 @@ picker.selectedRanges = [
 picker.isOpen = true;
 
 // Set callbacks (if exposed)
-picker.isDateDisabled = (date) => {
-  return date.getDay() === 0 || date.getDay() === 6; // Disable weekends
+picker.getDateMetadataCallback = (date) => {
+  const isWeekend = date.getDay() === 0 || date.getDay() === 6;
+  return isWeekend ? { isDisabled: true } : null; // Disable weekends
 };
 
 picker.getDateMetadata = (date) => {

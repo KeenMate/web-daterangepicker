@@ -181,8 +181,7 @@ When instantiating `PureDatePicker` directly (not using web component), pass the
 | `badgeTooltipMember` | `string` | `'badgeTooltip'` | Property name in `specialDates` objects containing badge tooltip |
 | `dayTooltipMember` | `string` | `'dayTooltip'` | Property name in `specialDates` objects containing day tooltip |
 | `isDisabledMember` | `string` | `'isDisabled'` | Property name in `specialDates` objects containing disabled flag |
-| `isDateDisabled` | `(date: Date) => boolean` | `undefined` | Custom function to determine if date is disabled |
-| `getDateMetadata` | `(date: Date) => DateInfo \| null` | `undefined` | Custom function to provide date styling/labels |
+| `getDateMetadataCallback` | `(date: Date) => DateInfo \| null` | `undefined` | Custom function to provide date styling/labels |
 | `rangeDisabledHandling` | `'allow' \| 'block' \| 'split' \| 'individual'` | `'allow'` | Range behavior over disabled dates |
 | `highlightDisabledInRange` | `boolean` | `true` | Highlight disabled dates in range |
 | `locale` | `string \| 'auto'` | `'auto'` | Locale for UI strings and Intl date formatting. Built-in: `'en'`, `'de'`, `'fr'`, `'es'` |
@@ -858,7 +857,6 @@ interface DatePickerOptions {
   dayTooltipMember?: string;
   isDisabledMember?: string;
 
-  isDateDisabled?: (date: Date) => boolean;
   getDateInfo?: (date: Date) => DateInfo | null;
   rangeDisabledMode?: 'allow' | 'block' | 'split' | 'individual';
   highlightDisabledInRange?: boolean;
@@ -1092,8 +1090,7 @@ The web component provides convenient property accessors for JavaScript:
 | `dayTooltipMember` | `string \| undefined` | Property name for day tooltip in specialDates objects (triggers re-init) |
 | `isDisabledMember` | `string \| undefined` | Property name for disabled flag in specialDates objects (triggers re-init) |
 | `disabledDates` | `(Date \| string)[] \| undefined` | Disabled dates (triggers re-init) |
-| `isDateDisabled` | `((date: Date) => boolean) \| undefined` | Custom disable function (triggers re-init) |
-| `getDateMetadata` | `((date: Date) => DateInfo \| null) \| undefined` | Custom date metadata function (triggers re-init) |
+| `getDateMetadataCallback` | `((date: Date) => DateInfo \| null) \| undefined` | Custom date metadata function (triggers re-init) |
 
 **Note:** Properties that trigger re-initialization (marked above) will destroy and recreate the calendar when changed.
 
@@ -1112,9 +1109,6 @@ picker.specialDates = [
   { date: '2025-12-25', badgeText: '🎄', badgeTooltip: 'Christmas' }
 ];
 
-picker.isDateDisabled = (date) => {
-  return date.getDay() === 0 || date.getDay() === 6; // Weekends
-};
 ```
 
 ---
@@ -1177,11 +1171,6 @@ picker.getDateInfo = (date) => {
 // Disable dates based on API data
 const bookedDates = await fetchBookedDates();
 
-picker.isDateDisabled = (date) => {
-  return bookedDates.some(booked =>
-    date.toDateString() === booked.toDateString()
-  );
-};
 ```
 
 ### Handling Range with Split Mode

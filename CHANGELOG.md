@@ -7,6 +7,67 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.1.0] - 2025-11-20
+
+### Added
+
+- **`formatSummaryCallback` now available as web component property**
+  - Previously only available in JavaScript API, now exposed on `<web-daterangepicker>` element
+  - Set directly on web component: `picker.formatSummaryCallback = (data) => { ... }`
+  - Allows custom summary formatting in range mode (pricing, night counts, etc.)
+  - See updated documentation in `ai/basic-usage.txt` and showcase examples
+  - **Example**:
+    ```javascript
+    const picker = document.querySelector('web-daterangepicker');
+    picker.formatSummaryCallback = (data) => {
+      const total = data.nights * 150;
+      return `${data.nights} nights × $150 = $${total}`;
+    };
+    ```
+
+### Changed
+
+- **Updated documentation to clarify callback availability**
+  - `ai/basic-usage.txt`: Added comprehensive section on web component callback properties
+  - `ai/INDEX.txt`: Added new "WEB COMPONENT CALLBACK PROPERTIES" section
+  - Most callbacks are now properly exposed as web component properties
+  - Only `customStrings` and `actionButtons` remain JavaScript API only
+
+### Fixed
+
+- **Updated `examples-basic.html` to use proper API**
+  - Changed from accessing private `picker` property to using public `formatSummaryCallback` property
+  - Removes reliance on internal implementation details
+
+### Removed
+
+- **BREAKING: Removed `isDateDisabled` callback option**
+  - **What Changed**: The `isDateDisabled` callback has been completely removed from the API. Use `getDateMetadataCallback` instead.
+  - **Old API** (removed):
+    ```javascript
+    const picker = new DateRangePicker(input, {
+      isDateDisabled: (date) => {
+        return date.getDay() === 0 || date.getDay() === 6; // Boolean return
+      }
+    });
+    ```
+  - **New API** (correct):
+    ```javascript
+    const picker = new DateRangePicker(input, {
+      getDateMetadataCallback: (date) => {
+        const isWeekend = date.getDay() === 0 || date.getDay() === 6;
+        return isWeekend ? { isDisabled: true } : null; // DateInfo object or null
+      }
+    });
+    ```
+  - **Why**: This removes API inconsistency. The `getDateMetadataCallback` is more powerful as it allows both disabling dates AND adding visual metadata (badges, tooltips, custom classes) in a single callback.
+  - **Migration Guide**:
+    1. Find all uses of `isDateDisabled` in your code
+    2. Replace with `getDateMetadataCallback`
+    3. Change return value from boolean to `{ isDisabled: true }` or `null`
+    4. Optionally add visual metadata like badges or tooltips
+  - **Files Modified**: `src/types.ts`, `src/web-component.ts`, `src/date-picker-validation.ts`, `src/date-picker.ts`
+
 ## [1.0.0] - PUBLISHED - 2025-11-20
 
 ### Changed

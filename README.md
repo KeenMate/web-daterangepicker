@@ -176,11 +176,12 @@ picker.disabledDates = [
 ];
 
 // Custom disable logic (e.g., cottage booking)
-picker.isDateDisabled = (date) => {
+picker.getDateMetadataCallback = (date) => {
   // Disable all dates that overlap with existing bookings
-  return bookedRanges.some(range =>
+  const isBooked = bookedRanges.some(range =>
     date >= range.start && date <= range.end
   );
+  return isBooked ? { isDisabled: true } : null;
 };
 ```
 

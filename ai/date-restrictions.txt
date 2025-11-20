@@ -6,7 +6,7 @@ RESTRICTION TYPES
 1. Min/Max dates - Hard boundaries
 2. Disabled weekdays - Recurring weekly patterns
 3. Disabled dates array - Specific dates (holidays)
-4. isDateDisabled callback - Complex logic
+4. getDateMetadataCallback callback - Complex logic
 5. getDateMetadata callback - Dynamic metadata + disabling
 
 ALL RESTRICTIONS ARE ADDITIVE
@@ -118,8 +118,8 @@ Use cases:
 - Maintenance windows
 - Static blackout dates
 
-ISDATEDISABLED CALLBACK
------------------------
+GETDATEMETADATACALLBACK CALLBACK
+---------------------------------
 Complex logic for disabling dates:
 
 CRITICAL: JavaScript API ONLY (pass in constructor)
@@ -133,26 +133,27 @@ const bookings = [
 ];
 
 const picker = new DateRangePicker(input, {
-  isDateDisabled: (date) => {
-    // Return true to disable, false to enable
-    return bookings.some(booking =>
+  getDateMetadataCallback: (date) => {
+    // Return metadata object to disable, null to enable
+    const isBooked = bookings.some(booking =>
       date >= booking.start && date <= booking.end
     );
+    return isBooked ? { isDisabled: true } : null;
   }
 });
 
 // Web Component (set as property)
 const picker = document.querySelector('web-daterangepicker');
-picker.isDateDisabled = (date) => {
+picker.getDateMetadataCallback = (date) => {
   const isPast = date < new Date();
   const isWeekend = date.getDay() === 0 || date.getDay() === 6;
-  return isPast || isWeekend;
+  return (isPast || isWeekend) ? { isDisabled: true } : null;
 };
 
 Function signature:
-isDateDisabled: (date: Date) => boolean
+getDateMetadataCallback: (date: Date) => DateInfo | null
 - Receives: Date object for each calendar cell
-- Returns: true = disabled, false = enabled
+- Returns: { isDisabled: true } to disable, null to enable
 - Called: ~35-42 times per month view
 
 Performance tips:
@@ -230,8 +231,9 @@ const picker = new DateRangePicker(input, {
   ],
 
   // 4. No booked dates
-  isDateDisabled: (date) => {
-    return bookings.some(b => date >= b.start && date <= b.end);
+  getDateMetadataCallback: (date) => {
+    const isBooked = bookings.some(b => date >= b.start && date <= b.end);
+    return isBooked ? { isDisabled: true } : null;
   },
 
   // 5. Visual indicators
@@ -248,7 +250,7 @@ Evaluation order:
 1. minDate/maxDate (hard bounds)
 2. disabledWeekdays
 3. disabledDates array
-4. isDateDisabled callback
+4. getDateMetadataCallback callback
 5. getDateMetadata (isDisabled property)
 
 If ANY restriction disables, date is disabled.
@@ -261,8 +263,9 @@ Update restrictions after initialization:
 picker.disabledDates = newHolidays;
 
 // Update callback
-picker.isDateDisabled = (date) => {
-  return newBookings.some(b => date >= b.start && date <= b.end);
+picker.getDateMetadataCallback = (date) => {
+  const isBooked = newBookings.some(b => date >= b.start && date <= b.end);
+  return isBooked ? { isDisabled: true } : null;
 };
 
 // Refresh calendar
@@ -332,7 +335,7 @@ VALIDATION PATTERNS
 Common validation scenarios:
 
 // Booking system (no past + no booked)
-isDateDisabled: (date) => {
+getDateMetadataCallback: (date) => {
   const today = new Date();
   today.setHours(0, 0, 0, 0);
 
@@ -341,25 +344,26 @@ isDateDisabled: (date) => {
     date >= b.start && date <= b.end
   );
 
-  return isPast || isBooked;
+  return (isPast || isBooked) ? { isDisabled: true } : null;
 }
 
 // Subscription expiry
-isDateDisabled: (date) => {
-  return date > subscriptionEndDate;
+getDateMetadataCallback: (date) => {
+  return date > subscriptionEndDate ? { isDisabled: true } : null;
 }
 
 // Maximum advance booking
-isDateDisabled: (date) => {
+getDateMetadataCallback: (date) => {
   const maxAdvance = new Date();
   maxAdvance.setDate(maxAdvance.getDate() + 90);
-  return date > maxAdvance;
+  return date > maxAdvance ? { isDisabled: true } : null;
 }
 
 // Business hours (Mon-Fri)
-isDateDisabled: (date) => {
+getDateMetadataCallback: (date) => {
   const day = date.getDay();
-  return day === 0 || day === 6; // Weekends
+  const isWeekend = day === 0 || day === 6;
+  return isWeekend ? { isDisabled: true } : null;
 }
 
 ERROR HANDLING
@@ -369,7 +373,8 @@ Handle invalid date selections:
 picker.addEventListener('date-select', (event) => {
   const { date } = event.detail;
 
-  if (isDateDisabled(date)) {
+  const metadata = picker.getDateMetadataCallback(date);
+  if (metadata?.isDisabled) {
     console.error('Invalid date selected:', date);
     picker.clearSelection();
     showError('Please select an available date');
@@ -381,19 +386,21 @@ DEBUGGING
 Log disabled date checks:
 
 const picker = new DateRangePicker(input, {
-  isDateDisabled: (date) => {
-    const disabled = checkIfDisabled(date);
-    console.log('Check:', date.toISOString().split('T')[0], '→', disabled);
-    return disabled;
+  getDateMetadataCallback: (date) => {
+    const shouldDisable = checkIfDisabled(date);
+    const result = shouldDisable ? { isDisabled: true } : null;
+    console.log('Check:', date.toISOString().split('T')[0], '→', result);
+    return result;
   }
 });
 
 Count disabled dates:
 let disabledCount = 0;
-picker.isDateDisabled = (date) => {
-  const disabled = checkIfDisabled(date);
-  if (disabled) disabledCount++;
-  return disabled;
+picker.getDateMetadataCallback = (date) => {
+  const shouldDisable = checkIfDisabled(date);
+  const result = shouldDisable ? { isDisabled: true } : null;
+  if (result) disabledCount++;
+  return result;
 };
 
 BEST PRACTICES
@@ -401,12 +408,13 @@ BEST PRACTICES
 1. Use simplest restriction type for your case
    - Static dates → disabledDates array
    - Weekly pattern → disabledWeekdays
-   - Dynamic → isDateDisabled callback
+   - Dynamic → getDateMetadataCallback callback
 
-2. Keep isDateDisabled fast
+2. Keep getDateMetadataCallback fast
    - Pre-process data structures
-   - Use Set for O(1) lookups
+   - Use Set or Map for O(1) lookups
    - Avoid API calls in callback
+   - Return null when not disabling (most common case)
 
 3. Combine restrictions thoughtfully
    - Don't duplicate logic
@@ -423,3 +431,4 @@ BEST PRACTICES
    - Leap years
    - Timezone handling
    - Empty selection states
+   - Return value consistency (always { isDisabled: true } or null)

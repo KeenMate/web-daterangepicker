@@ -920,8 +920,8 @@ picker.addEventListener('date-select', (e) => {
 
       // Setup custom summary formatting examples
       const summaryPricing = document.getElementById('summary-pricing');
-      if (summaryPricing && summaryPricing.picker) {
-        summaryPricing.picker.options.formatSummaryCallback = (data) => {
+      if (summaryPricing) {
+        summaryPricing.formatSummaryCallback = (data) => {
           const pricePerNight = 150;
           const total = data.nights * pricePerNight;
           const prefix = data.isPreview ? `<span style="opacity: 0.7;">${data.localeStrings.preview}: </span>` : '';
@@ -937,8 +937,8 @@ picker.addEventListener('date-select', (e) => {
       }
 
       const summaryWeekdays = document.getElementById('summary-weekdays');
-      if (summaryWeekdays && summaryWeekdays.picker) {
-        summaryWeekdays.picker.options.formatSummaryCallback = (data) => {
+      if (summaryWeekdays) {
+        summaryWeekdays.formatSummaryCallback = (data) => {
           if (data.enabledDates && data.disabledDates) {
             const prefix = data.isPreview ? `<span style="opacity: 0.7;">${data.localeStrings.preview}: </span>` : '';
 
@@ -955,8 +955,8 @@ picker.addEventListener('date-select', (e) => {
       }
 
       const summarySplit = document.getElementById('summary-split');
-      if (summarySplit && summarySplit.picker) {
-        summarySplit.picker.options.formatSummaryCallback = (data) => {
+      if (summarySplit) {
+        summarySplit.formatSummaryCallback = (data) => {
           if (data.dateRanges && data.dateRanges.length > 1) {
             const prefix = data.isPreview ? `<span style="opacity: 0.7;">${data.localeStrings.preview}: </span>` : '';
 
@@ -974,8 +974,8 @@ picker.addEventListener('date-select', (e) => {
       }
 
       const summaryNights = document.getElementById('summary-nights');
-      if (summaryNights && summaryNights.picker) {
-        summaryNights.picker.options.formatSummaryCallback = (data) => {
+      if (summaryNights) {
+        summaryNights.formatSummaryCallback = (data) => {
           const prefix = data.isPreview ? `<span style="opacity: 0.7;">${data.localeStrings.preview}: </span>` : '';
 
           return `

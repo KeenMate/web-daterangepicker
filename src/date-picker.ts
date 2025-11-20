@@ -115,7 +115,6 @@ class DateRangePicker {
             disabledDates: options.disabledDates,
             disabledWeekdays: options.disabledWeekdays,
             specialDates: options.specialDates,
-            isDateDisabled: options.isDateDisabled,
             getDateMetadataCallback: options.getDateMetadataCallback,
             disabledDatesHandling: options.disabledDatesHandling || 'allow',
             highlightDisabledInRange: options.highlightDisabledInRange !== undefined ? options.highlightDisabledInRange : true,
@@ -616,8 +615,7 @@ class DateRangePicker {
             this.normalizedMinDate,
             this.normalizedMaxDate,
             this.normalizedDisabledDates,
-            this.options.disabledWeekdays,
-            this.options.isDateDisabled
+            this.options.disabledWeekdays
         );
     }
 

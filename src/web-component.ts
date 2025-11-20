@@ -10,7 +10,6 @@ export class WebDaterangepickerElement extends HTMLElement {
     // Properties for complex data (not attributes)
     private _specialDates?: DecoratedDate[];
     private _disabledDates?: (Date | string)[];
-    private _isDateDisabled?: (date: Date) => boolean;
     private _getDateMetadataCallback?: (date: Date) => DateInfo | null;
     private _badgeTooltipCallback?: (data: DayRenderData) => string | null;
     private _dayTooltipCallback?: (data: DayRenderData) => string | null;
@@ -18,6 +17,7 @@ export class WebDaterangepickerElement extends HTMLElement {
     private _renderDayCallback?: (data: DayRenderData) => HTMLElement | string | null;
     private _renderDayContentCallback?: (data: DayRenderData) => HTMLElement | string | null;
     private _beforeDateSelect?: (selection: Date | DateRange) => Promise<BeforeSelectResult> | BeforeSelectResult;
+    private _formatSummaryCallback?: (data: any) => string;
 
     // Member mapping properties for specialDates array
     private _dateMember?: string;
@@ -221,7 +221,6 @@ export class WebDaterangepickerElement extends HTMLElement {
             disabledWeekdays: disabledWeekdays,
             disabledDates: this._disabledDates,
             specialDates: this._specialDates,
-            isDateDisabled: this._isDateDisabled,
             getDateMetadataCallback: this._getDateMetadataCallback,
             badgeTooltipCallback: this._badgeTooltipCallback,
             dayTooltipCallback: this._dayTooltipCallback,
@@ -252,6 +251,7 @@ export class WebDaterangepickerElement extends HTMLElement {
 
             // Callbacks
             beforeDateSelect: this._beforeDateSelect,
+            formatSummaryCallback: this._formatSummaryCallback,
 
             // Action button configuration
             autoClose: (this.getAttribute('auto-close') as 'never' | 'selection' | 'apply') || undefined,
@@ -601,17 +601,7 @@ export class WebDaterangepickerElement extends HTMLElement {
         }
     }
 
-    get isDateDisabled(): ((date: Date) => boolean) | undefined {
-        return this._isDateDisabled;
-    }
 
-    set isDateDisabled(value: ((date: Date) => boolean) | undefined) {
-        this._isDateDisabled = value;
-        if (this.picker) {
-            this.picker.destroy();
-            this.initializePicker();
-        }
-    }
 
     get getDateMetadataCallback(): ((date: Date) => DateInfo | null) | undefined {
         return this._getDateMetadataCallback;
@@ -674,6 +664,15 @@ export class WebDaterangepickerElement extends HTMLElement {
 
     set beforeDateSelect(value: ((selection: Date | DateRange) => Promise<BeforeSelectResult> | BeforeSelectResult) | undefined) {
         this._beforeDateSelect = value;
+        this.scheduleReinit();
+    }
+
+    get formatSummaryCallback(): ((data: any) => string) | undefined {
+        return this._formatSummaryCallback;
+    }
+
+    set formatSummaryCallback(value: ((data: any) => string) | undefined) {
+        this._formatSummaryCallback = value;
         this.scheduleReinit();
     }
 

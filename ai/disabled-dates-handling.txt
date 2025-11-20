@@ -34,33 +34,34 @@ const picker = new DateRangePicker(input, {
 
 MODE: 'prevent' (default)
 -------------------------
-Blocks selection if any disabled date within range.
+REJECTS selection if any disabled date within range.
 
 Behavior:
-- Range stops at first disabled date
+- Selection attempt is BLOCKED/CANCELLED
 - Cannot span over disabled dates
 - Most restrictive mode
+- User must select again within enabled dates only
 
 Example scenario:
 Disabled: Sundays
 User selects: Friday to Monday
-Result: Selection blocked or stops at Saturday
+Result: Selection is REJECTED - no range is created at all
 
 Event data:
-{
-  dateRange: { start: Friday, end: Saturday },
-  formattedValue: "..."
-}
+No event is fired - the selection fails
 
 Use cases:
-- Strict booking rules
-- No gaps allowed
-- Continuous availability required
+- Strict booking rules where gaps are not allowed
+- Continuous availability absolutely required
+- Prevent any invalid selections
 
 Visual feedback:
 - Red highlight on disabled dates
-- Selection stops at boundary
-- Clear error indication
+- Selection is cancelled/cleared
+- User sees error or nothing happens
+- Must try again with valid range
+
+Key Point: 'prevent' = "No, you can't select that" (hard rejection)
 
 MODE: 'allow'
 -------------
@@ -112,17 +113,18 @@ picker.addEventListener('date-select', (event) => {
 
 MODE: 'block'
 -------------
-Snaps range end to last enabled date before disabled.
+ACCEPTS selection but AUTO-ADJUSTS end date to last enabled date before gap.
 
 Behavior:
-- Range stops at last enabled date
-- Disabled dates excluded
-- Auto-adjusts end date
+- Selection is ACCEPTED but MODIFIED
+- Automatically snaps end date to last enabled date before disabled gap
+- Disabled dates excluded from result
+- User sees shortened but valid range
 
 Example scenario:
 Disabled: Wednesday onwards
 User selects: Monday to Friday
-Result: Monday to Tuesday (snapped)
+Result: Selection succeeds - Monday to Tuesday (auto-shortened)
 
 Event data:
 {
@@ -131,14 +133,17 @@ Event data:
 }
 
 Use cases:
-- Cutoff dates
-- Availability limits
-- Auto-adjustment needed
-- Prevent user errors
+- Cutoff dates with auto-correction
+- Availability limits with helpful adjustment
+- Prevent user errors by fixing selection
+- Better UX than rejecting entirely
 
 Visual feedback:
-- End date snaps back visually
-- Clear adjustment indication
+- End date snaps back visually to last enabled date
+- Selection succeeds but is shorter than user attempted
+- Clear indication of adjustment
+
+Key Point: 'block' = "Yes, but I'm making it shorter" (auto-correction)
 
 MODE: 'split'
 -------------
@@ -245,19 +250,36 @@ CSS classes applied:
 
 COMPARISON TABLE
 ----------------
-Mode        | Selection Allowed | Returns
-------------|-------------------|------------------
-prevent     | Only continuous   | Single range
-allow       | Over disabled     | Range + breakdown
-block       | Snaps to enabled  | Adjusted range
-split       | Over disabled     | Multiple ranges
-individual  | Over disabled     | Flat date array
+Mode        | User Action        | Component Response      | Event Fired | Returns
+------------|-------------------|-------------------------|-------------|------------------
+prevent     | Selects over gap  | REJECTS - clears selection | No         | Nothing (selection fails)
+block       | Selects over gap  | ACCEPTS - shortens range   | Yes        | Adjusted range (shorter)
+allow       | Selects over gap  | ACCEPTS - keeps full range | Yes        | Range + breakdown
+split       | Selects over gap  | ACCEPTS - breaks into segments | Yes    | Multiple ranges
+individual  | Selects over gap  | ACCEPTS - flattens to dates | Yes       | Flat date array
+
+KEY DIFFERENCE: 'prevent' vs 'block'
+------------------------------------
+Scenario: User selects Monday-Friday, Wednesday is disabled
+
+'prevent' mode:
+- Selection is REJECTED
+- No event fires
+- User must try again
+- "No, you can't do that"
+
+'block' mode:
+- Selection is ACCEPTED but MODIFIED to Monday-Tuesday
+- Event fires with adjusted range
+- User gets a valid (but shorter) result
+- "Yes, but I'm changing it"
 
 CHOOSING THE RIGHT MODE
 -----------------------
 Use 'prevent' when:
-- Strict continuous availability required
-- No gaps allowed
+- Strict continuous availability required (no compromise)
+- Want to force user to manually select valid range
+- Selection failure is acceptable UX
 - Simple booking rules
 
 Use 'allow' when:
@@ -267,10 +289,10 @@ Use 'allow' when:
 - Show breakdown to user
 
 Use 'block' when:
-- Auto-correction preferred
-- Prevent user confusion
-- Clear cutoff dates
-- Adjust to availability
+- Auto-correction preferred over rejection
+- Want helpful UX (vs strict 'prevent')
+- Clear cutoff dates with auto-adjustment
+- Better user experience than 'prevent'
 
 Use 'split' when:
 - Multi-segment booking OK
@@ -296,7 +318,10 @@ const picker = new DateRangePicker(input, {
   minDate: '2025-01-01',
   disabledWeekdays: [0, 6],
   disabledDates: ['2025-12-25'],
-  isDateDisabled: (date) => isBooked(date)
+  getDateMetadataCallback: (date) => {
+    const booked = isBooked(date);
+    return booked ? { isDisabled: true } : null;
+  }
 });
 
 All restrictions evaluated, handling mode applied to result.

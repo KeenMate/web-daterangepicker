@@ -29,8 +29,9 @@ disable dates, block dates → date-restrictions.txt
 min date, max date, boundaries → date-restrictions.txt
 disabled weekdays, weekends only → date-restrictions.txt
 holidays, blackout dates → date-restrictions.txt
-isDateDisabled callback → date-restrictions.txt
+getDateMetadataCallback callback → date-restrictions.txt
 getDateMetadata → date-restrictions.txt, custom-rendering.txt
+isDisabled property → date-restrictions.txt
 past dates, future only → date-restrictions.txt
 booking validation → date-restrictions.txt
 availability check → date-restrictions.txt
@@ -102,6 +103,9 @@ date format, date-format-mask → basic-usage.txt
 locale, language → basic-usage.txt
 customStrings, custom labels → basic-usage.txt (JS API only)
 display format → basic-usage.txt
+formatSummaryCallback, custom summary → basic-usage.txt
+summary formatting, pricing display → basic-usage.txt
+nights calculation, hotel summary → basic-usage.txt
 
 SIZING & APPEARANCE
 -------------------
@@ -154,14 +158,21 @@ logging, enableLogging → basic-usage.txt
 performance optimization → custom-rendering.txt, date-restrictions.txt
 testing, validation testing → events-callbacks.txt
 
+WEB COMPONENT CALLBACK PROPERTIES
+----------------------------------
+formatSummaryCallback → basic-usage.txt (property, not attribute)
+getDateMetadataCallback → date-restrictions.txt (property, not attribute)
+badgeTooltipCallback → custom-rendering.txt (property, not attribute)
+dayTooltipCallback → custom-rendering.txt (property, not attribute)
+renderDayCallback → custom-rendering.txt (property, not attribute)
+renderDayContentCallback → custom-rendering.txt (property, not attribute)
+customStylesCallback → custom-rendering.txt (property, not attribute)
+beforeDateSelect → events-callbacks.txt (property, not attribute)
+
 JAVASCRIPT API ONLY FEATURES
 -----------------------------
-formatSummaryCallback → basic-usage.txt (not in these docs)
-customStrings → basic-usage.txt (not in these docs)
-actionButtons → action-buttons.txt
-beforeDateSelect → events-callbacks.txt
-renderDayContent → custom-rendering.txt
-all callbacks → events-callbacks.txt, custom-rendering.txt, date-restrictions.txt
+customStrings → basic-usage.txt (not available on web component)
+actionButtons → action-buttons.txt (not available on web component)
 
 WEB COMPONENT ATTRIBUTES
 -------------------------
@@ -182,18 +193,18 @@ locale → basic-usage.txt
 PROPERTIES (Web Component)
 ---------------------------
 disabledDates → date-restrictions.txt
-isDateDisabled → date-restrictions.txt
+getDateMetadataCallback → date-restrictions.txt
 getDateMetadata → date-restrictions.txt, custom-rendering.txt
 selectedRanges → basic-usage.txt
 isOpen → basic-usage.txt
 
 ERROR PATTERNS TO AVOID
 -----------------------
-❌ setting callbacks as attributes → events-callbacks.txt, custom-rendering.txt
+❌ setting callbacks as HTML attributes → basic-usage.txt (use JS properties)
 ❌ font-size attribute (use wrapper) → basic-usage.txt
 ❌ spacing attribute (use wrapper) → basic-usage.txt
-❌ formatSummary on web component → basic-usage.txt
-❌ customStrings on web component → basic-usage.txt
+❌ customStrings on web component → basic-usage.txt (JS API only)
+❌ actionButtons on web component → action-buttons.txt (JS API only)
 ❌ initial-date attribute (doesn't exist) → basic-usage.txt
 
 FILE DESCRIPTIONS
