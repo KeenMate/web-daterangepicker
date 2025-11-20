@@ -1,7 +1,7 @@
 /**
  * Date Picker Validation Methods
  *
- * Pure functions for date validation and restriction logic.
+ * Functions for date validation and restriction logic.
  */
 
 import type { DateRange } from './types';
@@ -17,7 +17,7 @@ export function detectWeekStartDay(weekStartDay: 'auto' | 0 | 1 | 2 | 3 | 4 | 5 
     // Try modern API first (Chrome 99+, Firefox 105+, Safari 16+)
     try {
         const locale = new Intl.Locale(navigator.language);
-        if ('weekInfo' in locale && locale.weekInfo && 'firstDay' in locale.weekInfo) {
+        if ('weekInfo' in locale && locale.weekInfo && 'firstDay' in (locale.weekInfo as object)) {
             // weekInfo.firstDay: 1 = Monday, 7 = Sunday
             // We need: 0 = Sunday, 1 = Monday
             const firstDay = (locale.weekInfo as any).firstDay;

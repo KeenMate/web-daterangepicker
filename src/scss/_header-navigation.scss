@@ -94,29 +94,36 @@
 // ==============================================================================
 
 .drp-date-picker__rolling-selector {
+  // Absolutely positioned to overlay calendar grid
+  position: absolute;
+  inset: 0; // Fill entire container from all edges
   display: none;
+  z-index: 10; // Above calendar grid
 
   &.drp-date-picker__rolling-selector--visible {
     display: flex;
 
-    // Hide calendar days when rolling selector is visible
+    // Hide calendar grid when rolling selector is visible
     ~ .drp-date-picker__weekdays,
     ~ .drp-date-picker__days {
-      display: none;
+      visibility: hidden; // Keeps elements in layout flow (maintains container height)
     }
   }
 
   gap: var(--drp-spacing-xs);
-  margin-bottom: var(--drp-spacing-md);
-  // Height is set dynamically via JavaScript to match calendar content
 }
 
 .drp-date-picker__rolling-list {
   flex: 1;
-  height: 100%; // Fill parent height (set dynamically on parent)
+  min-width: 0; // Allow flex child to shrink below content size (enables ellipsis on items)
+  height: 100%; // Fill parent height
   overflow-y: auto;
   border: var(--drp-border-width-base) solid var(--drp-border-color);
   border-radius: var(--drp-border-radius);
+
+  // Flex layout to control child item sizing
+  display: flex;
+  flex-direction: column;
 
   // Smooth scrolling
   scroll-behavior: smooth;
@@ -141,24 +148,40 @@
 }
 
 .drp-date-picker__rolling-item {
-  padding: var(--drp-spacing-sm) var(--drp-spacing-md);
-  text-align: center;
+  padding: #{$drp-rolling-item-padding-v} #{$drp-rolling-item-padding-h};
   cursor: pointer;
-  font-size: var(--drp-font-size-sm);
+  font-size: #{$drp-rolling-item-font-size};
   // Scale item height with cell-scale for consistent sizing
   min-height: calc(#{$drp-rolling-item-min-height} * var(--drp-cell-scale));
+  // Prevent flex item from growing beyond min-height
+  flex-shrink: 0;
+
+  // Flexbox for vertical and horizontal centering
+  display: flex;
+  align-items: center;
+  justify-content: var(--drp-rolling-item-justify-content, #{$drp-rolling-item-justify-content});
 
   &:hover {
-    background-color: var(--drp-primary-bg);
+    background-color: $drp-rolling-item-bg-hover;
   }
 
   &--selected {
-    background-color: var(--drp-accent-color);
-    color: var(--drp-accent-text-color);
-    font-weight: var(--drp-font-weight-semibold);
+    background-color: $drp-rolling-item-bg-selected;
+    color: $drp-rolling-item-color-selected;
+    font-weight: $drp-rolling-item-font-weight-selected;
 
     &:hover {
       background-color: var(--drp-accent-color-hover);
     }
   }
+}
+
+// Text wrapper for ellipsis support
+.drp-date-picker__rolling-item-text {
+  // Text overflow handling for long month names
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  width: 100%;
+  min-width: 0; // Allow flex child to shrink below content size
 }

@@ -1,7 +1,7 @@
 /**
  * Date Picker Navigation Methods
  *
- * Pure functions for navigation logic including month/year navigation,
+ * Functions for navigation logic including month/year navigation,
  * rolling selector, and keyboard focus movement.
  */
 
@@ -216,7 +216,7 @@ export function moveFocus(picker: any, offset: number) {
     // Initialize focus if not set
     if (picker.focusedDayIndex === null) {
         // Find today's day in the calendar as the starting point
-        const todayIndex = Array.from(days).findIndex(day => day.classList.contains('drp-date-picker__day--today'));
+        const todayIndex = Array.from(days).findIndex(day => (day as Element).classList.contains('drp-date-picker__day--today'));
         picker.focusedDayIndex = todayIndex !== -1 ? todayIndex : 0;
         navigationLogger.debug(`moveFocus() Col${picker.activeMonthIndex} - initialized focusedDayIndex to ${picker.focusedDayIndex} (today or first day), will move by offset ${offset}`);
     }

@@ -1,6 +1,6 @@
 {
   "name": "@keenmate/web-daterangepicker",
-  "version": "1.0.0-rc08",
+  "version": "1.0.0",
   "description": "Lightweight date picker web component with excellent keyboard navigation and range selection",
   "type": "module",
   "main": "./dist/web-daterangepicker.umd.js",
@@ -33,7 +33,7 @@
   ],
   "scripts": {
     "dev": "vite",
-    "build": "vite build",
+    "build": "npm run clean:dist && tsc && vite build",
     "build:types": "tsc",
     "build:full": "tsc && vite build",
     "preview": "vite preview",

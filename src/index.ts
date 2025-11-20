@@ -4,11 +4,14 @@ import './scss/main.scss';
 // Import web component for auto-registration
 import { WebDaterangepickerElement } from './web-component';
 
+// Import logging functions
+import { enableLogging, disableLogging, setLogLevel, setCategoryLevel, getCategories } from './logger';
+
 // Export the web component
 export { WebDaterangepickerElement } from './web-component';
 
 // Export the base class if users want direct access
-export { PureDatePicker } from './date-picker';
+export { DateRangePicker } from './date-picker';
 
 // Export types
 export type { DatePickerOptions, DateRange, FormatInfo, MonthDisplay, DatePickerEventDetail } from './types';
@@ -29,6 +32,13 @@ export interface GlobalWebDaterangepickerAPI {
     };
     register: () => void;
     getInstances: () => HTMLElement[];
+    logging: {
+        enableLogging: () => void;
+        disableLogging: () => void;
+        setLogLevel: (level: 'trace' | 'debug' | 'info' | 'warn' | 'error' | 'silent') => void;
+        setCategoryLevel: (category: string, level?: 'trace' | 'debug' | 'info' | 'warn' | 'error' | 'silent') => void;
+        getCategories: () => string[];
+    };
 }
 
 // ==============================================================================
@@ -38,8 +48,8 @@ export interface GlobalWebDaterangepickerAPI {
 // Declare global namespace
 declare global {
     interface Window {
-        keenmate?: {
-            daterangepicker?: GlobalWebDaterangepickerAPI;
+        components?: {
+            'web-daterangepicker'?: GlobalWebDaterangepickerAPI;
         };
     }
 }
@@ -51,8 +61,8 @@ function getAllInstances(): HTMLElement[] {
 
 // Initialize global API
 if (typeof window !== 'undefined') {
-    window.keenmate = window.keenmate || {};
-    window.keenmate.daterangepicker = {
+    window.components = window.components || {};
+    window.components['web-daterangepicker'] = {
         version: () => __VERSION__,
         config: {
             name: __PACKAGE_NAME__,
@@ -67,9 +77,16 @@ if (typeof window !== 'undefined') {
                 customElements.define('web-daterangepicker', WebDaterangepickerElement);
             }
         },
-        getInstances: () => getAllInstances()
+        getInstances: () => getAllInstances(),
+        logging: {
+            enableLogging,
+            disableLogging,
+            setLogLevel,
+            setCategoryLevel,
+            getCategories
+        }
     };
 
     // Auto-register the custom element
-    window.keenmate.daterangepicker.register();
+    window.components['web-daterangepicker'].register();
 }

@@ -1,12 +1,13 @@
 /**
  * Date Picker Rendering Methods
  *
- * Pure functions that handle calendar rendering.
+ * Functions that handle calendar rendering.
  * Each function accepts the picker instance as the first parameter.
  */
 
 import { hasEnabledDaysInMonth } from './date-picker-navigation';
 import { hasEnabledDaysInYear } from './date-picker-validation';
+import * as Validation from './date-picker-validation';
 import { renderingLogger } from './logger';
 
 /**
@@ -67,78 +68,6 @@ export function renderCalendar(picker: any) {
         }
     }
 
-    // Set rolling selector height and width to match calendar content
-    // This prevents layout jumps when toggling between views
-    requestAnimationFrame(() => {
-        // Capture calendar content dimensions on first render (when rolling selector is NOT showing)
-        if (!picker.calendarContentHeight && !picker.showingRollingSelector[0]) {
-            const monthContainer = picker.calendar.querySelector('.drp-date-picker__month[data-month-index="0"]');
-            if (monthContainer) {
-                const weekdays = monthContainer.querySelector('.drp-date-picker__weekdays');
-                const days = monthContainer.querySelector('.drp-date-picker__days');
-                if (weekdays && days) {
-                    const weekdaysHeight = (weekdays as HTMLElement).offsetHeight;
-                    const daysHeight = (days as HTMLElement).offsetHeight;
-                    const daysWidth = (days as HTMLElement).offsetWidth;
-                    // Get the margin-bottom of weekdays to account for spacing
-                    const weekdaysStyle = getComputedStyle(weekdays);
-                    const weekdaysMargin = parseInt(weekdaysStyle.marginBottom) || 0;
-
-                    picker.calendarContentHeight = weekdaysHeight + weekdaysMargin + daysHeight;
-                    picker.calendarContentWidth = Math.ceil(daysWidth); // Round up for consistency
-                    renderingLogger.debug('[DatePicker] Captured calendar content dimensions:', {
-                        weekdaysHeight: weekdaysHeight,
-                        weekdaysMargin: weekdaysMargin,
-                        daysHeight: daysHeight,
-                        daysWidth: daysWidth,
-                        totalHeight: picker.calendarContentHeight,
-                        totalWidth: picker.calendarContentWidth
-                    });
-                }
-            }
-        }
-
-        // Apply stored dimensions to all rolling selectors
-        if (picker.calendarContentHeight) {
-            for (let i = 0; i < picker.options.visibleMonthsCount; i++) {
-                const monthContainer = picker.calendar.querySelector(`.drp-date-picker__month[data-month-index="${i}"]`);
-                if (!monthContainer) continue;
-
-                const rollingSelector = monthContainer.querySelector('.drp-date-picker__rolling-selector');
-                if (rollingSelector) {
-                    const isVisible = rollingSelector.classList.contains('drp-date-picker__rolling-selector--visible');
-
-                    // Get the current cell-scale multiplier from CSS
-                    const calendarElement = picker.calendar.querySelector('.drp-date-picker');
-                    const cellScale = calendarElement
-                        ? parseFloat(getComputedStyle(calendarElement).getPropertyValue('--drp-cell-scale') || '1')
-                        : 1;
-
-                    // Apply scaled height (height needs scaling because it's measured at base scale)
-                    const scaledHeight = picker.calendarContentHeight * cellScale;
-                    (rollingSelector as HTMLElement).style.height = `${scaledHeight}px`;
-
-                    // Apply width to match days grid exactly (already measured at current scale, no scaling needed)
-                    if (picker.calendarContentWidth) {
-                        (rollingSelector as HTMLElement).style.width = `${picker.calendarContentWidth}px`;
-                    }
-
-                    // Log when applying to visible rolling selector
-                    if (isVisible) {
-                        const actualHeight = (rollingSelector as HTMLElement).offsetHeight;
-                        renderingLogger.debug(`[DatePicker] Applied dimensions to rolling selector ${i}:`, {
-                            baseHeight: picker.calendarContentHeight,
-                            cellScale: cellScale,
-                            targetHeight: scaledHeight,
-                            actualHeight: actualHeight,
-                            heightDifference: actualHeight - scaledHeight
-                        });
-                    }
-                }
-            }
-        }
-    });
-
     // Re-apply focused day class after rendering (keyboard navigation state)
     // This is necessary because renderDays() rebuilds the DOM with innerHTML
     if (picker.focusedDayIndex !== null) {
@@ -154,6 +83,11 @@ export function renderCalendar(picker: any) {
     // Initialize drag listeners for range mode
     if (picker.options.selectionMode === 'range' && !picker.isDragging) {
         picker.initDragListeners();
+    }
+
+    // Re-render action buttons to update dynamic properties (callbacks)
+    if (picker.actionsContainer) {
+        picker.renderButtons(picker.actionsContainer);
     }
 }
 
@@ -310,23 +244,53 @@ export function renderDays(picker: any, monthIndex: number, date: Date) {
         // Check if any day in picker week has a badge
         const weekBadges = week.map(dayData => {
             const dateInfo = picker.getDateInfoInternal(dayData.date);
-            return {
-                label: dateInfo?.label || '',
-                tooltip: dateInfo?.tooltip || '',
-                class: dateInfo?.class || ''
+
+            // Get base tooltip from dateInfo
+            let badgeTooltip = dateInfo?.badgeTooltip || '';
+
+            // Override with badgeTooltipCallback if provided
+            if (picker.options.badgeTooltipCallback && dateInfo?.badgeText) {
+                // Build DayRenderData for callback (minimal version for badge context)
+                const dayRenderData = {
+                    date: dayData.date,
+                    dateString: Validation.formatDateKey(dayData.date),
+                    dayNumber: dayData.day,
+                    isDisabled: picker.isDateDisabledInternal(dayData.date),
+                    isSelected: false, // Will be set below
+                    isStartDate: false,
+                    isEndDate: false,
+                    isInRange: false,
+                    isToday: Validation.isToday(dayData.date),
+                    isWeekend: dayData.date.getDay() === 0 || dayData.date.getDay() === 6,
+                    monthIndex: monthIndex,
+                    element: null as any, // Not available during string rendering
+                    picker: picker
+                };
+
+                const callbackTooltip = picker.options.badgeTooltipCallback(dayRenderData);
+                if (callbackTooltip !== null) {
+                    badgeTooltip = callbackTooltip;
+                }
+            }
+
+            const badge = {
+                text: dateInfo?.badgeText || '',
+                tooltip: badgeTooltip,
+                class: dateInfo?.badgeClass || ''
             };
+            return badge;
         });
 
-        const hasAnyBadge = weekBadges.some(badge => badge.label);
+        const hasAnyBadge = weekBadges.some(badge => badge.text);
 
         // Generate badge row if any day has a badge
         if (hasAnyBadge) {
             html += '<div class="drp-date-picker__badge-row">';
             for (const badge of weekBadges) {
-                if (badge.label) {
+                if (badge.text) {
                     const tooltipAttr = badge.tooltip ? ` data-tooltip="${badge.tooltip.replace(/"/g, '&quot;')}"` : '';
                     const classes = badge.class ? ` ${badge.class}` : '';
-                    html += `<div class="drp-date-picker__badge-cell${classes}"${tooltipAttr}>${badge.label}</div>`;
+                    html += `<div class="drp-date-picker__badge-cell${classes}"${tooltipAttr}>${badge.text}</div>`;
                 } else {
                     html += '<div class="drp-date-picker__badge-cell"></div>';
                 }
@@ -340,33 +304,49 @@ export function renderDays(picker: any, monthIndex: number, date: Date) {
             const classes = ['drp-date-picker__day'];
             if (dayData.isOtherMonth) classes.push('drp-date-picker__day--other-month');
 
-            // Check if date is disabled
-            const isDisabled = picker.isDateDisabledInternal(dayData.date);
+            // Check for special date info (for styling classes and disabled state)
+            const dateInfo = picker.getDateInfoInternal(dayData.date);
+
+            // Check if date is disabled - use dateInfo.isDisabled if available, otherwise standard validation
+            const isDisabled = (dateInfo && dateInfo.isDisabled !== undefined)
+                ? dateInfo.isDisabled
+                : picker.isDateDisabledInternal(dayData.date);
+
             if (isDisabled) {
                 classes.push('drp-date-picker__day--disabled');
             }
 
-            // Check for special date info (for styling classes only, not badges)
-            const dateInfo = picker.getDateInfoInternal(dayData.date);
-            if (dateInfo && dateInfo.class) {
-                classes.push(dateInfo.class);
+            // Apply custom day class if available
+            if (dateInfo && dateInfo.dayClass) {
+                classes.push(dateInfo.dayClass);
             }
 
             // Today
             if (picker.isToday(dayData.date)) classes.push('drp-date-picker__day--today');
 
-            // Selected
-            const isSelected = picker.options.selectionMode === 'single' && picker.isSameDay(dayData.date, picker.selectedDate);
+            // Selected (single mode or multiple mode individual dates)
+            let isSelected = false;
+            if (picker.options.selectionMode === 'single') {
+                isSelected = picker.isSameDay(dayData.date, picker.selectedDate);
+            } else if (picker.options.selectionMode === 'multiple') {
+                // Check if this date is in selectedDates array
+                isSelected = picker.selectedDates.some((d: Date) => picker.isSameDay(dayData.date, d));
+            }
+
             if (isSelected) {
                 classes.push('drp-date-picker__day--selected');
             }
 
             // Range
-            const isStartDate = picker.options.selectionMode === 'range' && picker.isSameDay(dayData.date, picker.selectedStartDate);
-            const isEndDate = picker.options.selectionMode === 'range' && picker.isSameDay(dayData.date, picker.selectedEndDate);
-            const isInRange = picker.options.selectionMode === 'range' && picker.isInRange(dayData.date);
+            let isStartDate = false;
+            let isEndDate = false;
+            let isInRange = false;
 
             if (picker.options.selectionMode === 'range') {
+                isStartDate = picker.isSameDay(dayData.date, picker.selectedStartDate);
+                isEndDate = picker.isSameDay(dayData.date, picker.selectedEndDate);
+                isInRange = picker.isInRange(dayData.date);
+
                 if (isStartDate) classes.push('drp-date-picker__day--range-start');
                 if (isEndDate) classes.push('drp-date-picker__day--range-end');
                 if (isInRange) {
@@ -375,14 +355,62 @@ export function renderDays(picker: any, monthIndex: number, date: Date) {
                         classes.push('drp-date-picker__day--in-range');
                     }
                 }
+            } else if (picker.options.selectionMode === 'multiple') {
+                // Check if this date is in any of the selectedRanges
+                for (const range of picker.selectedRanges) {
+                    if (picker.isSameDay(dayData.date, range.start)) {
+                        isStartDate = true;
+                        classes.push('drp-date-picker__day--range-start');
+                    }
+                    if (picker.isSameDay(dayData.date, range.end)) {
+                        isEndDate = true;
+                        classes.push('drp-date-picker__day--range-end');
+                    }
+                    // Check if date is within this range
+                    if (dayData.date >= range.start && dayData.date <= range.end) {
+                        isInRange = true;
+                        if (!isDisabled || picker.options.highlightDisabledInRange) {
+                            classes.push('drp-date-picker__day--in-range');
+                        }
+                    }
+                }
             }
 
             // Format date as YYYY-MM-DD for slot names and data attributes
             const dateStr = `${dayData.year}-${String(dayData.month + 1).padStart(2, '0')}-${String(dayData.day).padStart(2, '0')}`;
 
+            // Get day tooltip - start with dateInfo, then override with callback if provided
+            let dayTooltip = dateInfo?.dayTooltip || '';
+
+            // Override with dayTooltipCallback if provided
+            if (picker.options.dayTooltipCallback) {
+                // Build DayRenderData for callback
+                const dayRenderData = {
+                    date: dayData.date,
+                    dateString: dateStr,
+                    dayNumber: dayData.day,
+                    isDisabled: isDisabled,
+                    isSelected: isSelected,
+                    isStartDate: isStartDate,
+                    isEndDate: isEndDate,
+                    isInRange: isInRange,
+                    isToday: picker.isToday(dayData.date),
+                    isWeekend: dayData.date.getDay() === 0 || dayData.date.getDay() === 6,
+                    monthIndex: monthIndex,
+                    element: null as any, // Not available during string rendering
+                    picker: picker
+                };
+
+                const callbackTooltip = picker.options.dayTooltipCallback(dayRenderData);
+                if (callbackTooltip !== null) {
+                    dayTooltip = callbackTooltip;
+                }
+            }
+
             // Render day cell with slot support
-            // Priority: per-day slot > renderDay callback > renderDayContent callback > default
-            html += `<div class="${classes.join(' ')}" data-date="${dateStr}" data-day-number="${dayData.day}">`;
+            // Priority: per-day slot > renderDayCallback > renderDayContentCallback > default
+            const tooltipAttr = dayTooltip ? ` data-tooltip="${dayTooltip.replace(/"/g, '&quot;')}"` : '';
+            html += `<div class="${classes.join(' ')}" data-date="${dateStr}" data-day-number="${dayData.day}"${tooltipAttr}>`;
             html += `<slot name="day-${dateStr}">${dayData.day}</slot>`;
             html += `</div>`;
         }
@@ -398,12 +426,12 @@ export function renderDays(picker: any, monthIndex: number, date: Date) {
 }
 
 /**
- * Process renderDay and renderDayContent callbacks for all day cells
+ * Process renderDayCallback and renderDayContentCallback for all day cells
  * Called after HTML is rendered to apply custom rendering
  */
 function processRenderCallbacks(picker: any, monthIndex: number, daysContainer: HTMLElement) {
     // Skip if no callbacks are defined
-    if (!picker.options.renderDay && !picker.options.renderDayContent) {
+    if (!picker.options.renderDayCallback && !picker.options.renderDayContentCallback) {
         return;
     }
 
@@ -456,10 +484,10 @@ function processRenderCallbacks(picker: any, monthIndex: number, daysContainer: 
             picker: picker
         };
 
-        // Priority: renderDay (full replacement) > renderDayContent (augmentation)
-        if (picker.options.renderDay) {
+        // Priority: renderDayCallback (full replacement) > renderDayContentCallback (augmentation)
+        if (picker.options.renderDayCallback) {
             try {
-                const result = picker.options.renderDay(renderData);
+                const result = picker.options.renderDayCallback(renderData);
                 if (result !== null && result !== undefined) {
                     // Replace slot content with callback result
                     if (typeof result === 'string') {
@@ -474,11 +502,11 @@ function processRenderCallbacks(picker: any, monthIndex: number, daysContainer: 
                     }
                 }
             } catch (error) {
-                console.error('[DatePicker] Error in renderDay callback:', error);
+                console.error('[DatePicker] Error in renderDayCallback:', error);
             }
-        } else if (picker.options.renderDayContent) {
+        } else if (picker.options.renderDayContentCallback) {
             try {
-                const result = picker.options.renderDayContent(renderData);
+                const result = picker.options.renderDayContentCallback(renderData);
                 if (result !== null && result !== undefined) {
                     // Append to default content (augmentation)
                     if (typeof result === 'string') {
@@ -492,7 +520,7 @@ function processRenderCallbacks(picker: any, monthIndex: number, daysContainer: 
                     }
                 }
             } catch (error) {
-                console.error('[DatePicker] Error in renderDayContent callback:', error);
+                console.error('[DatePicker] Error in renderDayContentCallback:', error);
             }
         }
     });
@@ -524,7 +552,7 @@ export function renderRollingSelector(picker: any, monthIndex: number) {
         const hasEnabledDays = hasEnabledDaysInYear(picker, year);
         const disabled = !hasEnabledDays ? 'drp-date-picker__rolling-item--disabled' : '';
 
-        yearsHtml += `<div class="drp-date-picker__rolling-item ${selected} ${disabled}" data-year="${year}" data-month-index="${monthIndex}">${year}</div>`;
+        yearsHtml += `<div class="drp-date-picker__rolling-item ${selected} ${disabled}" data-year="${year}" data-month-index="${monthIndex}"><span class="drp-date-picker__rolling-item-text">${year}</span></div>`;
     }
     if (yearsContainer) {
         yearsContainer.innerHTML = yearsHtml;
@@ -543,7 +571,7 @@ export function renderRollingSelector(picker: any, monthIndex: number) {
             const hasEnabledDays = hasEnabledDaysInMonth(picker, currentYear, monthIndex0Based);
             const disabled = !hasEnabledDays ? 'drp-date-picker__rolling-item--disabled' : '';
 
-            monthsHtml += `<div class="drp-date-picker__rolling-item ${selected} ${disabled}" data-month="${monthIndex0Based}" data-month-index="${monthIndex}">${name}</div>`;
+            monthsHtml += `<div class="drp-date-picker__rolling-item ${selected} ${disabled}" data-month="${monthIndex0Based}" data-month-index="${monthIndex}"><span class="drp-date-picker__rolling-item-text">${name}</span></div>`;
         }
         monthsContainer.innerHTML = monthsHtml;
     }

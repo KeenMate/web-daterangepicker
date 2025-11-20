@@ -58,6 +58,19 @@
     border-color: var(--drp-accent-color);
   }
 
+  // Disabled state
+  &:disabled,
+  &[disabled] {
+    opacity: var(--drp-disabled-opacity, $drp-opacity-disabled);
+    cursor: not-allowed;
+    pointer-events: none;  // Critical - prevents all mouse interactions
+
+    &:hover {
+      background-color: transparent;
+      border-color: var(--drp-border-color);
+    }
+  }
+
   // Today Button
   &--today {
     color: var(--drp-accent-color);

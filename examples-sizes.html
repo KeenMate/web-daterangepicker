@@ -399,6 +399,53 @@
   </div>
 
   <div class="card">
+    <h2>Custom Month Names & Alignment</h2>
+    <p>Examples demonstrating custom month names (numeric, abbreviated, or custom text) and rolling selector alignment.</p>
+
+    <h3>Numeric Months (01-12)</h3>
+    <div class="grid">
+      <div class="form-group">
+        <label>Numeric Months (Centered)</label>
+        <web-daterangepicker
+          id="numeric-months-centered"
+          selection-mode="single"
+          positioning-mode="inline"></web-daterangepicker>
+        <small>Month names as numbers 01-12, centered alignment</small>
+      </div>
+
+      <div class="form-group">
+        <label>Numeric Months (Left Aligned)</label>
+        <web-daterangepicker
+          id="numeric-months-left"
+          selection-mode="single"
+          positioning-mode="inline"></web-daterangepicker>
+        <small>Month names as numbers 01-12, left-aligned</small>
+      </div>
+    </div>
+
+    <h3>Long Month Names (Ellipsis Test)</h3>
+    <div class="grid">
+      <div class="form-group">
+        <label>Very Long Custom Month Names</label>
+        <web-daterangepicker
+          id="long-month-names"
+          selection-mode="single"
+          positioning-mode="inline"></web-daterangepicker>
+        <small>Tests ellipsis (...) for extremely long month names</small>
+      </div>
+
+      <div class="form-group">
+        <label>Long Names + Left Aligned</label>
+        <web-daterangepicker
+          id="long-month-names-left"
+          selection-mode="single"
+          positioning-mode="inline"></web-daterangepicker>
+        <small>Long names with left alignment to see ellipsis effect</small>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
     <h2>Everything at XS Size (Ultra Compact)</h2>
     <p>All calendar features at extra small size (0.6× scale / 60%) - perfect for dense layouts and dashboards.</p>
 
@@ -495,8 +542,68 @@
   </div>
 
   <script type="module" src="/src/index.ts"></script>
-  <script>
+  <script type="module">
     document.addEventListener('DOMContentLoaded', () => {
+      // Wait for web components to be defined
+      customElements.whenDefined('web-daterangepicker').then(() => {
+        // Give components time to initialize
+        setTimeout(() => {
+          // Custom month names examples
+
+          // 1. Numeric months (01-12) - Centered
+          const numericCentered = document.getElementById('numeric-months-centered');
+          if (numericCentered) {
+            numericCentered.setMonthNames(['01', '02', '03', '04', '05', '06', '07', '08', '09', '10', '11', '12']);
+          }
+
+          // 2. Numeric months (01-12) - Left aligned
+          const numericLeft = document.getElementById('numeric-months-left');
+          if (numericLeft) {
+            numericLeft.setMonthNames(['01', '02', '03', '04', '05', '06', '07', '08', '09', '10', '11', '12']);
+            numericLeft.setRollingItemAlignment('flex-start');
+          }
+
+          // 3. Long month names - Centered
+          const longNames = document.getElementById('long-month-names');
+          if (longNames) {
+            longNames.setMonthNames([
+              'Snow might come suddenly',
+              'Winter storms approaching',
+              'Spring flowers blooming',
+              'April showers bring May',
+              'Summer is getting closer',
+              'Longest day of the year',
+              'Hot and sunny vacation',
+              'Back to school season',
+              'Autumn leaves falling',
+              'Halloween preparations',
+              'Thanksgiving gathering',
+              'Christmas celebration'
+            ]);
+          }
+
+          // 4. Long month names - Left aligned
+          const longNamesLeft = document.getElementById('long-month-names-left');
+          if (longNamesLeft) {
+            longNamesLeft.setMonthNames([
+              'Snow might come suddenly',
+              'Winter storms approaching',
+              'Spring flowers blooming',
+              'April showers bring May',
+              'Summer is getting closer',
+              'Longest day of the year',
+              'Hot and sunny vacation',
+              'Back to school season',
+              'Autumn leaves falling',
+              'Halloween preparations',
+              'Thanksgiving gathering',
+              'Christmas celebration'
+            ]);
+            longNamesLeft.setRollingItemAlignment('flex-start');
+          }
+        }, 100); // Small delay to ensure pickers are initialized
+      });
+
       // Setup sizing examples
       const gridSmall = document.getElementById('grid-small');
       if (gridSmall) {

@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Theming & Customization Examples - Date Range Picker</title>
+  <title>Theming Showcase - Date Range Picker</title>
   <link rel="stylesheet" href="dist/style.css">
   <style>
     body {
@@ -115,36 +115,36 @@
     }
 
     /* Default picker - no overrides */
-    date-range-picker.default {
+    web-daterangepicker.default {
       /* Uses component defaults */
     }
 
     /* Green theme */
-    date-range-picker.theme-green {
+    web-daterangepicker.theme-green {
       --drp-accent-color: #10b981;
       --drp-accent-color-hover: #059669;
     }
 
     /* Purple theme */
-    date-range-picker.theme-purple {
+    web-daterangepicker.theme-purple {
       --drp-accent-color: #8b5cf6;
       --drp-accent-color-hover: #7c3aed;
     }
 
     /* Red theme */
-    date-range-picker.theme-red {
+    web-daterangepicker.theme-red {
       --drp-accent-color: #ef4444;
       --drp-accent-color-hover: #dc2626;
     }
 
     /* Orange theme */
-    date-range-picker.theme-orange {
+    web-daterangepicker.theme-orange {
       --drp-accent-color: #f97316;
       --drp-accent-color-hover: #ea580c;
     }
 
     /* Dark theme */
-    date-range-picker.theme-dark {
+    web-daterangepicker.theme-dark {
       --drp-card-bg: #1e293b;
       --drp-text-primary: #f1f5f9;
       --drp-text-secondary: #cbd5e1;
@@ -158,14 +158,14 @@
     }
 
     /* Large size with rounded corners */
-    date-range-picker.custom-large {
+    web-daterangepicker.custom-large {
       --drp-border-radius: 1rem;
       --drp-font-size-base: 1.125rem;
       --drp-spacing-md: 1.25rem;
     }
 
     /* Compact theme */
-    date-range-picker.theme-compact {
+    web-daterangepicker.theme-compact {
       --drp-spacing-xs: 0.125rem;
       --drp-spacing-sm: 0.25rem;
       --drp-spacing-md: 0.5rem;
@@ -173,14 +173,15 @@
       --drp-border-radius: 0.25rem;
     }
 
-    /* Pastel blue theme */
-    date-range-picker.theme-pastel {
+    /* Pastel yellow/orange theme */
+    web-daterangepicker.theme-pastel {
       --drp-card-bg: #fef3c7;
       --drp-border-color: #fbbf24;
-      --drp-accent-color: #3b82f6;
-      --drp-accent-color-hover: #2563eb;
+      --drp-accent-color: #f59e0b;
+      --drp-accent-color-hover: #d97706;
       --drp-primary-bg: #fed7aa;
       --drp-primary-bg-hover: #fdba74;
+      --drp-accent-text-color: #ffffff;
     }
   </style>
 </head>
@@ -192,7 +193,7 @@
     </a>
   </div>
 
-  <h1 class="page-title">🎨 Theming & Customization</h1>
+  <h1 class="page-title">🎭 Theming Showcase</h1>
   <p class="page-description">Learn how to customize appearance with CSS custom properties and see multiple themes in action.</p>
 
   <div class="test-section">
@@ -207,7 +208,7 @@
       </ul>
     </div>
     <div class="code-block">/* Your page CSS */
-date-range-picker.theme-green {
+web-daterangepicker.theme-green {
   --drp-accent-color: #10b981;
   --drp-accent-color-hover: #059669;
 }</div>
@@ -276,7 +277,7 @@ date-range-picker.theme-green {
     <div class="success">
       ✓ If calendar has dark background and light text, multiple variable override is working!
     </div>
-    <div class="code-block">date-range-picker.theme-dark {
+    <div class="code-block">web-daterangepicker.theme-dark {
   --drp-card-bg: #1e293b;
   --drp-text-primary: #f1f5f9;
   --drp-text-secondary: #cbd5e1;
@@ -415,7 +416,7 @@ function switchTheme(newTheme) {
 }</div>
   </div>
 
-  <script type="module" src="dist/date-range-picker.js"></script>
+  <script type="module" src="/src/index.ts"></script>
 
   <script>
     // Dynamic theme switching

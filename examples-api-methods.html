@@ -1,0 +1,1033 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API Methods - Web Daterangepicker</title>
+    <link rel="stylesheet" href="examples-shared.css">
+    <style>
+        .api-demo {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .control-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            align-items: center;
+        }
+
+        .control-group button {
+            padding: 0.5rem 1rem;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            background: white;
+            cursor: pointer;
+            font-size: 0.875rem;
+        }
+
+        .control-group button:hover {
+            background: #f5f5f5;
+        }
+
+        .control-group button:active {
+            background: #e0e0e0;
+        }
+
+        .output-display {
+            padding: 1rem;
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.875rem;
+            min-height: 2.5rem;
+        }
+
+        .method-signature {
+            background: #f1f3f5;
+            padding: 0.75rem 1rem;
+            border-left: 3px solid #4dabf7;
+            border-radius: 4px;
+            margin: 1rem 0;
+            font-family: 'Courier New', monospace;
+            font-size: 0.875rem;
+        }
+
+        .return-type {
+            color: #0c8599;
+            font-weight: 600;
+        }
+
+        .param-name {
+            color: #c92a2a;
+        }
+
+        .api-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1rem 0;
+        }
+
+        .api-table th,
+        .api-table td {
+            padding: 0.75rem;
+            text-align: left;
+            border-bottom: 1px solid #dee2e6;
+        }
+
+        .api-table th {
+            background: #f8f9fa;
+            font-weight: 600;
+        }
+
+        .api-table code {
+            background: #f1f3f5;
+            padding: 0.2rem 0.4rem;
+            border-radius: 3px;
+            font-size: 0.875rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="header-nav">
+        <a href="index.html" class="back-link">
+            <span>←</span>
+            <span>All Examples</span>
+        </a>
+    </div>
+
+    <h1 class="page-title">🔧 API Methods & Programmatic Control</h1>
+    <p class="page-description">
+        Complete guide to controlling the date picker programmatically using public API methods, properties, and events.
+    </p>
+
+        <!-- Section 1: Show/Hide/Toggle Methods -->
+        <section class="card">
+            <div class="card-header">
+                <h2 class="card-title">1. Show/Hide/Toggle Methods</h2>
+                <p class="card-description">
+                    Control calendar visibility programmatically. These methods are useful for external triggers,
+                    keyboard shortcuts, or conditional UI flows.
+                </p>
+            </div>
+            <div class="card-content">
+                <div class="api-demo">
+                    <web-daterangepicker
+                        id="picker-1"
+                        selection-mode="single"
+                        auto-close="never"
+                        calendar-placement="top"
+                        placeholder="Click buttons to control visibility">
+                    </web-daterangepicker>
+
+                    <div class="control-group">
+                        <button id="btn-show">Show Calendar</button>
+                        <button id="btn-hide">Hide Calendar</button>
+                        <button id="btn-toggle">Toggle Calendar</button>
+                    </div>
+
+                    <div class="output-display" id="output-1">
+                        Calendar state: <span id="state-1">closed</span>
+                    </div>
+                </div>
+
+                <div class="code-block">
+                    <button class="copy-button" onclick="copyCode(this)">Copy</button>
+                    <pre><code>const picker = document.getElementById('picker-1');
+
+// Show calendar
+picker.show();
+
+// Hide calendar
+picker.hide();
+
+// Toggle calendar
+picker.toggle();
+
+// Listen for state changes
+picker.addEventListener('calendar-open', () => {
+    console.log('Calendar opened');
+});
+
+picker.addEventListener('calendar-close', () => {
+    console.log('Calendar closed');
+});</code></pre>
+                </div>
+
+                <div class="method-signature">
+                    <div><span class="return-type">void</span> show()</div>
+                    <div><span class="return-type">void</span> hide()</div>
+                    <div><span class="return-type">void</span> toggle()</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 2: Get/Set Input Value -->
+        <section class="card">
+            <div class="card-header">
+                <h2 class="card-title">2. Get/Set Input Value</h2>
+                <p class="card-description">
+                    Read and write the formatted input value. The format follows the <code>date-format-mask</code> attribute.
+                    For range mode, use " - " separator (space-dash-space).
+                </p>
+            </div>
+            <div class="card-content">
+                <div class="api-demo">
+                    <div style="display: flex; gap: 1rem;">
+                        <div style="flex: 1;">
+                            <label style="display: block; margin-bottom: 0.5rem; font-weight: 600;">Single Date (YYYY-MM-DD)</label>
+                            <web-daterangepicker
+                                id="picker-2a"
+                                selection-mode="single"
+                                date-format-mask="YYYY-MM-DD"
+                                placeholder="YYYY-MM-DD">
+                            </web-daterangepicker>
+                        </div>
+                        <div style="flex: 1;">
+                            <label style="display: block; margin-bottom: 0.5rem; font-weight: 600;">Date Range (MM/DD/YYYY)</label>
+                            <web-daterangepicker
+                                id="picker-2b"
+                                selection-mode="range"
+                                date-format-mask="MM/DD/YYYY"
+                                placeholder="MM/DD/YYYY - MM/DD/YYYY">
+                            </web-daterangepicker>
+                        </div>
+                    </div>
+
+                    <div class="control-group">
+                        <button id="btn-get-single">Get Single Value</button>
+                        <button id="btn-set-single">Set Single (2025-03-15)</button>
+                        <button id="btn-get-range">Get Range Value</button>
+                        <button id="btn-set-range">Set Range (01/01/2025 - 01/31/2025)</button>
+                    </div>
+
+                    <div class="output-display" id="output-2">
+                        Click buttons to get/set values...
+                    </div>
+                </div>
+
+                <div class="code-block">
+                    <button class="copy-button" onclick="copyCode(this)">Copy</button>
+                    <pre><code>const singlePicker = document.getElementById('picker-2a');
+const rangePicker = document.getElementById('picker-2b');
+
+// Get current input value (formatted string)
+const singleValue = singlePicker.getInputValue();
+// Returns: "2025-03-15" or empty string
+
+const rangeValue = rangePicker.getInputValue();
+// Returns: "01/01/2025 - 01/31/2025" or empty string
+
+// Set input value (must match format mask)
+singlePicker.setInputValue('2025-03-15');
+rangePicker.setInputValue('01/01/2025 - 01/31/2025');
+
+// Clear input
+singlePicker.setInputValue('');
+rangePicker.setInputValue('');</code></pre>
+                </div>
+
+                <div class="method-signature">
+                    <div><span class="return-type">string</span> getInputValue()</div>
+                    <div><span class="return-type">void</span> setInputValue(<span class="param-name">value</span>: string)</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 3: Clear Selection -->
+        <section class="card">
+            <div class="card-header">
+                <h2 class="card-title">3. Clear Selection</h2>
+                <p class="card-description">
+                    Clear the current selection and reset the picker to its initial state.
+                    This clears both the input value and internal date state.
+                </p>
+            </div>
+            <div class="card-content">
+                <div class="api-demo">
+                    <div style="display: flex; gap: 1rem;">
+                        <div style="flex: 1;">
+                            <web-daterangepicker
+                                id="picker-3a"
+                                selection-mode="single"
+                                placeholder="Select a date">
+                            </web-daterangepicker>
+                        </div>
+                        <div style="flex: 1;">
+                            <web-daterangepicker
+                                id="picker-3b"
+                                selection-mode="range"
+                                visible-months-count="2"
+                                placeholder="Select date range">
+                            </web-daterangepicker>
+                        </div>
+                    </div>
+
+                    <div class="control-group">
+                        <button id="btn-clear-single">Clear Single Picker</button>
+                        <button id="btn-clear-range">Clear Range Picker</button>
+                        <button id="btn-clear-both">Clear Both</button>
+                    </div>
+
+                    <div class="output-display" id="output-3">
+                        Selections will be cleared...
+                    </div>
+                </div>
+
+                <div class="code-block">
+                    <button class="copy-button" onclick="copyCode(this)">Copy</button>
+                    <pre><code>const picker = document.getElementById('picker-3a');
+
+// Clear selection
+picker.clearSelection();
+
+// Verify it's cleared
+console.log(picker.getInputValue()); // ""
+
+// Clear and reset to specific date
+picker.clearSelection();
+picker.setInputValue('2025-12-25');</code></pre>
+                </div>
+
+                <div class="method-signature">
+                    <div><span class="return-type">void</span> clearSelection()</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 4: Reactive Properties (selectedDate, selectedRanges) -->
+        <section class="card">
+            <div class="card-header">
+                <h2 class="card-title">4. Reactive Properties (selectedDate, selectedRanges)</h2>
+                <p class="card-description">
+                    Access and modify selection using Date objects. These properties are reactive and trigger
+                    re-rendering and events when changed.
+                </p>
+            </div>
+            <div class="card-content">
+                <div class="api-demo">
+                    <div style="display: flex; gap: 1rem;">
+                        <div style="flex: 1;">
+                            <label style="display: block; margin-bottom: 0.5rem; font-weight: 600;">Single Mode</label>
+                            <web-daterangepicker
+                                id="picker-4a"
+                                selection-mode="single"
+                                placeholder="Single date picker">
+                            </web-daterangepicker>
+                        </div>
+                        <div style="flex: 1;">
+                            <label style="display: block; margin-bottom: 0.5rem; font-weight: 600;">Range Mode</label>
+                            <web-daterangepicker
+                                id="picker-4b"
+                                selection-mode="range"
+                                visible-months-count="2"
+                                placeholder="Range picker">
+                            </web-daterangepicker>
+                        </div>
+                    </div>
+
+                    <div class="control-group">
+                        <button id="btn-get-date">Get Single Date</button>
+                        <button id="btn-set-today">Set Today</button>
+                        <button id="btn-get-ranges">Get Ranges</button>
+                        <button id="btn-set-this-week">Set This Week</button>
+                    </div>
+
+                    <div class="output-display" id="output-4">
+                        Click buttons to interact with reactive properties...
+                    </div>
+                </div>
+
+                <div class="code-block">
+                    <button class="copy-button" onclick="copyCode(this)">Copy</button>
+                    <pre><code>const singlePicker = document.getElementById('picker-4a');
+const rangePicker = document.getElementById('picker-4b');
+
+// Get selected date (single mode)
+const date = singlePicker.selectedDate;
+// Returns: Date object or null
+
+// Set selected date (single mode)
+singlePicker.selectedDate = new Date('2025-12-25');
+// Triggers re-render and date-select event
+
+// Get selected ranges (range mode)
+const ranges = rangePicker.selectedRanges;
+// Returns: [{start: Date, end: Date}] or []
+
+// Set selected ranges (range mode)
+rangePicker.selectedRanges = [{
+    start: new Date('2025-01-01'),
+    end: new Date('2025-01-31')
+}];
+// Triggers re-render and date-select event
+
+// Clear using properties
+singlePicker.selectedDate = null;
+rangePicker.selectedRanges = [];</code></pre>
+                </div>
+
+                <div class="method-signature">
+                    <div><span class="return-type">Date | null</span> selectedDate</div>
+                    <div><span class="return-type">DateRange[]</span> selectedRanges</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 5: Calendar State (isOpen) -->
+        <section class="card">
+            <div class="card-header">
+                <h2 class="card-title">5. Calendar State (isOpen)</h2>
+                <p class="card-description">
+                    Read the current calendar visibility state. This is useful for conditional logic,
+                    UI synchronization, or analytics tracking.
+                </p>
+            </div>
+            <div class="card-content">
+                <div class="api-demo">
+                    <web-daterangepicker
+                        id="picker-5"
+                        selection-mode="single"
+                        placeholder="Click input or buttons">
+                    </web-daterangepicker>
+
+                    <div class="control-group">
+                        <button id="btn-check-state">Check State</button>
+                        <button id="btn-toggle-5">Toggle Calendar</button>
+                    </div>
+
+                    <div class="output-display" id="output-5">
+                        Calendar state: <span id="state-5">unknown</span>
+                    </div>
+                </div>
+
+                <div class="code-block">
+                    <button class="copy-button" onclick="copyCode(this)">Copy</button>
+                    <pre><code>const picker = document.getElementById('picker-5');
+
+// Check if calendar is open
+if (picker.isOpen) {
+    console.log('Calendar is visible');
+} else {
+    console.log('Calendar is hidden');
+}
+
+// Conditional toggle
+function smartToggle() {
+    if (picker.isOpen) {
+        picker.hide();
+        console.log('Closed calendar');
+    } else {
+        picker.show();
+        console.log('Opened calendar');
+    }
+}
+
+// Track state changes
+picker.addEventListener('calendar-open', () => {
+    console.log('isOpen is now:', picker.isOpen); // true
+});
+
+picker.addEventListener('calendar-close', () => {
+    console.log('isOpen is now:', picker.isOpen); // false
+});</code></pre>
+                </div>
+
+                <div class="method-signature">
+                    <div><span class="return-type">boolean</span> isOpen <em>(read-only)</em></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 6: Picker Instance Access -->
+        <section class="card">
+            <div class="card-header">
+                <h2 class="card-title">6. Picker Instance Access</h2>
+                <p class="card-description">
+                    Access the underlying DateRangePicker instance for advanced features and internal state.
+                    <strong>Note:</strong> This is an advanced API - prefer using web component methods when possible.
+                </p>
+            </div>
+            <div class="card-content">
+                <div class="api-demo">
+                    <web-daterangepicker
+                        id="picker-6"
+                        selection-mode="range"
+                        visible-months-count="2"
+                        placeholder="Advanced picker">
+                    </web-daterangepicker>
+
+                    <div class="control-group">
+                        <button id="btn-get-instance">Get Picker Instance</button>
+                        <button id="btn-get-internal-state">Get Internal State</button>
+                    </div>
+
+                    <div class="output-display" id="output-6">
+                        Click buttons to explore picker instance...
+                    </div>
+                </div>
+
+                <div class="code-block">
+                    <button class="copy-button" onclick="copyCode(this)">Copy</button>
+                    <pre><code>const component = document.getElementById('picker-6');
+
+// Access underlying picker instance
+const picker = component.picker;
+
+if (picker) {
+    // Access internal state
+    console.log('Selected start:', picker.selectedStartDate);
+    console.log('Selected end:', picker.selectedEndDate);
+    console.log('Format info:', picker.formatInfo);
+    console.log('Months to show:', picker.monthsToShow);
+
+    // Access calendar element
+    const calendar = picker.calendar;
+    console.log('Calendar element:', calendar);
+
+    // Access configuration
+    console.log('Mode:', picker.mode); // 'single' or 'range'
+    console.log('Auto-close:', picker.autoClose);
+    console.log('Show summary:', picker.showSummary);
+} else {
+    console.warn('Picker not initialized yet');
+}</code></pre>
+                </div>
+
+                <div class="method-signature">
+                    <div><span class="return-type">DateRangePicker | null</span> picker <em>(read-only)</em></div>
+                </div>
+
+                <div style="background: #fff3cd; border: 1px solid #ffc107; border-radius: 4px; padding: 1rem; margin-top: 1rem;">
+                    <strong>⚠️ Advanced API Warning:</strong>
+                    <p style="margin: 0.5rem 0 0 0; font-size: 0.875rem;">
+                        Direct picker instance access is provided for advanced use cases. Modifying internal state
+                        directly may cause unexpected behavior. Always prefer web component methods and properties
+                        when available.
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 7: Complete API Reference -->
+        <section class="card">
+            <div class="card-header">
+                <h2 class="card-title">7. Complete API Reference</h2>
+                <p class="card-description">
+                    Full reference of all public methods, properties, and events available on the
+                    <code>&lt;web-daterangepicker&gt;</code> component.
+                </p>
+            </div>
+            <div class="card-content">
+                <h3 style="margin-top: 0;">Methods</h3>
+                <table class="api-table">
+                    <thead>
+                        <tr>
+                            <th>Method</th>
+                            <th>Returns</th>
+                            <th>Description</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><code>show()</code></td>
+                            <td><code>void</code></td>
+                            <td>Open the calendar popup</td>
+                        </tr>
+                        <tr>
+                            <td><code>hide()</code></td>
+                            <td><code>void</code></td>
+                            <td>Close the calendar popup</td>
+                        </tr>
+                        <tr>
+                            <td><code>toggle()</code></td>
+                            <td><code>void</code></td>
+                            <td>Toggle calendar visibility</td>
+                        </tr>
+                        <tr>
+                            <td><code>getInputValue()</code></td>
+                            <td><code>string</code></td>
+                            <td>Get formatted input value</td>
+                        </tr>
+                        <tr>
+                            <td><code>setInputValue(value)</code></td>
+                            <td><code>void</code></td>
+                            <td>Set formatted input value</td>
+                        </tr>
+                        <tr>
+                            <td><code>clearSelection()</code></td>
+                            <td><code>void</code></td>
+                            <td>Clear selection and reset state</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <h3>Properties</h3>
+                <table class="api-table">
+                    <thead>
+                        <tr>
+                            <th>Property</th>
+                            <th>Type</th>
+                            <th>Access</th>
+                            <th>Description</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><code>selectedDate</code></td>
+                            <td><code>Date | null</code></td>
+                            <td>Read/Write</td>
+                            <td>Selected date (single mode)</td>
+                        </tr>
+                        <tr>
+                            <td><code>selectedRanges</code></td>
+                            <td><code>DateRange[]</code></td>
+                            <td>Read/Write</td>
+                            <td>Selected ranges (range mode)</td>
+                        </tr>
+                        <tr>
+                            <td><code>isOpen</code></td>
+                            <td><code>boolean</code></td>
+                            <td>Read-only</td>
+                            <td>Calendar visibility state</td>
+                        </tr>
+                        <tr>
+                            <td><code>picker</code></td>
+                            <td><code>DateRangePicker | null</code></td>
+                            <td>Read-only</td>
+                            <td>Underlying picker instance</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <h3>Events</h3>
+                <table class="api-table">
+                    <thead>
+                        <tr>
+                            <th>Event</th>
+                            <th>Detail Type</th>
+                            <th>Description</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><code>date-select</code></td>
+                            <td><code>DateSelectDetail</code></td>
+                            <td>Fired when date(s) selected</td>
+                        </tr>
+                        <tr>
+                            <td><code>calendar-open</code></td>
+                            <td><code>void</code></td>
+                            <td>Fired when calendar opens</td>
+                        </tr>
+                        <tr>
+                            <td><code>calendar-close</code></td>
+                            <td><code>void</code></td>
+                            <td>Fired when calendar closes</td>
+                        </tr>
+                        <tr>
+                            <td><code>input-change</code></td>
+                            <td><code>string</code></td>
+                            <td>Fired when input value changes</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <h3>TypeScript Interfaces</h3>
+                <div class="code-block">
+                    <button class="copy-button" onclick="copyCode(this)">Copy</button>
+                    <pre><code>interface DateRange {
+    start: Date;
+    end: Date;
+}
+
+interface DateSelectDetail {
+    formattedValue: string;
+    date?: Date;           // Single mode only
+    dateRange?: DateRange; // Range mode only
+}
+
+// Usage with TypeScript
+const picker = document.getElementById('my-picker') as WebDaterangepickerElement;
+
+picker.addEventListener('date-select', (event: CustomEvent&lt;DateSelectDetail&gt;) => {
+    console.log('Formatted:', event.detail.formattedValue);
+
+    if (event.detail.date) {
+        console.log('Single date:', event.detail.date);
+    }
+
+    if (event.detail.dateRange) {
+        console.log('Range:', event.detail.dateRange.start, '-', event.detail.dateRange.end);
+    }
+});</code></pre>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 8: Integration Patterns -->
+        <section class="card">
+            <div class="card-header">
+                <h2 class="card-title">8. Integration Patterns</h2>
+                <p class="card-description">
+                    Common patterns for integrating the date picker with forms, frameworks, and application state.
+                </p>
+            </div>
+            <div class="card-content">
+                <h3 style="margin-top: 0;">Form Integration</h3>
+                <div class="code-block">
+                    <button class="copy-button" onclick="copyCode(this)">Copy</button>
+                    <pre><code>&lt;form id="booking-form"&gt;
+    &lt;web-daterangepicker
+        id="check-in"
+        name="check-in-date"
+        selection-mode="single"
+        required&gt;
+    &lt;/web-daterangepicker&gt;
+
+    &lt;button type="submit"&gt;Book Now&lt;/button&gt;
+&lt;/form&gt;
+
+&lt;script&gt;
+const form = document.getElementById('booking-form');
+const checkIn = document.getElementById('check-in');
+
+form.addEventListener('submit', (e) => {
+    e.preventDefault();
+
+    const date = checkIn.selectedDate;
+    if (!date) {
+        alert('Please select a check-in date');
+        return;
+    }
+
+    // Submit form data
+    const formData = new FormData();
+    formData.append('check-in', checkIn.getInputValue());
+
+    fetch('/api/booking', {
+        method: 'POST',
+        body: formData
+    });
+});
+&lt;/script&gt;</code></pre>
+                </div>
+
+                <h3>React/Vue Integration</h3>
+                <div class="code-block">
+                    <button class="copy-button" onclick="copyCode(this)">Copy</button>
+                    <pre><code>// React
+import { useRef, useEffect } from 'react';
+
+function DatePicker({ value, onChange }) {
+    const pickerRef = useRef(null);
+
+    useEffect(() => {
+        const picker = pickerRef.current;
+
+        const handleSelect = (e) => {
+            onChange(e.detail.formattedValue);
+        };
+
+        picker.addEventListener('date-select', handleSelect);
+        return () => picker.removeEventListener('date-select', handleSelect);
+    }, [onChange]);
+
+    useEffect(() => {
+        if (pickerRef.current && value) {
+            pickerRef.current.setInputValue(value);
+        }
+    }, [value]);
+
+    return &lt;web-daterangepicker ref={pickerRef} /&gt;;
+}
+
+// Vue 3
+&lt;template&gt;
+    &lt;web-daterangepicker
+        ref="picker"
+        @date-select="handleSelect"
+    &gt;&lt;/web-daterangepicker&gt;
+&lt;/template&gt;
+
+&lt;script setup&gt;
+import { ref, watch } from 'vue';
+
+const picker = ref(null);
+const selectedValue = ref('');
+
+function handleSelect(event) {
+    selectedValue.value = event.detail.formattedValue;
+}
+
+watch(selectedValue, (newValue) => {
+    if (picker.value) {
+        picker.value.setInputValue(newValue);
+    }
+});
+&lt;/script&gt;</code></pre>
+                </div>
+
+                <h3>State Synchronization</h3>
+                <div class="code-block">
+                    <button class="copy-button" onclick="copyCode(this)">Copy</button>
+                    <pre><code>// Synchronize with application state
+class DateRangeManager {
+    constructor() {
+        this.picker = document.getElementById('date-range');
+        this.state = {
+            start: null,
+            end: null,
+            formatted: ''
+        };
+
+        this.init();
+    }
+
+    init() {
+        // Listen for picker changes
+        this.picker.addEventListener('date-select', (e) => {
+            if (e.detail.dateRange) {
+                this.state.start = e.detail.dateRange.start;
+                this.state.end = e.detail.dateRange.end;
+                this.state.formatted = e.detail.formattedValue;
+                this.onStateChange();
+            }
+        });
+
+        // Restore state on page load
+        this.restoreState();
+    }
+
+    onStateChange() {
+        // Update UI, save to localStorage, sync with server, etc.
+        localStorage.setItem('date-range', JSON.stringify({
+            start: this.state.start?.toISOString(),
+            end: this.state.end?.toISOString()
+        }));
+
+        this.updateDashboard();
+    }
+
+    restoreState() {
+        const saved = localStorage.getItem('date-range');
+        if (saved) {
+            const { start, end } = JSON.parse(saved);
+            this.picker.selectedRanges = [{
+                start: new Date(start),
+                end: new Date(end)
+            }];
+        }
+    }
+
+    updateDashboard() {
+        // Update other UI elements based on date range
+        console.log('Updating dashboard for:', this.state);
+    }
+}
+
+const manager = new DateRangeManager();</code></pre>
+                </div>
+            </div>
+        </section>
+
+    <script type="module">
+        import { WebDaterangepickerElement } from './src/index.ts';
+
+        // Wait for custom element to be defined
+        await customElements.whenDefined('web-daterangepicker');
+
+        // Section 1: Show/Hide/Toggle
+        const picker1 = document.getElementById('picker-1');
+        const output1 = document.getElementById('output-1');
+        const state1 = document.getElementById('state-1');
+
+        document.getElementById('btn-show').addEventListener('click', () => {
+            picker1.show();
+        });
+
+        document.getElementById('btn-hide').addEventListener('click', () => {
+            picker1.hide();
+        });
+
+        document.getElementById('btn-toggle').addEventListener('click', () => {
+            picker1.toggle();
+        });
+
+        picker1.addEventListener('calendar-open', () => {
+            state1.textContent = 'open';
+            output1.innerHTML = 'Calendar state: <strong style="color: #28a745;">open</strong>';
+        });
+
+        picker1.addEventListener('calendar-close', () => {
+            state1.textContent = 'closed';
+            output1.innerHTML = 'Calendar state: <strong style="color: #6c757d;">closed</strong>';
+        });
+
+        // Section 2: Get/Set Input Value
+        const picker2a = document.getElementById('picker-2a');
+        const picker2b = document.getElementById('picker-2b');
+        const output2 = document.getElementById('output-2');
+
+        document.getElementById('btn-get-single').addEventListener('click', () => {
+            const value = picker2a.getInputValue();
+            output2.innerHTML = `Single value: <strong>${value || '(empty)'}</strong>`;
+        });
+
+        document.getElementById('btn-set-single').addEventListener('click', () => {
+            picker2a.setInputValue('2025-03-15');
+            output2.innerHTML = 'Set single value to: <strong>2025-03-15</strong>';
+        });
+
+        document.getElementById('btn-get-range').addEventListener('click', () => {
+            const value = picker2b.getInputValue();
+            output2.innerHTML = `Range value: <strong>${value || '(empty)'}</strong>`;
+        });
+
+        document.getElementById('btn-set-range').addEventListener('click', () => {
+            picker2b.setInputValue('01/01/2025 - 01/31/2025');
+            output2.innerHTML = 'Set range value to: <strong>01/01/2025 - 01/31/2025</strong>';
+        });
+
+        // Section 3: Clear Selection
+        const picker3a = document.getElementById('picker-3a');
+        const picker3b = document.getElementById('picker-3b');
+        const output3 = document.getElementById('output-3');
+
+        document.getElementById('btn-clear-single').addEventListener('click', () => {
+            picker3a.clearSelection();
+            output3.innerHTML = 'Cleared single picker';
+        });
+
+        document.getElementById('btn-clear-range').addEventListener('click', () => {
+            picker3b.clearSelection();
+            output3.innerHTML = 'Cleared range picker';
+        });
+
+        document.getElementById('btn-clear-both').addEventListener('click', () => {
+            picker3a.clearSelection();
+            picker3b.clearSelection();
+            output3.innerHTML = 'Cleared both pickers';
+        });
+
+        // Section 4: Reactive Properties
+        const picker4a = document.getElementById('picker-4a');
+        const picker4b = document.getElementById('picker-4b');
+        const output4 = document.getElementById('output-4');
+
+        document.getElementById('btn-get-date').addEventListener('click', () => {
+            const date = picker4a.selectedDate;
+            if (date) {
+                output4.innerHTML = `Selected date: <strong>${date.toLocaleDateString()}</strong>`;
+            } else {
+                output4.innerHTML = 'No date selected';
+            }
+        });
+
+        document.getElementById('btn-set-today').addEventListener('click', () => {
+            picker4a.selectedDate = new Date();
+            output4.innerHTML = `Set to today: <strong>${new Date().toLocaleDateString()}</strong>`;
+        });
+
+        document.getElementById('btn-get-ranges').addEventListener('click', () => {
+            const ranges = picker4b.selectedRanges;
+            if (ranges.length > 0) {
+                const { start, end } = ranges[0];
+                output4.innerHTML = `Selected range: <strong>${start.toLocaleDateString()} - ${end.toLocaleDateString()}</strong>`;
+            } else {
+                output4.innerHTML = 'No range selected';
+            }
+        });
+
+        document.getElementById('btn-set-this-week').addEventListener('click', () => {
+            const today = new Date();
+            const dayOfWeek = today.getDay();
+            const start = new Date(today);
+            start.setDate(today.getDate() - dayOfWeek);
+            const end = new Date(today);
+            end.setDate(today.getDate() + (6 - dayOfWeek));
+
+            picker4b.selectedRanges = [{ start, end }];
+            output4.innerHTML = `Set to this week: <strong>${start.toLocaleDateString()} - ${end.toLocaleDateString()}</strong>`;
+        });
+
+        // Section 5: Calendar State
+        const picker5 = document.getElementById('picker-5');
+        const output5 = document.getElementById('output-5');
+        const state5 = document.getElementById('state-5');
+
+        function updateState5() {
+            const isOpen = picker5.isOpen;
+            state5.textContent = isOpen ? 'open' : 'closed';
+            state5.style.color = isOpen ? '#28a745' : '#6c757d';
+            state5.style.fontWeight = 'bold';
+        }
+
+        document.getElementById('btn-check-state').addEventListener('click', () => {
+            updateState5();
+            output5.innerHTML = `Calendar state: <strong style="color: ${picker5.isOpen ? '#28a745' : '#6c757d'};">${picker5.isOpen ? 'open' : 'closed'}</strong>`;
+        });
+
+        document.getElementById('btn-toggle-5').addEventListener('click', () => {
+            picker5.toggle();
+        });
+
+        picker5.addEventListener('calendar-open', updateState5);
+        picker5.addEventListener('calendar-close', updateState5);
+
+        // Section 6: Picker Instance Access
+        const picker6 = document.getElementById('picker-6');
+        const output6 = document.getElementById('output-6');
+
+        document.getElementById('btn-get-instance').addEventListener('click', () => {
+            const instance = picker6.picker;
+            if (instance) {
+                output6.innerHTML = `
+                    <div>Picker instance found:</div>
+                    <div>• Mode: <strong>${instance.mode}</strong></div>
+                    <div>• Months to show: <strong>${instance.monthsToShow}</strong></div>
+                    <div>• Auto-close: <strong>${instance.autoClose}</strong></div>
+                `;
+            } else {
+                output6.innerHTML = '<strong style="color: #dc3545;">Picker not initialized</strong>';
+            }
+        });
+
+        document.getElementById('btn-get-internal-state').addEventListener('click', () => {
+            const instance = picker6.picker;
+            if (instance) {
+                const hasStart = instance.selectedStartDate !== null;
+                const hasEnd = instance.selectedEndDate !== null;
+
+                output6.innerHTML = `
+                    <div>Internal state:</div>
+                    <div>• Start date: <strong>${hasStart ? instance.selectedStartDate.toLocaleDateString() : 'null'}</strong></div>
+                    <div>• End date: <strong>${hasEnd ? instance.selectedEndDate.toLocaleDateString() : 'null'}</strong></div>
+                    <div>• Format: <strong>${instance.formatInfo.mask}</strong></div>
+                `;
+            } else {
+                output6.innerHTML = '<strong style="color: #dc3545;">Picker not initialized</strong>';
+            }
+        });
+
+        // Copy code functionality
+        window.copyCode = function(button) {
+            const codeBlock = button.nextElementSibling;
+            const code = codeBlock.textContent;
+            navigator.clipboard.writeText(code);
+
+            const originalText = button.textContent;
+            button.textContent = 'Copied!';
+            button.style.background = '#28a745';
+
+            setTimeout(() => {
+                button.textContent = originalText;
+                button.style.background = '';
+            }, 2000);
+        };
+    </script>
+</body>
+</html>

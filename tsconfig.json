@@ -10,7 +10,7 @@
     "allowImportingTsExtensions": true,
     "resolveJsonModule": true,
     "isolatedModules": true,
-    "noEmit": true,
+    "noEmit": false,
 
     /* Linting */
     "strict": false,
@@ -23,7 +23,7 @@
     /* Declaration */
     "declaration": true,
     "declarationDir": "./dist",
-    "emitDeclarationOnly": false,
+    "emitDeclarationOnly": true,
     "skipLibCheck": true
   },
   "include": ["src"],

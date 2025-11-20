@@ -118,11 +118,6 @@
       border-radius: 3px;
     }
 
-    .weekend-day {
-      background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
-      border-radius: 4px;
-    }
-
     .emoji-day {
       font-size: 18px;
       line-height: 1;
@@ -219,11 +214,11 @@
 &lt;/date-range-picker&gt;</code></pre>
   </div>
 
-  <!-- Example 2: renderDay Callback (Full Replacement) -->
+  <!-- Example 2: renderDayCallback (Full Replacement) -->
   <div class="card">
-    <h2>2. renderDay Callback (Full Replacement)</h2>
+    <h2>2. renderDayCallback (Full Replacement)</h2>
     <p class="description">
-      Use <code>picker.renderDay</code> to completely replace day cell content with custom logic.
+      Use <code>picker.renderDayCallback</code> to completely replace day cell content with custom logic.
       Perfect for dynamic data like prices, availability, or complex styling.
     </p>
 
@@ -242,7 +237,7 @@ const prices = {
   '2025-02-22': 149
 };
 
-picker.renderDay = (data) => {
+picker.renderDayCallback = (data) => {
   const price = prices[data.dateString];
 
   const container = document.createElement('div');
@@ -263,11 +258,11 @@ picker.renderDay = (data) => {
 };</code></pre>
   </div>
 
-  <!-- Example 3: renderDayContent Callback (Augmentation) -->
+  <!-- Example 3: renderDayContentCallback (Augmentation) -->
   <div class="card">
-    <h2>3. renderDayContent Callback (Augmentation)</h2>
+    <h2>3.renderDayContentCallback Callback (Augmentation)</h2>
     <p class="description">
-      Use <code>picker.renderDayContent</code> to ADD content to the default day cell rendering.
+      Use <code>picker.renderDayContentCallback</code> to ADD content to the default day cell rendering.
       The day number is rendered by the component, your callback adds extra elements.
     </p>
 
@@ -278,6 +273,19 @@ picker.renderDay = (data) => {
 
     <pre><code>const picker = document.getElementById('callback-augment');
 
+// Inject CSS for event-dot into Shadow DOM
+picker.customStylesCallback = () => `
+  .event-dot {
+    position: absolute;
+    bottom: 2px;
+    right: 2px;
+    width: 6px;
+    height: 6px;
+    background: #3b82f6;
+    border-radius: 50%;
+  }
+`;
+
 // Simulated events
 const events = {
   '2025-03-05': true,
@@ -286,7 +294,7 @@ const events = {
   '2025-03-26': true
 };
 
-picker.renderDayContent = (data) => {
+picker.renderDayContentCallback = (data) => {
   // Check if this date has an event
   if (events[data.dateString]) {
     const dot = document.createElement('span');
@@ -301,35 +309,43 @@ picker.renderDayContent = (data) => {
   <div class="card">
     <h2>4. Dynamic Styling Based on State</h2>
     <p class="description">
-      Access state flags like <code>isWeekend</code>, <code>isToday</code>, <code>isDisabled</code> to apply custom styling.
+      Rainbow weekday visualization showing traffic intensity: Monday (light blue, lowest) → Friday (red, highest), weekends in pink/purple.
+      Uses <code>customStylesCallback</code> to inject CSS into Shadow DOM, then <code>getDateMetadataCallback</code> returns <code>dayClass</code> to style the entire day cell wrapper.
+      This is simpler than <code>renderDayCallback</code> and styles the whole day, not just the content.
     </p>
 
     <div class="form-group">
-      <label>Highlight Weekends</label>
+      <label>Traffic Intensity by Day of Week</label>
       <web-daterangepicker id="callback-weekends" date-format-mask="YYYY-MM-DD" min-date="2025-04-01" max-date="2025-04-30"></web-daterangepicker>
     </div>
 
     <pre><code>const picker = document.getElementById('callback-weekends');
 
-picker.renderDay = (data) => {
-  const container = document.createElement('div');
+// Inject custom CSS into Shadow DOM for weekday styling
+picker.customStylesCallback = () => `
+  .weekday-sun { background: linear-gradient(135deg, #e9d5ff 0%, #d8b4fe 100%); }
+  .weekday-mon { background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%); }
+  .weekday-tue { background: linear-gradient(135deg, #bfdbfe 0%, #93c5fd 100%); }
+  .weekday-wed { background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%); }
+  .weekday-thu { background: linear-gradient(135deg, #fed7aa 0%, #fdba74 100%); }
+  .weekday-fri { background: linear-gradient(135deg, #fca5a5 0%, #f87171 100%); }
+  .weekday-sat { background: linear-gradient(135deg, #fbcfe8 0%, #f9a8d4 100%); }
 
-  if (data.isWeekend && !data.isDisabled) {
-    container.className = 'weekend-day';
+  .weekday-sun, .weekday-mon, .weekday-tue, .weekday-wed,
+  .weekday-thu, .weekday-fri, .weekday-sat {
+    font-weight: 600;
   }
+`;
 
-  const dayNum = document.createElement('strong');
-  dayNum.textContent = data.dayNumber;
-  container.appendChild(dayNum);
+// Apply CSS class to day wrapper based on day of week
+picker.getDateMetadataCallback = (date) => {
+  const dayOfWeek = date.getDay();
+  const weekdayClasses = ['weekday-sun', 'weekday-mon', 'weekday-tue',
+                          'weekday-wed', 'weekday-thu', 'weekday-fri', 'weekday-sat'];
 
-  if (data.isWeekend) {
-    const label = document.createElement('span');
-    label.className = 'day-label';
-    label.textContent = 'Weekend';
-    container.appendChild(label);
-  }
-
-  return container;
+  return {
+    dayClass: weekdayClasses[dayOfWeek]
+  };
 };</code></pre>
   </div>
 
@@ -353,10 +369,15 @@ picker.renderDay = (data) => {
 
     <pre><code>const picker = document.getElementById('callback-mixed');
 
+const cloudyDates = ['2025-05-03', '2025-05-04', '2025-05-10', '2025-05-17', '2025-05-18'];
+
 // Callback applies to all weekends
-picker.renderDayContent = (data) => {
+picker.renderDayContentCallback = (data) => {
   // This won't apply to May 25 (has slot)
   if (data.isWeekend) {
+    if (cloudyDates.includes(data.dateString)) {
+      return '☁️';
+    }
     return '☀️';
   }
   return null;
@@ -391,7 +412,17 @@ const bookingData = {
   '2025-06-22': { available: false, price: 0, booked: true }
 };
 
-picker.renderDay = (data) => {
+// Disable booked dates
+picker.getDateMetadataCallback = (date) => {
+  const dateStr = date.toISOString().split('T')[0];
+  const info = bookingData[dateStr];
+  if (info && info.booked) {
+    return { isDisabled: true };
+  }
+  return null;
+};
+
+picker.renderDayCallback = (data) => {
   const info = bookingData[data.dateString];
 
   const container = document.createElement('div');
@@ -421,11 +452,35 @@ picker.renderDay = (data) => {
   }
 
   return container;
-};</code></pre>
+};
+
+// Calculate price on selection
+picker.addEventListener('date-select', (event) =&gt; {
+  if (event.detail.dateRange) {
+    const start = event.detail.dateRange.start;
+    const end = event.detail.dateRange.end;
+    let totalPrice = 0;
+
+    const current = new Date(start);
+    while (current &lt;= end) {
+      const dateStr = current.toISOString().split('T')[0];
+      const dayInfo = bookingData[dateStr];
+      if (dayInfo &amp;&amp; dayInfo.available) {
+        totalPrice += dayInfo.price;
+      }
+      current.setDate(current.getDate() + 1);
+    }
+
+    console.log('Total price:', totalPrice);
+  }
+});</code></pre>
   </div>
 
   <script type="module" src="/src/index.ts"></script>
   <script type="module">
+    // Wait for web component to be defined
+    await customElements.whenDefined('web-daterangepicker');
+
     // Example 2: Hotel pricing callback
     const callbackFull = document.getElementById('callback-full');
     if (callbackFull) {
@@ -438,7 +493,7 @@ picker.renderDay = (data) => {
         '2025-02-28': 169
       };
 
-      callbackFull.renderDay = (data) => {
+      callbackFull.renderDayCallback = (data) => {
         const price = prices[data.dateString];
 
         const container = document.createElement('div');
@@ -462,6 +517,19 @@ picker.renderDay = (data) => {
     // Example 3: Event indicators callback
     const callbackAugment = document.getElementById('callback-augment');
     if (callbackAugment) {
+      // Inject CSS for event-dot into Shadow DOM
+      callbackAugment.customStylesCallback = () => `
+        .event-dot {
+          position: absolute;
+          bottom: 2px;
+          right: 2px;
+          width: 6px;
+          height: 6px;
+          background: #3b82f6;
+          border-radius: 50%;
+        }
+      `;
+
       const events = {
         '2025-03-05': true,
         '2025-03-12': true,
@@ -469,7 +537,7 @@ picker.renderDay = (data) => {
         '2025-03-26': true
       };
 
-      callbackAugment.renderDayContent = (data) => {
+      callbackAugment.renderDayContentCallback = (data) => {
         if (events[data.dateString]) {
           const dot = document.createElement('span');
           dot.className = 'event-dot';
@@ -479,37 +547,49 @@ picker.renderDay = (data) => {
       };
     }
 
-    // Example 4: Weekend highlighting
+    // Example 4: Traffic intensity visualization by day of week
     const callbackWeekends = document.getElementById('callback-weekends');
     if (callbackWeekends) {
-      callbackWeekends.renderDay = (data) => {
-        const container = document.createElement('div');
-        container.className = 'custom-day-content';
+      // Inject custom CSS into Shadow DOM for weekday styling
+      callbackWeekends.customStylesCallback = () => `
+        .weekday-sun { background: linear-gradient(135deg, #e9d5ff 0%, #d8b4fe 100%); }
+        .weekday-mon { background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%); }
+        .weekday-tue { background: linear-gradient(135deg, #bfdbfe 0%, #93c5fd 100%); }
+        .weekday-wed { background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%); }
+        .weekday-thu { background: linear-gradient(135deg, #fed7aa 0%, #fdba74 100%); }
+        .weekday-fri { background: linear-gradient(135deg, #fca5a5 0%, #f87171 100%); }
+        .weekday-sat { background: linear-gradient(135deg, #fbcfe8 0%, #f9a8d4 100%); }
 
-        if (data.isWeekend && !data.isDisabled) {
-          container.classList.add('weekend-day');
+        .weekday-sun, .weekday-mon, .weekday-tue, .weekday-wed,
+        .weekday-thu, .weekday-fri, .weekday-sat {
+          font-weight: 600;
         }
+      `;
 
-        const dayNum = document.createElement('strong');
-        dayNum.textContent = data.dayNumber;
-        container.appendChild(dayNum);
+      // Apply CSS class to day wrapper based on day of week
+      callbackWeekends.getDateMetadataCallback = (date) => {
+        const dayOfWeek = date.getDay();
+        const weekdayClasses = ['weekday-sun', 'weekday-mon', 'weekday-tue',
+                                'weekday-wed', 'weekday-thu', 'weekday-fri', 'weekday-sat'];
 
-        if (data.isWeekend) {
-          const label = document.createElement('span');
-          label.className = 'day-label';
-          label.textContent = data.date.getDay() === 0 ? 'Sun' : 'Sat';
-          container.appendChild(label);
-        }
-
-        return container;
+        return {
+          dayClass: weekdayClasses[dayOfWeek]
+        };
       };
     }
 
     // Example 5: Mixed slots and callbacks
     const callbackMixed = document.getElementById('callback-mixed');
     if (callbackMixed) {
-      callbackMixed.renderDayContent = (data) => {
+      // Define some cloudy dates
+      const cloudyDates = ['2025-05-03', '2025-05-04', '2025-05-10', '2025-05-17', '2025-05-18'];
+
+      callbackMixed.renderDayContentCallback = (data) => {
         if (data.isWeekend) {
+          // Show cloudy on specific dates, sunny on others
+          if (cloudyDates.includes(data.dateString)) {
+            return '☁️';
+          }
           return '☀️';
         }
         return null;
@@ -530,7 +610,20 @@ picker.renderDay = (data) => {
         '2025-06-29': { available: true, price: 190, booked: false }
       };
 
-      bookingSystem.renderDay = (data) => {
+      // Disable booked dates
+      bookingSystem.getDateMetadataCallback = (date) => {
+        const dateStr = date.toISOString().split('T')[0];
+        const info = bookingData[dateStr];
+
+        if (info && info.booked) {
+          return {
+            isDisabled: true
+          };
+        }
+        return null;
+      };
+
+      bookingSystem.renderDayCallback = (data) => {
         const info = bookingData[data.dateString];
 
         const container = document.createElement('div');

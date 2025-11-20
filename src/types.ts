@@ -1,36 +1,95 @@
 /**
- * Result from async range validation callback
- * Tells the component what action to take with the selected range
+ * Result from beforeDateSelect callback
+ * Tells the component what action to take with the proposed selection
  */
-export interface AsyncValidationResult {
+export interface BeforeSelectResult {
   /**
    * Action to take:
-   * - 'accept': Use the proposed range as-is
-   * - 'adjust': Use adjustedStartDate/adjustedEndDate instead
+   * - 'accept': Use the proposed selection as-is
+   * - 'adjust': Use adjusted date(s) instead
    * - 'restore': Revert to the previous selection before this operation
    * - 'clear': Clear the selection entirely
    */
   action: 'accept' | 'adjust' | 'restore' | 'clear';
 
-  /** If action is 'adjust', the new start date to use */
+  /** If action is 'adjust' (single mode), the new date to use */
+  adjustedDate?: Date;
+
+  /** If action is 'adjust' (range mode), the new start date to use */
   adjustedStartDate?: Date;
 
-  /** If action is 'adjust', the new end date to use */
+  /** If action is 'adjust' (range mode), the new end date to use */
   adjustedEndDate?: Date;
 
   /** Optional message to log or display to user */
   message?: string;
 }
 
+/**
+ * @deprecated Use BeforeSelectResult instead. Will be removed in v2.0.0
+ */
+export type AsyncValidationResult = BeforeSelectResult;
+
+/**
+ * Action button configuration for calendar actions (Today, Clear, Apply, custom actions)
+ * Aligned with web-multiselect ActionButton interface
+ */
+export interface ActionButton {
+  /** Action identifier ('today', 'clear', 'apply', or 'custom' for custom actions) */
+  action: 'today' | 'clear' | 'apply' | 'custom';
+
+  /** Button text label */
+  text: string;
+
+  /** Optional CSS class(es) to add to the button */
+  cssClass?: string;
+
+  /** Optional tooltip text */
+  tooltip?: string;
+
+  /** Static visibility - set to false to hide button */
+  isVisible?: boolean;
+
+  /** Static disabled state - set to true to disable button */
+  isDisabled?: boolean;
+
+  /** Custom click handler (required for 'custom' action) */
+  onClick?: (picker: any) => void | Promise<void>;
+
+  /** Dynamic visibility callback - return false to hide button (takes priority over isVisible) */
+  isVisibleCallback?: (picker: any) => boolean;
+
+  /** Dynamic disabled state callback - return true to disable button (takes priority over isDisabled) */
+  isDisabledCallback?: (picker: any) => boolean;
+
+  /** Dynamic text callback - return button text (takes priority over text) */
+  getTextCallback?: (picker: any) => string;
+
+  /** Dynamic CSS class callback - return class name(s) (takes priority over cssClass) */
+  getClassCallback?: (picker: any) => string | string[];
+
+  /** Dynamic tooltip callback - return tooltip text (takes priority over tooltip) */
+  getTooltipCallback?: (picker: any) => string;
+}
+
 export interface DatePickerOptions {
-  selectionMode?: 'single' | 'range';
+  selectionMode?: 'single' | 'range' | 'multiple';
   calendarPlacement?: string;
   visibleMonthsCount?: number;
   dateFormatMask?: string;
   calendarOpenTrigger?: 'focus' | 'typing' | 'manual';
-  onSelect?: (date: Date | DateRange) => void;
+  onSelect?: (date: Date | DateRange | DateRange[] | Date[]) => void;
   container?: HTMLElement; // Where to append the calendar (default: document.body)
   positioningMode?: 'inline' | 'floating'; // Display mode: 'inline' = static block, 'floating' = popup (default: 'floating')
+
+  /**
+   * Controls when the calendar auto-closes (floating mode only)
+   * - 'never': Never auto-close, not even when Apply is clicked - user must close manually
+   * - 'selection': Close when selection completes (single date click, range completion, drag-adjust) - DEFAULT
+   *                Note: Multiple mode never auto-closes on selection, inherently requires Apply
+   * - 'apply': Only close when Apply button is clicked
+   */
+  autoClose?: 'never' | 'selection' | 'apply';
 
   // Calendar layout
   monthLayout?: 'horizontal' | 'grid'; // Layout mode: 'horizontal' = flex row (default), 'grid' = CSS grid
@@ -56,13 +115,29 @@ export interface DatePickerOptions {
   // Special dates (holidays, events, etc.)
   specialDates?: DecoratedDate[];
 
+  // Property mapping for specialDates array items
+  // Specify which properties in your data objects map to DateInfo fields
+  // If not specified, defaults to DateInfo property names
+  dateMember?: string;              // Property containing the date value (default: 'date')
+  badgeTextMember?: string;         // Property containing badge text (default: 'badgeText')
+  badgeClassMember?: string;        // Property containing badge CSS class (default: 'badgeClass')
+  dayClassMember?: string;          // Property containing day CSS class (default: 'dayClass')
+  badgeTooltipMember?: string;      // Property containing badge tooltip (default: 'badgeTooltip')
+  dayTooltipMember?: string;        // Property containing day tooltip (default: 'dayTooltip')
+  isDisabledMember?: string;        // Property containing disabled flag (default: 'isDisabled')
+
   // Advanced callbacks
   isDateDisabled?: (date: Date) => boolean; // Custom disable logic
-  getDateMetadata?: (date: Date) => DateInfo | null; // Custom styling/labels
+  getDateMetadataCallback?: (date: Date) => DateInfo | null; // Custom styling/labels
 
   // Custom rendering
-  renderDay?: (data: DayRenderData) => HTMLElement | string | null; // Full replacement - return element/HTML to completely replace day cell content
-  renderDayContent?: (data: DayRenderData) => HTMLElement | string | null; // Augmentation - return element/HTML to add to default day cell
+  customStylesCallback?: () => string; // Return CSS string to inject into Shadow DOM for use with renderDayCallback classes
+  renderDayCallback?: (data: DayRenderData) => HTMLElement | string | null; // Full replacement - return element/HTML to completely replace day cell content
+  renderDayContentCallback?: (data: DayRenderData) => HTMLElement | string | null; // Augmentation - return element/HTML to add to default day cell
+
+  // Tooltips (HTML support)
+  badgeTooltipCallback?: (data: DayRenderData) => string | null; // Return HTML string for badge hover tooltip (overrides DateInfo.badgeTooltip)
+  dayTooltipCallback?: (data: DayRenderData) => string | null; // Return HTML string for day cell hover tooltip (overrides DateInfo.dayTooltip)
 
   // Range selection behavior over disabled dates
   disabledDatesHandling?: 'allow' | 'prevent' | 'block' | 'split' | 'individual';
@@ -75,47 +150,61 @@ export interface DatePickerOptions {
   // Visual highlighting of disabled dates in selected range
   highlightDisabledInRange?: boolean; // Default: true. Set to false to only highlight enabled dates in range.
 
+  // Action button configuration
+  /** Array of custom action buttons to display. If not provided, uses default buttons based on selectionMode */
+  actionButtons?: ActionButton[];
+
+  /** Show Today button (default: true) */
+  showTodayButton?: boolean;
+
+  /** Show Clear button (default: true) */
+  showClearButton?: boolean;
+
+  /** Show Apply button (default: true for range/multiple modes, false for single mode) */
+  showApplyButton?: boolean;
+
   // Internationalization
   locale?: string | 'auto'; // Locale for UI strings and date formatting ('auto' = detect from browser, 'en', 'de', 'fr', 'es', etc.)
   displayFormatMask?: string; // Localized format mask for display (e.g., 'dd/mm/aaaa' in Spanish). If not provided, uses dateFormatMask.
   customStrings?: Partial<LocaleStrings>; // Override any UI strings
+  monthNames?: string[]; // Custom month names (12 strings). If not provided, uses locale-based names. Examples: ['01', '02', ..., '12'] or ['Jan', 'Feb', ..., 'Dec']
 
   // Custom summary formatting
   formatSummaryCallback?: (data: SummaryCallbackData) => string; // Custom function to format the summary display (receives all selection data, returns HTML string)
 
   /**
-   * Async callback for custom range validation (e.g., API call to check availability)
-   * Called after user completes a range selection (via drag or click), AFTER local
-   * disabled dates validation passes.
+   * Callback invoked BEFORE a date selection is finalized (single or range mode).
+   * Can be sync or async. Allows you to:
+   * - Validate against business rules or API
+   * - Block/prevent selection
+   * - Adjust the selected date(s)
+   * - Clear or restore selection
    *
-   * Use cases:
-   * - Call API to validate date range availability
-   * - Check business rules (min/max nights, blackout periods, etc.)
-   * - Adjust dates based on server-side logic
+   * Called AFTER local validation (disabled dates, min/max) passes.
    *
-   * @param startDate - Proposed range start date
-   * @param endDate - Proposed range end date
-   * @returns Promise resolving to validation result with action to take
+   * @param selection - Proposed selection (Date for single mode, DateRange for range mode)
+   * @returns BeforeSelectResult or Promise<BeforeSelectResult> with action to take
    *
-   * @example
-   * validateRangeCallback: async (start, end) => {
-   *   const response = await fetch('/api/validate-dates', {
-   *     method: 'POST',
-   *     body: JSON.stringify({ start, end })
-   *   });
-   *   const data = await response.json();
-   *   if (data.available) {
-   *     return { action: 'accept' };
-   *   } else if (data.suggestedEnd) {
-   *     return {
-   *       action: 'adjust',
-   *       adjustedStartDate: start,
-   *       adjustedEndDate: new Date(data.suggestedEnd)
-   *     };
-   *   } else {
-   *     return { action: 'restore', message: 'Dates not available' };
-   *   }
+   * @example Single mode - check against API
+   * beforeDateSelect: async (date) => {
+   *   const response = await fetch(`/api/check-date/${date.toISOString()}`);
+   *   const { available } = await response.json();
+   *   return available ? { action: 'accept' } : { action: 'restore', message: 'Date unavailable' };
    * }
+   *
+   * @example Range mode - adjust to business rules
+   * beforeDateSelect: async (range) => {
+   *   const nights = Math.floor((range.end - range.start) / (1000 * 60 * 60 * 24));
+   *   if (nights < 2) {
+   *     return { action: 'restore', message: 'Minimum 2 nights required' };
+   *   }
+   *   return { action: 'accept' };
+   * }
+   */
+  beforeDateSelect?: (selection: Date | DateRange) => Promise<BeforeSelectResult> | BeforeSelectResult;
+
+  /**
+   * @deprecated Use beforeDateSelect instead. Will be removed in v2.0.0
    */
   validateRangeCallback?: (startDate: Date, endDate: Date) => Promise<AsyncValidationResult>;
 
@@ -178,18 +267,17 @@ export interface DatePickerEventDetail {
   getTotalDays?: () => number;
 }
 
-export interface DecoratedDate {
-  date: Date | string;
-  class?: string;      // Custom CSS class (e.g., 'holiday', 'event')
-  label?: string;      // Short text overlay (e.g., '🎄', 'H')
-  tooltip?: string;    // Hover tooltip text
-}
+// Generic type for specialDates array items
+// Users can pass their own data structures and use *Member properties to map fields
+export type DecoratedDate = Record<string, any>;
 
 export interface DateInfo {
-  disabled?: boolean;
-  class?: string;      // Additional CSS classes
-  label?: string;      // Text overlay in day cell
-  tooltip?: string;    // Hover tooltip text
+  isDisabled?: boolean;      // Override disabled state for this date
+  badgeClass?: string;       // CSS class applied to badge cell
+  dayClass?: string;         // CSS class applied to day cell
+  badgeText?: string;        // Text displayed in badge row above day numbers
+  badgeTooltip?: string;     // Plain text hover tooltip for badge cell
+  dayTooltip?: string;       // Plain text hover tooltip for day cell
 }
 
 export interface SummaryCallbackData {
@@ -212,7 +300,7 @@ export interface SummaryCallbackData {
   disabledDates?: Date[];
 
   // Context
-  selectionMode: 'single' | 'range';
+  selectionMode: 'single' | 'range' | 'multiple';
   rangeDisabledHandling?: 'allow' | 'block' | 'split' | 'individual';
   localeStrings: LocaleStrings;
 
@@ -242,5 +330,5 @@ export interface DayRenderData {
   // Context
   monthIndex: number;          // Which month column this day appears in (0-based)
   element: HTMLElement;        // Default rendered element (for augmentation pattern)
-  picker: any;                 // Reference to PureDatePicker instance (for calling methods)
+  picker: any;                 // Reference to DateRangePicker instance (for calling methods)
 }

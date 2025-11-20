@@ -12,8 +12,8 @@
 .drp-date-picker__tooltip {
   position: absolute;
   z-index: $drp-z-index-tooltip;
-  background-color: var(--drp-text-primary);
-  color: $drp-tooltip-color;
+  background-color: var(--drp-tooltip-bg);
+  color: var(--drp-tooltip-color);
   padding: var(--drp-spacing-xs) var(--drp-spacing-sm);
   border-radius: var(--drp-border-radius);
   font-size: var(--drp-font-size-xs);
@@ -31,7 +31,7 @@
   // Tooltip arrow
   &-arrow {
     position: absolute;
-    background-color: var(--drp-text-primary);
+    background-color: var(--drp-tooltip-bg);
     width: $drp-tooltip-arrow-size;
     height: $drp-tooltip-arrow-size;
     transform: rotate(45deg);

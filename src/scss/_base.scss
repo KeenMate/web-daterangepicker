@@ -71,6 +71,8 @@
   --drp-text-secondary: #{$drp-color-neutral-dark};
   --drp-accent-text-color: #{$drp-color-white};
   --drp-button-text-color: #{$drp-color-white};
+  --drp-tooltip-bg: #{$drp-tooltip-bg};
+  --drp-tooltip-color: #{$drp-tooltip-color};
 
   // ===========================================================================
   // OTHER PROPERTIES (not affected by density)
@@ -194,6 +196,10 @@
   // Scale month width with cell-scale for proper cell sizing
   min-width: calc(#{$drp-month-min-width} * var(--drp-cell-scale));
 
+  // Make month a flex column container so calendar-container can fill vertical space
+  display: flex;
+  flex-direction: column;
+
   // Allow shrinking for inline mode
   .drp-date-picker--inline & {
     min-width: calc(#{$drp-month-min-width-inline} * var(--drp-cell-scale));
@@ -204,4 +210,18 @@
     min-width: 0;
     width: 100%;
   }
+}
+
+// Calendar container for swapping between calendar grid and rolling selector
+.drp-date-picker__calendar-container {
+  position: relative; // Establishes containing block for absolute positioning
+
+  // Fill available vertical space in month container
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0; // Allow flex item to shrink below content size if needed
+
+  // Calendar grid (weekdays + days) determines minimum size
+  // Rolling selector overlays absolutely and fills this expanded space
 }

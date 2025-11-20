@@ -1,8 +1,7 @@
 /**
- * Pure Admin Date Picker
+ * Web DateRangePicker
  *
  * Lightweight date picker with excellent keyboard navigation
- * Note: This is a UI/UX demo. Full functionality in Svelte version.
  *
  * Features:
  * - Keyboard navigation (arrows, enter, esc)
@@ -14,7 +13,7 @@
  * Dependencies: @floating-ui/dom
  */
 
-import type { DatePickerOptions, DateRange, FormatInfo, MonthDisplay, DecoratedDate, DateInfo, LocaleStrings } from './types';
+import type { DatePickerOptions, DateRange, FormatInfo, MonthDisplay, DecoratedDate, DateInfo, LocaleStrings, ActionButton } from './types';
 import * as Validation from './date-picker-validation';
 import * as Rendering from './date-picker-rendering';
 import * as Navigation from './date-picker-navigation';
@@ -22,9 +21,9 @@ import * as Selection from './date-picker-selection';
 import * as Interaction from './date-picker-interaction';
 import * as UI from './date-picker-ui';
 import { resolveLocale, getLocaleStrings, getWeekdayNames, getMonthNames } from './date-picker-locales';
-import { initLogger, navigationLogger, setLoggingEnabled } from './logger';
+import { drpLogger, navigationLogger, enableLogging, disableLogging } from './logger';
 
-class PureDatePicker {
+class DateRangePicker {
     input: HTMLInputElement | null;
     options: Required<DatePickerOptions>;
     formatInfo: FormatInfo;
@@ -35,6 +34,15 @@ class PureDatePicker {
     selectedDate: Date | null;
     selectedStartDate: Date | null;
     selectedEndDate: Date | null;
+    selectedRanges: DateRange[];
+    selectedDates: Date[];
+    pendingSelection: any; // Stores uncommitted selection when Apply button is required
+
+    // State for deferred commit when Apply button is required
+    originalInputValue: string | null = null; // Stores input value when calendar opens (for restore on close without Apply)
+    committedDate: Date | null = null; // Last committed single date
+    committedStartDate: Date | null = null; // Last committed range start
+    committedEndDate: Date | null = null; // Last committed range end
     focusedDayIndex: number | null;
     activeMonthIndex: number;
     showingRollingSelector: boolean[];
@@ -67,6 +75,11 @@ class PureDatePicker {
     private tooltipArrow?: HTMLElement;
     private currentTooltipTarget?: HTMLElement;
 
+    // Action button tooltips
+    actionButtonTooltips = new Map<string, HTMLDivElement>();
+    actionButtonTooltipCleanups = new Map<string, () => void>();
+    actionsContainer: HTMLElement | null = null;
+
     // Week start and date restrictions
     private weekStartDay: number = 0; // 0 = Sunday, 1 = Monday, etc.
     private normalizedMinDate: Date | null = null;
@@ -88,7 +101,7 @@ class PureDatePicker {
             calendarPlacement: options.calendarPlacement || (options.monthLayout === 'grid' ? 'bottom' : 'bottom-start'),
             visibleMonthsCount: options.visibleMonthsCount || (options.selectionMode === 'range' ? 2 : 1),
             dateFormatMask: options.dateFormatMask || 'YYYY-MM-DD',
-            calendarOpenTrigger: options.calendarOpenTrigger || 'auto',
+            calendarOpenTrigger: options.calendarOpenTrigger || 'focus',
             onSelect: options.onSelect || undefined,
             container: this.containerElement,
             positioningMode: options.positioningMode || 'floating',
@@ -103,42 +116,78 @@ class PureDatePicker {
             disabledWeekdays: options.disabledWeekdays,
             specialDates: options.specialDates,
             isDateDisabled: options.isDateDisabled,
-            getDateMetadata: options.getDateMetadata,
+            getDateMetadataCallback: options.getDateMetadataCallback,
             disabledDatesHandling: options.disabledDatesHandling || 'allow',
             highlightDisabledInRange: options.highlightDisabledInRange !== undefined ? options.highlightDisabledInRange : true,
             locale: options.locale || 'auto',
             displayFormatMask: options.displayFormatMask,
             customStrings: options.customStrings,
+            monthNames: options.monthNames,
             formatSummaryCallback: options.formatSummaryCallback,
-            validateRangeCallback: options.validateRangeCallback,
+            beforeDateSelect: options.beforeDateSelect || (
+                // Wrap deprecated validateRangeCallback to match new signature
+                options.validateRangeCallback
+                    ? async (selection: Date | DateRange) => {
+                        if (typeof selection === 'object' && 'start' in selection) {
+                            return options.validateRangeCallback!(selection.start, selection.end);
+                        }
+                        return { action: 'accept' as const };
+                    }
+                    : undefined
+            ),
+            validateRangeCallback: options.validateRangeCallback, // Deprecated, kept for compatibility
             showDebugInfo: options.showDebugInfo || false,
             rollingYearRange: options.rollingYearRange,
             rollingMonthRange: options.rollingMonthRange,
-            renderDay: options.renderDay,
-            renderDayContent: options.renderDayContent
+            customStylesCallback: options.customStylesCallback,
+            renderDayCallback: options.renderDayCallback,
+            renderDayContentCallback: options.renderDayContentCallback,
+            badgeTooltipCallback: options.badgeTooltipCallback,
+            dayTooltipCallback: options.dayTooltipCallback,
+            dateMember: options.dateMember,
+            badgeTextMember: options.badgeTextMember,
+            badgeClassMember: options.badgeClassMember,
+            dayClassMember: options.dayClassMember,
+            badgeTooltipMember: options.badgeTooltipMember,
+            dayTooltipMember: options.dayTooltipMember,
+            isDisabledMember: options.isDisabledMember,
+            autoClose: options.autoClose || 'selection',
+            actionButtons: options.actionButtons,
+            showTodayButton: options.showTodayButton !== undefined ? options.showTodayButton : true,
+            showClearButton: options.showClearButton !== undefined ? options.showClearButton : true,
+            showApplyButton: options.showApplyButton !== undefined ? options.showApplyButton : (options.selectionMode === 'range' || options.selectionMode === 'multiple')
         };
 
         // Enable/disable logging based on showDebugInfo option
-        setLoggingEnabled(this.options.showDebugInfo);
+        if (this.options.showDebugInfo) {
+            enableLogging();
+        } else {
+            disableLogging();
+        }
+
+        // Deprecation warning for validateRangeCallback
+        if (options.validateRangeCallback && !options.beforeDateSelect) {
+            console.warn('[DEPRECATION] validateRangeCallback is deprecated and will be removed in v2.0.0. Please use beforeDateSelect instead.');
+        }
 
         // Detect/set week start day
         this.weekStartDay = Validation.detectWeekStartDay(this.options.weekStartDay);
-        initLogger.debug('Week starts on day:', this.weekStartDay);
-        initLogger.debug('disabledDatesHandling:', this.options.disabledDatesHandling);
+        drpLogger.debug('Week starts on day:', this.weekStartDay);
+        drpLogger.debug('disabledDatesHandling:', this.options.disabledDatesHandling);
 
         // Initialize internationalization
         this.locale = resolveLocale(this.options.locale);
         this.localeStrings = getLocaleStrings(this.locale, this.options.customStrings);
         this.weekdayNames = getWeekdayNames(this.locale);
-        this.monthNames = getMonthNames(this.locale);
-        initLogger.debug('Locale:', this.locale, 'Weekdays:', this.weekdayNames, 'Months:', this.monthNames);
+        this.monthNames = this.options.monthNames || getMonthNames(this.locale);
+        drpLogger.debug('Locale:', this.locale, 'Weekdays:', this.weekdayNames, 'Months:', this.monthNames);
 
         // Normalize date restrictions
         this.initializeDateRestrictions();
 
         // Parse format to understand structure
         this.formatInfo = this.parseFormat(this.options.dateFormatMask);
-        initLogger.debug('Format info:', this.formatInfo);
+        drpLogger.debug('Format info:', this.formatInfo);
 
         // Track previous input value for deletion detection
         this._previousInputValue = '';
@@ -151,7 +200,7 @@ class PureDatePicker {
             // Use explicit initialDate if provided
             const parsedDate = Validation.normalizeDate(this.options.initialDate);
             initialDisplayDate = parsedDate || new Date();
-            initLogger.debug(`Using initialDate: ${initialDisplayDate.toISOString()}`);
+            drpLogger.debug(`Using initialDate: ${initialDisplayDate.toISOString()}`);
         } else if (this.options.rollingYearRange || this.options.rollingMonthRange) {
             // If rolling ranges are set, use first allowed year/month
             const yearRange = this.options.rollingYearRange ? this.parseYearRange(this.options.rollingYearRange) : null;
@@ -161,19 +210,19 @@ class PureDatePicker {
             const month = monthRange ? monthRange.min - 1 : 0; // Convert to 0-based
 
             initialDisplayDate = new Date(year, month, 1);
-            initLogger.debug(`Using first allowed year/month as initial: ${initialDisplayDate.toISOString()}`);
+            drpLogger.debug(`Using first allowed year/month as initial: ${initialDisplayDate.toISOString()}`);
         } else if (this.normalizedMinDate && this.normalizedMinDate > new Date()) {
             // If today is before minDate, start at minDate
             initialDisplayDate = new Date(this.normalizedMinDate);
-            initLogger.debug(`Using minDate as initial: ${initialDisplayDate.toISOString()}`);
+            drpLogger.debug(`Using minDate as initial: ${initialDisplayDate.toISOString()}`);
         } else if (this.normalizedMaxDate && this.normalizedMaxDate < new Date()) {
             // If today is after maxDate, start at maxDate
             initialDisplayDate = new Date(this.normalizedMaxDate);
-            initLogger.debug(`Using maxDate as initial: ${initialDisplayDate.toISOString()}`);
+            drpLogger.debug(`Using maxDate as initial: ${initialDisplayDate.toISOString()}`);
         } else {
             // Default to current date
             initialDisplayDate = new Date();
-            initLogger.debug(`Using current date as initial: ${initialDisplayDate.toISOString()}`);
+            drpLogger.debug(`Using current date as initial: ${initialDisplayDate.toISOString()}`);
         }
 
         // Initialize separate dates for each month
@@ -181,7 +230,7 @@ class PureDatePicker {
         for (let i = 0; i < this.options.visibleMonthsCount; i++) {
             const date = new Date(initialDisplayDate.getFullYear(), initialDisplayDate.getMonth() + i, 1);
             this.monthDates.push(date);
-            initLogger.debug(`monthDates[${i}] = ${date.getFullYear()}-${date.getMonth()+1}`);
+            drpLogger.debug(`monthDates[${i}] = ${date.getFullYear()}-${date.getMonth()+1}`);
         }
 
         // Initialize displayMonths for range mode
@@ -199,6 +248,9 @@ class PureDatePicker {
         this.selectedDate = null;
         this.selectedStartDate = null;
         this.selectedEndDate = null;
+        this.selectedRanges = [];
+        this.selectedDates = [];
+        this.pendingSelection = null;
         this.focusedDayIndex = null;
         this.activeMonthIndex = 0; // Track which month column is active for keyboard navigation
 
@@ -222,7 +274,7 @@ class PureDatePicker {
     }
 
     init() {
-        initLogger.debug('Init called');
+        drpLogger.debug('Init called');
         this.createCalendar();
 
         // Only attach input listeners if we have an input element
@@ -231,7 +283,7 @@ class PureDatePicker {
 
             // Parse any pre-filled value in the input
             if (this.input.value) {
-                initLogger.debug('Parsing pre-filled value:', this.input.value);
+                drpLogger.debug('Parsing pre-filled value:', this.input.value);
                 this.updateCalendarFromInput();
             }
         }
@@ -246,7 +298,7 @@ class PureDatePicker {
         // Note: for floating mode, renderCalendar() is called on first show() instead of here
         // to avoid rendering days before the calendar is displayed
 
-        initLogger.debug('Init complete');
+        drpLogger.debug('Init complete');
     }
 
     /**
@@ -274,11 +326,14 @@ class PureDatePicker {
 
         // Parse special dates array
         if (this.options.specialDates && this.options.specialDates.length > 0) {
+            const dateMember = this.options.dateMember || 'date';
             this.options.specialDates.forEach(specialDate => {
-                const date = Validation.normalizeDate(specialDate.date);
+                const date = Validation.normalizeDate(specialDate[dateMember]);
                 if (date) {
                     const key = Validation.formatDateKey(date);
                     this.normalizedSpecialDates.set(key, specialDate);
+                } else {
+                    console.warn('[Special Dates] Failed to normalize date:', specialDate[dateMember]);
                 }
             });
         }
@@ -300,6 +355,235 @@ class PureDatePicker {
     /**
      * Parse month range string to min/max values
      */
+    /**
+     * Render action buttons based on configuration
+     * Implements priority system matching web-multiselect:
+     * - Visibility: isVisibleCallback → isVisible → true (default visible)
+     * - Disabled: isDisabledCallback → isDisabled → false (default enabled)
+     * - Text: getTextCallback → text (required)
+     * - CSS: getClassCallback → cssClass → ''
+     * - Tooltip: getTooltipCallback → tooltip → undefined
+     */
+    private renderButtons(container: HTMLElement): void {
+        // Destroy all existing button tooltips before re-rendering
+        this.destroyAllActionButtonTooltips();
+
+        container.innerHTML = ''; // Clear existing buttons
+
+        // Store container reference for re-rendering
+        this.actionsContainer = container;
+
+        // Use custom action buttons if provided, otherwise use default buttons
+        const buttons: ActionButton[] = this.options.actionButtons || this.getDefaultButtons();
+
+        buttons.forEach(button => {
+            // Priority 1: Check dynamic visibility callback
+            if (button.isVisibleCallback !== undefined) {
+                if (!button.isVisibleCallback(this)) {
+                    return; // Skip this button
+                }
+            }
+            // Priority 2: Check static visibility flag
+            else if (button.isVisible !== undefined) {
+                if (!button.isVisible) {
+                    return; // Skip this button
+                }
+            }
+            // Priority 3: Default to visible (no check needed)
+
+            const buttonEl = document.createElement('button');
+            buttonEl.className = `drp-date-picker__button drp-date-picker__button--${button.action}`;
+
+            // Apply CSS classes (priority: callback → static → none)
+            const cssClasses = button.getClassCallback
+                ? button.getClassCallback(this)
+                : button.cssClass;
+            if (cssClasses) {
+                if (Array.isArray(cssClasses)) {
+                    buttonEl.classList.add(...cssClasses);
+                } else {
+                    buttonEl.classList.add(cssClasses);
+                }
+            }
+
+            // Apply text (priority: callback → static)
+            const buttonText = button.getTextCallback
+                ? button.getTextCallback(this)
+                : button.text;
+            buttonEl.innerHTML = buttonText;
+
+            // Tooltip will be handled by attachActionButtonTooltips() after rendering
+
+            // Apply disabled state (priority: callback → static → false)
+            const isDisabled = button.isDisabledCallback
+                ? button.isDisabledCallback(this)
+                : (button.isDisabled ?? false);
+            if (isDisabled) {
+                buttonEl.disabled = true;
+            }
+
+            buttonEl.dataset.action = button.action;
+
+            // Store custom onClick handler if provided
+            if (button.onClick) {
+                (buttonEl as any)._customOnClick = button.onClick;
+            }
+
+            container.appendChild(buttonEl);
+        });
+
+        // Attach Floating UI tooltips after rendering
+        this.attachActionButtonTooltips();
+    }
+
+    /**
+     * Get default buttons based on options
+     */
+    private getDefaultButtons(): ActionButton[] {
+        const buttons: ActionButton[] = [];
+
+        // Today button
+        if (this.options.showTodayButton) {
+            buttons.push({
+                action: 'today',
+                text: this.localeStrings.today
+            });
+        }
+
+        // Clear button
+        if (this.options.showClearButton) {
+            buttons.push({
+                action: 'clear',
+                text: this.localeStrings.clear
+            });
+        }
+
+        // Apply button (for range and multiple modes)
+        if (this.options.showApplyButton) {
+            buttons.push({
+                action: 'apply',
+                text: this.localeStrings.apply
+            });
+        }
+
+        return buttons;
+    }
+
+    /**
+     * Attach Floating UI tooltips to action buttons
+     */
+    private attachActionButtonTooltips(): void {
+        if (!this.actionsContainer) return;
+
+        const actionButtons = this.actionsContainer.querySelectorAll('.drp-date-picker__action');
+
+        actionButtons.forEach((button: Element) => {
+            const buttonElement = button as HTMLElement;
+            const action = buttonElement.dataset.action;
+            if (!action) return;
+
+            // Find the action button config to get tooltip
+            const buttons: ActionButton[] = this.options.actionButtons || this.getDefaultButtons();
+            const actionConfig = buttons.find(btn => btn.action === action);
+
+            if (!actionConfig) return;
+
+            // Get tooltip from callback or static property (PRIORITY SYSTEM)
+            let tooltipText: string | undefined;
+            if (actionConfig.getTooltipCallback) {
+                tooltipText = actionConfig.getTooltipCallback(this);
+            } else {
+                tooltipText = actionConfig.tooltip;
+            }
+
+            if (!tooltipText) return;
+
+            // Create unique ID for this button
+            const uniqueId = `action-${action}-${Date.now()}-${Math.random()}`;
+            this.createActionButtonTooltip(buttonElement, tooltipText, uniqueId);
+        });
+    }
+
+    /**
+     * Create a Floating UI tooltip for an action button
+     */
+    private createActionButtonTooltip(button: HTMLElement, tooltipText: string, uniqueId: string): void {
+        const tooltip = document.createElement('div');
+        tooltip.className = 'drp-date-picker__tooltip'; // Reuse existing tooltip styling
+        tooltip.textContent = tooltipText;
+
+        const container = this.options.container || document.body;
+        container.appendChild(tooltip);
+
+        this.actionButtonTooltips.set(uniqueId, tooltip);
+
+        // Setup hover handlers with delay
+        let showTimeout: number;
+        let hideTimeout: number;
+
+        const showTooltip = () => {
+            clearTimeout(hideTimeout);
+            showTimeout = window.setTimeout(() => {
+                tooltip.classList.add('drp-date-picker__tooltip--visible');
+                this.positionActionButtonTooltip(button, tooltip, uniqueId);
+            }, 300);
+        };
+
+        const hideTooltip = () => {
+            clearTimeout(showTimeout);
+            hideTimeout = window.setTimeout(() => {
+                tooltip.classList.remove('drp-date-picker__tooltip--visible');
+                const cleanup = this.actionButtonTooltipCleanups.get(uniqueId);
+                if (cleanup) {
+                    cleanup();
+                    this.actionButtonTooltipCleanups.delete(uniqueId);
+                }
+            }, 100);
+        };
+
+        button.addEventListener('mouseenter', showTooltip);
+        button.addEventListener('mouseleave', hideTooltip);
+    }
+
+    /**
+     * Position action button tooltip using Floating UI
+     */
+    private async positionActionButtonTooltip(button: HTMLElement, tooltip: HTMLElement, uniqueId: string): Promise<void> {
+        const { computePosition, flip, shift, offset, autoUpdate } = await import('@floating-ui/dom');
+
+        const cleanup = autoUpdate(button, tooltip, () => {
+            computePosition(button, tooltip, {
+                placement: 'top',
+                strategy: 'fixed',
+                middleware: [
+                    offset(8),
+                    flip(),
+                    shift({ padding: 8 })
+                ]
+            }).then(({ x, y }: { x: number, y: number }) => {
+                Object.assign(tooltip.style, {
+                    left: `${x}px`,
+                    top: `${y}px`
+                });
+            });
+        });
+
+        this.actionButtonTooltipCleanups.set(uniqueId, cleanup);
+    }
+
+    /**
+     * Destroy all action button tooltips
+     */
+    private destroyAllActionButtonTooltips(): void {
+        // Clean up all tooltip positioning
+        this.actionButtonTooltipCleanups.forEach(cleanup => cleanup());
+        this.actionButtonTooltipCleanups.clear();
+
+        // Remove all tooltip elements
+        this.actionButtonTooltips.forEach(tooltip => tooltip.remove());
+        this.actionButtonTooltips.clear();
+    }
+
     private parseMonthRange(range: string): { min: number, max: number } {
         const [minStr, maxStr] = range.split('-');
         return { min: parseInt(minStr, 10), max: parseInt(maxStr, 10) };
@@ -339,30 +623,42 @@ class PureDatePicker {
 
     /**
      * Get additional info for a date (special styling, labels, etc.)
+     * Priority: callback wins over specialDates
      */
     getDateInfoInternal(date: Date): DateInfo | null {
         const dateKey = Validation.formatDateKey(date);
 
-        // Check special dates first
-        if (this.normalizedSpecialDates.has(dateKey)) {
-            const specialDate = this.normalizedSpecialDates.get(dateKey)!;
-            return {
-                disabled: this.isDateDisabledInternal(date),
-                class: specialDate.class,
-                label: specialDate.label,
-                tooltip: specialDate.tooltip
-            };
-        }
-
-        // Check custom callback
-        if (this.options.getDateMetadata) {
-            const customInfo = this.options.getDateMetadata(date);
+        // 1. Check callback FIRST (highest priority - callback wins)
+        if (this.options.getDateMetadataCallback) {
+            const customInfo = this.options.getDateMetadataCallback(date);
             if (customInfo) {
                 return {
                     ...customInfo,
-                    disabled: customInfo.disabled !== undefined ? customInfo.disabled : this.isDateDisabledInternal(date)
+                    isDisabled: customInfo.isDisabled !== undefined ? customInfo.isDisabled : this.isDateDisabledInternal(date)
                 };
             }
+        }
+
+        // 2. Check specialDates SECOND (with member mapping)
+        if (this.normalizedSpecialDates.has(dateKey)) {
+            const specialDate = this.normalizedSpecialDates.get(dateKey)!;
+
+            // Use member mapping with defaults
+            const badgeTextMember = this.options.badgeTextMember || 'badgeText';
+            const badgeClassMember = this.options.badgeClassMember || 'badgeClass';
+            const dayClassMember = this.options.dayClassMember || 'dayClass';
+            const badgeTooltipMember = this.options.badgeTooltipMember || 'badgeTooltip';
+            const dayTooltipMember = this.options.dayTooltipMember || 'dayTooltip';
+            const isDisabledMember = this.options.isDisabledMember || 'isDisabled';
+
+            return {
+                isDisabled: specialDate[isDisabledMember] !== undefined ? specialDate[isDisabledMember] : this.isDateDisabledInternal(date),
+                badgeClass: specialDate[badgeClassMember],
+                dayClass: specialDate[dayClassMember],
+                badgeText: specialDate[badgeTextMember],
+                badgeTooltip: specialDate[badgeTooltipMember],
+                dayTooltip: specialDate[dayTooltipMember]
+            };
         }
 
         return null;
@@ -415,8 +711,28 @@ class PureDatePicker {
         return Validation.isInRange(date, this.selectedStartDate, this.selectedEndDate);
     }
 
+    /**
+     * Determine if events/callbacks should be deferred until Apply button click
+     * @returns true if Apply button is required and events should be deferred
+     */
+    requiresApplyButton(): boolean {
+        return this.options.autoClose === 'apply' ||
+               (this.options.showApplyButton && this.options.autoClose !== 'selection');
+    }
+
+    /**
+     * Determine if calendar should auto-close after selection
+     * @returns true if calendar should auto-close
+     */
+    shouldAutoClose(): boolean {
+        // Multiple mode never auto-closes on selection (inherently requires Apply or manual close)
+        if (this.options.selectionMode === 'multiple') return false;
+
+        return this.options.autoClose === 'selection';
+    }
+
     createCalendar() {
-        initLogger.debug('Creating calendar');
+        drpLogger.debug('Creating calendar');
         this.calendar = document.createElement('div');
         this.calendar.className = 'drp-date-picker';
 
@@ -447,12 +763,14 @@ class PureDatePicker {
                     <div class="drp-date-picker__month-year" data-action="toggle-rolling" data-month-index="${i}"></div>
                     <button class="drp-date-picker__nav drp-date-picker__nav--next" data-action="next" data-month-index="${i}"></button>
                 </div>
-                <div class="drp-date-picker__rolling-selector" data-month-index="${i}">
-                    <div class="drp-date-picker__rolling-list" data-list="years" data-month-index="${i}"></div>
-                    <div class="drp-date-picker__rolling-list" data-list="months" data-month-index="${i}"></div>
+                <div class="drp-date-picker__calendar-container">
+                    <div class="drp-date-picker__rolling-selector" data-month-index="${i}">
+                        <div class="drp-date-picker__rolling-list" data-list="years" data-month-index="${i}"></div>
+                        <div class="drp-date-picker__rolling-list" data-list="months" data-month-index="${i}"></div>
+                    </div>
+                    <div class="drp-date-picker__weekdays"></div>
+                    <div class="drp-date-picker__days" data-month-index="${i}"></div>
                 </div>
-                <div class="drp-date-picker__weekdays"></div>
-                <div class="drp-date-picker__days" data-month-index="${i}"></div>
             `;
             monthsContainer.appendChild(monthCalendar);
         }
@@ -466,18 +784,17 @@ class PureDatePicker {
             this.calendar.appendChild(summary);
         }
 
-        // Add actions at the bottom
+        // Add actions at the bottom (only if there are buttons to show)
         const actions = document.createElement('div');
         actions.className = 'drp-date-picker__actions';
-        actions.innerHTML = `
-            <button class="drp-date-picker__button drp-date-picker__button--today" data-action="today">${this.localeStrings.today}</button>
-            <button class="drp-date-picker__button drp-date-picker__button--clear" data-action="clear">${this.localeStrings.clear}</button>
-            ${this.options.selectionMode === 'range' ? `<button class="drp-date-picker__button drp-date-picker__button--apply" data-action="apply">${this.localeStrings.apply}</button>` : ''}
-        `;
-        this.calendar.appendChild(actions);
+        this.renderButtons(actions);
+        // Only append if there are actual buttons rendered
+        if (actions.children.length > 0) {
+            this.calendar.appendChild(actions);
+        }
 
         this.containerElement.appendChild(this.calendar);
-        initLogger.debug('Calendar appended to container:', this.calendar);
+        drpLogger.debug('Calendar appended to container:', this.calendar);
 
         // Create tooltip for Floating UI
         this.tooltip = document.createElement('div');
@@ -496,7 +813,7 @@ class PureDatePicker {
     attachInputListeners() {
         if (!this.input) return;
 
-        initLogger.debug('Attaching input listeners');
+        drpLogger.debug('Attaching input listeners');
 
         // Calendar trigger modes
         const triggerMode = this.options.calendarOpenTrigger || 'focus'; // default to 'focus' for backward compatibility
@@ -504,14 +821,14 @@ class PureDatePicker {
         if (triggerMode === 'focus') {
             // Open on focus only (not on click)
             this.input.addEventListener('focus', () => {
-                initLogger.debug('Input focused - opening calendar');
+                drpLogger.debug('Input focused - opening calendar');
                 this.show();
             });
         } else if (triggerMode === 'typing') {
             // Open when user starts typing
             this.input.addEventListener('input', (e) => {
-                if (!this.isVisible && this.input && this.input.value.length > 0) {
-                    initLogger.debug('User started typing - opening calendar');
+                if (!this.calendar.classList.contains('drp-date-picker--visible') && this.input && this.input.value.length > 0) {
+                    drpLogger.debug('User started typing - opening calendar');
                     this.show();
                 }
             });
@@ -541,6 +858,13 @@ class PureDatePicker {
             else if (action === 'today') this.selectToday();
             else if (action === 'clear') this.clearSelection();
             else if (action === 'apply') this.apply();
+            else if (action === 'custom') {
+                // Handle custom button clicks
+                const customOnClick = (target as any)._customOnClick;
+                if (customOnClick) {
+                    await Promise.resolve(customOnClick(this));
+                }
+            }
             else if (target.closest('.drp-date-picker__day:not(.drp-date-picker__day--disabled)')) {
                 await this.selectDay(target.closest('.drp-date-picker__day') as HTMLElement);
             }
@@ -620,7 +944,7 @@ class PureDatePicker {
             if (!this.calendar.classList.contains('drp-date-picker--visible')) return;
             if (!this.isCalendarActive) return;
 
-            initLogger.debug('Keydown', e.key, 'Ctrl:', e.ctrlKey, 'Meta:', e.metaKey, 'Shift:', e.shiftKey, 'Alt:', e.altKey);
+            drpLogger.debug('Keydown', e.key, 'Ctrl:', e.ctrlKey, 'Meta:', e.metaKey, 'Shift:', e.shiftKey, 'Alt:', e.altKey);
 
             if (e.key === 'Escape') {
                 this.hide();
@@ -922,7 +1246,8 @@ class PureDatePicker {
                     this.hide();
                 }
             };
-            document.addEventListener('click', this.clickOutsideHandler);
+            // NOTE: The listener is added in show() with a delay to avoid catching the same click that triggered show()
+            // and removed in hide() to clean up properly
         }
     }
 
@@ -983,6 +1308,93 @@ class PureDatePicker {
         return values.join(separator);
     }
 
+    // Reactive getters/setters for programmatic control
+
+    /**
+     * Get calendar open state (floating mode only)
+     */
+    get isOpen(): boolean {
+        return this.calendar.classList.contains('drp-date-picker--visible');
+    }
+
+    /**
+     * Set calendar open state (floating mode only)
+     */
+    set isOpen(value: boolean) {
+        if (this.options.positioningMode !== 'floating') {
+            console.warn('isOpen property only works in floating mode');
+            return;
+        }
+        if (value) {
+            this.show();
+        } else {
+            this.hide();
+        }
+    }
+
+    /**
+     * Get/set selected ranges (for multiple mode or programmatic multi-range selection)
+     */
+    get selectedRangesReactive(): DateRange[] {
+        return [...this.selectedRanges];
+    }
+
+    set selectedRangesReactive(ranges: DateRange[]) {
+        // For multiple mode: store in selectedRanges array
+        this.selectedRanges = ranges.map(r => ({
+            start: new Date(r.start),
+            end: new Date(r.end)
+        }));
+
+        // For range mode: also set selectedStartDate/selectedEndDate
+        if (this.options.selectionMode === 'range' && ranges.length > 0) {
+            this.selectedStartDate = new Date(ranges[0].start);
+            this.selectedEndDate = new Date(ranges[0].end);
+
+            // Update input value for range mode
+            if (this.input && !this.requiresApplyButton()) {
+                this.input.value = `${this.formatDate(this.selectedStartDate)} - ${this.formatDate(this.selectedEndDate)}`;
+            }
+        } else if (this.input && !this.requiresApplyButton()) {
+            // Clear input if no ranges or not in range mode
+            this.input.value = '';
+        }
+
+        this.renderCalendar();
+        this.updateSummary();
+    }
+
+    /**
+     * Get/set selected individual dates (for multiple mode)
+     */
+    get selectedDatesReactive(): Date[] {
+        return this.selectedDates.map(d => new Date(d));
+    }
+
+    set selectedDatesReactive(dates: Date[]) {
+        this.selectedDates = dates.map(d => new Date(d));
+        this.renderCalendar();
+        this.updateSummary();
+    }
+
+    /**
+     * Get/set single selected date (single mode)
+     */
+    get selectedDateReactive(): Date | null {
+        return this.selectedDate ? new Date(this.selectedDate) : null;
+    }
+
+    set selectedDateReactive(date: Date | null) {
+        this.selectedDate = date ? new Date(date) : null;
+        if (this.input && date) {
+            this.input.value = this.formatDate(date);
+        } else if (this.input) {
+            this.input.value = '';
+        }
+        this.renderCalendar();
+        this.updateSummary();
+    }
+
     destroy() {
         if (this.clickOutsideHandler) {
             document.removeEventListener('click', this.clickOutsideHandler);
@@ -1028,7 +1440,7 @@ class PureDatePicker {
 
     // Interaction methods - wrappers for pure functions
     initDragListeners() { return Interaction.initDragListeners(this); }
-    startDrag(event: MouseEvent, type: 'start' | 'end') { return Interaction.startDrag(this, event, type); }
+    startDrag(event: MouseEvent, type: 'start' | 'end', dayElement: HTMLElement) { return Interaction.startDrag(this, event, type, dayElement); }
     onDragMove(event: MouseEvent) { return Interaction.onDragMove(this, event); }
     async onDragEnd(event: MouseEvent) { return await Interaction.onDragEnd(this, event); }
     findNearestEnabledDate(targetDate: Date, preferredDirection: string = 'forward') { return Interaction.findNearestEnabledDate(this, targetDate, preferredDirection); }
@@ -1042,4 +1454,4 @@ class PureDatePicker {
 }
 
 // Export the class
-export { PureDatePicker };
+export { DateRangePicker };

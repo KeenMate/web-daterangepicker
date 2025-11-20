@@ -187,10 +187,11 @@ $drp-rolling-scrollbar-bg: $drp-color-neutral-lighter !default;
 $drp-rolling-scrollbar-thumb: $drp-border-color !default;
 $drp-rolling-scrollbar-thumb-hover: $drp-color-accent !default;
 
-$drp-rolling-item-padding-v: $drp-spacing-sm !default;
+$drp-rolling-item-padding-v: $drp-spacing-xs !default;  // Half of sm (0.25rem instead of 0.5rem)
 $drp-rolling-item-padding-h: $drp-spacing-md !default;
 $drp-rolling-item-font-size: $drp-font-size-sm !default;
 $drp-rolling-item-min-height: 2rem !default;
+$drp-rolling-item-justify-content: center !default;
 $drp-rolling-item-bg-hover: $drp-color-neutral-lighter !default;
 $drp-rolling-item-bg-selected: $drp-color-accent !default;
 $drp-rolling-item-color-selected: $drp-color-white !default;

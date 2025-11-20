@@ -174,6 +174,13 @@ When instantiating `PureDatePicker` directly (not using web component), pass the
 | `disabledDates` | `(Date \| string)[]` | `undefined` | Array of specific dates to disable |
 | `disabledWeekdays` | `number[]` | `undefined` | Array of weekdays to disable (0=Sunday, 6=Saturday) |
 | `specialDates` | `DecoratedDate[]` | `undefined` | Array of special dates with custom styling/labels |
+| `dateMember` | `string` | `'date'` | Property name in `specialDates` objects containing the date value |
+| `badgeTextMember` | `string` | `'badgeText'` | Property name in `specialDates` objects containing badge text |
+| `badgeClassMember` | `string` | `'badgeClass'` | Property name in `specialDates` objects containing badge CSS class |
+| `dayClassMember` | `string` | `'dayClass'` | Property name in `specialDates` objects containing day CSS class |
+| `badgeTooltipMember` | `string` | `'badgeTooltip'` | Property name in `specialDates` objects containing badge tooltip |
+| `dayTooltipMember` | `string` | `'dayTooltip'` | Property name in `specialDates` objects containing day tooltip |
+| `isDisabledMember` | `string` | `'isDisabled'` | Property name in `specialDates` objects containing disabled flag |
 | `isDateDisabled` | `(date: Date) => boolean` | `undefined` | Custom function to determine if date is disabled |
 | `getDateMetadata` | `(date: Date) => DateInfo \| null` | `undefined` | Custom function to provide date styling/labels |
 | `rangeDisabledHandling` | `'allow' \| 'block' \| 'split' \| 'individual'` | `'allow'` | Range behavior over disabled dates |
@@ -193,7 +200,7 @@ const picker = new PureDatePicker(inputElement, {
   weekStartDay: 1, // Monday
   disabledWeekdays: [0, 6], // Weekends
   specialDates: [
-    { date: '2025-12-25', label: '🎄', tooltip: 'Christmas' }
+    { date: '2025-12-25', badgeText: '🎄', badgeTooltip: 'Christmas' }
   ],
   onSelect: (dateRange) => {
     console.log('Selected:', dateRange);
@@ -841,6 +848,16 @@ interface DatePickerOptions {
   disabledDates?: (Date | string)[];
   disabledDays?: number[];
   specialDates?: DecoratedDate[];
+
+  // Member mapping for specialDates
+  dateMember?: string;
+  badgeTextMember?: string;
+  badgeClassMember?: string;
+  dayClassMember?: string;
+  badgeTooltipMember?: string;
+  dayTooltipMember?: string;
+  isDisabledMember?: string;
+
   isDateDisabled?: (date: Date) => boolean;
   getDateInfo?: (date: Date) => DateInfo | null;
   rangeDisabledMode?: 'allow' | 'block' | 'split' | 'individual';
@@ -890,24 +907,56 @@ interface DatePickerEventDetail {
 ### DecoratedDate
 
 ```typescript
-interface DecoratedDate {
-  date: Date | string;
-  class?: string;      // Custom CSS class (e.g., 'holiday', 'event')
-  label?: string;      // Short text overlay (e.g., '🎄', 'H', '$99')
-  tooltip?: string;    // Hover tooltip text
-}
+type DecoratedDate = Record<string, any>;
+```
+
+**Member Mapping**: `DecoratedDate` is a flexible type that accepts any object structure. Use the `*Member` options to map your custom property names to the picker's fields:
+
+- `dateMember` - Which property contains the date (default: `'date'`)
+- `badgeTextMember` - Which property contains badge text (default: `'badgeText'`)
+- `badgeClassMember` - Which property contains badge CSS class (default: `'badgeClass'`)
+- `dayClassMember` - Which property contains day CSS class (default: `'dayClass'`)
+- `badgeTooltipMember` - Which property contains badge tooltip (default: `'badgeTooltip'`)
+- `dayTooltipMember` - Which property contains day tooltip (default: `'dayTooltip'`)
+- `isDisabledMember` - Which property contains disabled flag (default: `'isDisabled'`)
+
+**Example with default property names:**
+```typescript
+const holidays = [
+  { date: '2025-12-25', badgeText: '🎄', badgeTooltip: 'Christmas' },
+  { date: '2025-12-31', badgeText: '🥳', badgeTooltip: 'New Year Eve' }
+];
+picker.specialDates = holidays;
+```
+
+**Example with custom property names:**
+```typescript
+const myHolidays = [
+  { id: 1, displayDate: '2025-12-25', icon: '🎄', description: 'Christmas', style: 'holiday' },
+  { id: 2, displayDate: '2025-12-31', icon: '🥳', description: 'New Year Eve', style: 'holiday' }
+];
+
+picker.dateMember = 'displayDate';
+picker.badgeTextMember = 'icon';
+picker.badgeClassMember = 'style';
+picker.badgeTooltipMember = 'description';
+picker.specialDates = myHolidays;
 ```
 
 ### DateInfo
 
 ```typescript
 interface DateInfo {
-  disabled?: boolean;  // Override disabled state
-  class?: string;      // Additional CSS classes
-  label?: string;      // Text overlay in day cell
-  tooltip?: string;    // Hover tooltip text
+  isDisabled?: boolean;      // Override disabled state for this date
+  badgeClass?: string;       // CSS class applied to badge cell
+  dayClass?: string;         // CSS class applied to day cell
+  badgeText?: string;        // Text displayed in badge row above day numbers
+  badgeTooltip?: string;     // Plain text hover tooltip for badge cell
+  dayTooltip?: string;       // Plain text hover tooltip for day cell
 }
 ```
+
+Returned by `getDateMetadataCallback` to provide custom styling/labels for specific dates.
 
 ### LocaleStrings
 
@@ -1035,6 +1084,13 @@ The web component provides convenient property accessors for JavaScript:
 | `maxDate` | `string \| undefined` | Maximum date |
 | `disabledWeekdays` | `number[] \| undefined` | Disabled weekdays array |
 | `specialDates` | `DecoratedDate[] \| undefined` | Special dates (triggers re-init) |
+| `dateMember` | `string \| undefined` | Property name for date in specialDates objects (triggers re-init) |
+| `badgeTextMember` | `string \| undefined` | Property name for badge text in specialDates objects (triggers re-init) |
+| `badgeClassMember` | `string \| undefined` | Property name for badge class in specialDates objects (triggers re-init) |
+| `dayClassMember` | `string \| undefined` | Property name for day class in specialDates objects (triggers re-init) |
+| `badgeTooltipMember` | `string \| undefined` | Property name for badge tooltip in specialDates objects (triggers re-init) |
+| `dayTooltipMember` | `string \| undefined` | Property name for day tooltip in specialDates objects (triggers re-init) |
+| `isDisabledMember` | `string \| undefined` | Property name for disabled flag in specialDates objects (triggers re-init) |
 | `disabledDates` | `(Date \| string)[] \| undefined` | Disabled dates (triggers re-init) |
 | `isDateDisabled` | `((date: Date) => boolean) \| undefined` | Custom disable function (triggers re-init) |
 | `getDateMetadata` | `((date: Date) => DateInfo \| null) \| undefined` | Custom date metadata function (triggers re-init) |
@@ -1053,7 +1109,7 @@ picker.maxDate = '2025-12-31';
 
 // Set complex properties (must use JS, not HTML attributes)
 picker.specialDates = [
-  { date: '2025-12-25', label: '🎄', tooltip: 'Christmas' }
+  { date: '2025-12-25', badgeText: '🎄', badgeTooltip: 'Christmas' }
 ];
 
 picker.isDateDisabled = (date) => {

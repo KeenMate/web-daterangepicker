@@ -1,7 +1,7 @@
 /**
  * Date Picker Interaction Methods
  *
- * Pure functions for interaction logic including drag functionality
+ * Functions for interaction logic including drag functionality
  * and input masking.
  */
 
@@ -16,7 +16,7 @@ export function initDragListeners(picker: any) {
     // This allows drawing a range from scratch without clicking first
     // BUT: We need to detect actual dragging vs clicking to allow both behaviors
     if (picker.options.selectionMode === 'range') {
-        const allDays = picker.calendar.querySelectorAll('.drp-date-picker__day:not(.drp-date-picker__day--disabled):not(.drp-date-picker__day--other-month)');
+        const allDays = picker.calendar.querySelectorAll('.drp-date-picker__day:not(.drp-date-picker__day--disabled)');
 
         allDays.forEach(day => {
             day.addEventListener('mousedown', (e) => {
@@ -314,11 +314,20 @@ export async function onDragEnd(picker: any, event: MouseEvent) {
             picker.selectedEndDate = validation.adjustedEnd || endDate;
 
             if (picker.input) {
-                picker.input.value = `${picker.formatDate(picker.selectedStartDate)} - ${picker.formatDate(picker.selectedEndDate)}`;
+                // Only update input immediately if Apply button is NOT required
+                if (!picker.requiresApplyButton()) {
+                    picker.input.value = `${picker.formatDate(picker.selectedStartDate)} - ${picker.formatDate(picker.selectedEndDate)}`;
+                }
             }
 
-            if (picker.options.onSelect) {
-                picker.options.onSelect({ start: picker.selectedStartDate, end: picker.selectedEndDate });
+            // Defer onSelect callback if Apply button is required
+            const selection = { start: picker.selectedStartDate, end: picker.selectedEndDate };
+            if (picker.requiresApplyButton()) {
+                picker.pendingSelection = selection;
+            } else {
+                if (picker.options.onSelect) {
+                    picker.options.onSelect(selection);
+                }
             }
         }
     }
@@ -385,6 +394,11 @@ export async function onDragEnd(picker: any, event: MouseEvent) {
                 break;
             }
         }
+    }
+
+    // Auto-close after drag if appropriate
+    if (picker.options.positioningMode === 'floating' && picker.shouldAutoClose()) {
+        picker.hide();
     }
 }
 

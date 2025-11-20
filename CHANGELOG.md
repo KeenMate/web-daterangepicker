@@ -7,13 +7,51 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-### Breaking Changes
+## [1.0.0] - PUBLISHED - 2025-11-20
 
-- **Component renamed** from `date-range-picker` to `web-daterangepicker` for consistency with package name and other web components
-  - Update all HTML tags: `<web-daterangepicker>` → `<web-daterangepicker>`
-  - Update JavaScript selectors: `querySelector('web-daterangepicker')` → `querySelector('web-daterangepicker')`
-  - Import paths and build output file names have changed accordingly
-  - UMD global name changed from `DateRangePicker` to `WebDaterangepicker`
+### Changed
+
+- **BREAKING: Logging System - Complete Rewrite**
+  - **Global API Namespace**: Migrated from `window.keenmate.daterangepicker` to `window.components['web-daterangepicker']`
+    - **Old**: `window.keenmate.daterangepicker.version()`
+    - **New**: `window.components['web-daterangepicker'].version()`
+  - **Logger Naming**: Renamed loggers to match hierarchical category system
+    - `initLogger` → `drpLogger` (main logger for initialization and general logs)
+    - All other loggers renamed to hierarchical categories: `DRP`, `DRP:RENDERING`, `DRP:INTERACTION`, `DRP:SELECTION`, `DRP:NAVIGATION`, `DRP:UI`, `DRP:VALIDATION`, `DRP:DRAG`
+  - **Color-Coded Console Output**: Added styled console logs matching svelte-spa-router pattern
+    - Blue for debug, green for info, orange for warn, red for error
+    - Timestamps with milliseconds for precise debugging
+    - Format: `[HH:MM:SS.mmm] [LEVEL] [CATEGORY] message`
+  - **New Logging API**: Exposed via `window.components['web-daterangepicker'].logging`
+    - `enableLogging()` - Enable all loggers at debug level
+    - `disableLogging()` - Silence all loggers
+    - `setLogLevel(level)` - Set all loggers to specific level ('trace' | 'debug' | 'info' | 'warn' | 'error' | 'silent')
+    - `setCategoryLevel(category, level)` - Set specific category level (e.g., 'DRP:RENDERING', 'debug')
+    - `getCategories()` - Get array of all available categories
+  - **Files Modified**:
+    - `src/logger.ts` - Complete rewrite with loglevel-plugin-prefix, custom methodFactory, color scheme
+    - `src/index.ts` - Changed global namespace, added logging property to API
+    - `src/date-picker.ts` - Updated imports (`initLogger` → `drpLogger`, `setLoggingEnabled` → `enableLogging/disableLogging`)
+  - **Usage Example**:
+    ```javascript
+    // Enable all logging
+    window.components['web-daterangepicker'].logging.enableLogging()
+
+    // Set specific category to debug
+    window.components['web-daterangepicker'].logging.setCategoryLevel('DRP:RENDERING', 'debug')
+
+    // Get all categories
+    window.components['web-daterangepicker'].logging.getCategories()
+    // Returns: ['DRP', 'DRP:RENDERING', 'DRP:INTERACTION', 'DRP:SELECTION', 'DRP:NAVIGATION', 'DRP:UI', 'DRP:VALIDATION', 'DRP:DRAG']
+
+    // Disable all logging
+    window.components['web-daterangepicker'].logging.disableLogging()
+    ```
+
+- **Callback property names** for clarity and consistency
+  - `renderDay` → `renderDayCallback`
+  - `renderDayContent` → `renderDayContentCallback`
+  - `getDateMetadata` → `getDateMetadataCallback`
 
 ### Added
 

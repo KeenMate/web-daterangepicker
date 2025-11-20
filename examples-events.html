@@ -1,0 +1,811 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Events & Callbacks - Date Range Picker</title>
+  <link rel="stylesheet" href="dist/style.css">
+  <style>
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      line-height: 1.6;
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 2rem;
+      background: #f9fafb;
+    }
+
+    .header-nav {
+      margin-bottom: 2rem;
+    }
+
+    .back-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.5rem 1rem;
+      background: white;
+      border: 1px solid #e5e7eb;
+      border-radius: 0.5rem;
+      text-decoration: none;
+      color: #374151;
+      font-weight: 500;
+      transition: all 0.2s;
+    }
+
+    .back-link:hover {
+      background: #f3f4f6;
+      border-color: #d1d5db;
+    }
+
+    .page-title {
+      font-size: 2.5rem;
+      font-weight: 700;
+      color: #111827;
+      margin: 2rem 0 0.5rem;
+    }
+
+    .page-description {
+      font-size: 1.125rem;
+      color: #6b7280;
+      margin-bottom: 2rem;
+    }
+
+    .card {
+      background: white;
+      border-radius: 0.5rem;
+      padding: 2rem;
+      margin-bottom: 2rem;
+      box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1);
+    }
+
+    h2 {
+      color: #111827;
+      font-size: 1.5rem;
+      margin-top: 0;
+      margin-bottom: 1rem;
+      border-bottom: 2px solid #e5e7eb;
+      padding-bottom: 0.5rem;
+    }
+
+    h3 {
+      color: #374151;
+      font-size: 1.25rem;
+      margin-top: 1.5rem;
+      margin-bottom: 0.75rem;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+      gap: 1.5rem;
+      margin: 1.5rem 0;
+    }
+
+    .form-group {
+      margin-bottom: 1.5rem;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 0.5rem;
+      font-weight: 600;
+      color: #374151;
+    }
+
+    small {
+      display: block;
+      margin-top: 0.25rem;
+      color: #6b7280;
+      font-size: 0.875rem;
+    }
+
+    .event-log {
+      background: #1f2937;
+      color: #f3f4f6;
+      border-radius: 0.5rem;
+      padding: 1rem;
+      margin-top: 1rem;
+      font-family: 'Courier New', monospace;
+      font-size: 0.875rem;
+      max-height: 300px;
+      overflow-y: auto;
+    }
+
+    .event-log-item {
+      padding: 0.5rem;
+      border-bottom: 1px solid #374151;
+      margin-bottom: 0.5rem;
+    }
+
+    .event-log-item:last-child {
+      border-bottom: none;
+    }
+
+    .event-name {
+      color: #34d399;
+      font-weight: 600;
+    }
+
+    .event-time {
+      color: #9ca3af;
+      font-size: 0.75rem;
+    }
+
+    .event-data {
+      color: #fbbf24;
+      margin-top: 0.25rem;
+    }
+
+    .info-box {
+      background: #eff6ff;
+      border-left: 4px solid #3b82f6;
+      padding: 1rem;
+      margin: 1rem 0;
+      border-radius: 0.25rem;
+    }
+
+    .warning-box {
+      background: #fef3c7;
+      border-left: 4px solid #f59e0b;
+      padding: 1rem;
+      margin: 1rem 0;
+      border-radius: 0.25rem;
+    }
+
+    .success-box {
+      background: #d1fae5;
+      border-left: 4px solid #10b981;
+      padding: 1rem;
+      margin: 1rem 0;
+      border-radius: 0.25rem;
+    }
+
+    .error-box {
+      background: #fee2e2;
+      border-left: 4px solid #ef4444;
+      padding: 1rem;
+      margin: 1rem 0;
+      border-radius: 0.25rem;
+    }
+
+    pre {
+      background: #f3f4f6;
+      border: 1px solid #e5e7eb;
+      border-radius: 0.5rem;
+      padding: 1rem;
+      overflow-x: auto;
+      font-size: 0.875rem;
+    }
+
+    code {
+      font-family: 'Courier New', monospace;
+      background: #f3f4f6;
+      padding: 0.125rem 0.25rem;
+      border-radius: 0.25rem;
+      font-size: 0.875rem;
+    }
+
+    pre code {
+      background: none;
+      padding: 0;
+    }
+
+    .status-indicator {
+      display: inline-block;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      margin-right: 0.5rem;
+    }
+
+    .status-allowed {
+      background: #10b981;
+    }
+
+    .status-blocked {
+      background: #ef4444;
+    }
+
+    .status-adjusted {
+      background: #f59e0b;
+    }
+  </style>
+</head>
+<body>
+  <div class="header-nav">
+    <a href="index.html" class="back-link">
+      <span>←</span>
+      <span>All Examples</span>
+    </a>
+  </div>
+
+  <h1 class="page-title">⚡ Events & Callbacks</h1>
+  <p class="page-description">Learn about the event system and beforeDateSelect callback for validation and control.</p>
+
+  <!-- Events Overview -->
+  <div class="card">
+    <h2>Events Fired by the Component</h2>
+    <p>The date picker fires two custom events when a date or range is selected:</p>
+
+    <div class="info-box">
+      <strong>Event Names:</strong>
+      <ul style="margin: 0.5rem 0 0 1.5rem;">
+        <li><code>date-select</code> - Primary event for date selection</li>
+        <li><code>change</code> - Alias event (fires simultaneously with date-select)</li>
+      </ul>
+      <p style="margin-top: 0.5rem;"><strong>Note:</strong> Both events bubble and are composed (cross Shadow DOM boundaries).</p>
+    </div>
+
+    <h3>Event Detail Structure</h3>
+    <pre><code>// Single mode
+{
+  formattedValue: "2025-11-17",
+  date: Date object
+}
+
+// Range mode
+{
+  formattedValue: "2025-11-17 - 2025-11-24",
+  dateRange: { start: Date, end: Date },
+  enabledDates: [Date, Date, ...],    // If using 'allow' mode
+  disabledDates: [Date, Date, ...],   // If using 'allow' mode
+  dateRanges: [DateRange, ...],       // If using 'split' mode
+  dates: [Date, Date, ...],           // If using 'split' or 'individual' mode
+  getEnabledDateCount: () => number,  // Helper function
+  getTotalDays: () => number          // Helper function
+}</code></pre>
+
+    <h3>Listening to Events</h3>
+    <div class="grid">
+      <div class="form-group">
+        <label>Single Mode Event Demo</label>
+        <web-daterangepicker id="event-single"></web-daterangepicker>
+        <div id="event-log-single" class="event-log">
+          <div style="color: #9ca3af;">Select a date to see events...</div>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Range Mode Event Demo</label>
+        <web-daterangepicker id="event-range" selection-mode="range" visible-months-count="2"></web-daterangepicker>
+        <div id="event-log-range" class="event-log">
+          <div style="color: #9ca3af;">Select a range to see events...</div>
+        </div>
+      </div>
+    </div>
+
+    <pre><code>// Listening to events
+const picker = document.getElementById('my-picker');
+
+picker.addEventListener('date-select', (event) => {
+  console.log('Date selected:', event.detail);
+
+  if (event.detail.date) {
+    // Single mode
+    console.log('Selected date:', event.detail.date);
+  } else if (event.detail.dateRange) {
+    // Range mode
+    console.log('Selected range:', event.detail.dateRange);
+  }
+});</code></pre>
+  </div>
+
+  <!-- beforeDateSelect Callback -->
+  <div class="card">
+    <h2>beforeDateSelect Callback - Validation & Control</h2>
+    <p>
+      The <code>beforeDateSelect</code> callback is invoked BEFORE a selection is finalized.
+      It allows you to validate, block, adjust, or clear selections based on your business logic.
+    </p>
+
+    <div class="info-box">
+      <strong>Key Features:</strong>
+      <ul style="margin: 0.5rem 0 0 1.5rem;">
+        <li>Works for both <strong>single</strong> and <strong>range</strong> modes</li>
+        <li>Supports <strong>synchronous</strong> and <strong>asynchronous</strong> validation</li>
+        <li>Can <strong>block</strong>, <strong>adjust</strong>, <strong>restore</strong>, or <strong>clear</strong> selections</li>
+        <li>Shows loading overlay during async operations</li>
+        <li>Called AFTER local validation (disabled dates, min/max) passes</li>
+      </ul>
+    </div>
+
+    <h3>Return Value Actions</h3>
+    <table style="width: 100%; border-collapse: collapse; margin: 1rem 0;">
+      <thead>
+        <tr style="background: #f3f4f6;">
+          <th style="padding: 0.75rem; text-align: left; border: 1px solid #e5e7eb;">Action</th>
+          <th style="padding: 0.75rem; text-align: left; border: 1px solid #e5e7eb;">Description</th>
+          <th style="padding: 0.75rem; text-align: left; border: 1px solid #e5e7eb;">Use Case</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td style="padding: 0.75rem; border: 1px solid #e5e7eb;"><code>'accept'</code></td>
+          <td style="padding: 0.75rem; border: 1px solid #e5e7eb;">Allow the selection as-is</td>
+          <td style="padding: 0.75rem; border: 1px solid #e5e7eb;">Validation passed</td>
+        </tr>
+        <tr>
+          <td style="padding: 0.75rem; border: 1px solid #e5e7eb;"><code>'adjust'</code></td>
+          <td style="padding: 0.75rem; border: 1px solid #e5e7eb;">Modify the selected date(s)</td>
+          <td style="padding: 0.75rem; border: 1px solid #e5e7eb;">Round to business days, snap to availability</td>
+        </tr>
+        <tr>
+          <td style="padding: 0.75rem; border: 1px solid #e5e7eb;"><code>'restore'</code></td>
+          <td style="padding: 0.75rem; border: 1px solid #e5e7eb;">Reject and revert to previous selection</td>
+          <td style="padding: 0.75rem; border: 1px solid #e5e7eb;">Validation failed, keep previous state</td>
+        </tr>
+        <tr>
+          <td style="padding: 0.75rem; border: 1px solid #e5e7eb;"><code>'clear'</code></td>
+          <td style="padding: 0.75rem; border: 1px solid #e5e7eb;">Clear the selection entirely</td>
+          <td style="padding: 0.75rem; border: 1px solid #e5e7eb;">Hard reset on validation failure</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Single Mode Examples -->
+  <div class="card">
+    <h2>Single Mode - beforeDateSelect Examples</h2>
+
+    <div class="grid">
+      <!-- Example 1: Block Weekends -->
+      <div class="form-group">
+        <label>
+          <span class="status-indicator status-blocked"></span>
+          Block Weekends
+        </label>
+        <web-daterangepicker id="single-block-weekends"></web-daterangepicker>
+        <small>Try selecting Saturday or Sunday</small>
+        <div id="log-single-weekends" class="event-log" style="max-height: 150px;">
+          <div style="color: #9ca3af;">Waiting for selection...</div>
+        </div>
+      </div>
+
+      <!-- Example 2: Block Past Dates -->
+      <div class="form-group">
+        <label>
+          <span class="status-indicator status-blocked"></span>
+          Block Past Dates
+        </label>
+        <web-daterangepicker id="single-block-past"></web-daterangepicker>
+        <small>Only future dates allowed</small>
+        <div id="log-single-past" class="event-log" style="max-height: 150px;">
+          <div style="color: #9ca3af;">Waiting for selection...</div>
+        </div>
+      </div>
+
+      <!-- Example 3: Adjust to Next Business Day -->
+      <div class="form-group">
+        <label>
+          <span class="status-indicator status-adjusted"></span>
+          Adjust to Business Day
+        </label>
+        <web-daterangepicker id="single-adjust-business"></web-daterangepicker>
+        <small>Weekends auto-adjust to Monday</small>
+        <div id="log-single-adjust" class="event-log" style="max-height: 150px;">
+          <div style="color: #9ca3af;">Waiting for selection...</div>
+        </div>
+      </div>
+
+      <!-- Example 4: Async API Validation -->
+      <div class="form-group">
+        <label>
+          <span class="status-indicator status-allowed"></span>
+          Async API Validation
+        </label>
+        <web-daterangepicker id="single-async"></web-daterangepicker>
+        <small>Simulates API call (500ms delay)</small>
+        <div id="log-single-async" class="event-log" style="max-height: 150px;">
+          <div style="color: #9ca3af;">Waiting for selection...</div>
+        </div>
+      </div>
+    </div>
+
+    <h3>Code Examples</h3>
+    <pre><code>// Block weekends
+picker.beforeDateSelect = (date) => {
+  const isWeekend = date.getDay() === 0 || date.getDay() === 6;
+  return isWeekend
+    ? { action: 'restore', message: 'Weekends not allowed' }
+    : { action: 'accept' };
+};
+
+// Adjust to next business day
+picker.beforeDateSelect = (date) => {
+  const day = date.getDay();
+  if (day === 0) { // Sunday → Monday
+    const adjusted = new Date(date);
+    adjusted.setDate(date.getDate() + 1);
+    return { action: 'adjust', adjustedDate: adjusted, message: 'Adjusted to Monday' };
+  } else if (day === 6) { // Saturday → Monday
+    const adjusted = new Date(date);
+    adjusted.setDate(date.getDate() + 2);
+    return { action: 'adjust', adjustedDate: adjusted, message: 'Adjusted to Monday' };
+  }
+  return { action: 'accept' };
+};
+
+// Async API validation
+picker.beforeDateSelect = async (date) => {
+  const response = await fetch('/api/check-date', {
+    method: 'POST',
+    body: JSON.stringify({ date: date.toISOString() })
+  });
+  const { available } = await response.json();
+  return available
+    ? { action: 'accept' }
+    : { action: 'restore', message: 'Date not available' };
+};</code></pre>
+  </div>
+
+  <!-- Range Mode Examples -->
+  <div class="card">
+    <h2>Range Mode - beforeDateSelect Examples</h2>
+
+    <div class="grid">
+      <!-- Example 5: Minimum Nights -->
+      <div class="form-group">
+        <label>
+          <span class="status-indicator status-blocked"></span>
+          Minimum 2 Nights
+        </label>
+        <web-daterangepicker id="range-min-nights" selection-mode="range" visible-months-count="2"></web-daterangepicker>
+        <small>Requires at least 2 nights</small>
+        <div id="log-range-min" class="event-log" style="max-height: 150px;">
+          <div style="color: #9ca3af;">Waiting for selection...</div>
+        </div>
+      </div>
+
+      <!-- Example 6: Maximum Nights -->
+      <div class="form-group">
+        <label>
+          <span class="status-indicator status-blocked"></span>
+          Maximum 7 Nights
+        </label>
+        <web-daterangepicker id="range-max-nights" selection-mode="range" visible-months-count="2"></web-daterangepicker>
+        <small>Cannot exceed 7 nights</small>
+        <div id="log-range-max" class="event-log" style="max-height: 150px;">
+          <div style="color: #9ca3af;">Waiting for selection...</div>
+        </div>
+      </div>
+
+      <!-- Example 7: Adjust End Date -->
+      <div class="form-group">
+        <label>
+          <span class="status-indicator status-adjusted"></span>
+          Auto-Adjust to Checkout Day
+        </label>
+        <web-daterangepicker id="range-adjust-checkout" selection-mode="range" visible-months-count="2"></web-daterangepicker>
+        <small>End date must be Sunday (checkout day)</small>
+        <div id="log-range-adjust" class="event-log" style="max-height: 150px;">
+          <div style="color: #9ca3af;">Waiting for selection...</div>
+        </div>
+      </div>
+
+      <!-- Example 8: Async Availability -->
+      <div class="form-group">
+        <label>
+          <span class="status-indicator status-allowed"></span>
+          Check Availability (Async)
+        </label>
+        <web-daterangepicker id="range-async" selection-mode="range" visible-months-count="2"></web-daterangepicker>
+        <small>Simulates API availability check</small>
+        <div id="log-range-async" class="event-log" style="max-height: 150px;">
+          <div style="color: #9ca3af;">Waiting for selection...</div>
+        </div>
+      </div>
+    </div>
+
+    <h3>Code Examples</h3>
+    <pre><code>// Minimum nights requirement
+picker.beforeDateSelect = (range) => {
+  const nights = Math.floor((range.end - range.start) / (1000 * 60 * 60 * 24));
+  return nights &lt; 2
+    ? { action: 'restore', message: 'Minimum 2 nights required' }
+    : { action: 'accept' };
+};
+
+// Adjust end date to checkout day (Sunday)
+picker.beforeDateSelect = (range) => {
+  const endDay = range.end.getDay();
+  if (endDay !== 0) { // Not Sunday
+    const adjusted = new Date(range.end);
+    const daysToSunday = endDay === 0 ? 0 : 7 - endDay;
+    adjusted.setDate(range.end.getDate() + daysToSunday);
+    return {
+      action: 'adjust',
+      adjustedStartDate: range.start,
+      adjustedEndDate: adjusted,
+      message: `Adjusted to Sunday checkout`
+    };
+  }
+  return { action: 'accept' };
+};
+
+// Async availability check
+picker.beforeDateSelect = async (range) => {
+  const response = await fetch('/api/check-availability', {
+    method: 'POST',
+    body: JSON.stringify({
+      start: range.start.toISOString(),
+      end: range.end.toISOString()
+    })
+  });
+  const data = await response.json();
+
+  if (data.available) {
+    return { action: 'accept' };
+  } else if (data.suggestedEnd) {
+    return {
+      action: 'adjust',
+      adjustedStartDate: range.start,
+      adjustedEndDate: new Date(data.suggestedEnd),
+      message: 'Adjusted to available dates'
+    };
+  } else {
+    return { action: 'restore', message: 'Dates not available' };
+  }
+};</code></pre>
+  </div>
+
+  <script type="module">
+    import { WebDaterangepickerElement } from './src/index.ts';
+
+    if (!customElements.get('web-daterangepicker')) {
+      customElements.define('web-daterangepicker', WebDaterangepickerElement);
+    }
+
+    // Helper to log events
+    function logEvent(logId, eventName, data, status = 'info') {
+      const log = document.getElementById(logId);
+      const time = new Date().toLocaleTimeString();
+      const statusColors = {
+        info: '#3b82f6',
+        success: '#10b981',
+        warning: '#f59e0b',
+        error: '#ef4444'
+      };
+
+      log.innerHTML = `
+        <div class="event-log-item">
+          <div>
+            <span class="event-time">${time}</span>
+            <span class="event-name" style="color: ${statusColors[status]}">${eventName}</span>
+          </div>
+          <div class="event-data">${JSON.stringify(data, null, 2)}</div>
+        </div>
+      ` + log.innerHTML;
+    }
+
+    // =================================================================
+    // Event Listening Examples
+    // =================================================================
+
+    const eventSingle = document.getElementById('event-single');
+    const eventRange = document.getElementById('event-range');
+
+    eventSingle.addEventListener('date-select', (e) => {
+      logEvent('event-log-single', 'date-select', {
+        formattedValue: e.detail.formattedValue,
+        date: e.detail.date.toISOString()
+      }, 'success');
+    });
+
+    eventRange.addEventListener('date-select', (e) => {
+      logEvent('event-log-range', 'date-select', {
+        formattedValue: e.detail.formattedValue,
+        dateRange: {
+          start: e.detail.dateRange.start.toISOString(),
+          end: e.detail.dateRange.end.toISOString()
+        }
+      }, 'success');
+    });
+
+    // =================================================================
+    // Single Mode Examples
+    // =================================================================
+
+    // Example 1: Block Weekends
+    const singleBlockWeekends = document.getElementById('single-block-weekends');
+    singleBlockWeekends.beforeDateSelect = (date) => {
+      const isWeekend = date.getDay() === 0 || date.getDay() === 6;
+      const dayName = date.toLocaleDateString('en-US', { weekday: 'long' });
+
+      logEvent('log-single-weekends',
+        isWeekend ? 'BLOCKED' : 'ALLOWED',
+        { date: date.toISOString().split('T')[0], day: dayName },
+        isWeekend ? 'error' : 'success'
+      );
+
+      return isWeekend
+        ? { action: 'restore', message: 'Weekends not allowed' }
+        : { action: 'accept' };
+    };
+
+    // Example 2: Block Past Dates
+    const singleBlockPast = document.getElementById('single-block-past');
+    singleBlockPast.beforeDateSelect = (date) => {
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const isPast = date < today;
+
+      logEvent('log-single-past',
+        isPast ? 'BLOCKED (past date)' : 'ALLOWED',
+        { date: date.toISOString().split('T')[0] },
+        isPast ? 'error' : 'success'
+      );
+
+      return isPast
+        ? { action: 'restore', message: 'Past dates not allowed' }
+        : { action: 'accept' };
+    };
+
+    // Example 3: Adjust to Business Day
+    const singleAdjustBusiness = document.getElementById('single-adjust-business');
+    singleAdjustBusiness.beforeDateSelect = (date) => {
+      const day = date.getDay();
+      let adjusted = null;
+      let message = '';
+
+      if (day === 0) { // Sunday → Monday
+        adjusted = new Date(date);
+        adjusted.setDate(date.getDate() + 1);
+        message = 'Adjusted Sunday to Monday';
+      } else if (day === 6) { // Saturday → Monday
+        adjusted = new Date(date);
+        adjusted.setDate(date.getDate() + 2);
+        message = 'Adjusted Saturday to Monday';
+      }
+
+      logEvent('log-single-adjust',
+        adjusted ? 'ADJUSTED' : 'ACCEPTED',
+        {
+          original: date.toISOString().split('T')[0],
+          adjusted: adjusted ? adjusted.toISOString().split('T')[0] : null,
+          message
+        },
+        adjusted ? 'warning' : 'success'
+      );
+
+      return adjusted
+        ? { action: 'adjust', adjustedDate: adjusted, message }
+        : { action: 'accept' };
+    };
+
+    // Example 4: Async API Validation
+    const singleAsync = document.getElementById('single-async');
+    singleAsync.beforeDateSelect = async (date) => {
+      logEvent('log-single-async', 'Validating...', { date: date.toISOString().split('T')[0] }, 'info');
+
+      // Simulate API call
+      await new Promise(resolve => setTimeout(resolve, 500));
+
+      // Simulate: block dates that are multiples of 5
+      const isBlocked = date.getDate() % 5 === 0;
+
+      logEvent('log-single-async',
+        isBlocked ? 'API: BLOCKED' : 'API: ALLOWED',
+        { date: date.toISOString().split('T')[0] },
+        isBlocked ? 'error' : 'success'
+      );
+
+      return isBlocked
+        ? { action: 'restore', message: 'Date unavailable per API' }
+        : { action: 'accept' };
+    };
+
+    // =================================================================
+    // Range Mode Examples
+    // =================================================================
+
+    // Example 5: Minimum Nights
+    const rangeMinNights = document.getElementById('range-min-nights');
+    rangeMinNights.beforeDateSelect = (range) => {
+      const nights = Math.floor((range.end - range.start) / (1000 * 60 * 60 * 24));
+      const isValid = nights >= 2;
+
+      logEvent('log-range-min',
+        isValid ? 'ALLOWED' : 'BLOCKED (min 2 nights)',
+        {
+          start: range.start.toISOString().split('T')[0],
+          end: range.end.toISOString().split('T')[0],
+          nights
+        },
+        isValid ? 'success' : 'error'
+      );
+
+      return isValid
+        ? { action: 'accept' }
+        : { action: 'restore', message: 'Minimum 2 nights required' };
+    };
+
+    // Example 6: Maximum Nights
+    const rangeMaxNights = document.getElementById('range-max-nights');
+    rangeMaxNights.beforeDateSelect = (range) => {
+      const nights = Math.floor((range.end - range.start) / (1000 * 60 * 60 * 24));
+      const isValid = nights <= 7;
+
+      logEvent('log-range-max',
+        isValid ? 'ALLOWED' : 'BLOCKED (max 7 nights)',
+        {
+          start: range.start.toISOString().split('T')[0],
+          end: range.end.toISOString().split('T')[0],
+          nights
+        },
+        isValid ? 'success' : 'error'
+      );
+
+      return isValid
+        ? { action: 'accept' }
+        : { action: 'restore', message: 'Maximum 7 nights allowed' };
+    };
+
+    // Example 7: Adjust End Date to Sunday
+    const rangeAdjustCheckout = document.getElementById('range-adjust-checkout');
+    rangeAdjustCheckout.beforeDateSelect = (range) => {
+      const endDay = range.end.getDay();
+
+      if (endDay !== 0) { // Not Sunday
+        const adjusted = new Date(range.end);
+        const daysToSunday = 7 - endDay;
+        adjusted.setDate(range.end.getDate() + daysToSunday);
+
+        logEvent('log-range-adjust', 'ADJUSTED to Sunday',
+          {
+            start: range.start.toISOString().split('T')[0],
+            originalEnd: range.end.toISOString().split('T')[0],
+            adjustedEnd: adjusted.toISOString().split('T')[0]
+          },
+          'warning'
+        );
+
+        return {
+          action: 'adjust',
+          adjustedStartDate: range.start,
+          adjustedEndDate: adjusted,
+          message: 'Adjusted to Sunday checkout'
+        };
+      }
+
+      logEvent('log-range-adjust', 'ACCEPTED (already Sunday)',
+        {
+          start: range.start.toISOString().split('T')[0],
+          end: range.end.toISOString().split('T')[0]
+        },
+        'success'
+      );
+
+      return { action: 'accept' };
+    };
+
+    // Example 8: Async Availability Check
+    const rangeAsync = document.getElementById('range-async');
+    rangeAsync.beforeDateSelect = async (range) => {
+      logEvent('log-range-async', 'Checking availability...', {
+        start: range.start.toISOString().split('T')[0],
+        end: range.end.toISOString().split('T')[0]
+      }, 'info');
+
+      // Simulate API call
+      await new Promise(resolve => setTimeout(resolve, 800));
+
+      // Simulate: block if range crosses month boundary
+      const crossesMonth = range.start.getMonth() !== range.end.getMonth();
+
+      logEvent('log-range-async',
+        crossesMonth ? 'API: NOT AVAILABLE' : 'API: AVAILABLE',
+        {
+          start: range.start.toISOString().split('T')[0],
+          end: range.end.toISOString().split('T')[0]
+        },
+        crossesMonth ? 'error' : 'success'
+      );
+
+      return crossesMonth
+        ? { action: 'restore', message: 'Cannot book across months' }
+        : { action: 'accept' };
+    };
+  </script>
+</body>
+</html>

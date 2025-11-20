@@ -1,9 +1,9 @@
-import { PureDatePicker } from './date-picker';
-import type { DatePickerOptions, DateRange, DecoratedDate, DateInfo, DayRenderData } from './types';
+import { DateRangePicker } from './date-picker';
+import type { DatePickerOptions, DateRange, DecoratedDate, DateInfo, DayRenderData, BeforeSelectResult, ActionButton } from './types';
 import styles from './scss/main.scss?inline';
 
 export class WebDaterangepickerElement extends HTMLElement {
-    private picker?: PureDatePicker;
+    private picker?: DateRangePicker;
     private inputElement?: HTMLInputElement;
     private shadow: ShadowRoot;
 
@@ -11,9 +11,28 @@ export class WebDaterangepickerElement extends HTMLElement {
     private _specialDates?: DecoratedDate[];
     private _disabledDates?: (Date | string)[];
     private _isDateDisabled?: (date: Date) => boolean;
-    private _getDateMetadata?: (date: Date) => DateInfo | null;
-    private _renderDay?: (data: DayRenderData) => HTMLElement | string | null;
-    private _renderDayContent?: (data: DayRenderData) => HTMLElement | string | null;
+    private _getDateMetadataCallback?: (date: Date) => DateInfo | null;
+    private _badgeTooltipCallback?: (data: DayRenderData) => string | null;
+    private _dayTooltipCallback?: (data: DayRenderData) => string | null;
+    private _customStylesCallback?: () => string;
+    private _renderDayCallback?: (data: DayRenderData) => HTMLElement | string | null;
+    private _renderDayContentCallback?: (data: DayRenderData) => HTMLElement | string | null;
+    private _beforeDateSelect?: (selection: Date | DateRange) => Promise<BeforeSelectResult> | BeforeSelectResult;
+
+    // Member mapping properties for specialDates array
+    private _dateMember?: string;
+    private _badgeTextMember?: string;
+    private _badgeClassMember?: string;
+    private _dayClassMember?: string;
+    private _badgeTooltipMember?: string;
+    private _dayTooltipMember?: string;
+    private _isDisabledMember?: string;
+
+    // Action button configuration
+    private _actionButtons?: ActionButton[];
+
+    // Deferred re-initialization flag
+    private _pendingReinit = false;
 
     static get observedAttributes() {
         return [
@@ -22,7 +41,8 @@ export class WebDaterangepickerElement extends HTMLElement {
             'highlight-disabled-in-range', 'positioning-mode', 'month-layout', 'grid-rows', 'grid-columns', 'calendar-placement',
             'locale', 'display-format-mask', 'show-debug-info',
             'initial-date', 'rolling-year-range', 'rolling-month-range',
-            'spacing', 'font-size', 'cell-size', 'enable-transitions'
+            'spacing', 'font-size', 'cell-size', 'enable-transitions',
+            'auto-close', 'show-today-button', 'show-clear-button', 'show-apply-button'
         ];
     }
 
@@ -84,7 +104,7 @@ export class WebDaterangepickerElement extends HTMLElement {
             this.applySizeStyles();
             // Re-render picker if it exists to update rolling selector dimensions
             if (this.picker && name === 'cell-size') {
-                this.picker.render();
+                this.picker.renderCalendar();
             }
             return;
         }
@@ -202,7 +222,19 @@ export class WebDaterangepickerElement extends HTMLElement {
             disabledDates: this._disabledDates,
             specialDates: this._specialDates,
             isDateDisabled: this._isDateDisabled,
-            getDateMetadata: this._getDateMetadata,
+            getDateMetadataCallback: this._getDateMetadataCallback,
+            badgeTooltipCallback: this._badgeTooltipCallback,
+            dayTooltipCallback: this._dayTooltipCallback,
+
+            // Member mapping properties
+            dateMember: this._dateMember,
+            badgeTextMember: this._badgeTextMember,
+            badgeClassMember: this._badgeClassMember,
+            dayClassMember: this._dayClassMember,
+            badgeTooltipMember: this._badgeTooltipMember,
+            dayTooltipMember: this._dayTooltipMember,
+            isDisabledMember: this._isDisabledMember,
+
             disabledDatesHandling: (this.getAttribute('disabled-dates-handling') as 'allow' | 'prevent' | 'block' | 'split' | 'individual') || undefined,
             highlightDisabledInRange: this.hasAttribute('highlight-disabled-in-range') ? this.getAttribute('highlight-disabled-in-range') === 'true' : undefined,
             locale: this.getAttribute('locale') || 'auto',
@@ -214,25 +246,67 @@ export class WebDaterangepickerElement extends HTMLElement {
             rollingMonthRange: this.getAttribute('rolling-month-range') || undefined,
 
             // Custom rendering
-            renderDay: this._renderDay,
-            renderDayContent: this._renderDayContent
+            customStylesCallback: this._customStylesCallback,
+            renderDayCallback: this._renderDayCallback,
+            renderDayContentCallback: this._renderDayContentCallback,
+
+            // Callbacks
+            beforeDateSelect: this._beforeDateSelect,
+
+            // Action button configuration
+            autoClose: (this.getAttribute('auto-close') as 'never' | 'selection' | 'apply') || undefined,
+            actionButtons: this._actionButtons,
+            showTodayButton: this.hasAttribute('show-today-button') ? this.getAttribute('show-today-button') === 'true' : undefined,
+            showClearButton: this.hasAttribute('show-clear-button') ? this.getAttribute('show-clear-button') === 'true' : undefined,
+            showApplyButton: this.hasAttribute('show-apply-button') ? this.getAttribute('show-apply-button') === 'true' : undefined
         };
 
         // For inline mode, pass null as input element
         const inputElement = display === 'inline' ? null : this.inputElement;
-        this.picker = new PureDatePicker(inputElement, options);
+        this.picker = new DateRangePicker(inputElement, options);
         // Calendar is automatically appended to shadow root via container option
+
+        // Inject custom styles if callback provided
+        if (this._customStylesCallback) {
+            const customStyles = this._customStylesCallback();
+            if (customStyles) {
+                const customStyleSheet = document.createElement('style');
+                customStyleSheet.className = 'drp-custom-styles';
+                customStyleSheet.textContent = customStyles;
+                this.shadow.appendChild(customStyleSheet);
+            }
+        }
 
         // Apply size styles to the calendar inside shadow DOM
         // Use setTimeout to ensure DOM is fully rendered
         setTimeout(() => this.applySizeStyles(), 0);
     }
 
-    private handleDateSelect(date: Date | DateRange) {
+    /**
+     * Schedule a deferred re-initialization of the picker
+     * This allows multiple property assignments to complete before re-init
+     */
+    private scheduleReinit() {
+        if (this._pendingReinit) {
+            return;
+        }
+
+        this._pendingReinit = true;
+
+        queueMicrotask(() => {
+            this._pendingReinit = false;
+            if (this.picker) {
+                this.picker.destroy();
+                this.initializePicker();
+            }
+        });
+    }
+
+    private handleDateSelect(date: Date | DateRange | DateRange[] | Date[]) {
         // Build base event detail
         const detail: any = {
             date: date instanceof Date ? date : undefined,
-            dateRange: date instanceof Date ? undefined : date,
+            dateRange: date instanceof Date ? undefined : (Array.isArray(date) ? undefined : date),
             formattedValue: this.inputElement?.value || ''
         };
 
@@ -244,10 +318,19 @@ export class WebDaterangepickerElement extends HTMLElement {
             return;
         }
 
+        // Don't dispatch events if they're being deferred until Apply click
+        // This callback should only be invoked when events should fire
+        // (either immediately, or from the apply() function)
+        // But add safety check just in case
+        if (this.picker.requiresApplyButton() && this.picker.pendingSelection) {
+            // Events are deferred - don't dispatch yet
+            return;
+        }
+
         const mode = this.picker.options.disabledDatesHandling;
 
-        if (!(date instanceof Date) && date.start && date.end) {
-            // Range selection
+        if (!(date instanceof Date) && !Array.isArray(date) && 'start' in date && 'end' in date) {
+            // Range selection (single DateRange object)
             const start = date.start;
             const end = date.end;
 
@@ -311,19 +394,35 @@ export class WebDaterangepickerElement extends HTMLElement {
 
     // Public API methods
     public show() {
-        this.picker?.show();
+        if (!this.picker) {
+            console.warn('[web-daterangepicker] show() called but picker not initialized yet');
+            return;
+        }
+        this.picker.show();
     }
 
     public hide() {
-        this.picker?.hide();
+        if (!this.picker) {
+            console.warn('[web-daterangepicker] hide() called but picker not initialized yet');
+            return;
+        }
+        this.picker.hide();
     }
 
     public toggle() {
-        this.picker?.toggle();
+        if (!this.picker) {
+            console.warn('[web-daterangepicker] toggle() called but picker not initialized yet');
+            return;
+        }
+        this.picker.toggle();
     }
 
     public clearSelection() {
-        this.picker?.clearSelection();
+        if (!this.picker) {
+            console.warn('[web-daterangepicker] clearSelection() called but picker not initialized yet');
+            return;
+        }
+        this.picker.clearSelection();
     }
 
     public getInputValue(): string {
@@ -335,6 +434,20 @@ export class WebDaterangepickerElement extends HTMLElement {
             this.inputElement.value = value;
         }
         this.setAttribute('value', value);
+    }
+
+    public setMonthNames(monthNames: string[]) {
+        if (this.picker) {
+            this.picker.monthNames = monthNames;
+            this.picker.renderCalendar();
+        }
+    }
+
+    public setRollingItemAlignment(alignment: 'flex-start' | 'center' | 'flex-end') {
+        const calendar = this.shadow.querySelector('.drp-date-picker') as HTMLElement;
+        if (calendar) {
+            calendar.style.setProperty('--drp-rolling-item-justify-content', alignment);
+        }
     }
 
     // Property accessors
@@ -500,44 +613,206 @@ export class WebDaterangepickerElement extends HTMLElement {
         }
     }
 
-    get getDateMetadata(): ((date: Date) => DateInfo | null) | undefined {
-        return this._getDateMetadata;
+    get getDateMetadataCallback(): ((date: Date) => DateInfo | null) | undefined {
+        return this._getDateMetadataCallback;
     }
 
-    set getDateMetadata(value: ((date: Date) => DateInfo | null) | undefined) {
-        this._getDateMetadata = value;
+    set getDateMetadataCallback(value: ((date: Date) => DateInfo | null) | undefined) {
+        this._getDateMetadataCallback = value;
+        this.scheduleReinit();
+    }
+
+    get badgeTooltipCallback(): ((data: DayRenderData) => string | null) | undefined {
+        return this._badgeTooltipCallback;
+    }
+
+    set badgeTooltipCallback(value: ((data: DayRenderData) => string | null) | undefined) {
+        this._badgeTooltipCallback = value;
+        this.scheduleReinit();
+    }
+
+    get dayTooltipCallback(): ((data: DayRenderData) => string | null) | undefined {
+        return this._dayTooltipCallback;
+    }
+
+    set dayTooltipCallback(value: ((data: DayRenderData) => string | null) | undefined) {
+        this._dayTooltipCallback = value;
+        this.scheduleReinit();
+    }
+
+    // Custom rendering properties
+    get customStylesCallback(): (() => string) | undefined {
+        return this._customStylesCallback;
+    }
+
+    set customStylesCallback(value: (() => string) | undefined) {
+        this._customStylesCallback = value;
+        this.scheduleReinit();
+    }
+
+    get renderDayCallback(): ((data: DayRenderData) => HTMLElement | string | null) | undefined {
+        return this._renderDayCallback;
+    }
+
+    set renderDayCallback(value: ((data: DayRenderData) => HTMLElement | string | null) | undefined) {
+        this._renderDayCallback = value;
+        this.scheduleReinit();
+    }
+
+    get renderDayContentCallback(): ((data: DayRenderData) => HTMLElement | string | null) | undefined {
+        return this._renderDayContentCallback;
+    }
+
+    set renderDayContentCallback(value: ((data: DayRenderData) => HTMLElement | string | null) | undefined) {
+        this._renderDayContentCallback = value;
+        this.scheduleReinit();
+    }
+
+    get beforeDateSelect() {
+        return this._beforeDateSelect;
+    }
+
+    set beforeDateSelect(value: ((selection: Date | DateRange) => Promise<BeforeSelectResult> | BeforeSelectResult) | undefined) {
+        this._beforeDateSelect = value;
+        this.scheduleReinit();
+    }
+
+    // Member mapping getters/setters
+    get dateMember(): string | undefined {
+        return this._dateMember;
+    }
+
+    set dateMember(value: string | undefined) {
+        this._dateMember = value;
         if (this.picker) {
             this.picker.destroy();
             this.initializePicker();
         }
     }
 
-    // Custom rendering properties
-    get renderDay(): ((data: DayRenderData) => HTMLElement | string | null) | undefined {
-        return this._renderDay;
+    get badgeTextMember(): string | undefined {
+        return this._badgeTextMember;
     }
 
-    set renderDay(value: ((data: DayRenderData) => HTMLElement | string | null) | undefined) {
-        this._renderDay = value;
+    set badgeTextMember(value: string | undefined) {
+        this._badgeTextMember = value;
         if (this.picker) {
-            // Update the picker's options without destroying
-            this.picker.options.renderDay = value;
-            // Trigger re-render
-            this.picker.render();
+            this.picker.destroy();
+            this.initializePicker();
         }
     }
 
-    get renderDayContent(): ((data: DayRenderData) => HTMLElement | string | null) | undefined {
-        return this._renderDayContent;
+    get badgeClassMember(): string | undefined {
+        return this._badgeClassMember;
     }
 
-    set renderDayContent(value: ((data: DayRenderData) => HTMLElement | string | null) | undefined) {
-        this._renderDayContent = value;
+    set badgeClassMember(value: string | undefined) {
+        this._badgeClassMember = value;
         if (this.picker) {
-            // Update the picker's options without destroying
-            this.picker.options.renderDayContent = value;
-            // Trigger re-render
-            this.picker.render();
+            this.picker.destroy();
+            this.initializePicker();
+        }
+    }
+
+    get dayClassMember(): string | undefined {
+        return this._dayClassMember;
+    }
+
+    set dayClassMember(value: string | undefined) {
+        this._dayClassMember = value;
+        if (this.picker) {
+            this.picker.destroy();
+            this.initializePicker();
+        }
+    }
+
+    get badgeTooltipMember(): string | undefined {
+        return this._badgeTooltipMember;
+    }
+
+    set badgeTooltipMember(value: string | undefined) {
+        this._badgeTooltipMember = value;
+        if (this.picker) {
+            this.picker.destroy();
+            this.initializePicker();
+        }
+    }
+
+    get dayTooltipMember(): string | undefined {
+        return this._dayTooltipMember;
+    }
+
+    set dayTooltipMember(value: string | undefined) {
+        this._dayTooltipMember = value;
+        if (this.picker) {
+            this.picker.destroy();
+            this.initializePicker();
+        }
+    }
+
+    get isDisabledMember(): string | undefined {
+        return this._isDisabledMember;
+    }
+
+    set isDisabledMember(value: string | undefined) {
+        this._isDisabledMember = value;
+        if (this.picker) {
+            this.picker.destroy();
+            this.initializePicker();
+        }
+    }
+
+    // Action button configuration
+    get actionButtons(): ActionButton[] | undefined {
+        return this._actionButtons;
+    }
+
+    set actionButtons(value: ActionButton[] | undefined) {
+        this._actionButtons = value;
+        if (this.picker) {
+            this.picker.destroy();
+            this.initializePicker();
+        }
+    }
+
+    // Reactive selection properties (forward to picker)
+    get selectedRanges(): DateRange[] {
+        return this.picker?.selectedRangesReactive || [];
+    }
+
+    set selectedRanges(ranges: DateRange[]) {
+        if (this.picker) {
+            this.picker.selectedRangesReactive = ranges;
+        }
+    }
+
+    get selectedDates(): Date[] {
+        return this.picker?.selectedDatesReactive || [];
+    }
+
+    set selectedDates(dates: Date[]) {
+        if (this.picker) {
+            this.picker.selectedDatesReactive = dates;
+        }
+    }
+
+    get selectedDate(): Date | null {
+        return this.picker?.selectedDateReactive || null;
+    }
+
+    set selectedDate(date: Date | null) {
+        if (this.picker) {
+            this.picker.selectedDateReactive = date;
+        }
+    }
+
+    get isOpen(): boolean {
+        return this.picker?.isOpen || false;
+    }
+
+    set isOpen(value: boolean) {
+        if (this.picker) {
+            this.picker.isOpen = value;
         }
     }
 }

@@ -21,8 +21,7 @@ build: ## Build for production
 package: build ## Create npm package (tarball)
 	@echo "Creating package..."
 	npm pack
-	@echo "Package created"
-	@ls -lh *.tgz
+	@echo "Package created successfully"
 
 publish-dry: build ## Publish to npm (dry run)
 	@echo "Running publish dry-run..."
@@ -73,8 +72,8 @@ update-deps: ## Update dependencies
 install-dev: ## Install as local dev dependency (for testing)
 	@echo "Installing package locally..."
 	npm pack
-	@echo "You can now install this in another project with:"
-	@echo "npm install $(shell ls -t *.tgz | head -1)"
+	@echo "Package created - Look for keenmate-web-daterangepicker-*.tgz file"
+	@echo "Install in another project with: npm install <path-to-tgz>"
 
 # Default target
 .DEFAULT_GOAL := help
