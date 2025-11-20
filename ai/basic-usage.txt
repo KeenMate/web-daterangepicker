@@ -1,0 +1,358 @@
+BASIC DATE PICKER USAGE
+========================
+
+TWO USAGE MODES
+---------------
+1. Web Component (HTML attributes)
+2. JavaScript API (programmatic control)
+
+CRITICAL: Some features are JavaScript API ONLY:
+- formatSummaryCallback - custom summary formatting
+- customStrings - custom UI button labels
+- actionButtons - custom button configuration
+- beforeDateSelect - validation callback
+- All callback-based features
+
+WEB COMPONENT (Simple HTML)
+----------------------------
+Include the script, use the tag:
+
+<script type="module" src="https://unpkg.com/@keenmate/web-daterangepicker"></script>
+
+<web-daterangepicker
+  selection-mode="single"
+  placeholder="Select a date">
+</web-daterangepicker>
+
+Auto-registers as custom element.
+No JavaScript needed for basic usage.
+
+WEB COMPONENT ATTRIBUTES
+-------------------------
+All kebab-case, string values:
+
+<web-daterangepicker
+  selection-mode="range"
+  visible-months-count="2"
+  min-date="2025-01-01"
+  max-date="2025-12-31"
+  disabled-weekdays="0,6"
+  date-format-mask="YYYY-MM-DD"
+  placeholder="Select dates"
+  locale="en"
+  positioning-mode="floating"
+  calendar-placement="bottom-start"
+  show-today-button="true"
+  show-clear-button="true"
+  show-apply-button="true"
+  auto-close="selection">
+</web-daterangepicker>
+
+JAVASCRIPT API (Full Control)
+------------------------------
+Import and instantiate:
+
+import { DateRangePicker } from '@keenmate/web-daterangepicker';
+
+const inputElement = document.querySelector('#my-input');
+const picker = new DateRangePicker(inputElement, {
+  selectionMode: 'single',
+  minDate: '2025-01-01',
+  maxDate: '2025-12-31',
+  dateFormatMask: 'YYYY-MM-DD',
+  onSelect: (date) => {
+    console.log('Selected:', date);
+  }
+});
+
+Note: JavaScript API uses camelCase property names.
+
+SINGLE DATE MODE (default)
+---------------------------
+Select one date:
+
+<!-- Web Component -->
+<web-daterangepicker
+  selection-mode="single"
+  placeholder="Pick a date">
+</web-daterangepicker>
+
+// JavaScript API
+const picker = new DateRangePicker(input, {
+  selectionMode: 'single',
+  onSelect: (date) => {
+    console.log('Date:', date); // Date object
+  }
+});
+
+Event: date-select
+Event detail: { date: Date, formattedValue: "2025-01-15" }
+
+RANGE MODE
+----------
+Select start and end dates:
+
+<!-- Web Component -->
+<web-daterangepicker
+  selection-mode="range"
+  visible-months-count="2"
+  placeholder="Select date range">
+</web-daterangepicker>
+
+// JavaScript API
+const picker = new DateRangePicker(input, {
+  selectionMode: 'range',
+  visibleMonthsCount: 2,
+  onSelect: (dateRange) => {
+    console.log('Start:', dateRange.start);
+    console.log('End:', dateRange.end);
+  }
+});
+
+Event: date-select
+Event detail: { dateRange: { start: Date, end: Date }, formattedValue: "..." }
+
+MULTIPLE MODE
+-------------
+Select multiple individual dates or ranges:
+
+<web-daterangepicker
+  selection-mode="multiple"
+  positioning-mode="inline"
+  visible-months-count="2">
+</web-daterangepicker>
+
+Access selections:
+const dates = picker.selectedDates;    // Array of Date objects
+const ranges = picker.selectedRanges;  // Array of { start, end }
+
+INLINE MODE (Always Visible)
+-----------------------------
+Calendar embedded in page, always open:
+
+<web-daterangepicker
+  positioning-mode="inline"
+  selection-mode="range"
+  visible-months-count="2">
+</web-daterangepicker>
+
+Use cases:
+- Dashboard widgets
+- Booking interfaces
+- Date browsing tools
+
+FLOATING MODE (Dropdown - default)
+-----------------------------------
+Calendar opens on click:
+
+<web-daterangepicker
+  positioning-mode="floating"
+  calendar-placement="bottom-start"
+  selection-mode="single">
+</web-daterangepicker>
+
+Placement options:
+- bottom, bottom-start, bottom-end
+- top, top-start, top-end
+- left, right
+
+Auto-adjusts with Floating UI if viewport constrained.
+
+LISTENING TO EVENTS
+--------------------
+Web Component fires custom events:
+
+const picker = document.querySelector('web-daterangepicker');
+
+// Primary event (use this)
+picker.addEventListener('date-select', (event) => {
+  console.log('Selected:', event.detail);
+
+  if (event.detail.date) {
+    // Single mode
+    console.log('Date:', event.detail.date);
+  } else if (event.detail.dateRange) {
+    // Range mode
+    console.log('Range:', event.detail.dateRange);
+  }
+});
+
+// Alias event (same data)
+picker.addEventListener('change', (event) => {
+  console.log('Changed:', event.detail);
+});
+
+Both events fire simultaneously with identical data.
+
+ACCESSING VIA JAVASCRIPT
+-------------------------
+Get picker instance from web component:
+
+<web-daterangepicker id="my-picker"></web-daterangepicker>
+
+<script>
+const pickerElement = document.getElementById('my-picker');
+const picker = pickerElement.picker; // Access internal instance
+
+// Access properties
+const startDate = picker.selectedStartDate;
+const endDate = picker.selectedEndDate;
+
+// Call methods
+picker.renderCalendar();
+picker.clearSelection();
+</script>
+
+SETTING PROPERTIES PROGRAMMATICALLY
+------------------------------------
+Web component exposes reactive properties:
+
+const picker = document.querySelector('web-daterangepicker');
+
+// Set selected range
+picker.selectedRanges = [
+  { start: new Date('2025-01-01'), end: new Date('2025-01-31') }
+];
+
+// Open/close calendar
+picker.isOpen = true;
+
+// Set callbacks (if exposed)
+picker.isDateDisabled = (date) => {
+  return date.getDay() === 0 || date.getDay() === 6; // Disable weekends
+};
+
+picker.getDateMetadata = (date) => {
+  return {
+    badgeText: '✓',
+    dayClass: 'special',
+    isDisabled: false
+  };
+};
+
+EXTERNAL CONTROL BUTTONS
+-------------------------
+Control picker from outside:
+
+<button onclick="setToday()">Today</button>
+<button onclick="setLastWeek()">Last Week</button>
+<web-daterangepicker id="external-picker" selection-mode="range"></web-daterangepicker>
+
+<script>
+const picker = document.getElementById('external-picker');
+
+function setToday() {
+  const today = new Date();
+  picker.selectedRanges = [{ start: today, end: today }];
+}
+
+function setLastWeek() {
+  const end = new Date();
+  const start = new Date();
+  start.setDate(end.getDate() - 7);
+  picker.selectedRanges = [{ start, end }];
+}
+</script>
+
+NPM INSTALLATION
+----------------
+npm install @keenmate/web-daterangepicker
+
+// Import in your app
+import '@keenmate/web-daterangepicker';
+
+// Or import specific exports
+import { DateRangePicker } from '@keenmate/web-daterangepicker';
+
+AUTO-REGISTRATION
+-----------------
+Web component auto-registers when imported:
+
+import '@keenmate/web-daterangepicker';
+// <web-daterangepicker> now available
+
+If using module directly, component registers automatically.
+
+CDN USAGE (No Build Step)
+--------------------------
+<script type="module">
+import 'https://unpkg.com/@keenmate/web-daterangepicker';
+</script>
+
+<web-daterangepicker selection-mode="single"></web-daterangepicker>
+
+FRAMEWORK INTEGRATION
+---------------------
+Svelte:
+<script>
+import '@keenmate/web-daterangepicker';
+</script>
+<web-daterangepicker selection-mode="single" />
+
+React:
+import { useEffect } from 'react';
+import '@keenmate/web-daterangepicker';
+
+function MyComponent() {
+  return <web-daterangepicker selection-mode="single" />;
+}
+
+Vue:
+<template>
+  <web-daterangepicker selection-mode="single"></web-daterangepicker>
+</template>
+
+<script setup>
+import '@keenmate/web-daterangepicker';
+</script>
+
+SIZING
+------
+Use wrapper div with CSS classes (Shadow DOM styling):
+
+<div class="drp-font-lg drp-spacing-md">
+  <web-daterangepicker selection-mode="single"></web-daterangepicker>
+</div>
+
+Available classes:
+- Font: drp-font-xs, drp-font-sm, drp-font-md, drp-font-lg, drp-font-xl
+- Spacing: drp-spacing-xs, drp-spacing-sm, drp-spacing-md, drp-spacing-lg, drp-spacing-xl
+- Responsive: drp-responsive (auto-scales with breakpoints)
+
+✅ CORRECT: Wrapper classes
+❌ WRONG: Attributes like font-size="lg" (don't exist)
+
+COMMON PATTERNS
+---------------
+Weekdays only:
+<web-daterangepicker disabled-weekdays="0,6"></web-daterangepicker>
+
+Future dates only:
+<web-daterangepicker min-date="2025-11-21"></web-daterangepicker>
+
+European format:
+<web-daterangepicker date-format-mask="DD/MM/YYYY"></web-daterangepicker>
+
+Hotel booking (2 months):
+<web-daterangepicker
+  selection-mode="range"
+  visible-months-count="2"
+  show-apply-button="true"
+  auto-close="apply">
+</web-daterangepicker>
+
+DEBUGGING
+---------
+Enable logging:
+
+import { enableLogging, setLogLevel } from '@keenmate/web-daterangepicker';
+
+enableLogging();
+setLogLevel('debug'); // trace, debug, info, warn, error, silent
+
+Get all instances:
+const instances = document.querySelectorAll('web-daterangepicker');
+
+Access global API:
+window.components['web-daterangepicker'].version();
+window.components['web-daterangepicker'].getInstances();

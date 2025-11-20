@@ -1,0 +1,460 @@
+DISABLED DATES HANDLING (Range Mode)
+=====================================
+
+RANGE MODE FEATURE
+------------------
+Controls how disabled dates within a selected range are handled.
+
+ONLY APPLIES TO RANGE MODE
+Ignored in single/multiple modes.
+
+5 HANDLING MODES
+----------------
+1. 'prevent' - Block selection (default)
+2. 'allow' - Allow with breakdown
+3. 'block' - Snap to last enabled
+4. 'split' - Return multiple ranges
+5. 'individual' - Return enabled dates only
+
+Set via attribute or option:
+
+<!-- Web Component -->
+<web-daterangepicker
+  selection-mode="range"
+  disabled-dates-handling="allow"
+  disabled-weekdays="0,6">
+</web-daterangepicker>
+
+// JavaScript API
+const picker = new DateRangePicker(input, {
+  selectionMode: 'range',
+  disabledDatesHandling: 'allow',
+  disabledWeekdays: [0, 6]
+});
+
+MODE: 'prevent' (default)
+-------------------------
+Blocks selection if any disabled date within range.
+
+Behavior:
+- Range stops at first disabled date
+- Cannot span over disabled dates
+- Most restrictive mode
+
+Example scenario:
+Disabled: Sundays
+User selects: Friday to Monday
+Result: Selection blocked or stops at Saturday
+
+Event data:
+{
+  dateRange: { start: Friday, end: Saturday },
+  formattedValue: "..."
+}
+
+Use cases:
+- Strict booking rules
+- No gaps allowed
+- Continuous availability required
+
+Visual feedback:
+- Red highlight on disabled dates
+- Selection stops at boundary
+- Clear error indication
+
+MODE: 'allow'
+-------------
+Allows range over disabled dates, provides breakdown.
+
+Behavior:
+- Full range selected
+- Disabled dates identified
+- Enabled dates identified
+- Helper functions provided
+
+Example scenario:
+Disabled: Weekends (Sat, Sun)
+User selects: Friday to Wednesday (8 days)
+Result: Full range + breakdown
+
+Event data:
+{
+  dateRange: { start: Friday, end: Wednesday },
+  formattedValue: "...",
+  enabledDates: [Fri, Mon, Tue, Wed],  // 4 dates
+  disabledDates: [Sat, Sun],           // 2 dates
+  getEnabledDateCount: () => 4,
+  getTotalDays: () => 8
+}
+
+Use cases:
+- Hotel bookings (weekends disabled but tracked)
+- Rental periods (holidays excluded)
+- Flexible scheduling
+- Pricing calculations (charge only enabled days)
+
+Example usage:
+picker.addEventListener('date-select', (event) => {
+  const {
+    dateRange,
+    enabledDates,
+    disabledDates,
+    getEnabledDateCount
+  } = event.detail;
+
+  const enabledCount = getEnabledDateCount();
+  const price = enabledCount * dailyRate;
+
+  console.log('Range:', dateRange);
+  console.log('Billable days:', enabledCount);
+  console.log('Total cost:', price);
+});
+
+MODE: 'block'
+-------------
+Snaps range end to last enabled date before disabled.
+
+Behavior:
+- Range stops at last enabled date
+- Disabled dates excluded
+- Auto-adjusts end date
+
+Example scenario:
+Disabled: Wednesday onwards
+User selects: Monday to Friday
+Result: Monday to Tuesday (snapped)
+
+Event data:
+{
+  dateRange: { start: Monday, end: Tuesday },
+  formattedValue: "..."
+}
+
+Use cases:
+- Cutoff dates
+- Availability limits
+- Auto-adjustment needed
+- Prevent user errors
+
+Visual feedback:
+- End date snaps back visually
+- Clear adjustment indication
+
+MODE: 'split'
+-------------
+Returns multiple separate ranges (excludes disabled).
+
+Behavior:
+- Breaks into continuous enabled segments
+- Multiple ranges returned
+- Each range is continuous
+
+Example scenario:
+Disabled: Weekends
+User selects: Friday to Wednesday (6 days)
+Result: Two ranges
+
+Event data:
+{
+  dateRanges: [
+    { start: Friday, end: Friday },    // Range 1
+    { start: Monday, end: Wednesday }  // Range 2
+  ],
+  dates: [Fri, Mon, Tue, Wed],  // All enabled dates
+  formattedValue: "..."
+}
+
+Use cases:
+- Multi-segment bookings
+- Separate billing periods
+- Fragmented availability
+- Complex scheduling
+
+Example usage:
+picker.addEventListener('date-select', (event) => {
+  const { dateRanges, dates } = event.detail;
+
+  console.log('Segments:', dateRanges.length);
+
+  dateRanges.forEach((range, index) => {
+    console.log(`Segment ${index + 1}:`, range.start, '→', range.end);
+  });
+
+  console.log('Total days:', dates.length);
+});
+
+MODE: 'individual'
+------------------
+Returns flat array of enabled dates (no ranges).
+
+Behavior:
+- No range concept
+- Individual dates only
+- Disabled dates skipped
+
+Example scenario:
+Disabled: Weekends
+User selects: Friday to Wednesday
+Result: Individual dates array
+
+Event data:
+{
+  dates: [Friday, Monday, Tuesday, Wednesday],
+  formattedValue: "..."
+}
+
+Use cases:
+- Day-by-day tracking
+- Individual appointments
+- Non-continuous selections
+- Per-date operations
+
+Example usage:
+picker.addEventListener('date-select', (event) => {
+  const { dates } = event.detail;
+
+  dates.forEach(date => {
+    console.log('Selected:', date.toLocaleDateString());
+    bookAppointment(date);
+  });
+});
+
+VISUAL HIGHLIGHTING
+-------------------
+Control disabled date styling in selected range:
+
+<web-daterangepicker
+  selection-mode="range"
+  disabled-dates-handling="allow"
+  highlight-disabled-in-range="true">
+</web-daterangepicker>
+
+When true:
+- Disabled dates in range get special styling
+- Clear visual distinction
+- Helps user understand breakdown
+
+When false:
+- Disabled dates blend in
+- Cleaner appearance
+- Less visual noise
+
+CSS classes applied:
+.drp-date-picker__day--in-range
+.drp-date-picker__day--in-range-disabled
+
+COMPARISON TABLE
+----------------
+Mode        | Selection Allowed | Returns
+------------|-------------------|------------------
+prevent     | Only continuous   | Single range
+allow       | Over disabled     | Range + breakdown
+block       | Snaps to enabled  | Adjusted range
+split       | Over disabled     | Multiple ranges
+individual  | Over disabled     | Flat date array
+
+CHOOSING THE RIGHT MODE
+-----------------------
+Use 'prevent' when:
+- Strict continuous availability required
+- No gaps allowed
+- Simple booking rules
+
+Use 'allow' when:
+- Need to track disabled dates
+- Flexible scheduling
+- Charge only enabled days
+- Show breakdown to user
+
+Use 'block' when:
+- Auto-correction preferred
+- Prevent user confusion
+- Clear cutoff dates
+- Adjust to availability
+
+Use 'split' when:
+- Multi-segment booking OK
+- Need continuous sub-ranges
+- Track separate periods
+- Complex availability
+
+Use 'individual' when:
+- Day-by-day granularity
+- No range concept needed
+- Individual appointments
+- Per-date processing
+
+COMBINING WITH RESTRICTIONS
+----------------------------
+Works with all restriction types:
+
+const picker = new DateRangePicker(input, {
+  selectionMode: 'range',
+  disabledDatesHandling: 'allow',
+
+  // Combine with:
+  minDate: '2025-01-01',
+  disabledWeekdays: [0, 6],
+  disabledDates: ['2025-12-25'],
+  isDateDisabled: (date) => isBooked(date)
+});
+
+All restrictions evaluated, handling mode applied to result.
+
+PRICING EXAMPLE (allow mode)
+-----------------------------
+Charge only for enabled days:
+
+const picker = new DateRangePicker(input, {
+  selectionMode: 'range',
+  disabledDatesHandling: 'allow',
+  disabledWeekdays: [0, 6]
+});
+
+picker.addEventListener('date-select', (event) => {
+  const { enabledDates, getEnabledDateCount } = event.detail;
+
+  const billableDays = getEnabledDateCount();
+  const totalCost = billableDays * 150; // $150 per weekday
+
+  showSummary(`
+    Total days: ${event.detail.getTotalDays()}
+    Billable days: ${billableDays} (weekdays only)
+    Cost: $${totalCost}
+  `);
+});
+
+MULTI-SEGMENT EXAMPLE (split mode)
+-----------------------------------
+Book separate continuous periods:
+
+const picker = new DateRangePicker(input, {
+  selectionMode: 'range',
+  disabledDatesHandling: 'split',
+  disabledWeekdays: [0, 6]
+});
+
+picker.addEventListener('date-select', (event) => {
+  const { dateRanges } = event.detail;
+
+  dateRanges.forEach((range, index) => {
+    createBooking({
+      segment: index + 1,
+      start: range.start,
+      end: range.end
+    });
+  });
+
+  showConfirmation(`Created ${dateRanges.length} booking segments`);
+});
+
+DECISION FLOWCHART
+------------------
+Question 1: Can selection include disabled dates?
+  No → Use 'prevent'
+  Yes → Go to Q2
+
+Question 2: Need to track which dates are disabled?
+  Yes → Use 'allow'
+  No → Go to Q3
+
+Question 3: Should end date auto-adjust?
+  Yes → Use 'block'
+  No → Go to Q4
+
+Question 4: Need continuous sub-ranges?
+  Yes → Use 'split'
+  No → Use 'individual'
+
+ERROR HANDLING
+--------------
+Handle empty results:
+
+picker.addEventListener('date-select', (event) => {
+  const { dates, dateRanges } = event.detail;
+
+  if (dates && dates.length === 0) {
+    showError('No enabled dates in selected range');
+    picker.clearSelection();
+    return;
+  }
+
+  if (dateRanges && dateRanges.length === 0) {
+    showError('No continuous ranges available');
+    picker.clearSelection();
+    return;
+  }
+
+  processSelection(event.detail);
+});
+
+TESTING
+-------
+Test all modes with various patterns:
+
+const testScenarios = [
+  {
+    mode: 'allow',
+    range: { start: 'Mon', end: 'Sun' },
+    disabled: 'weekends',
+    expected: { enabled: 5, disabled: 2 }
+  },
+  {
+    mode: 'split',
+    range: { start: 'Fri', end: 'Wed' },
+    disabled: 'weekends',
+    expected: { segments: 2 }
+  }
+];
+
+testScenarios.forEach(test => {
+  picker.disabledDatesHandling = test.mode;
+  // Select range and verify event.detail
+});
+
+BEST PRACTICES
+--------------
+1. Choose mode based on business logic
+   - Don't use 'allow' if gaps not permitted
+   - Use 'prevent' for strict rules
+
+2. Provide clear visual feedback
+   - Highlight disabled dates in range
+   - Show breakdown to user
+   - Explain adjustment
+
+3. Handle edge cases
+   - All dates disabled
+   - No continuous segments
+   - Single-day ranges
+
+4. Document behavior
+   - Explain mode to users
+   - Show pricing impact
+   - Clarify what's included
+
+5. Test thoroughly
+   - Month boundaries
+   - Multiple disabled patterns
+   - Long ranges
+   - Edge dates
+
+ACCESSIBILITY
+-------------
+Communicate mode to users:
+
+<label for="picker">
+  Select dates (weekends excluded from billing)
+</label>
+<web-daterangepicker
+  id="picker"
+  selection-mode="range"
+  disabled-dates-handling="allow"
+  disabled-weekdays="0,6">
+</web-daterangepicker>
+
+Provide summary:
+picker.addEventListener('date-select', (event) => {
+  const summary = generateSummary(event.detail);
+  announceToScreenReader(summary);
+});

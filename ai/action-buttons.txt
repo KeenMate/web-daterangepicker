@@ -1,0 +1,630 @@
+ACTION BUTTONS
+==============
+
+CRITICAL: JavaScript API ONLY
+Action buttons configuration not available as web component attributes.
+
+BUILT-IN BUTTONS
+----------------
+Three default buttons in range mode:
+1. Today - Jump to today's date
+2. Clear - Clear selection
+3. Apply - Confirm and close (range mode)
+
+Control visibility:
+
+<!-- Web Component -->
+<web-daterangepicker
+  selection-mode="range"
+  show-today-button="true"
+  show-clear-button="true"
+  show-apply-button="true">
+</web-daterangepicker>
+
+// JavaScript API
+const picker = new DateRangePicker(input, {
+  selectionMode: 'range',
+  showTodayButton: true,
+  showClearButton: true,
+  showApplyButton: true
+});
+
+AUTO-CLOSE CONTROL
+------------------
+Control when calendar closes:
+
+<!-- Web Component -->
+<web-daterangepicker
+  auto-close="selection">  <!-- 'never', 'selection', 'apply' -->
+</web-daterangepicker>
+
+Modes:
+- 'never' - Never auto-close (manual close only)
+- 'selection' - Close on selection complete (default)
+- 'apply' - Only Apply button closes
+
+// JavaScript API
+const picker = new DateRangePicker(input, {
+  autoClose: 'selection'
+});
+
+CUSTOM ACTION BUTTONS
+---------------------
+CRITICAL: JavaScript API ONLY (actionButtons property)
+
+Set via web component property:
+
+const picker = document.querySelector('web-daterangepicker');
+
+picker.actionButtons = [
+  {
+    action: 'today' | 'clear' | 'apply' | 'custom',
+    text: string,
+    onClick?: (picker) => void,  // Required for 'custom'
+
+    // Static properties
+    cssClass?: string,
+    tooltip?: string,
+    isVisible?: boolean,
+    isDisabled?: boolean,
+
+    // Dynamic callbacks (override static)
+    isVisibleCallback?: (picker) => boolean,
+    isDisabledCallback?: (picker) => boolean,
+    getTextCallback?: (picker) => string,
+    getClassCallback?: (picker) => string | string[],
+    getTooltipCallback?: (picker) => string
+  }
+];
+
+ACTIONBUTTON INTERFACE
+----------------------
+{
+  // Required
+  action: 'today' | 'clear' | 'apply' | 'custom';
+  text: string;
+
+  // Custom action handler
+  onClick?: (picker) => void;  // Required if action='custom'
+
+  // Static properties
+  cssClass?: string;
+  tooltip?: string;
+  isVisible?: boolean;    // Default: true
+  isDisabled?: boolean;   // Default: false
+
+  // Dynamic callbacks (take priority over static)
+  isVisibleCallback?: (picker) => boolean;
+  isDisabledCallback?: (picker) => boolean;
+  getTextCallback?: (picker) => string;
+  getClassCallback?: (picker) => string | string[];
+  getTooltipCallback?: (picker) => string;
+}
+
+CALLBACK PRIORITY
+-----------------
+When both static property and callback defined, callback wins:
+
+Priority chain:
+- isVisibleCallback → isVisible → true
+- isDisabledCallback → isDisabled → false
+- getTextCallback → text → action
+- getClassCallback → cssClass → ''
+- getTooltipCallback → tooltip → ''
+
+PRESET BUTTONS
+--------------
+Quick date range shortcuts:
+
+const picker = document.querySelector('#picker');
+
+picker.actionButtons = [
+  {
+    action: 'custom',
+    text: 'Last Week',
+    onClick: (picker) => {
+      const end = new Date();
+      const start = new Date();
+      start.setDate(end.getDate() - 7);
+
+      picker.selectedStartDate = start;
+      picker.selectedEndDate = end;
+      picker.renderCalendar();
+      picker.updateSummary();
+    }
+  },
+  {
+    action: 'custom',
+    text: 'Next Month',
+    onClick: (picker) => {
+      const start = new Date();
+      const end = new Date();
+      end.setMonth(end.getMonth() + 1);
+
+      picker.selectedStartDate = start;
+      picker.selectedEndDate = end;
+      picker.renderCalendar();
+      picker.updateSummary();
+    }
+  },
+  { action: 'clear', text: 'Clear' },
+  { action: 'apply', text: 'Apply' }
+];
+
+CONDITIONAL VISIBILITY
+----------------------
+Show/hide buttons based on state:
+
+picker.actionButtons = [
+  { action: 'today', text: 'Today' },
+  { action: 'clear', text: 'Clear' },
+  {
+    action: 'apply',
+    text: 'Apply',
+    // Only show when both dates selected
+    isVisibleCallback: (picker) => {
+      return picker.selectedStartDate && picker.selectedEndDate;
+    }
+  }
+];
+
+DYNAMIC DISABLED STATE
+----------------------
+Enable/disable based on state:
+
+picker.actionButtons = [
+  { action: 'today', text: 'Today' },
+  {
+    action: 'clear',
+    text: 'Clear',
+    // Disable when nothing selected
+    isDisabledCallback: (picker) => {
+      return !picker.selectedStartDate && !picker.selectedEndDate;
+    }
+  },
+  {
+    action: 'apply',
+    text: 'Apply',
+    // Disable until both dates selected
+    isDisabledCallback: (picker) => {
+      return !picker.selectedStartDate || !picker.selectedEndDate;
+    }
+  }
+];
+
+DYNAMIC TEXT
+------------
+Change button text based on state:
+
+picker.actionButtons = [
+  {
+    action: 'apply',
+    text: 'Apply',
+    getTextCallback: (picker) => {
+      if (!picker.selectedStartDate || !picker.selectedEndDate) {
+        return 'Apply';
+      }
+
+      const days = Math.floor(
+        (picker.selectedEndDate - picker.selectedStartDate) / (1000 * 60 * 60 * 24)
+      ) + 1;
+
+      return `Apply (${days} day${days !== 1 ? 's' : ''})`;
+    }
+  }
+];
+
+DYNAMIC CSS CLASSES
+-------------------
+Apply classes based on state:
+
+picker.actionButtons = [
+  {
+    action: 'clear',
+    text: 'Clear',
+    cssClass: 'clear-button',
+    // Return array of classes
+    getClassCallback: (picker) => {
+      const classes = ['clear-button'];
+      if (picker.selectedStartDate || picker.selectedEndDate) {
+        classes.push('danger');
+      }
+      return classes;
+    }
+  },
+  {
+    action: 'apply',
+    text: 'Apply',
+    // Return single string
+    getClassCallback: (picker) => {
+      const hasComplete = picker.selectedStartDate && picker.selectedEndDate;
+      return hasComplete ? 'apply-ready' : 'apply-waiting';
+    }
+  }
+];
+
+// Inject styles
+picker.customStylesCallback = () => `
+  .apply-ready {
+    background: #10b981 !important;
+    color: white !important;
+    font-weight: 600 !important;
+  }
+  .apply-waiting {
+    background: #d1d5db !important;
+    color: #6b7280 !important;
+  }
+  .danger {
+    background: #ef4444 !important;
+    color: white !important;
+  }
+`;
+
+DYNAMIC TOOLTIPS
+----------------
+Change tooltip based on state:
+
+picker.actionButtons = [
+  {
+    action: 'today',
+    text: 'Today',
+    getTooltipCallback: (picker) => {
+      const today = new Date();
+      return `Set to ${today.toLocaleDateString()}`;
+    }
+  },
+  {
+    action: 'clear',
+    text: 'Clear',
+    getTooltipCallback: (picker) => {
+      if (!picker.selectedStartDate && !picker.selectedEndDate) {
+        return 'No selection to clear';
+      }
+      return 'Clear the current date range';
+    }
+  },
+  {
+    action: 'apply',
+    text: 'Apply',
+    getTooltipCallback: (picker) => {
+      if (!picker.selectedStartDate || !picker.selectedEndDate) {
+        return 'Select both start and end dates';
+      }
+
+      const days = Math.floor(
+        (picker.selectedEndDate - picker.selectedStartDate) / (1000 * 60 * 60 * 24)
+      ) + 1;
+
+      return `Apply ${days}-day range`;
+    }
+  }
+];
+
+ICONS IN BUTTONS
+----------------
+Use HTML in text property:
+
+picker.actionButtons = [
+  {
+    action: 'today',
+    text: '<i class="fa-solid fa-calendar-day"></i> Today',
+    tooltip: 'Jump to today'
+  },
+  {
+    action: 'clear',
+    text: '<i class="fa-solid fa-circle-xmark"></i> Clear',
+    cssClass: 'danger-icon'
+  },
+  {
+    action: 'apply',
+    text: '<i class="fa-solid fa-circle-check"></i> Apply',
+    cssClass: 'success-icon'
+  }
+];
+
+// Import Font Awesome into Shadow DOM
+picker.customStylesCallback = () => `
+  @import url('https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css');
+
+  .drp-date-picker__action {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+  }
+  .success-icon {
+    background: #10b981 !important;
+    color: white !important;
+  }
+  .danger-icon {
+    background: #ef4444 !important;
+    color: white !important;
+  }
+`;
+
+BUSINESS PERIOD PRESETS
+-----------------------
+Common business date ranges:
+
+picker.actionButtons = [
+  {
+    action: 'custom',
+    text: 'Last Business Week',
+    tooltip: 'Monday-Friday of last week',
+    onClick: (picker) => {
+      const today = new Date();
+      const dayOfWeek = today.getDay();
+      const daysToLastMonday = dayOfWeek === 0 ? 6 : dayOfWeek + 6;
+
+      const lastMonday = new Date(today);
+      lastMonday.setDate(today.getDate() - daysToLastMonday);
+
+      const lastFriday = new Date(lastMonday);
+      lastFriday.setDate(lastMonday.getDate() + 4);
+
+      picker.selectedStartDate = lastMonday;
+      picker.selectedEndDate = lastFriday;
+      picker.renderCalendar();
+      picker.updateSummary();
+    }
+  },
+  {
+    action: 'custom',
+    text: 'This Quarter',
+    tooltip: 'Current fiscal quarter',
+    onClick: (picker) => {
+      const now = new Date();
+      const quarter = Math.floor(now.getMonth() / 3);
+      const start = new Date(now.getFullYear(), quarter * 3, 1);
+      const end = new Date(now.getFullYear(), quarter * 3 + 3, 0);
+
+      picker.selectedStartDate = start;
+      picker.selectedEndDate = end;
+      picker.renderCalendar();
+      picker.updateSummary();
+    }
+  },
+  {
+    action: 'custom',
+    text: 'Year to Date',
+    tooltip: 'From Jan 1 to today',
+    onClick: (picker) => {
+      const today = new Date();
+      const start = new Date(today.getFullYear(), 0, 1);
+
+      picker.selectedStartDate = start;
+      picker.selectedEndDate = today;
+      picker.renderCalendar();
+      picker.updateSummary();
+    }
+  },
+  {
+    action: 'custom',
+    text: 'Rolling 90 Days',
+    cssClass: 'rolling-period',
+    onClick: (picker) => {
+      const end = new Date();
+      const start = new Date();
+      start.setDate(end.getDate() - 89);
+
+      picker.selectedStartDate = start;
+      picker.selectedEndDate = end;
+      picker.renderCalendar();
+      picker.updateSummary();
+    }
+  },
+  { action: 'clear', text: 'Clear' },
+  { action: 'apply', text: 'Apply' }
+];
+
+COMBINING ALL FEATURES
+----------------------
+All dynamic callbacks together:
+
+picker.actionButtons = [
+  { action: 'today', text: 'Today' },
+  {
+    action: 'clear',
+    text: 'Clear All',              // Overridden by getTextCallback
+    cssClass: 'base-clear',          // Overridden by getClassCallback
+    tooltip: 'Static tooltip',       // Overridden by getTooltipCallback
+    isVisible: true,                 // Overridden by isVisibleCallback
+    isDisabled: false,               // Overridden by isDisabledCallback
+
+    // Callbacks take priority
+    isVisibleCallback: (picker) =>
+      picker.selectedStartDate || picker.selectedEndDate,
+
+    isDisabledCallback: (picker) =>
+      !picker.selectedStartDate && !picker.selectedEndDate,
+
+    getTextCallback: (picker) => {
+      const hasSelection = picker.selectedStartDate || picker.selectedEndDate;
+      return hasSelection ? 'Clear Selection' : 'Clear All';
+    },
+
+    getClassCallback: (picker) => {
+      return (picker.selectedStartDate || picker.selectedEndDate)
+        ? 'danger'
+        : 'base-clear';
+    },
+
+    getTooltipCallback: (picker) => {
+      if (!picker.selectedStartDate && !picker.selectedEndDate) {
+        return 'Nothing to clear';
+      }
+      return 'Remove current selection';
+    }
+  }
+];
+
+PICKER INSTANCE METHODS
+-----------------------
+Available in onClick handlers:
+
+onClick: (picker) => {
+  // Access properties
+  const start = picker.selectedStartDate;
+  const end = picker.selectedEndDate;
+  const date = picker.selectedDate;
+
+  // Call methods
+  picker.renderCalendar();
+  picker.updateSummary();
+  picker.clearSelection();
+  picker.hide();
+  picker.show();
+
+  // Access options
+  const mode = picker.options.selectionMode;
+}
+
+BUTTON ORDER
+------------
+Buttons appear in array order:
+
+picker.actionButtons = [
+  { action: 'today', text: 'Today' },         // Left
+  { action: 'custom', text: 'Preset' },
+  { action: 'clear', text: 'Clear' },
+  { action: 'apply', text: 'Apply' }          // Right
+];
+
+UPDATING BUTTONS
+----------------
+Update button configuration after creation:
+
+// Replace all buttons
+picker.actionButtons = newButtonsArray;
+
+// Add button
+picker.actionButtons = [
+  ...picker.actionButtons,
+  { action: 'custom', text: 'New', onClick: handler }
+];
+
+// Remove button
+picker.actionButtons = picker.actionButtons.filter(
+  btn => btn.action !== 'clear'
+);
+
+// Calendar auto-updates
+
+DEBUGGING
+---------
+Log button clicks:
+
+picker.actionButtons = [
+  {
+    action: 'custom',
+    text: 'Debug',
+    onClick: (picker) => {
+      console.log('Picker state:', {
+        start: picker.selectedStartDate,
+        end: picker.selectedEndDate,
+        isOpen: picker.isOpen
+      });
+    }
+  }
+];
+
+Track button state:
+
+picker.actionButtons = [{
+  action: 'apply',
+  text: 'Apply',
+  isDisabledCallback: (picker) => {
+    const disabled = !picker.selectedStartDate || !picker.selectedEndDate;
+    console.log('Apply button disabled:', disabled);
+    return disabled;
+  }
+}];
+
+BEST PRACTICES
+--------------
+1. Use appropriate button types
+   - Built-in buttons for standard actions
+   - Custom buttons for presets
+   - Conditional visibility for optional actions
+
+2. Provide clear feedback
+   - Dynamic text shows current state
+   - Tooltips explain what will happen
+   - Disabled state prevents invalid actions
+
+3. Keep onClick handlers simple
+   - Set dates directly on picker
+   - Call renderCalendar() after changes
+   - Call updateSummary() for range mode
+
+4. Style consistently
+   - Use cssClass for static styling
+   - Use getClassCallback for state-based styling
+   - Inject styles via customStylesCallback
+
+5. Test button behavior
+   - Verify onClick handlers work
+   - Check disabled/enabled states
+   - Test visibility conditions
+   - Ensure tooltips are helpful
+
+ACCESSIBILITY
+-------------
+Ensure buttons are accessible:
+
+picker.actionButtons = [{
+  action: 'apply',
+  text: 'Apply Selection',
+  tooltip: 'Confirm and close calendar',
+  getTooltipCallback: (picker) => {
+    if (!picker.selectedStartDate || !picker.selectedEndDate) {
+      return 'Please select both start and end dates';
+    }
+    return 'Confirm and close calendar';
+  }
+}];
+
+COMMON PATTERNS
+---------------
+Minimal buttons (no clutter):
+picker.actionButtons = [
+  { action: 'apply', text: 'Apply' }
+];
+
+Maximum buttons (all presets):
+picker.actionButtons = [
+  { action: 'today', text: 'Today' },
+  { action: 'custom', text: 'Yesterday', onClick: setYesterday },
+  { action: 'custom', text: 'Last 7 Days', onClick: setLastWeek },
+  { action: 'custom', text: 'Last 30 Days', onClick: setLastMonth },
+  { action: 'clear', text: 'Clear' },
+  { action: 'apply', text: 'Apply' }
+];
+
+Context-aware buttons:
+picker.actionButtons = [{
+  action: 'apply',
+  text: 'Apply',
+  isVisibleCallback: (picker) => picker.selectedStartDate && picker.selectedEndDate,
+  getTextCallback: (picker) => {
+    const days = calculateDays(picker);
+    return days ? `Apply (${days} days)` : 'Apply';
+  }
+}];
+
+WEB COMPONENT LIMITATIONS
+--------------------------
+actionButtons property is JavaScript API ONLY.
+
+✅ Works (set as property):
+const picker = document.querySelector('web-daterangepicker');
+picker.actionButtons = [...];
+
+✅ Works (JavaScript API):
+const picker = new DateRangePicker(input, {
+  actionButtons: [...]
+});
+
+❌ Doesn't work (attribute):
+<web-daterangepicker
+  action-buttons="...">  <!-- Not an attribute -->
+</web-daterangepicker>

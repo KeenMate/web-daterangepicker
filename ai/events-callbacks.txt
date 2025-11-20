@@ -1,0 +1,499 @@
+EVENTS & CALLBACKS
+==================
+
+EVENT SYSTEM
+------------
+Date picker fires custom events on selection.
+
+TWO EVENT NAMES (identical data)
+---------------------------------
+1. date-select - Primary event
+2. change - Alias event (for compatibility)
+
+Both fire simultaneously with same data.
+Use whichever fits your naming convention.
+
+LISTENING TO EVENTS
+-------------------
+Web Component:
+
+const picker = document.querySelector('web-daterangepicker');
+
+picker.addEventListener('date-select', (event) => {
+  console.log('Selected:', event.detail);
+});
+
+// Or use 'change' alias
+picker.addEventListener('change', (event) => {
+  console.log('Changed:', event.detail);
+});
+
+Events bubble and are composed (cross Shadow DOM).
+
+SINGLE MODE EVENT DATA
+----------------------
+event.detail structure:
+
+{
+  date: Date object,
+  formattedValue: "2025-11-17"
+}
+
+Example:
+picker.addEventListener('date-select', (event) => {
+  const { date, formattedValue } = event.detail;
+
+  console.log('Date object:', date);
+  console.log('Formatted:', formattedValue);
+  console.log('Day of week:', date.getDay());
+});
+
+RANGE MODE EVENT DATA
+---------------------
+event.detail structure:
+
+{
+  dateRange: { start: Date, end: Date },
+  formattedValue: "2025-11-17 - 2025-11-24"
+}
+
+Example:
+picker.addEventListener('date-select', (event) => {
+  const { dateRange, formattedValue } = event.detail;
+
+  console.log('Start:', dateRange.start);
+  console.log('End:', dateRange.end);
+  console.log('Formatted:', formattedValue);
+
+  const nights = Math.floor(
+    (dateRange.end - dateRange.start) / (1000 * 60 * 60 * 24)
+  );
+  console.log('Nights:', nights);
+});
+
+RANGE WITH DISABLED DATES HANDLING
+-----------------------------------
+When using disabled-dates-handling modes, additional data:
+
+Mode: 'allow'
+{
+  dateRange: { start, end },
+  formattedValue: "...",
+  enabledDates: [Date, Date, ...],     // Enabled dates in range
+  disabledDates: [Date, Date, ...],    // Disabled dates in range
+  getEnabledDateCount: () => number,   // Helper function
+  getTotalDays: () => number           // Helper function
+}
+
+Mode: 'split'
+{
+  dateRanges: [
+    { start: Date, end: Date },
+    { start: Date, end: Date }
+  ],
+  dates: [Date, Date, ...],  // All enabled dates
+  formattedValue: "..."
+}
+
+Mode: 'individual'
+{
+  dates: [Date, Date, ...],  // All enabled dates
+  formattedValue: "..."
+}
+
+Example (allow mode):
+picker.addEventListener('date-select', (event) => {
+  const { dateRange, enabledDates, disabledDates } = event.detail;
+
+  console.log('Range:', dateRange);
+  console.log('Enabled:', enabledDates.length, 'dates');
+  console.log('Disabled:', disabledDates.length, 'dates');
+  console.log('Total:', event.detail.getTotalDays(), 'days');
+});
+
+MULTIPLE MODE EVENT DATA
+------------------------
+event.detail structure:
+
+{
+  dates: [Date, Date, ...],          // Selected individual dates
+  dateRanges: [{ start, end }, ...], // Selected ranges
+  formattedValue: "..."
+}
+
+Example:
+picker.addEventListener('date-select', (event) => {
+  const { dates, dateRanges } = event.detail;
+
+  console.log('Individual dates:', dates.length);
+  console.log('Ranges:', dateRanges.length);
+});
+
+BEFOREDATESELECT CALLBACK
+-------------------------
+CRITICAL: JavaScript API ONLY
+Validation/control BEFORE selection finalized.
+
+const picker = new DateRangePicker(input, {
+  beforeDateSelect: (dateOrRange) => {
+    // Return action object
+    return {
+      action: 'accept' | 'adjust' | 'restore' | 'clear',
+      adjustedDate?: Date,           // For single mode
+      adjustedStartDate?: Date,      // For range mode
+      adjustedEndDate?: Date,        // For range mode
+      message?: string               // Optional user message
+    };
+  }
+});
+
+RETURN ACTIONS
+--------------
+'accept' - Allow selection as-is
+'adjust' - Modify the selection
+'restore' - Revert to previous selection
+'clear' - Clear selection entirely
+
+SINGLE MODE VALIDATION
+----------------------
+Block weekends:
+
+beforeDateSelect: (date) => {
+  const isWeekend = date.getDay() === 0 || date.getDay() === 6;
+
+  if (isWeekend) {
+    return {
+      action: 'restore',
+      message: 'Weekends not allowed'
+    };
+  }
+
+  return { action: 'accept' };
+}
+
+Adjust to next business day:
+
+beforeDateSelect: (date) => {
+  const day = date.getDay();
+
+  if (day === 0) { // Sunday → Monday
+    const adjusted = new Date(date);
+    adjusted.setDate(date.getDate() + 1);
+    return {
+      action: 'adjust',
+      adjustedDate: adjusted,
+      message: 'Adjusted to Monday'
+    };
+  } else if (day === 6) { // Saturday → Monday
+    const adjusted = new Date(date);
+    adjusted.setDate(date.getDate() + 2);
+    return {
+      action: 'adjust',
+      adjustedDate: adjusted,
+      message: 'Adjusted to Monday'
+    };
+  }
+
+  return { action: 'accept' };
+}
+
+Block past dates:
+
+beforeDateSelect: (date) => {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  if (date < today) {
+    return {
+      action: 'restore',
+      message: 'Past dates not allowed'
+    };
+  }
+
+  return { action: 'accept' };
+}
+
+RANGE MODE VALIDATION
+---------------------
+Minimum nights requirement:
+
+beforeDateSelect: (range) => {
+  const nights = Math.floor(
+    (range.end - range.start) / (1000 * 60 * 60 * 24)
+  );
+
+  if (nights < 2) {
+    return {
+      action: 'restore',
+      message: 'Minimum 2 nights required'
+    };
+  }
+
+  return { action: 'accept' };
+}
+
+Maximum nights limit:
+
+beforeDateSelect: (range) => {
+  const nights = Math.floor(
+    (range.end - range.start) / (1000 * 60 * 60 * 24)
+  );
+
+  if (nights > 7) {
+    return {
+      action: 'restore',
+      message: 'Maximum 7 nights allowed'
+    };
+  }
+
+  return { action: 'accept' };
+}
+
+Adjust end date to checkout day (Sunday):
+
+beforeDateSelect: (range) => {
+  const endDay = range.end.getDay();
+
+  if (endDay !== 0) { // Not Sunday
+    const adjusted = new Date(range.end);
+    const daysToSunday = 7 - endDay;
+    adjusted.setDate(range.end.getDate() + daysToSunday);
+
+    return {
+      action: 'adjust',
+      adjustedStartDate: range.start,
+      adjustedEndDate: adjusted,
+      message: 'Adjusted to Sunday checkout'
+    };
+  }
+
+  return { action: 'accept' };
+}
+
+ASYNC VALIDATION
+----------------
+beforeDateSelect supports async:
+
+beforeDateSelect: async (dateOrRange) => {
+  // Show loading overlay automatically
+  const response = await fetch('/api/check-availability', {
+    method: 'POST',
+    body: JSON.stringify({
+      start: dateOrRange.start.toISOString(),
+      end: dateOrRange.end.toISOString()
+    })
+  });
+
+  const data = await response.json();
+
+  if (data.available) {
+    return { action: 'accept' };
+  } else if (data.suggestedEnd) {
+    return {
+      action: 'adjust',
+      adjustedStartDate: dateOrRange.start,
+      adjustedEndDate: new Date(data.suggestedEnd),
+      message: 'Adjusted to available dates'
+    };
+  } else {
+    return {
+      action: 'restore',
+      message: 'Dates not available'
+    };
+  }
+}
+
+Loading overlay shown automatically during async.
+
+COMBINING VALIDATIONS
+---------------------
+Multiple checks in one callback:
+
+beforeDateSelect: async (range) => {
+  // 1. Check min/max nights
+  const nights = Math.floor(
+    (range.end - range.start) / (1000 * 60 * 60 * 24)
+  );
+
+  if (nights < 2) {
+    return { action: 'restore', message: 'Min 2 nights' };
+  }
+
+  if (nights > 14) {
+    return { action: 'restore', message: 'Max 14 nights' };
+  }
+
+  // 2. Check API availability
+  const available = await checkAvailability(range);
+  if (!available) {
+    return { action: 'restore', message: 'Not available' };
+  }
+
+  // 3. Check user balance
+  const cost = calculateCost(nights);
+  if (cost > userBalance) {
+    return { action: 'restore', message: 'Insufficient funds' };
+  }
+
+  return { action: 'accept' };
+}
+
+EXECUTION ORDER
+---------------
+For a selection to complete:
+
+1. Local validation (disabled dates, min/max)
+2. beforeDateSelect callback (if provided)
+3. Selection finalized
+4. date-select event fires
+
+If any step fails, selection reverts.
+
+USE CASES
+---------
+Block invalid selections:
+- Blackout dates
+- Unauthorized dates
+- Past dates
+- Invalid ranges
+
+Adjust selections:
+- Round to business days
+- Snap to available dates
+- Enforce checkout days
+- Correct time zones
+
+API validation:
+- Check availability
+- Verify permissions
+- Validate pricing
+- Confirm capacity
+
+Business rules:
+- Minimum stay
+- Maximum advance booking
+- Lead time requirements
+- Special event rules
+
+SHOWING MESSAGES
+----------------
+Display validation messages:
+
+const picker = new DateRangePicker(input, {
+  beforeDateSelect: async (range) => {
+    const result = await validate(range);
+
+    if (!result.valid) {
+      showToast(result.message, 'error');
+      return { action: 'restore', message: result.message };
+    }
+
+    return { action: 'accept' };
+  }
+});
+
+picker.addEventListener('date-select', (event) => {
+  showToast('Dates selected', 'success');
+});
+
+ERROR HANDLING
+--------------
+Handle async errors:
+
+beforeDateSelect: async (range) => {
+  try {
+    const available = await checkAvailability(range);
+    return available
+      ? { action: 'accept' }
+      : { action: 'restore', message: 'Not available' };
+  } catch (error) {
+    console.error('Validation error:', error);
+    showError('Unable to validate dates');
+    return { action: 'restore' };
+  }
+}
+
+DEBUGGING
+---------
+Log all validation calls:
+
+beforeDateSelect: (dateOrRange) => {
+  console.log('Validating:', dateOrRange);
+
+  const result = performValidation(dateOrRange);
+
+  console.log('Result:', result);
+
+  return result;
+}
+
+Track performance:
+
+beforeDateSelect: async (range) => {
+  const start = performance.now();
+
+  const result = await validate(range);
+
+  const duration = performance.now() - start;
+  console.log('Validation took:', duration, 'ms');
+
+  return result;
+}
+
+BEST PRACTICES
+--------------
+1. Keep validation fast
+   - Cache API responses
+   - Debounce expensive checks
+   - Pre-load validation data
+
+2. Provide clear feedback
+   - Use descriptive messages
+   - Show why selection failed
+   - Suggest alternatives
+
+3. Handle errors gracefully
+   - Try/catch async code
+   - Fallback to safe defaults
+   - Log errors for debugging
+
+4. Test edge cases
+   - Network failures
+   - Timeout scenarios
+   - Concurrent selections
+   - Boundary conditions
+
+5. Use appropriate actions
+   - 'restore' for hard rejections
+   - 'adjust' for auto-corrections
+   - 'clear' for complete resets
+   - 'accept' when valid
+
+WEB COMPONENT LIMITATIONS
+--------------------------
+beforeDateSelect is JavaScript API ONLY.
+
+✅ Works:
+const picker = new DateRangePicker(input, {
+  beforeDateSelect: (date) => { ... }
+});
+
+❌ Doesn't work:
+<web-daterangepicker
+  before-date-select="...">  <!-- Not an attribute -->
+</web-daterangepicker>
+
+For web component, validate in event listener instead:
+
+picker.addEventListener('date-select', (event) => {
+  const { date } = event.detail;
+
+  if (!isValid(date)) {
+    event.preventDefault();  // Doesn't work for validation
+    picker.clearSelection();
+    showError('Invalid date');
+  }
+});
+
+NOTE: Event-based validation happens AFTER selection.
+Use JavaScript API for BEFORE validation.

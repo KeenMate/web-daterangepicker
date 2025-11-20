@@ -1,0 +1,425 @@
+DATE RESTRICTIONS
+==================
+
+RESTRICTION TYPES
+-----------------
+1. Min/Max dates - Hard boundaries
+2. Disabled weekdays - Recurring weekly patterns
+3. Disabled dates array - Specific dates (holidays)
+4. isDateDisabled callback - Complex logic
+5. getDateMetadata callback - Dynamic metadata + disabling
+
+ALL RESTRICTIONS ARE ADDITIVE
+A date is disabled if ANY restriction applies.
+
+MIN/MAX DATES
+-------------
+Set hard boundaries:
+
+<!-- Web Component -->
+<web-daterangepicker
+  min-date="2025-01-01"
+  max-date="2025-12-31"
+  placeholder="Only 2025">
+</web-daterangepicker>
+
+// JavaScript API
+const picker = new DateRangePicker(input, {
+  minDate: '2025-01-01',  // String or Date object
+  maxDate: '2025-12-31'
+});
+
+// Or with Date objects
+const picker = new DateRangePicker(input, {
+  minDate: new Date(2025, 0, 1),   // Jan 1, 2025
+  maxDate: new Date(2025, 11, 31)  // Dec 31, 2025
+});
+
+Use cases:
+- Future only: minDate: new Date()
+- Past only: maxDate: new Date()
+- Specific year: minDate/maxDate bounds
+
+DISABLED WEEKDAYS
+-----------------
+Disable recurring days of week:
+
+<!-- Web Component (comma-separated string) -->
+<web-daterangepicker
+  disabled-weekdays="0,6"
+  placeholder="Weekdays only">
+</web-daterangepicker>
+
+// JavaScript API (array of numbers)
+const picker = new DateRangePicker(input, {
+  disabledWeekdays: [0, 6]  // 0=Sunday, 6=Saturday
+});
+
+Weekday numbers:
+0 = Sunday
+1 = Monday
+2 = Tuesday
+3 = Wednesday
+4 = Thursday
+5 = Friday
+6 = Saturday
+
+Common patterns:
+Weekends only: [1, 2, 3, 4, 5]
+No Sundays: [0]
+Tue/Thu only: [0, 1, 3, 5, 6]
+
+DISABLED DATES ARRAY
+--------------------
+Disable specific dates (e.g., holidays):
+
+<!-- Web Component (must use JavaScript) -->
+<web-daterangepicker id="picker"></web-daterangepicker>
+
+<script>
+const picker = document.getElementById('picker');
+picker.disabledDates = [
+  '2025-01-01',  // New Year
+  '2025-12-25',  // Christmas
+  '2025-12-26'   // Boxing Day
+];
+</script>
+
+// JavaScript API
+const picker = new DateRangePicker(input, {
+  disabledDates: [
+    '2025-01-01',
+    '2025-12-25',
+    '2025-12-26'
+  ]
+});
+
+// Or with Date objects
+const holidays = [
+  new Date(2025, 0, 1),
+  new Date(2025, 11, 25),
+  new Date(2025, 11, 26)
+];
+
+const picker = new DateRangePicker(input, {
+  disabledDates: holidays
+});
+
+// Dynamic loading from API
+fetch('/api/holidays')
+  .then(res => res.json())
+  .then(holidays => {
+    picker.disabledDates = holidays;
+  });
+
+Use cases:
+- Company holidays
+- Blocked dates
+- Maintenance windows
+- Static blackout dates
+
+ISDATEDISABLED CALLBACK
+-----------------------
+Complex logic for disabling dates:
+
+CRITICAL: JavaScript API ONLY (pass in constructor)
+✅ CORRECT: Pass in options during new DateRangePicker()
+❌ WRONG: Set as property after creation
+
+// JavaScript API
+const bookings = [
+  { start: new Date(2025, 5, 10), end: new Date(2025, 5, 20) },
+  { start: new Date(2025, 6, 1), end: new Date(2025, 6, 10) }
+];
+
+const picker = new DateRangePicker(input, {
+  isDateDisabled: (date) => {
+    // Return true to disable, false to enable
+    return bookings.some(booking =>
+      date >= booking.start && date <= booking.end
+    );
+  }
+});
+
+// Web Component (set as property)
+const picker = document.querySelector('web-daterangepicker');
+picker.isDateDisabled = (date) => {
+  const isPast = date < new Date();
+  const isWeekend = date.getDay() === 0 || date.getDay() === 6;
+  return isPast || isWeekend;
+};
+
+Function signature:
+isDateDisabled: (date: Date) => boolean
+- Receives: Date object for each calendar cell
+- Returns: true = disabled, false = enabled
+- Called: ~35-42 times per month view
+
+Performance tips:
+- Keep logic fast (no heavy computations)
+- Avoid async operations
+- Cache lookups when possible
+
+Use cases:
+- Booked date ranges
+- Dynamic availability
+- Complex business rules
+- Combining multiple conditions
+
+GETDATEMETADATA CALLBACK
+------------------------
+Return metadata for each date (styling + disabling):
+
+CRITICAL: JavaScript API ONLY
+
+const picker = new DateRangePicker(input, {
+  getDateMetadata: (date) => {
+    const dateStr = date.toISOString().split('T')[0];
+    const availability = checkAvailability(dateStr);
+
+    if (!availability) return {}; // No data
+
+    return {
+      // Disabling
+      isDisabled: availability.rooms === 0,
+
+      // Badge (top-right corner)
+      badgeText: availability.rooms > 0 ? `${availability.rooms}` : '',
+      badgeClass: availability.rooms < 3 ? 'low' : 'available',
+      badgeTooltip: `${availability.rooms} rooms available`,
+
+      // Day cell styling
+      dayClass: availability.status, // 'full', 'limited', 'available'
+      dayTooltip: `Status: ${availability.status}`
+    };
+  }
+});
+
+DateInfo interface:
+{
+  isDisabled?: boolean;      // Disable the date
+  badgeText?: string;        // Text in top-right badge
+  badgeClass?: string;       // CSS class for badge
+  badgeTooltip?: string;     // Tooltip on badge hover
+  dayClass?: string;         // CSS class for day cell
+  dayTooltip?: string;       // Tooltip on day cell hover
+}
+
+Use cases:
+- Hotel availability (room count badges)
+- Booking status (available/limited/full)
+- Price indicators
+- Event markers
+- Custom styling per date
+
+COMBINING RESTRICTIONS
+----------------------
+All restrictions stack (AND logic):
+
+const picker = new DateRangePicker(input, {
+  // 1. Only future dates
+  minDate: new Date(),
+
+  // 2. No weekends
+  disabledWeekdays: [0, 6],
+
+  // 3. No company holidays
+  disabledDates: [
+    '2025-12-25',
+    '2025-12-26'
+  ],
+
+  // 4. No booked dates
+  isDateDisabled: (date) => {
+    return bookings.some(b => date >= b.start && date <= b.end);
+  },
+
+  // 5. Visual indicators
+  getDateMetadata: (date) => {
+    const available = !isBooked(date);
+    return {
+      badgeText: available ? '✓' : '',
+      dayClass: available ? 'available' : 'booked'
+    };
+  }
+});
+
+Evaluation order:
+1. minDate/maxDate (hard bounds)
+2. disabledWeekdays
+3. disabledDates array
+4. isDateDisabled callback
+5. getDateMetadata (isDisabled property)
+
+If ANY restriction disables, date is disabled.
+
+DYNAMIC UPDATES
+---------------
+Update restrictions after initialization:
+
+// Update disabled dates
+picker.disabledDates = newHolidays;
+
+// Update callback
+picker.isDateDisabled = (date) => {
+  return newBookings.some(b => date >= b.start && date <= b.end);
+};
+
+// Refresh calendar
+picker.renderCalendar();
+
+STYLING DISABLED DATES
+----------------------
+Disabled dates automatically get CSS class:
+
+.drp-date-picker__day--disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+  text-decoration: line-through;
+}
+
+Custom styling with dayClass:
+
+const picker = new DateRangePicker(input, {
+  getDateMetadata: (date) => {
+    if (isFullyBooked(date)) {
+      return {
+        isDisabled: true,
+        dayClass: 'fully-booked',
+        badgeText: 'FULL',
+        badgeClass: 'badge-red'
+      };
+    }
+    return {};
+  }
+});
+
+Then add custom CSS:
+<style>
+.fully-booked {
+  background: #fee2e2 !important;
+  color: #991b1b !important;
+}
+.badge-red {
+  background: #ef4444 !important;
+  color: white !important;
+}
+</style>
+
+RANGE MODE RESTRICTIONS
+-----------------------
+In range mode, disabled dates affect selection:
+
+Default behavior (disabled-dates-handling="prevent"):
+- Can't select ranges that include disabled dates
+- Selection stops at disabled date
+
+See disabled-dates-handling.txt for other modes:
+- 'allow' - Allow ranges over disabled dates
+- 'block' - Snap to last enabled date
+- 'split' - Return multiple ranges
+- 'individual' - Return individual enabled dates
+
+Example:
+<web-daterangepicker
+  selection-mode="range"
+  disabled-dates-handling="split"
+  disabled-weekdays="0,6">
+</web-daterangepicker>
+
+VALIDATION PATTERNS
+-------------------
+Common validation scenarios:
+
+// Booking system (no past + no booked)
+isDateDisabled: (date) => {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  const isPast = date < today;
+  const isBooked = bookings.some(b =>
+    date >= b.start && date <= b.end
+  );
+
+  return isPast || isBooked;
+}
+
+// Subscription expiry
+isDateDisabled: (date) => {
+  return date > subscriptionEndDate;
+}
+
+// Maximum advance booking
+isDateDisabled: (date) => {
+  const maxAdvance = new Date();
+  maxAdvance.setDate(maxAdvance.getDate() + 90);
+  return date > maxAdvance;
+}
+
+// Business hours (Mon-Fri)
+isDateDisabled: (date) => {
+  const day = date.getDay();
+  return day === 0 || day === 6; // Weekends
+}
+
+ERROR HANDLING
+--------------
+Handle invalid date selections:
+
+picker.addEventListener('date-select', (event) => {
+  const { date } = event.detail;
+
+  if (isDateDisabled(date)) {
+    console.error('Invalid date selected:', date);
+    picker.clearSelection();
+    showError('Please select an available date');
+  }
+});
+
+DEBUGGING
+---------
+Log disabled date checks:
+
+const picker = new DateRangePicker(input, {
+  isDateDisabled: (date) => {
+    const disabled = checkIfDisabled(date);
+    console.log('Check:', date.toISOString().split('T')[0], '→', disabled);
+    return disabled;
+  }
+});
+
+Count disabled dates:
+let disabledCount = 0;
+picker.isDateDisabled = (date) => {
+  const disabled = checkIfDisabled(date);
+  if (disabled) disabledCount++;
+  return disabled;
+};
+
+BEST PRACTICES
+--------------
+1. Use simplest restriction type for your case
+   - Static dates → disabledDates array
+   - Weekly pattern → disabledWeekdays
+   - Dynamic → isDateDisabled callback
+
+2. Keep isDateDisabled fast
+   - Pre-process data structures
+   - Use Set for O(1) lookups
+   - Avoid API calls in callback
+
+3. Combine restrictions thoughtfully
+   - Don't duplicate logic
+   - Use minDate/maxDate for bounds first
+   - Add callbacks for complex rules
+
+4. Provide visual feedback
+   - Use getDateMetadata for badges
+   - Add tooltips explaining why disabled
+   - Style disabled dates clearly
+
+5. Test edge cases
+   - Month boundaries
+   - Leap years
+   - Timezone handling
+   - Empty selection states

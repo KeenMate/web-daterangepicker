@@ -1,0 +1,375 @@
+WEB-DATERANGEPICKER AI REFERENCE INDEX
+======================================
+
+QUICK KEYWORD LOOKUP
+--------------------
+Find the right file by keyword, feature, or use case.
+
+FORMAT: keyword → filename
+Multiple keywords per line indicate same file.
+
+GETTING STARTED
+---------------
+installation, setup, npm, cdn → basic-usage.txt
+web component, html usage, attributes → basic-usage.txt
+javascript api, programmatic control → basic-usage.txt
+import, require, es modules → basic-usage.txt
+framework, react, vue, svelte → basic-usage.txt
+
+SELECTION MODES
+---------------
+single date, pick one date → basic-usage.txt
+range mode, date range, start end → basic-usage.txt
+multiple dates, multi-select → basic-usage.txt
+selection-mode attribute → basic-usage.txt
+
+DATE RESTRICTIONS
+-----------------
+disable dates, block dates → date-restrictions.txt
+min date, max date, boundaries → date-restrictions.txt
+disabled weekdays, weekends only → date-restrictions.txt
+holidays, blackout dates → date-restrictions.txt
+isDateDisabled callback → date-restrictions.txt
+getDateMetadata → date-restrictions.txt, custom-rendering.txt
+past dates, future only → date-restrictions.txt
+booking validation → date-restrictions.txt
+availability check → date-restrictions.txt
+
+EVENTS & VALIDATION
+-------------------
+date-select event → events-callbacks.txt
+change event → events-callbacks.txt
+event data, event detail → events-callbacks.txt
+beforeDateSelect, validation → events-callbacks.txt
+async validation, api check → events-callbacks.txt
+prevent selection, block invalid → events-callbacks.txt
+adjust dates, auto-correct → events-callbacks.txt
+
+DISABLED DATES HANDLING (Range Mode)
+-------------------------------------
+prevent mode → disabled-dates-handling.txt
+allow mode, breakdown → disabled-dates-handling.txt
+block mode, snap to enabled → disabled-dates-handling.txt
+split mode, multiple ranges → disabled-dates-handling.txt
+individual mode, flat array → disabled-dates-handling.txt
+disabled-dates-handling attribute → disabled-dates-handling.txt
+enabledDates, disabledDates → disabled-dates-handling.txt
+pricing with disabled dates → disabled-dates-handling.txt
+weekends excluded → disabled-dates-handling.txt
+
+CUSTOM RENDERING & STYLING
+---------------------------
+badges, badge text → custom-rendering.txt
+tooltips, hover text → custom-rendering.txt
+day cell styling, custom classes → custom-rendering.txt
+renderDayContent → custom-rendering.txt
+getDateMetadata → custom-rendering.txt, date-restrictions.txt
+hotel availability display → custom-rendering.txt
+price badges → custom-rendering.txt
+event markers → custom-rendering.txt
+customStylesCallback, inject css → custom-rendering.txt
+shadow dom styling → custom-rendering.txt
+dayClass, badgeClass → custom-rendering.txt
+dayTooltip, badgeTooltip → custom-rendering.txt
+
+ACTION BUTTONS
+--------------
+custom buttons, preset buttons → action-buttons.txt
+today button, clear button, apply button → action-buttons.txt
+show-today-button, show-clear-button, show-apply-button → action-buttons.txt
+actionButtons property → action-buttons.txt
+button visibility, conditional buttons → action-buttons.txt
+disabled buttons, button state → action-buttons.txt
+dynamic button text → action-buttons.txt
+button tooltips → action-buttons.txt
+button icons, font awesome → action-buttons.txt
+preset ranges, quick select → action-buttons.txt
+last week, this month, quarter → action-buttons.txt
+auto-close behavior → action-buttons.txt
+
+POSITIONING & LAYOUT
+--------------------
+inline mode, always visible → basic-usage.txt
+floating mode, dropdown → basic-usage.txt
+calendar-placement, position → basic-usage.txt
+multiple months, multi-month → basic-usage.txt
+visible-months-count → basic-usage.txt
+grid layout → basic-usage.txt
+
+FORMATTING & LOCALIZATION
+--------------------------
+date format, date-format-mask → basic-usage.txt
+locale, language → basic-usage.txt
+customStrings, custom labels → basic-usage.txt (JS API only)
+display format → basic-usage.txt
+
+SIZING & APPEARANCE
+-------------------
+wrapper classes, drp-font, drp-spacing → basic-usage.txt
+size xs sm md lg xl → basic-usage.txt
+responsive sizing → basic-usage.txt
+custom css, styling → custom-rendering.txt
+
+COMMON USE CASES
+----------------
+hotel booking → custom-rendering.txt, disabled-dates-handling.txt
+room availability → custom-rendering.txt, date-restrictions.txt
+vacation rental → disabled-dates-handling.txt
+pricing display → custom-rendering.txt
+appointment scheduling → date-restrictions.txt
+business days only → date-restrictions.txt
+exclude weekends → date-restrictions.txt, disabled-dates-handling.txt
+minimum nights → events-callbacks.txt
+maximum stay → events-callbacks.txt
+checkout day adjustment → events-callbacks.txt
+api availability check → events-callbacks.txt, date-restrictions.txt
+
+PROGRAMMATIC CONTROL
+--------------------
+set dates programmatically → basic-usage.txt
+selectedRanges property → basic-usage.txt
+selectedStartDate, selectedEndDate → basic-usage.txt
+open close calendar → basic-usage.txt
+isOpen property → basic-usage.txt
+clearSelection → basic-usage.txt
+renderCalendar → basic-usage.txt
+
+INTERFACES & TYPES
+------------------
+DateInfo interface → custom-rendering.txt, date-restrictions.txt
+DayRenderData interface → custom-rendering.txt
+ActionButton interface → action-buttons.txt
+event detail structure → events-callbacks.txt
+
+ADVANCED FEATURES
+-----------------
+member mapping → date-restrictions.txt
+special dates → custom-rendering.txt
+dynamic metadata → custom-rendering.txt, date-restrictions.txt
+callback performance → custom-rendering.txt, date-restrictions.txt
+
+DEBUGGING & TROUBLESHOOTING
+----------------------------
+logging, enableLogging → basic-usage.txt
+performance optimization → custom-rendering.txt, date-restrictions.txt
+testing, validation testing → events-callbacks.txt
+
+JAVASCRIPT API ONLY FEATURES
+-----------------------------
+formatSummaryCallback → basic-usage.txt (not in these docs)
+customStrings → basic-usage.txt (not in these docs)
+actionButtons → action-buttons.txt
+beforeDateSelect → events-callbacks.txt
+renderDayContent → custom-rendering.txt
+all callbacks → events-callbacks.txt, custom-rendering.txt, date-restrictions.txt
+
+WEB COMPONENT ATTRIBUTES
+-------------------------
+selection-mode → basic-usage.txt
+visible-months-count → basic-usage.txt
+min-date, max-date → date-restrictions.txt
+disabled-weekdays → date-restrictions.txt
+disabled-dates-handling → disabled-dates-handling.txt
+date-format-mask → basic-usage.txt
+positioning-mode → basic-usage.txt
+calendar-placement → basic-usage.txt
+show-today-button → action-buttons.txt
+show-clear-button → action-buttons.txt
+show-apply-button → action-buttons.txt
+auto-close → action-buttons.txt
+locale → basic-usage.txt
+
+PROPERTIES (Web Component)
+---------------------------
+disabledDates → date-restrictions.txt
+isDateDisabled → date-restrictions.txt
+getDateMetadata → date-restrictions.txt, custom-rendering.txt
+selectedRanges → basic-usage.txt
+isOpen → basic-usage.txt
+
+ERROR PATTERNS TO AVOID
+-----------------------
+❌ setting callbacks as attributes → events-callbacks.txt, custom-rendering.txt
+❌ font-size attribute (use wrapper) → basic-usage.txt
+❌ spacing attribute (use wrapper) → basic-usage.txt
+❌ formatSummary on web component → basic-usage.txt
+❌ customStrings on web component → basic-usage.txt
+❌ initial-date attribute (doesn't exist) → basic-usage.txt
+
+FILE DESCRIPTIONS
+-----------------
+basic-usage.txt
+  Foundation: Installation, modes, events, framework integration
+  Start here for: Getting started, web component vs JS API
+
+date-restrictions.txt
+  Date control: Min/max, disabled dates, weekdays, callbacks
+  Start here for: Blocking dates, availability, validation
+
+events-callbacks.txt
+  Interaction: Events, beforeDateSelect validation, async checks
+  Start here for: Selection handling, validation, business rules
+
+disabled-dates-handling.txt
+  Range feature: 5 modes for handling disabled dates in ranges
+  Start here for: Booking with excluded dates, pricing, weekends
+
+custom-rendering.txt
+  Visual customization: Badges, tooltips, custom day content
+  Start here for: Availability display, pricing badges, styling
+
+action-buttons.txt
+  Button customization: Built-in controls, custom presets
+  Start here for: Custom buttons, presets, quick date ranges
+
+READING ORDER RECOMMENDATIONS
+------------------------------
+Complete beginner:
+1. basic-usage.txt
+2. events-callbacks.txt
+3. date-restrictions.txt
+
+Hotel/booking system:
+1. basic-usage.txt
+2. custom-rendering.txt
+3. disabled-dates-handling.txt
+4. events-callbacks.txt
+
+Simple date picker:
+1. basic-usage.txt
+2. date-restrictions.txt
+
+Advanced customization:
+1. basic-usage.txt
+2. custom-rendering.txt
+3. action-buttons.txt
+4. events-callbacks.txt
+
+CROSS-REFERENCES
+----------------
+Features spanning multiple files:
+
+getDateMetadata
+  → date-restrictions.txt (for disabling dates)
+  → custom-rendering.txt (for badges/tooltips/styling)
+
+Validation
+  → date-restrictions.txt (static restrictions)
+  → events-callbacks.txt (beforeDateSelect dynamic validation)
+
+Range mode
+  → basic-usage.txt (basic range selection)
+  → disabled-dates-handling.txt (handling disabled in range)
+  → events-callbacks.txt (range validation)
+
+Custom buttons
+  → action-buttons.txt (full reference)
+  → basic-usage.txt (show/hide built-in buttons)
+
+Styling
+  → basic-usage.txt (wrapper classes for sizing)
+  → custom-rendering.txt (per-date styling, badges)
+  → action-buttons.txt (button styling)
+
+QUICK PROBLEM SOLVING
+----------------------
+Problem: Dates not getting disabled
+→ date-restrictions.txt (check restriction types)
+
+Problem: Need to validate selection before accepting
+→ events-callbacks.txt (beforeDateSelect)
+
+Problem: Want to show room availability
+→ custom-rendering.txt (badges with getDateMetadata)
+
+Problem: Range includes weekends but shouldn't bill for them
+→ disabled-dates-handling.txt ('allow' mode with pricing)
+
+Problem: Custom buttons not working
+→ action-buttons.txt (JavaScript API only)
+
+Problem: Calendar won't close automatically
+→ action-buttons.txt (auto-close modes)
+
+Problem: Wrong date format
+→ basic-usage.txt (date-format-mask)
+
+Problem: Calendar too small/large
+→ basic-usage.txt (wrapper classes drp-font-*, drp-spacing-*)
+
+Problem: Need preset date ranges
+→ action-buttons.txt (custom preset buttons)
+
+Problem: Want different behavior on weekends
+→ date-restrictions.txt (disabled-weekdays)
+→ disabled-dates-handling.txt (if in range mode)
+
+EXAMPLES BY USE CASE
+--------------------
+Hotel booking system:
+→ custom-rendering.txt (room badges)
+→ disabled-dates-handling.txt ('allow' mode pricing)
+→ events-callbacks.txt (minimum nights validation)
+
+Appointment scheduler:
+→ date-restrictions.txt (business hours, disabled weekdays)
+→ events-callbacks.txt (beforeDateSelect validation)
+
+Vacation rental:
+→ disabled-dates-handling.txt ('block' mode, 'split' mode)
+→ date-restrictions.txt (booked dates)
+→ events-callbacks.txt (minimum stay, checkout day)
+
+Event calendar:
+→ custom-rendering.txt (event badges, markers)
+→ basic-usage.txt (multi-month view)
+
+Analytics date picker:
+→ action-buttons.txt (preset ranges: last week, month, quarter)
+→ basic-usage.txt (range mode)
+
+Simple form field:
+→ basic-usage.txt (single mode, basic usage)
+→ date-restrictions.txt (min/max if needed)
+
+MIGRATION & COMPATIBILITY
+--------------------------
+Coming from another picker:
+→ basic-usage.txt (see web component vs JS API)
+
+Need jQuery compatibility:
+→ basic-usage.txt (vanilla JS, works with jQuery)
+
+TypeScript support:
+→ All files show interface definitions
+→ basic-usage.txt (import types)
+
+Accessibility:
+→ basic-usage.txt (ARIA attributes)
+→ action-buttons.txt (button tooltips)
+
+PERFORMANCE TIPS
+----------------
+Slow rendering with many dates:
+→ custom-rendering.txt (callback performance)
+→ date-restrictions.txt (O(1) lookups with Map)
+
+Calendar updates too frequently:
+→ events-callbacks.txt (debounce validation)
+
+Memory issues with date arrays:
+→ date-restrictions.txt (use callbacks instead of arrays)
+
+SUPPORT & RESOURCES
+-------------------
+Full API documentation:
+→ ../API.md (in parent directory)
+
+Source code examples:
+→ ../examples-*.html (working examples)
+
+Package documentation:
+→ ../README.md
+
+Changelog:
+→ ../CHANGELOG.md

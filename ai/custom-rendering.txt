@@ -1,0 +1,527 @@
+CUSTOM RENDERING & METADATA
+============================
+
+THREE CUSTOMIZATION LEVELS
+---------------------------
+1. getDateMetadata - Per-date metadata (badges, tooltips, classes)
+2. renderDayContent - Custom day cell HTML
+3. Callbacks - Badge/tooltip dynamic content
+
+CRITICAL: All JavaScript API ONLY
+Not available as web component attributes.
+
+GETDATEMETADATA CALLBACK
+------------------------
+Return metadata for each date cell.
+
+const picker = new DateRangePicker(input, {
+  getDateMetadata: (date) => {
+    // Return DateInfo object
+    return {
+      isDisabled: boolean,
+      badgeText: string,
+      badgeClass: string,
+      badgeTooltip: string,
+      dayClass: string,
+      dayTooltip: string
+    };
+  }
+});
+
+Called once per visible date cell (~35-42 times per month).
+
+DATEINFO INTERFACE
+------------------
+Complete interface:
+
+{
+  isDisabled?: boolean;      // Disable the date
+  badgeText?: string;        // Text in top-right badge
+  badgeClass?: string;       // CSS class for badge
+  badgeTooltip?: string;     // Tooltip on badge hover
+  dayClass?: string;         // CSS class for day cell
+  dayTooltip?: string;       // Tooltip on day cell hover
+}
+
+All properties optional.
+Return empty {} for dates with no metadata.
+
+BADGE SYSTEM
+------------
+Small badge in top-right corner of day cell.
+
+const picker = new DateRangePicker(input, {
+  getDateMetadata: (date) => {
+    const availability = checkRooms(date);
+
+    if (!availability) return {};
+
+    return {
+      badgeText: `${availability.rooms}`,
+      badgeClass: availability.rooms < 3 ? 'low' : 'available',
+      badgeTooltip: `${availability.rooms} rooms available`
+    };
+  }
+});
+
+Badge appears when badgeText is non-empty.
+
+BADGE STYLING
+-------------
+Use badgeClass to style badges:
+
+// JavaScript
+getDateMetadata: (date) => {
+  const rooms = getRoomCount(date);
+
+  return {
+    badgeText: rooms.toString(),
+    badgeClass: rooms === 0 ? 'full' :
+                rooms < 3 ? 'limited' :
+                'available'
+  };
+}
+
+// CSS (inject into shadow DOM)
+picker.customStylesCallback = () => `
+  .drp-date-picker__badge.full {
+    background: #ef4444 !important;
+    color: white !important;
+  }
+  .drp-date-picker__badge.limited {
+    background: #f59e0b !important;
+    color: white !important;
+  }
+  .drp-date-picker__badge.available {
+    background: #10b981 !important;
+    color: white !important;
+  }
+`;
+
+DAY CELL STYLING
+----------------
+Add CSS classes to entire day cell:
+
+const picker = new DateRangePicker(input, {
+  getDateMetadata: (date) => {
+    const status = getStatus(date);
+
+    return {
+      dayClass: `status-${status}`,
+      dayTooltip: `Status: ${status}`
+    };
+  }
+});
+
+// CSS
+picker.customStylesCallback = () => `
+  .drp-date-picker__day.status-booked {
+    background: #fee2e2 !important;
+    color: #991b1b !important;
+  }
+  .drp-date-picker__day.status-available {
+    background: #d1fae5 !important;
+    color: #065f46 !important;
+  }
+`;
+
+TOOLTIPS
+--------
+Two types of tooltips:
+
+1. Badge tooltip (badgeTooltip)
+   - Appears on badge hover
+   - For badge-specific info
+
+2. Day tooltip (dayTooltip)
+   - Appears on entire cell hover
+   - For general date info
+
+Example:
+getDateMetadata: (date) => {
+  return {
+    badgeText: '$150',
+    badgeTooltip: 'Price per night',
+    dayTooltip: 'Click to book this date'
+  };
+}
+
+HOTEL AVAILABILITY EXAMPLE
+---------------------------
+Show room count badges:
+
+const availability = {
+  '2025-11-17': { rooms: 0, status: 'full' },
+  '2025-11-18': { rooms: 2, status: 'limited' },
+  '2025-11-19': { rooms: 10, status: 'available' }
+};
+
+const picker = new DateRangePicker(input, {
+  getDateMetadata: (date) => {
+    const dateStr = date.toISOString().split('T')[0];
+    const avail = availability[dateStr];
+
+    if (!avail) return {};
+
+    return {
+      isDisabled: avail.rooms === 0,
+      badgeText: avail.rooms > 0 ? `${avail.rooms}` : 'FULL',
+      badgeClass: avail.status,
+      badgeTooltip: avail.rooms > 0
+        ? `${avail.rooms} rooms available`
+        : 'Fully booked',
+      dayClass: avail.status,
+      dayTooltip: `Status: ${avail.status}`
+    };
+  }
+});
+
+// Styling
+picker.customStylesCallback = () => `
+  .drp-date-picker__badge.full {
+    background: #ef4444 !important;
+    color: white !important;
+  }
+  .drp-date-picker__badge.limited {
+    background: #f59e0b !important;
+    color: white !important;
+  }
+  .drp-date-picker__badge.available {
+    background: #10b981 !important;
+    color: white !important;
+  }
+`;
+
+PRICING EXAMPLE
+---------------
+Show price badges:
+
+const pricing = {
+  '2025-11-20': 150, // Weekday
+  '2025-11-21': 150,
+  '2025-11-22': 200, // Weekend
+  '2025-11-23': 200
+};
+
+const picker = new DateRangePicker(input, {
+  getDateMetadata: (date) => {
+    const dateStr = date.toISOString().split('T')[0];
+    const price = pricing[dateStr];
+
+    if (!price) return {};
+
+    const isWeekend = date.getDay() === 0 || date.getDay() === 6;
+
+    return {
+      badgeText: `$${price}`,
+      badgeClass: isWeekend ? 'weekend-price' : 'weekday-price',
+      badgeTooltip: `Price: $${price}/night`,
+      dayClass: isWeekend ? 'weekend' : 'weekday'
+    };
+  }
+});
+
+EVENT MARKERS
+-------------
+Show events or special dates:
+
+const events = {
+  '2025-11-25': { name: 'Conference', type: 'business' },
+  '2025-12-25': { name: 'Christmas', type: 'holiday' }
+};
+
+const picker = new DateRangePicker(input, {
+  getDateMetadata: (date) => {
+    const dateStr = date.toISOString().split('T')[0];
+    const event = events[dateStr];
+
+    if (!event) return {};
+
+    return {
+      badgeText: '•',
+      badgeClass: `event-${event.type}`,
+      badgeTooltip: event.name,
+      dayClass: `has-event event-${event.type}`,
+      dayTooltip: `${event.name} on this date`
+    };
+  }
+});
+
+RENDERDAYCONTENT CALLBACK
+-------------------------
+Complete control over day cell HTML.
+
+CRITICAL: JavaScript API ONLY
+
+const picker = new DateRangePicker(input, {
+  renderDayContent: (data) => {
+    // data: DayRenderData interface
+    // Return HTMLElement or null
+
+    const wrapper = document.createElement('div');
+    wrapper.style.cssText = 'display: flex; flex-direction: column;';
+
+    // Day number
+    const dayNum = document.createElement('div');
+    dayNum.textContent = data.dayNumber;
+    wrapper.appendChild(dayNum);
+
+    // Custom content
+    const info = document.createElement('div');
+    info.textContent = getInfo(data.date);
+    info.style.cssText = 'font-size: 0.7rem; color: #666;';
+    wrapper.appendChild(info);
+
+    return wrapper;
+  }
+});
+
+DAYRENDERDATA INTERFACE
+-----------------------
+Complete interface:
+
+{
+  date: Date;              // Date object
+  dateString: string;      // ISO string "2025-11-17"
+  dayNumber: number;       // Day of month (1-31)
+
+  isDisabled: boolean;     // Is date disabled
+  isSelected: boolean;     // Is date selected
+  isStartDate: boolean;    // Is range start
+  isEndDate: boolean;      // Is range end
+  isInRange: boolean;      // Is within range
+  isToday: boolean;        // Is today
+  isWeekend: boolean;      // Is Sat/Sun
+
+  monthIndex: number;      // Which month column (multi-month)
+  element: HTMLElement;    // The day cell element
+  picker: any;             // Picker instance
+}
+
+CUSTOM DAY RENDERING EXAMPLE
+-----------------------------
+Multi-line cell content:
+
+const picker = new DateRangePicker(input, {
+  renderDayContent: (data) => {
+    const availability = getAvailability(data.date);
+
+    const wrapper = document.createElement('div');
+    wrapper.style.cssText = `
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 2px;
+    `;
+
+    // Day number
+    const day = document.createElement('div');
+    day.textContent = data.dayNumber;
+    day.style.cssText = 'font-weight: 600;';
+    wrapper.appendChild(day);
+
+    // Availability
+    const avail = document.createElement('div');
+    avail.textContent = availability;
+    avail.style.cssText = `
+      font-size: 0.6rem;
+      color: ${getColor(availability)};
+      font-weight: 600;
+      margin-top: 2px;
+    `;
+    wrapper.appendChild(avail);
+
+    return wrapper;
+  }
+});
+
+BADGE CALLBACK (DYNAMIC)
+------------------------
+Generate badge content dynamically:
+
+const picker = new DateRangePicker(input, {
+  badgeContentCallback: (date) => {
+    const count = getEventCount(date);
+    return count > 0 ? `${count}` : '';
+  },
+
+  badgeClassCallback: (date) => {
+    const count = getEventCount(date);
+    return count > 5 ? 'many-events' : 'few-events';
+  },
+
+  badgeTooltipCallback: (date) => {
+    const events = getEvents(date);
+    return `${events.length} events:\n${events.map(e => e.name).join('\n')}`;
+  }
+});
+
+TOOLTIP CALLBACK (DYNAMIC)
+--------------------------
+Generate tooltips dynamically:
+
+const picker = new DateRangePicker(input, {
+  dayTooltipCallback: (date) => {
+    const events = getEvents(date);
+    const weather = getWeather(date);
+
+    return `
+      ${date.toLocaleDateString()}
+      ${events.length} events
+      Weather: ${weather.description}
+      Temp: ${weather.temp}°F
+    `.trim();
+  }
+});
+
+PERFORMANCE CONSIDERATIONS
+--------------------------
+Callbacks called frequently (~35-42 times per month).
+
+Keep fast:
+✅ GOOD:
+getDateMetadata: (date) => {
+  const dateStr = date.toISOString().split('T')[0];
+  const data = dataMap.get(dateStr); // O(1) lookup
+  return data || {};
+}
+
+❌ BAD:
+getDateMetadata: (date) => {
+  const data = dataArray.find(d =>  // O(n) lookup
+    d.date === date.toISOString().split('T')[0]
+  );
+  return data || {};
+}
+
+Pre-process data:
+// Setup (once)
+const dataMap = new Map(
+  apiData.map(item => [item.date, item])
+);
+
+// Callback (fast)
+getDateMetadata: (date) => {
+  const dateStr = date.toISOString().split('T')[0];
+  return dataMap.get(dateStr) || {};
+}
+
+CUSTOMSTYLES CALLBACK
+---------------------
+Inject CSS into Shadow DOM:
+
+const picker = new DateRangePicker(input, {
+  customStylesCallback: (picker) => {
+    return `
+      /* Custom badge styles */
+      .drp-date-picker__badge.premium {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+        color: white !important;
+        font-weight: bold !important;
+      }
+
+      /* Custom day styles */
+      .drp-date-picker__day.special {
+        border: 2px solid #10b981 !important;
+        font-weight: bold !important;
+      }
+
+      /* Tooltip styles */
+      .drp-date-picker__tooltip {
+        max-width: 300px !important;
+        white-space: pre-wrap !important;
+      }
+    `;
+  }
+});
+
+Note: Use !important to override Shadow DOM styles.
+
+COMBINING CALLBACKS
+-------------------
+Use multiple callbacks together:
+
+const picker = new DateRangePicker(input, {
+  getDateMetadata: (date) => {
+    const data = getData(date);
+    return {
+      badgeText: data.badge,
+      dayClass: data.class,
+      isDisabled: data.disabled
+    };
+  },
+
+  renderDayContent: (data) => {
+    const customContent = buildContent(data);
+    return customContent;
+  },
+
+  customStylesCallback: () => {
+    return getCustomStyles();
+  }
+});
+
+DEBUGGING
+---------
+Log render calls:
+
+getDateMetadata: (date) => {
+  const result = computeMetadata(date);
+  console.log('Metadata for', date.toISOString().split('T')[0], '→', result);
+  return result;
+}
+
+Count renders:
+let renderCount = 0;
+renderDayContent: (data) => {
+  renderCount++;
+  console.log('Render count:', renderCount);
+  return buildContent(data);
+}
+
+BEST PRACTICES
+--------------
+1. Pre-process data
+   - Build Map/Set for O(1) lookups
+   - Cache computed values
+   - Avoid loops in callbacks
+
+2. Return early
+   - Check for data first
+   - Return {} if no metadata
+   - Avoid unnecessary computation
+
+3. Keep rendering simple
+   - Minimize DOM creation
+   - Reuse elements when possible
+   - Avoid complex calculations
+
+4. Use appropriate method
+   - Simple badges → getDateMetadata
+   - Complex layout → renderDayContent
+   - Styling only → customStylesCallback
+
+5. Test performance
+   - Profile with many dates
+   - Check render times
+   - Optimize hot paths
+
+WEB COMPONENT LIMITATIONS
+--------------------------
+All rendering callbacks are JavaScript API ONLY.
+
+✅ Works:
+const picker = new DateRangePicker(input, {
+  getDateMetadata: (date) => { ... }
+});
+
+❌ Doesn't work:
+<web-daterangepicker
+  get-date-metadata="...">  <!-- Not an attribute -->
+</web-daterangepicker>
+
+For web component, set as property:
+const picker = document.querySelector('web-daterangepicker');
+picker.getDateMetadata = (date) => { ... };
+
+But properties may not be exposed. Use JavaScript API for full control.
