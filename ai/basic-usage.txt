@@ -14,7 +14,7 @@ CRITICAL: Most callbacks are available as web component PROPERTIES:
 - renderDayCallback - custom day rendering (WEB COMPONENT PROPERTY)
 - renderDayContentCallback - custom day content (WEB COMPONENT PROPERTY)
 - customStylesCallback - inject custom styles to shadow DOM (WEB COMPONENT PROPERTY)
-- beforeDateSelect - validation callback (WEB COMPONENT PROPERTY)
+- beforeDateSelectCallback - validation callback (WEB COMPONENT PROPERTY)
 
 JavaScript API ONLY (not available on web component):
 - customStrings - custom UI button labels
@@ -105,7 +105,7 @@ Callbacks CANNOT be set via HTML attributes. Set them as JavaScript properties:
   `;
 
   // Validation before selection
-  picker.beforeDateSelect = async (selection) => {
+  picker.beforeDateSelectCallback = async (selection) => {
     const isAvailable = await checkAvailability(selection);
     return {
       isValid: isAvailable,

@@ -10,13 +10,13 @@ import { validationLogger, selectionLogger } from './logger';
 import log from './logger';
 
 /**
- * Call beforeDateSelect callback (supports both single and range modes)
+ * Call beforeDateSelectCallback (supports both single and range modes)
  */
 async function callBeforeSelectCallback(
     picker: any,
     selection: Date | DateRange
 ): Promise<{ isValid: boolean; adjustedDate?: Date; adjustedStart?: Date; adjustedEnd?: Date; message?: string }> {
-    if (!picker.options.beforeDateSelect) {
+    if (!picker.options.beforeDateSelectCallback) {
         return { isValid: true };
     }
 
@@ -24,7 +24,7 @@ async function callBeforeSelectCallback(
         picker.isValidating = true;
         showLoadingOverlay(picker);
 
-        const result: BeforeSelectResult = await Promise.resolve(picker.options.beforeDateSelect(selection));
+        const result: BeforeSelectResult = await Promise.resolve(picker.options.beforeDateSelectCallback(selection));
 
         hideLoadingOverlay(picker);
         picker.isValidating = false;
@@ -61,7 +61,7 @@ async function callBeforeSelectCallback(
     } catch (error) {
         hideLoadingOverlay(picker);
         picker.isValidating = false;
-        log.error('beforeDateSelect callback error:', error);
+        log.error('beforeDateSelectCallback error:', error);
         return { isValid: false, message: 'Validation error occurred' };
     }
 }
@@ -94,7 +94,7 @@ export async function validateRangeAsync(
         }
     }
 
-    // 2. Async validation: call beforeDateSelect callback if provided
+    // 2. Async validation: call beforeDateSelectCallback if provided
     const callbackResult = await callBeforeSelectCallback(picker, { start: startDate, end: endDate });
     if (!callbackResult.isValid) {
         return callbackResult;
@@ -140,10 +140,10 @@ export async function selectDay(picker: any, dayElement: HTMLElement) {
     }
 
     if (picker.options.selectionMode === 'single') {
-        // Call beforeDateSelect callback if provided
+        // Call beforeDateSelectCallback if provided
         const callbackResult = await callBeforeSelectCallback(picker, date);
         if (!callbackResult.isValid) {
-            selectionLogger.debug('Single mode selection prevented by beforeDateSelect callback');
+            selectionLogger.debug('Single mode selection prevented by beforeDateSelectCallback');
             return;
         }
 

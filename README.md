@@ -70,6 +70,57 @@ picker.getValue();    // Get current value
 picker.setValue('2025-11-15'); // Set value
 ```
 
+### JavaScript Instantiation (Direct Class Usage)
+
+If you prefer to use the `DateRangePicker` class directly instead of the web component, you have full programmatic control:
+
+```typescript
+import { DateRangePicker } from '@keenmate/web-daterangepicker';
+// IMPORTANT: Import CSS separately (web component auto-injects, but the class doesn't)
+import '@keenmate/web-daterangepicker/dist/style.css';
+
+const inputElement = document.getElementById('my-input');
+
+const picker = new DateRangePicker(inputElement, {
+  selectionMode: 'range',
+  visibleMonthsCount: 2,
+  dateFormatMask: 'YYYY-MM-DD',
+  onSelect: (detail) => {
+    // Range mode: detail is { start: Date, end: Date }
+    console.log('Range:', detail.start, 'to', detail.end);
+  }
+});
+```
+
+**⚠️ Critical: CSS Requirements**
+
+Unlike the web component, the `DateRangePicker` class does **NOT** automatically inject styles. You **MUST** import CSS separately or you'll see an unstyled calendar. Choose one method:
+
+**Option 1: Import CSS in JavaScript (Recommended)**
+```typescript
+import { DateRangePicker } from '@keenmate/web-daterangepicker';
+import '@keenmate/web-daterangepicker/dist/style.css';
+```
+
+**Option 2: Link CSS in HTML**
+```html
+<link rel="stylesheet" href="./node_modules/@keenmate/web-daterangepicker/dist/style.css">
+```
+
+**Option 3: Programmatic Injection**
+```typescript
+import { DateRangePicker } from '@keenmate/web-daterangepicker';
+
+// Inject styles once before creating pickers
+DateRangePicker.injectGlobalStyles();
+
+const picker = new DateRangePicker(inputElement, options);
+```
+
+**Why?** The web component uses Shadow DOM and injects styles into its isolated scope automatically. The `DateRangePicker` class creates calendar elements in the regular DOM, so it expects global CSS to be loaded separately.
+
+See the [JavaScript Instantiation Examples](examples-javascript-instantiation.html) for complete code samples and configuration options.
+
 ## Attributes
 
 | Attribute | Type | Default | Description |

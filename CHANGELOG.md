@@ -7,6 +7,197 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.2.0] - 2025-11-24
+
+### Fixed
+
+- **Badge styling in Shadow DOM**: Fixed all examples where `badgeClass` or `dayClass` were used without corresponding `customStylesCallback`
+  - **Root Cause**: Badge CSS classes (like `'holiday'`, `'event'`, `'price-high'`) were not defined anywhere. Since web component uses Shadow DOM, these styles must be explicitly injected using `customStylesCallback`.
+  - **Files Fixed**:
+    - `examples-badges-tooltips.html`: Fixed 8 examples (holidaysDemo, cottageDemo, methodMapping, methodTooltips, memberMappingExample, dynamicPricing, dynamicAvailability, combinedExample)
+    - `examples-javascript-instantiation.html`: Updated API documentation from old `class`/`badge`/`tooltip` to new `badgeClass`/`badgeText`/`badgeTooltip`/`dayClass`/`dayTooltip`/`isDisabled`
+  - **Pattern Applied**: All fixes inject CSS into Shadow DOM using proper selector format:
+    ```javascript
+    picker.customStylesCallback = () => {
+      return `
+        .drp-date-picker__badge-cell.your-class-name {
+          background-color: ... !important;
+          color: ... !important;
+          border: ... !important;
+        }
+      `;
+    };
+    ```
+  - **Badge Classes Styled**: 'holiday', 'event', 'booked', 'price-high', 'price-medium', 'price-low', 'low-availability', 'medium-availability'
+  - **Day Classes Styled**: 'low-availability-day'
+  - All badge styling now properly displays in Shadow DOM across all example files
+
+### Added
+
+- **Unified Navigation Enhancements**
+  - **`unifiedHeaderInteractive` option**: Makes unified header range display clickable to open month/year rolling selector
+    - Default: `false` (header is static text only)
+    - When enabled, clicking the unified header (e.g., "January 2025 - June 2025") opens the rolling selector
+    - Web component attribute: `unified-header-interactive`
+    - Only applies when `unifiedNavigation` is enabled
+    - **Example**:
+      ```html
+      <web-daterangepicker
+        unified-navigation
+        unified-header-interactive
+        visible-months-count="6"
+        month-layout="grid"
+        grid-rows="2"
+        grid-columns="3">
+      </web-daterangepicker>
+      ```
+
+  - **`getUnifiedHeaderCallback` - Custom unified header text**
+    - Callback to customize the unified header range display text
+    - Receives: `{ firstMonth: Date, lastMonth: Date, anchorMonth: Date, monthNames: string[] }`
+    - Returns: HTML string to display in unified header
+    - Enables displaying only anchor month instead of full range
+    - **Example** (display only anchor month):
+      ```javascript
+      const picker = new DateRangePicker(input, {
+        unifiedNavigation: true,
+        visibleMonthsCount: 9,
+        unifiedNavigationAnchorIndex: 4,
+        getUnifiedHeaderCallback: ({ anchorMonth, monthNames }) => {
+          return `${monthNames[anchorMonth.getMonth()]} ${anchorMonth.getFullYear()}`;
+          // Returns: "May 2025" for 3×3 grid with center anchor
+        }
+      });
+      ```
+    - **Example** (custom range format):
+      ```javascript
+      getUnifiedHeaderCallback: ({ firstMonth, lastMonth, monthNames }) => {
+        return `${monthNames[firstMonth.getMonth()]} - ${monthNames[lastMonth.getMonth()]} ${lastMonth.getFullYear()}`;
+        // Returns: "Jan - Sep 2025"
+      }
+      ```
+
+  - **Multi-month cache improvement**: `beforeMonthChangedCallback` now calculates full visible range for unified navigation mode
+    - Previously only calculated ~42 days for first month
+    - Now calculates full range across all visible months (e.g., ~180 days for 2×3 grid)
+    - Enables proper bulk metadata loading for multi-month displays
+    - Significantly reduces API calls when using unified navigation with `beforeMonthChangedCallback`
+
+- **`beforeMonthChangedCallback` - Performance optimization for bulk metadata loading**
+  - New callback invoked BEFORE month navigation occurs (before rendering new month)
+  - Enables loading bulk metadata for all visible dates in one API call instead of per-day callbacks
+  - **Performance**: 1 API call per month vs 35-42 calls with `getDateMetadataCallback`
+  - Can block navigation to unavailable months (returns `action: 'block'`)
+  - Shows loading overlay automatically during async operations
+  - Callback receives context: `{ year, month, monthIndex, firstVisibleDate, lastVisibleDate }`
+  - Returns: `{ action: 'accept' | 'block', metadata?: Map<string, DateInfo>, message?: string }`
+  - **Example** (hotel availability):
+    ```javascript
+    const picker = new DateRangePicker(input, {
+      beforeMonthChangedCallback: async ({ firstVisibleDate, lastVisibleDate }) => {
+        // Single API call for entire month
+        const response = await fetch('/api/availability', {
+          method: 'POST',
+          body: JSON.stringify({
+            start: firstVisibleDate.toISOString(),
+            end: lastVisibleDate.toISOString()
+          })
+        });
+        const data = await response.json();
+
+        // Build metadata map
+        const metadata = new Map();
+        data.forEach(day => {
+          metadata.set(day.date, {
+            badgeText: `$${day.price}`,
+            isDisabled: day.available === 0,
+            dayTooltip: `${day.available} rooms available`
+          });
+        });
+
+        return { action: 'accept', metadata };
+      }
+    });
+    ```
+  - **Web Component**: Available as property (not attribute)
+    ```javascript
+    const picker = document.querySelector('web-daterangepicker');
+    picker.beforeMonthChangedCallback = async (context) => { ... };
+    ```
+  - **Priority**: Bulk metadata cache > `getDateMetadataCallback` > `specialDates`
+  - See `examples-events.html` for complete examples
+
+### Fixed
+
+- **Unified Navigation: Year range drift in rolling selector**
+  - Fixed bug where unified rolling selector's year range would drift after selecting years
+  - When `rollingYearRange` not explicitly set, default range (today ± 1) now stays stable
+  - Example: Default shows 2024-2026, selecting 2026 keeps range 2024-2026 (previously drifted to 2025-2027)
+  - Centralized year/month range calculation via `getEffectiveYearRange()` and `getEffectiveMonthRange()`
+  - Both rendering and validation now use same range logic (single source of truth)
+
+- **Navigation buttons now respect rollingYearRange/rollingMonthRange boundaries**
+  - Navigation buttons (< >) previously allowed navigating outside configured date ranges
+  - Added two-layer boundary enforcement:
+    1. Click handler checks if button is disabled before executing navigation
+    2. Navigation functions validate target month has enabled days
+  - Applies to both unified navigation and individual month navigation
+  - Buttons are already visually disabled, now also functionally blocked
+
+- **Unified rolling selector now closes on click outside**
+  - Added document-level click handler for all positioning modes
+  - **Inline mode**: Clicking outside calendar closes rolling selectors (calendar stays visible)
+  - **Floating mode**: Clicking outside calendar closes entire calendar + selectors
+  - Matches intuitive behavior of standard dropdown menus
+  - Handler properly attached during initialization for inline mode
+
+- **Non-interactive unified headers no longer show hover effects**
+  - When `unifiedHeaderInteractive` is false, unified header appeared clickable with hover background
+  - Added CSS modifier class `.drp-date-picker__unified-range--static`
+  - Non-interactive headers now have default cursor and no hover/active effects
+  - Clearly distinguishes clickable vs non-clickable headers
+
+- **Unified Navigation: Individual month headers now non-interactive**
+  - Fixed bug where individual month headers were still interactive (clickable) in unified navigation mode
+  - Individual month headers now correctly display as static text-only with no prev/next buttons
+  - Only the unified header should have navigation controls when `unifiedNavigation` is enabled
+  - Eliminates user confusion about which navigation controls are active
+
+- **Unified Navigation: Rolling selector constraints now properly applied**
+  - Verified that `rollingYearRange` and `rollingMonthRange` constraints work correctly in unified rolling selector
+  - Year and month selectors properly mark disabled years/months
+  - Matches behavior of individual month rolling selectors
+
+### Changed
+
+- **BREAKING: Renamed `beforeDateSelect` to `beforeDateSelectCallback`**
+  - **What Changed**: To maintain naming consistency across the codebase, the callback property has been renamed.
+  - **Naming Convention**: Event handlers (passive) use no suffix (e.g., `onSelect`), while callbacks (active transforms/validation) use "Callback" suffix.
+  - **Old API** (removed):
+    ```javascript
+    const picker = new DateRangePicker(input, {
+      beforeDateSelect: async (selection) => {
+        return { action: 'accept' };
+      }
+    });
+    ```
+  - **New API**:
+    ```javascript
+    const picker = new DateRangePicker(input, {
+      beforeDateSelectCallback: async (selection) => {
+        return { action: 'accept' };
+      }
+    });
+    ```
+  - **Why**: `beforeDateSelectCallback` actively participates in selection (validates, blocks, adjusts), making it a "callback" not just an "event handler"
+  - **Migration**: Simply rename `beforeDateSelect` → `beforeDateSelectCallback` in your code
+
+### Removed
+
+- **BREAKING: Removed deprecated `validateRangeCallback`**
+  - The old `validateRangeCallback` has been completely removed
+  - Use `beforeDateSelectCallback` instead (works for both single and range modes)
+
 ## [1.1.0] - 2025-11-20
 
 ### Added

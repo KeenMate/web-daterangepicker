@@ -596,7 +596,9 @@
         <small>Great for business day selection</small>
         <div id="inline-disabled-output" style="margin-top: 8px; font-size: 0.875rem; color: #666;"></div>
       </div>
+    </div>
 
+    <div class="grid">
       <div class="form-group">
         <label>Inline with Special Dates</label>
         <web-daterangepicker
@@ -605,6 +607,117 @@
           positioning-mode="inline"></web-daterangepicker>
         <small>Shows holidays and events</small>
         <div id="inline-holidays-output" style="margin-top: 8px; font-size: 0.875rem; color: #666;"></div>
+      </div>
+    </div>
+
+    <div class="grid">
+      <div class="form-group">
+        <label>Inline 2×3 Grid with Unified Navigation</label>
+        <web-daterangepicker
+          id="inline-unified-grid"
+          selection-mode="range"
+          positioning-mode="inline"
+          visible-months-count="6"
+          month-layout="grid"
+          grid-rows="2"
+          grid-columns="3"
+          unified-navigation>
+        </web-daterangepicker>
+        <small>One navigation header controls all 6 months. Click the date range to open month/year selector.</small>
+        <div id="inline-unified-grid-output" style="margin-top: 8px; font-size: 0.875rem; color: #666;"></div>
+      </div>
+    </div>
+
+    <div class="grid">
+      <div class="form-group">
+        <label>Inline Horizontal with Unified Navigation</label>
+        <web-daterangepicker
+          id="inline-unified-horizontal"
+          selection-mode="range"
+          positioning-mode="inline"
+          visible-months-count="3"
+          unified-navigation>
+        </web-daterangepicker>
+        <small>Three months side-by-side with unified controls. Individual month headers show only static month/year labels.</small>
+        <div id="inline-unified-horizontal-output" style="margin-top: 8px; font-size: 0.875rem; color: #666;"></div>
+      </div>
+    </div>
+
+    <div class="grid">
+      <div class="form-group">
+        <label>Inline 3×3 Grid with Center Anchor (Index 4)</label>
+        <web-daterangepicker
+          id="inline-unified-center"
+          selection-mode="range"
+          positioning-mode="inline"
+          visible-months-count="9"
+          month-layout="grid"
+          grid-rows="3"
+          grid-columns="3"
+          unified-navigation
+          unified-navigation-anchor-index="4">
+        </web-daterangepicker>
+        <small>Navigation uses the CENTER month (May) as anchor. Click prev/next to see all months shift around it.</small>
+        <div id="inline-unified-center-output" style="margin-top: 8px; font-size: 0.875rem; color: #666;"></div>
+      </div>
+    </div>
+
+    <div class="grid">
+      <div class="form-group">
+        <label>Interactive Unified Header (Click to Select Month/Year)</label>
+        <web-daterangepicker
+          id="inline-unified-interactive"
+          selection-mode="range"
+          positioning-mode="inline"
+          visible-months-count="6"
+          month-layout="grid"
+          grid-rows="2"
+          grid-columns="3"
+          unified-navigation
+          unified-header-interactive>
+        </web-daterangepicker>
+        <small>Click the unified header range display to open month/year selector (rolling list).</small>
+        <div id="inline-unified-interactive-output" style="margin-top: 8px; font-size: 0.875rem; color: #666;"></div>
+      </div>
+    </div>
+
+    <div class="grid">
+      <div class="form-group">
+        <label>Custom Year/Month Range (2026-2027, Summer Months Only)</label>
+        <web-daterangepicker
+          id="inline-unified-custom-range"
+          selection-mode="range"
+          positioning-mode="inline"
+          visible-months-count="9"
+          month-layout="grid"
+          grid-rows="3"
+          grid-columns="3"
+          unified-navigation
+          unified-header-interactive
+          rolling-year-range="2026-2027"
+          rolling-month-range="6-8">
+        </web-daterangepicker>
+        <small>Limited to years 2026-2027 and summer months (June, July, August) with 3x3 grid layout. Tests fixed year range behavior.</small>
+        <div id="inline-unified-custom-range-output" style="margin-top: 8px; font-size: 0.875rem; color: #666;"></div>
+      </div>
+    </div>
+
+    <div class="grid">
+      <div class="form-group">
+        <label>Custom Header Text (Shows Only Anchor Month)</label>
+        <web-daterangepicker
+          id="inline-unified-custom-header"
+          selection-mode="range"
+          positioning-mode="inline"
+          visible-months-count="9"
+          month-layout="grid"
+          grid-rows="3"
+          grid-columns="3"
+          unified-navigation
+          unified-navigation-anchor-index="4">
+        </web-daterangepicker>
+        <small>Uses getUnifiedHeaderCallback to display only the center (anchor) month instead of full range.</small>
+        <div id="inline-unified-custom-header-output" style="margin-top: 8px; font-size: 0.875rem; color: #666;"></div>
       </div>
     </div>
   </div>
@@ -834,13 +947,58 @@ picker.addEventListener('date-select', (e) => {
 
       const modeSplit = document.getElementById('mode-split');
       if (modeSplit) {
+        // Customize the calendar summary to show disabled day count
+        modeSplit.formatSummaryCallback = (data) => {
+          if (data.dateRanges && data.dateRanges.length > 1) {
+            // Calculate disabled days
+            const totalDaysInRange = Math.floor(
+              (data.endDate - data.startDate) / (1000 * 60 * 60 * 24)
+            ) + 1;
+            const disabledCount = totalDaysInRange - data.days;
+
+            const prefix = data.isPreview ? `<span style="opacity: 0.7;">${data.localeStrings.preview}: </span>` : '';
+
+            return `
+              ${prefix}
+              <div style="font-size: 0.9em;">
+                <div><strong>${data.dateRanges.length}</strong> separate periods</div>
+                <div style="opacity: 0.7; font-size: 0.85em;">${data.days} ${data.localeStrings.days} total (${disabledCount} disabled)</div>
+              </div>
+            `;
+          } else if (data.dateRanges && data.dateRanges.length === 1) {
+            return `${data.days} ${data.localeStrings.days}, ${data.nights} ${data.localeStrings.nights}`;
+          }
+          return '';
+        };
+
         modeSplit.addEventListener('date-select', (e) => {
           const output = document.getElementById('mode-split-output');
-          if (output && e.detail.dateRanges) {
+          if (output && e.detail.dateRanges && e.detail.dateRanges.length > 0) {
+            // Build individual range details
+            let rangeDetails = '';
+            e.detail.dateRanges.forEach((range, index) => {
+              const startStr = range.start.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+              const endStr = range.end.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+              const msPerDay = 1000 * 60 * 60 * 24;
+              const dayCount = Math.floor((range.end.getTime() - range.start.getTime()) / msPerDay) + 1;
+              rangeDetails += `<div>Range ${index + 1}: ${startStr} - ${endStr} (${dayCount} day${dayCount !== 1 ? 's' : ''})</div>`;
+            });
+
+            // Calculate total days in the original selection span
+            const firstRange = e.detail.dateRanges[0];
+            const lastRange = e.detail.dateRanges[e.detail.dateRanges.length - 1];
+            const msPerDay = 1000 * 60 * 60 * 24;
+            const totalSpanDays = Math.floor((lastRange.end.getTime() - firstRange.start.getTime()) / msPerDay) + 1;
+            const disabledDays = totalSpanDays - e.detail.dates.length;
+
             output.innerHTML = `
-              <strong>Ranges:</strong> ${e.detail.dateRanges.length}<br>
-              <strong>Total enabled days:</strong> ${e.detail.dates.length}<br>
-              <strong>Formatted:</strong> ${e.detail.formattedValue}
+              <strong>Summary:</strong>
+              <div style="margin-left: 16px; margin-top: 4px;">
+                ${rangeDetails}
+                <div style="margin-top: 8px; padding-top: 8px; border-top: 1px solid #e5e7eb;">
+                  <strong>Total:</strong> ${e.detail.dates.length} enabled day${e.detail.dates.length !== 1 ? 's' : ''}, ${disabledDays} disabled day${disabledDays !== 1 ? 's' : ''} excluded
+                </div>
+              </div>
             `;
           }
         });
@@ -848,6 +1006,28 @@ picker.addEventListener('date-select', (e) => {
 
       const modeIndividual = document.getElementById('mode-individual');
       if (modeIndividual) {
+        // Customize the calendar summary to show disabled day count
+        modeIndividual.formatSummaryCallback = (data) => {
+          if (data.dates && data.dates.length > 0) {
+            // Calculate disabled days
+            const totalDaysInRange = Math.floor(
+              (data.endDate - data.startDate) / (1000 * 60 * 60 * 24)
+            ) + 1;
+            const disabledCount = totalDaysInRange - data.days;
+
+            const prefix = data.isPreview ? `<span style="opacity: 0.7;">${data.localeStrings.preview}: </span>` : '';
+
+            return `
+              ${prefix}
+              <div style="font-size: 0.9em;">
+                <div><strong>${data.dates.length}</strong> individual dates</div>
+                <div style="opacity: 0.7; font-size: 0.85em;">${disabledCount} disabled day${disabledCount !== 1 ? 's' : ''} excluded</div>
+              </div>
+            `;
+          }
+          return '';
+        };
+
         modeIndividual.addEventListener('date-select', (e) => {
           const output = document.getElementById('mode-individual-output');
           if (output && e.detail.dates) {
@@ -914,6 +1094,118 @@ picker.addEventListener('date-select', (e) => {
           const output = document.getElementById('inline-holidays-output');
           if (output && e.detail.date) {
             output.innerHTML = `<strong>Selected:</strong> ${e.detail.date.toLocaleDateString()}`;
+          }
+        });
+      }
+
+      const inlineUnifiedGrid = document.getElementById('inline-unified-grid');
+      if (inlineUnifiedGrid) {
+        inlineUnifiedGrid.addEventListener('date-select', (e) => {
+          const output = document.getElementById('inline-unified-grid-output');
+          if (output && e.detail.dateRange) {
+            const nights = Math.floor(
+              (e.detail.dateRange.end - e.detail.dateRange.start) / (1000*60*60*24)
+            );
+            output.innerHTML = `
+              <strong>Check-in:</strong> ${e.detail.dateRange.start.toLocaleDateString()}<br>
+              <strong>Check-out:</strong> ${e.detail.dateRange.end.toLocaleDateString()}<br>
+              <strong>Nights:</strong> ${nights}
+            `;
+          }
+        });
+      }
+
+      const inlineUnifiedHorizontal = document.getElementById('inline-unified-horizontal');
+      if (inlineUnifiedHorizontal) {
+        inlineUnifiedHorizontal.addEventListener('date-select', (e) => {
+          const output = document.getElementById('inline-unified-horizontal-output');
+          if (output && e.detail.dateRange) {
+            const nights = Math.floor(
+              (e.detail.dateRange.end - e.detail.dateRange.start) / (1000*60*60*24)
+            );
+            output.innerHTML = `
+              <strong>Check-in:</strong> ${e.detail.dateRange.start.toLocaleDateString()}<br>
+              <strong>Check-out:</strong> ${e.detail.dateRange.end.toLocaleDateString()}<br>
+              <strong>Nights:</strong> ${nights}
+            `;
+          }
+        });
+      }
+
+      const inlineUnifiedCenter = document.getElementById('inline-unified-center');
+      if (inlineUnifiedCenter) {
+        // Set custom header callback to show only anchor month (center month)
+        inlineUnifiedCenter.getUnifiedHeaderCallback = ({ anchorMonth, monthNames }) => {
+          return `${monthNames[anchorMonth.getMonth()]} ${anchorMonth.getFullYear()}`;
+        };
+
+        inlineUnifiedCenter.addEventListener('date-select', (e) => {
+          const output = document.getElementById('inline-unified-center-output');
+          if (output && e.detail.dateRange) {
+            const nights = Math.floor(
+              (e.detail.dateRange.end - e.detail.dateRange.start) / (1000*60*60*24)
+            );
+            output.innerHTML = `
+              <strong>Check-in:</strong> ${e.detail.dateRange.start.toLocaleDateString()}<br>
+              <strong>Check-out:</strong> ${e.detail.dateRange.end.toLocaleDateString()}<br>
+              <strong>Nights:</strong> ${nights}
+            `;
+          }
+        });
+      }
+
+      const inlineUnifiedInteractive = document.getElementById('inline-unified-interactive');
+      if (inlineUnifiedInteractive) {
+        inlineUnifiedInteractive.addEventListener('date-select', (e) => {
+          const output = document.getElementById('inline-unified-interactive-output');
+          if (output && e.detail.dateRange) {
+            const nights = Math.floor(
+              (e.detail.dateRange.end - e.detail.dateRange.start) / (1000*60*60*24)
+            );
+            output.innerHTML = `
+              <strong>Check-in:</strong> ${e.detail.dateRange.start.toLocaleDateString()}<br>
+              <strong>Check-out:</strong> ${e.detail.dateRange.end.toLocaleDateString()}<br>
+              <strong>Nights:</strong> ${nights}
+            `;
+          }
+        });
+      }
+
+      const inlineUnifiedCustomRange = document.getElementById('inline-unified-custom-range');
+      if (inlineUnifiedCustomRange) {
+        inlineUnifiedCustomRange.addEventListener('date-select', (e) => {
+          const output = document.getElementById('inline-unified-custom-range-output');
+          if (output && e.detail.dateRange) {
+            const nights = Math.floor(
+              (e.detail.dateRange.end - e.detail.dateRange.start) / (1000*60*60*24)
+            );
+            output.innerHTML = `
+              <strong>Check-in:</strong> ${e.detail.dateRange.start.toLocaleDateString()}<br>
+              <strong>Check-out:</strong> ${e.detail.dateRange.end.toLocaleDateString()}<br>
+              <strong>Nights:</strong> ${nights}
+            `;
+          }
+        });
+      }
+
+      const inlineUnifiedCustomHeader = document.getElementById('inline-unified-custom-header');
+      if (inlineUnifiedCustomHeader) {
+        // Set custom header callback to show only anchor month
+        inlineUnifiedCustomHeader.getUnifiedHeaderCallback = ({ anchorMonth, monthNames }) => {
+          return `${monthNames[anchorMonth.getMonth()]} ${anchorMonth.getFullYear()}`;
+        };
+
+        inlineUnifiedCustomHeader.addEventListener('date-select', (e) => {
+          const output = document.getElementById('inline-unified-custom-header-output');
+          if (output && e.detail.dateRange) {
+            const nights = Math.floor(
+              (e.detail.dateRange.end - e.detail.dateRange.start) / (1000*60*60*24)
+            );
+            output.innerHTML = `
+              <strong>Check-in:</strong> ${e.detail.dateRange.start.toLocaleDateString()}<br>
+              <strong>Check-out:</strong> ${e.detail.dateRange.end.toLocaleDateString()}<br>
+              <strong>Nights:</strong> ${nights}
+            `;
           }
         });
       }

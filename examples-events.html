@@ -221,7 +221,7 @@
   </div>
 
   <h1 class="page-title">⚡ Events & Callbacks</h1>
-  <p class="page-description">Learn about the event system and beforeDateSelect callback for validation and control.</p>
+  <p class="page-description">Learn about the event system and beforeDateSelectCallback callback for validation and control.</p>
 
   <!-- Events Overview -->
   <div class="card">
@@ -291,11 +291,11 @@ picker.addEventListener('date-select', (event) => {
 });</code></pre>
   </div>
 
-  <!-- beforeDateSelect Callback -->
+  <!-- beforeDateSelectCallback Callback -->
   <div class="card">
-    <h2>beforeDateSelect Callback - Validation & Control</h2>
+    <h2>beforeDateSelectCallback Callback - Validation & Control</h2>
     <p>
-      The <code>beforeDateSelect</code> callback is invoked BEFORE a selection is finalized.
+      The <code>beforeDateSelectCallback</code> callback is invoked BEFORE a selection is finalized.
       It allows you to validate, block, adjust, or clear selections based on your business logic.
     </p>
 
@@ -346,7 +346,7 @@ picker.addEventListener('date-select', (event) => {
 
   <!-- Single Mode Examples -->
   <div class="card">
-    <h2>Single Mode - beforeDateSelect Examples</h2>
+    <h2>Single Mode - beforeDateSelectCallback Examples</h2>
 
     <div class="grid">
       <!-- Example 1: Block Weekends -->
@@ -404,7 +404,7 @@ picker.addEventListener('date-select', (event) => {
 
     <h3>Code Examples</h3>
     <pre><code>// Block weekends
-picker.beforeDateSelect = (date) => {
+picker.beforeDateSelectCallback = (date) => {
   const isWeekend = date.getDay() === 0 || date.getDay() === 6;
   return isWeekend
     ? { action: 'restore', message: 'Weekends not allowed' }
@@ -412,7 +412,7 @@ picker.beforeDateSelect = (date) => {
 };
 
 // Adjust to next business day
-picker.beforeDateSelect = (date) => {
+picker.beforeDateSelectCallback = (date) => {
   const day = date.getDay();
   if (day === 0) { // Sunday → Monday
     const adjusted = new Date(date);
@@ -427,7 +427,7 @@ picker.beforeDateSelect = (date) => {
 };
 
 // Async API validation
-picker.beforeDateSelect = async (date) => {
+picker.beforeDateSelectCallback = async (date) => {
   const response = await fetch('/api/check-date', {
     method: 'POST',
     body: JSON.stringify({ date: date.toISOString() })
@@ -441,7 +441,7 @@ picker.beforeDateSelect = async (date) => {
 
   <!-- Range Mode Examples -->
   <div class="card">
-    <h2>Range Mode - beforeDateSelect Examples</h2>
+    <h2>Range Mode - beforeDateSelectCallback Examples</h2>
 
     <div class="grid">
       <!-- Example 5: Minimum Nights -->
@@ -499,7 +499,7 @@ picker.beforeDateSelect = async (date) => {
 
     <h3>Code Examples</h3>
     <pre><code>// Minimum nights requirement
-picker.beforeDateSelect = (range) => {
+picker.beforeDateSelectCallback = (range) => {
   const nights = Math.floor((range.end - range.start) / (1000 * 60 * 60 * 24));
   return nights &lt; 2
     ? { action: 'restore', message: 'Minimum 2 nights required' }
@@ -507,7 +507,7 @@ picker.beforeDateSelect = (range) => {
 };
 
 // Adjust end date to checkout day (Sunday)
-picker.beforeDateSelect = (range) => {
+picker.beforeDateSelectCallback = (range) => {
   const endDay = range.end.getDay();
   if (endDay !== 0) { // Not Sunday
     const adjusted = new Date(range.end);
@@ -524,7 +524,7 @@ picker.beforeDateSelect = (range) => {
 };
 
 // Async availability check
-picker.beforeDateSelect = async (range) => {
+picker.beforeDateSelectCallback = async (range) => {
   const response = await fetch('/api/check-availability', {
     method: 'POST',
     body: JSON.stringify({
@@ -547,6 +547,73 @@ picker.beforeDateSelect = async (range) => {
     return { action: 'restore', message: 'Dates not available' };
   }
 };</code></pre>
+  </div>
+
+  <!-- beforeMonthChangedCallback Examples -->
+  <div class="card">
+    <h2>beforeMonthChangedCallback - Performance Optimization</h2>
+    <p>
+      The <code>beforeMonthChangedCallback</code> is called BEFORE month navigation occurs.
+      Use it to bulk-load metadata for all visible dates in ONE API call instead of calling
+      <code>getDateMetadataCallback</code> 35-42 times per month.
+    </p>
+
+    <div class="info-box" style="margin: 1rem 0;">
+      <strong>Performance:</strong> 1 API call per month vs 35-42 calls with per-day callbacks
+    </div>
+
+    <div class="grid">
+      <!-- Example 9: Bulk Metadata Loading -->
+      <div class="form-group">
+        <label>
+          Hotel Pricing (Bulk Load)
+        </label>
+        <web-daterangepicker id="month-bulk-pricing" selection-mode="range" visible-months-count="2"></web-daterangepicker>
+        <small>Navigate months to see bulk metadata loading in action. Check console for logs.</small>
+        <div id="log-month-bulk" class="event-log" style="max-height: 200px;">
+          <div style="color: #9ca3af;">Navigate to a month to see bulk loading...</div>
+        </div>
+      </div>
+
+      <!-- Example 10: Block Navigation -->
+      <div class="form-group">
+        <label>
+          <span class="status-indicator status-blocked"></span>
+          Block Future Months
+        </label>
+        <web-daterangepicker id="month-block-future" selection-mode="single"></web-daterangepicker>
+        <small>Try navigating more than 2 months into the future - navigation will be blocked</small>
+        <div id="log-month-block" class="event-log" style="max-height: 200px;">
+          <div style="color: #9ca3af;">Try navigating to future months...</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- New row for unified grid example -->
+    <div class="grid">
+      <!-- Example 11: Unified 3×2 Grid with Anchor Index 2 -->
+      <div class="form-group" style="grid-column: 1 / -1;">
+        <label>
+          Unified 3×2 Grid (Anchor: Index 2)
+        </label>
+        <web-daterangepicker
+          id="unified-grid-example"
+          selection-mode="range"
+          positioning-mode="inline"
+          visible-months-count="6"
+          month-layout="grid"
+          grid-rows="2"
+          grid-columns="3"
+          unified-navigation="true"
+          unified-navigation-anchor-index="2"
+          unified-header-interactive="true">
+        </web-daterangepicker>
+        <small>Anchor month at index 2 (top-right). Navigation loads all 6 months at once. Try navigating beyond ±3 months to see blocking.</small>
+        <div id="log-unified-grid" class="event-log" style="max-height: 200px;">
+          <div style="color: #9ca3af;">Navigate to see unified loading...</div>
+        </div>
+      </div>
+    </div>
   </div>
 
   <script type="module">
@@ -608,7 +675,7 @@ picker.beforeDateSelect = async (range) => {
 
     // Example 1: Block Weekends
     const singleBlockWeekends = document.getElementById('single-block-weekends');
-    singleBlockWeekends.beforeDateSelect = (date) => {
+    singleBlockWeekends.beforeDateSelectCallback = (date) => {
       const isWeekend = date.getDay() === 0 || date.getDay() === 6;
       const dayName = date.toLocaleDateString('en-US', { weekday: 'long' });
 
@@ -625,7 +692,7 @@ picker.beforeDateSelect = async (range) => {
 
     // Example 2: Block Past Dates
     const singleBlockPast = document.getElementById('single-block-past');
-    singleBlockPast.beforeDateSelect = (date) => {
+    singleBlockPast.beforeDateSelectCallback = (date) => {
       const today = new Date();
       today.setHours(0, 0, 0, 0);
       const isPast = date < today;
@@ -643,7 +710,7 @@ picker.beforeDateSelect = async (range) => {
 
     // Example 3: Adjust to Business Day
     const singleAdjustBusiness = document.getElementById('single-adjust-business');
-    singleAdjustBusiness.beforeDateSelect = (date) => {
+    singleAdjustBusiness.beforeDateSelectCallback = (date) => {
       const day = date.getDay();
       let adjusted = null;
       let message = '';
@@ -675,7 +742,7 @@ picker.beforeDateSelect = async (range) => {
 
     // Example 4: Async API Validation
     const singleAsync = document.getElementById('single-async');
-    singleAsync.beforeDateSelect = async (date) => {
+    singleAsync.beforeDateSelectCallback = async (date) => {
       logEvent('log-single-async', 'Validating...', { date: date.toISOString().split('T')[0] }, 'info');
 
       // Simulate API call
@@ -701,7 +768,7 @@ picker.beforeDateSelect = async (range) => {
 
     // Example 5: Minimum Nights
     const rangeMinNights = document.getElementById('range-min-nights');
-    rangeMinNights.beforeDateSelect = (range) => {
+    rangeMinNights.beforeDateSelectCallback = (range) => {
       const nights = Math.floor((range.end - range.start) / (1000 * 60 * 60 * 24));
       const isValid = nights >= 2;
 
@@ -722,7 +789,7 @@ picker.beforeDateSelect = async (range) => {
 
     // Example 6: Maximum Nights
     const rangeMaxNights = document.getElementById('range-max-nights');
-    rangeMaxNights.beforeDateSelect = (range) => {
+    rangeMaxNights.beforeDateSelectCallback = (range) => {
       const nights = Math.floor((range.end - range.start) / (1000 * 60 * 60 * 24));
       const isValid = nights <= 7;
 
@@ -743,7 +810,7 @@ picker.beforeDateSelect = async (range) => {
 
     // Example 7: Adjust End Date to Sunday
     const rangeAdjustCheckout = document.getElementById('range-adjust-checkout');
-    rangeAdjustCheckout.beforeDateSelect = (range) => {
+    rangeAdjustCheckout.beforeDateSelectCallback = (range) => {
       const endDay = range.end.getDay();
 
       if (endDay !== 0) { // Not Sunday
@@ -781,7 +848,7 @@ picker.beforeDateSelect = async (range) => {
 
     // Example 8: Async Availability Check
     const rangeAsync = document.getElementById('range-async');
-    rangeAsync.beforeDateSelect = async (range) => {
+    rangeAsync.beforeDateSelectCallback = async (range) => {
       logEvent('log-range-async', 'Checking availability...', {
         start: range.start.toISOString().split('T')[0],
         end: range.end.toISOString().split('T')[0]
@@ -805,6 +872,217 @@ picker.beforeDateSelect = async (range) => {
       return crossesMonth
         ? { action: 'restore', message: 'Cannot book across months' }
         : { action: 'accept' };
+    };
+
+    // =================================================================
+    // beforeMonthChangedCallback Examples (Performance Optimization)
+    // =================================================================
+
+    // Example 9: Bulk Metadata Loading (Hotel Pricing)
+    const monthBulkPricing = document.getElementById('month-bulk-pricing');
+
+    // Add custom styles for badge classes
+    monthBulkPricing.customStylesCallback = () => `
+      .drp-date-picker__badge-cell.available {
+        background-color: rgba(34, 197, 94, 0.3);
+        color: #166534;
+        font-weight: 600;
+      }
+
+      .drp-date-picker__badge-cell.sold-out {
+        background-color: rgba(239, 68, 68, 0.3);
+        color: #991b1b;
+        font-weight: 600;
+      }
+    `;
+
+    monthBulkPricing.beforeMonthChangedCallback = async ({ year, month, monthIndex, firstVisibleDate, lastVisibleDate }) => {
+      const monthName = new Date(year, month, 1).toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+
+      logEvent('log-month-bulk', `📅 Loading ${monthName}...`, {
+        range: `${firstVisibleDate.toISOString().split('T')[0]} to ${lastVisibleDate.toISOString().split('T')[0]}`
+      }, 'info');
+
+      console.log(`[beforeMonthChangedCallback] Loading ${monthName}`);
+      console.log(`  Visible range: ${firstVisibleDate.toISOString().split('T')[0]} to ${lastVisibleDate.toISOString().split('T')[0]}`);
+
+      // Simulate API call to fetch availability for entire month
+      await new Promise(resolve => setTimeout(resolve, 600));
+
+      // Build bulk metadata map (YYYY-MM-DD -> DateInfo)
+      const metadata = new Map();
+      let currentDate = new Date(firstVisibleDate);
+
+      while (currentDate <= lastVisibleDate) {
+        const dateKey = currentDate.toISOString().split('T')[0];
+
+        // Example logic: weekends are more expensive
+        const isWeekend = currentDate.getDay() === 0 || currentDate.getDay() === 6;
+        const basePrice = isWeekend ? 250 : 150;
+
+        // Add some variation
+        const price = basePrice + Math.floor(Math.random() * 50);
+
+        // Some dates are unavailable (10% chance)
+        const available = Math.random() > 0.1;
+
+        metadata.set(dateKey, {
+          badgeText: available ? `$${price}` : '✕',
+          badgeClass: available ? 'available' : 'sold-out',
+          dayTooltip: available ? `$${price}/night - Available` : 'Sold out',
+          isDisabled: !available
+        });
+
+        currentDate.setDate(currentDate.getDate() + 1);
+      }
+
+      console.log(`  ✅ Loaded ${metadata.size} dates with pricing`);
+
+      logEvent('log-month-bulk', `✅ Loaded ${metadata.size} dates`, {
+        month: monthName,
+        available: Array.from(metadata.values()).filter(m => !m.isDisabled).length,
+        soldOut: Array.from(metadata.values()).filter(m => m.isDisabled).length
+      }, 'success');
+
+      return {
+        action: 'accept',
+        metadata: metadata
+      };
+    };
+
+    // Example 10: Block Future Navigation
+    const monthBlockFuture = document.getElementById('month-block-future');
+    monthBlockFuture.beforeMonthChangedCallback = async ({ year, month }) => {
+      const today = new Date();
+      const currentMonth = today.getMonth();
+      const currentYear = today.getFullYear();
+
+      // Calculate months from now
+      const targetMonthsFromNow = (year - currentYear) * 12 + (month - currentMonth);
+
+      const monthName = new Date(year, month, 1).toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+
+      logEvent('log-month-block',
+        `Checking ${monthName} (${targetMonthsFromNow} months from now)...`,
+        {},
+        'info'
+      );
+
+      // Simulate async check
+      await new Promise(resolve => setTimeout(resolve, 300));
+
+      // Block if more than 2 months in the future
+      if (targetMonthsFromNow > 2) {
+        logEvent('log-month-block',
+          `🚫 BLOCKED: ${monthName}`,
+          { reason: 'Cannot navigate more than 2 months into the future' },
+          'error'
+        );
+
+        console.warn(`[beforeMonthChangedCallback] Blocked navigation to ${monthName}`);
+
+        return {
+          action: 'block',
+          message: 'Cannot navigate more than 2 months into the future'
+        };
+      }
+
+      logEvent('log-month-block',
+        `✅ ALLOWED: ${monthName}`,
+        { monthsFromNow: targetMonthsFromNow },
+        'success'
+      );
+
+      return { action: 'accept' };
+    };
+
+    // =================================================================
+    // Example 11: Unified 3×2 Grid with Anchor Index 2
+    // =================================================================
+    const unifiedGridExample = document.getElementById('unified-grid-example');
+
+    // Add custom styles for badge classes
+    unifiedGridExample.customStylesCallback = () => `
+      .drp-date-picker__badge-cell.available {
+        background-color: rgba(34, 197, 94, 0.3);
+        color: #166534;
+        font-weight: 600;
+      }
+
+      .drp-date-picker__badge-cell.sold-out {
+        background-color: rgba(239, 68, 68, 0.3);
+        color: #991b1b;
+        font-weight: 600;
+      }
+    `;
+
+    unifiedGridExample.beforeMonthChangedCallback = async ({ year, month, monthIndex, firstVisibleDate, lastVisibleDate }) => {
+      const anchorMonthName = new Date(year, month, 1).toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+
+      logEvent('log-unified-grid', `📅 Loading unified grid (anchor: ${anchorMonthName})...`, {
+        range: `${firstVisibleDate.toISOString().split('T')[0]} to ${lastVisibleDate.toISOString().split('T')[0]}`,
+        anchorIndex: monthIndex
+      }, 'info');
+
+      console.log(`[Unified Grid] Anchor: ${anchorMonthName} (index ${monthIndex})`);
+      console.log(`  Full range: ${firstVisibleDate.toISOString().split('T')[0]} to ${lastVisibleDate.toISOString().split('T')[0]}`);
+
+      // Check if navigation should be blocked (±3 months from today)
+      const today = new Date();
+      const currentMonth = today.getMonth();
+      const currentYear = today.getFullYear();
+      const targetMonthsFromNow = (year - currentYear) * 12 + (month - currentMonth);
+
+      if (targetMonthsFromNow < -3 || targetMonthsFromNow > 3) {
+        logEvent('log-unified-grid', `🚫 BLOCKED: ${anchorMonthName}`, {
+          reason: 'Cannot navigate beyond ±3 months from today',
+          monthsFromNow: targetMonthsFromNow
+        }, 'error');
+
+        console.warn(`[Unified Grid] Navigation blocked: ${targetMonthsFromNow} months from now (limit: ±3)`);
+
+        return {
+          action: 'block',
+          message: 'Navigation limited to ±3 months from current date'
+        };
+      }
+
+      // Simulate API call
+      await new Promise(resolve => setTimeout(resolve, 700));
+
+      // Generate metadata for entire visible range (all 6 months)
+      const metadata = new Map();
+      let currentDate = new Date(firstVisibleDate);
+
+      while (currentDate <= lastVisibleDate) {
+        const dateKey = currentDate.toISOString().split('T')[0];
+        const isWeekend = currentDate.getDay() === 0 || currentDate.getDay() === 6;
+        const basePrice = isWeekend ? 280 : 180;
+        const price = basePrice + Math.floor(Math.random() * 70);
+        const available = Math.random() > 0.15;
+
+        metadata.set(dateKey, {
+          badgeText: available ? `$${price}` : '✕',
+          badgeClass: available ? 'available' : 'sold-out',
+          dayTooltip: available ? `$${price}/night` : 'Unavailable',
+          isDisabled: !available
+        });
+
+        currentDate.setDate(currentDate.getDate() + 1);
+      }
+
+      console.log(`  ✅ Loaded ${metadata.size} dates across 6 months`);
+
+      logEvent('log-unified-grid', `✅ Loaded ${metadata.size} dates`, {
+        anchorMonth: anchorMonthName,
+        available: Array.from(metadata.values()).filter(m => !m.isDisabled).length,
+        unavailable: Array.from(metadata.values()).filter(m => m.isDisabled).length
+      }, 'success');
+
+      return {
+        action: 'accept',
+        metadata: metadata
+      };
     };
   </script>
 </body>

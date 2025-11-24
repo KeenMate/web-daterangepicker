@@ -9,9 +9,10 @@
 // CSS CUSTOM PROPERTIES (CSS VARIABLES)
 // ==============================================================================
 // Define CSS custom properties with SCSS fallbacks for runtime customization
-// Using :host instead of :root for proper shadow DOM support
+// Using :host for Shadow DOM (web component) and :root for Light DOM (direct class usage)
 
-:host {
+:host,
+:root {
   // ===========================================================================
   // SIZING SCALE SYSTEM (THREE INDEPENDENT MULTIPLIERS)
   // ===========================================================================

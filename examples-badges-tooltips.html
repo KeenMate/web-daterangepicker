@@ -651,6 +651,25 @@ picker.dayTooltipCallback = (data) => {
     // Holidays demo
     const holidaysDemo = document.getElementById('holidays-demo');
     if (holidaysDemo) {
+      // Inject CSS for badge styling into Shadow DOM
+      holidaysDemo.customStylesCallback = () => {
+        return `
+          .drp-date-picker__badge-cell.holiday {
+            background-color: rgba(239, 68, 68, 0.3) !important;
+            color: #991b1b !important;
+            border: 1px solid #f87171 !important;
+            font-weight: 600;
+          }
+
+          .drp-date-picker__badge-cell.event {
+            background-color: rgba(59, 130, 246, 0.3) !important;
+            color: #1e40af !important;
+            border: 1px solid #60a5fa !important;
+            font-weight: 600;
+          }
+        `;
+      };
+
       holidaysDemo.specialDates = [
         { date: '2025-12-25', badgeClass: 'holiday', badgeText: '🎄', badgeTooltip: 'Christmas Day' },
         { date: '2025-12-24', badgeClass: 'holiday', badgeText: '🎅', badgeTooltip: 'Christmas Eve' },
@@ -667,6 +686,18 @@ picker.dayTooltipCallback = (data) => {
     // Cottage booking demo (simulated bookings)
     const cottageDemo = document.getElementById('cottage-demo');
     if (cottageDemo) {
+      // Inject CSS for booked badge styling into Shadow DOM
+      cottageDemo.customStylesCallback = () => {
+        return `
+          .drp-date-picker__badge-cell.booked {
+            background-color: rgba(107, 114, 128, 0.3) !important;
+            color: #374151 !important;
+            border: 1px solid #9ca3af !important;
+            font-weight: 600;
+          }
+        `;
+      };
+
       // Simulate already booked date ranges
       const bookedRanges = [
         { start: new Date(2025, 10, 10), end: new Date(2025, 10, 17) }, // Nov 10-17
@@ -768,6 +799,25 @@ picker.dayTooltipCallback = (data) => {
     // Method 3: Custom Data Structure (Member Mapping)
     const methodMapping = document.getElementById('method-mapping');
     if (methodMapping) {
+      // Inject CSS for badge styling into Shadow DOM
+      methodMapping.customStylesCallback = () => {
+        return `
+          .drp-date-picker__badge-cell.holiday {
+            background-color: rgba(239, 68, 68, 0.3) !important;
+            color: #991b1b !important;
+            border: 1px solid #f87171 !important;
+            font-weight: 600;
+          }
+
+          .drp-date-picker__badge-cell.event {
+            background-color: rgba(59, 130, 246, 0.3) !important;
+            color: #1e40af !important;
+            border: 1px solid #60a5fa !important;
+            font-weight: 600;
+          }
+        `;
+      };
+
       // Data from external system with different property names
       const eventsData = [
         { id: 1, eventDate: '2025-12-25', icon: '🎄', label: 'Christmas', category: 'holiday', unavailable: true },
@@ -790,6 +840,25 @@ picker.dayTooltipCallback = (data) => {
     const methodTooltips = document.getElementById('method-tooltips');
     console.log('[Method 4] Element found:', !!methodTooltips);
     if (methodTooltips) {
+      // Inject CSS for badge styling into Shadow DOM
+      methodTooltips.customStylesCallback = () => {
+        return `
+          .drp-date-picker__badge-cell.holiday {
+            background-color: rgba(239, 68, 68, 0.3) !important;
+            color: #991b1b !important;
+            border: 1px solid #f87171 !important;
+            font-weight: 600;
+          }
+
+          .drp-date-picker__badge-cell.event {
+            background-color: rgba(59, 130, 246, 0.3) !important;
+            color: #1e40af !important;
+            border: 1px solid #60a5fa !important;
+            font-weight: 600;
+          }
+        `;
+      };
+
       // Get current date to ensure badges are visible
       const today = new Date();
       const currentMonth = today.getMonth();
@@ -835,6 +904,25 @@ picker.dayTooltipCallback = (data) => {
 
     const memberMappingExample = document.getElementById('member-mapping-example');
     if (memberMappingExample) {
+      // Inject CSS for badge styling into Shadow DOM
+      memberMappingExample.customStylesCallback = () => {
+        return `
+          .drp-date-picker__badge-cell.holiday {
+            background-color: rgba(239, 68, 68, 0.3) !important;
+            color: #991b1b !important;
+            border: 1px solid #f87171 !important;
+            font-weight: 600;
+          }
+
+          .drp-date-picker__badge-cell.event {
+            background-color: rgba(59, 130, 246, 0.3) !important;
+            color: #1e40af !important;
+            border: 1px solid #60a5fa !important;
+            font-weight: 600;
+          }
+        `;
+      };
+
       // Custom data structure with non-standard property names
       const myHolidays = [
         { id: 1, displayDate: '2025-12-25', icon: '🎄', description: 'Christmas - Office Closed', style: 'holiday', disabled: true },
@@ -863,6 +951,32 @@ picker.dayTooltipCallback = (data) => {
 
     const dynamicPricing = document.getElementById('dynamic-pricing');
     if (dynamicPricing) {
+      // Inject CSS into Shadow DOM for price tier styling
+      dynamicPricing.customStylesCallback = () => {
+        return `
+          .drp-date-picker__badge-cell.price-high {
+            background-color: #fee2e2 !important;
+            color: #991b1b !important;
+            border: 1px solid #f87171 !important;
+            font-weight: 600;
+          }
+
+          .drp-date-picker__badge-cell.price-medium {
+            background-color: #fef3c7 !important;
+            color: #92400e !important;
+            border: 1px solid #fbbf24 !important;
+            font-weight: 600;
+          }
+
+          .drp-date-picker__badge-cell.price-low {
+            background-color: #d1fae5 !important;
+            color: #065f46 !important;
+            border: 1px solid #34d399 !important;
+            font-weight: 600;
+          }
+        `;
+      };
+
       // Simulate dynamic pricing based on day of week and demand
       dynamicPricing.getDateMetadataCallback = (date) => {
         const dayOfWeek = date.getDay();
@@ -891,6 +1005,30 @@ picker.dayTooltipCallback = (data) => {
 
     const dynamicAvailability = document.getElementById('dynamic-availability');
     if (dynamicAvailability) {
+      // Inject CSS into Shadow DOM for availability styling
+      dynamicAvailability.customStylesCallback = () => {
+        return `
+          .drp-date-picker__badge-cell.low-availability {
+            background-color: rgba(239, 68, 68, 0.3) !important;
+            color: #991b1b !important;
+            border: 1px solid #f87171 !important;
+            font-weight: 600;
+          }
+
+          .drp-date-picker__badge-cell.medium-availability {
+            background-color: rgba(251, 191, 36, 0.3) !important;
+            color: #92400e !important;
+            border: 1px solid #fbbf24 !important;
+            font-weight: 600;
+          }
+
+          .drp-date-picker__day-wrapper.low-availability-day {
+            background-color: rgba(254, 226, 226, 0.5) !important;
+            border-color: #fca5a5 !important;
+          }
+        `;
+      };
+
       dynamicAvailability.getDateMetadataCallback = (date) => {
         const dateNum = date.getDate();
 
@@ -1033,6 +1171,32 @@ picker.dayTooltipCallback = (data) => {
 
     const combinedExample = document.getElementById('combined-example');
     if (combinedExample) {
+      // Inject CSS for badge styling into Shadow DOM
+      combinedExample.customStylesCallback = () => {
+        return `
+          .drp-date-picker__badge-cell.holiday {
+            background-color: rgba(239, 68, 68, 0.3) !important;
+            color: #991b1b !important;
+            border: 1px solid #f87171 !important;
+            font-weight: 600;
+          }
+
+          .drp-date-picker__badge-cell.price-high {
+            background-color: #fee2e2 !important;
+            color: #991b1b !important;
+            border: 1px solid #f87171 !important;
+            font-weight: 600;
+          }
+
+          .drp-date-picker__badge-cell.price-medium {
+            background-color: #fef3c7 !important;
+            color: #92400e !important;
+            border: 1px solid #fbbf24 !important;
+            font-weight: 600;
+          }
+        `;
+      };
+
       // 1. Static holidays
       combinedExample.specialDates = [
         { date: '2025-12-25', badgeClass: 'holiday', badgeText: '🎄', badgeTooltip: 'Christmas Day - Hotel Closed' },

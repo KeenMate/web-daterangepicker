@@ -16,8 +16,10 @@ export class WebDaterangepickerElement extends HTMLElement {
     private _customStylesCallback?: () => string;
     private _renderDayCallback?: (data: DayRenderData) => HTMLElement | string | null;
     private _renderDayContentCallback?: (data: DayRenderData) => HTMLElement | string | null;
-    private _beforeDateSelect?: (selection: Date | DateRange) => Promise<BeforeSelectResult> | BeforeSelectResult;
+    private _beforeDateSelectCallback?: (selection: Date | DateRange) => Promise<BeforeSelectResult> | BeforeSelectResult;
+    private _beforeMonthChangedCallback?: (context: any) => Promise<any> | any;
     private _formatSummaryCallback?: (data: any) => string;
+    private _getUnifiedHeaderCallback?: (data: { firstMonth: Date; lastMonth: Date; anchorMonth: Date; monthNames: string[] }) => string;
 
     // Member mapping properties for specialDates array
     private _dateMember?: string;
@@ -42,7 +44,8 @@ export class WebDaterangepickerElement extends HTMLElement {
             'locale', 'display-format-mask', 'show-debug-info',
             'initial-date', 'rolling-year-range', 'rolling-month-range',
             'spacing', 'font-size', 'cell-size', 'enable-transitions',
-            'auto-close', 'show-today-button', 'show-clear-button', 'show-apply-button'
+            'auto-close', 'show-today-button', 'show-clear-button', 'show-apply-button',
+            'unified-navigation', 'unified-navigation-anchor-index', 'unified-header-interactive'
         ];
     }
 
@@ -209,6 +212,9 @@ export class WebDaterangepickerElement extends HTMLElement {
             monthLayout: (this.getAttribute('month-layout') as 'horizontal' | 'grid') || undefined,
             gridRows: parseInt(this.getAttribute('grid-rows') || '0') || undefined,
             gridColumns: parseInt(this.getAttribute('grid-columns') || '0') || undefined,
+            unifiedNavigation: this.hasAttribute('unified-navigation'),
+            unifiedNavigationAnchorIndex: parseInt(this.getAttribute('unified-navigation-anchor-index') || '0') || undefined,
+            unifiedHeaderInteractive: this.hasAttribute('unified-header-interactive'),
 
             // Positioning
             calendarPlacement: this.getAttribute('calendar-placement') || undefined,
@@ -250,8 +256,10 @@ export class WebDaterangepickerElement extends HTMLElement {
             renderDayContentCallback: this._renderDayContentCallback,
 
             // Callbacks
-            beforeDateSelect: this._beforeDateSelect,
+            beforeDateSelectCallback: this._beforeDateSelectCallback,
+            beforeMonthChangedCallback: this._beforeMonthChangedCallback,
             formatSummaryCallback: this._formatSummaryCallback,
+            getUnifiedHeaderCallback: this._getUnifiedHeaderCallback,
 
             // Action button configuration
             autoClose: (this.getAttribute('auto-close') as 'never' | 'selection' | 'apply') || undefined,
@@ -658,12 +666,21 @@ export class WebDaterangepickerElement extends HTMLElement {
         this.scheduleReinit();
     }
 
-    get beforeDateSelect() {
-        return this._beforeDateSelect;
+    get beforeDateSelectCallback() {
+        return this._beforeDateSelectCallback;
     }
 
-    set beforeDateSelect(value: ((selection: Date | DateRange) => Promise<BeforeSelectResult> | BeforeSelectResult) | undefined) {
-        this._beforeDateSelect = value;
+    set beforeDateSelectCallback(value: ((selection: Date | DateRange) => Promise<BeforeSelectResult> | BeforeSelectResult) | undefined) {
+        this._beforeDateSelectCallback = value;
+        this.scheduleReinit();
+    }
+
+    get beforeMonthChangedCallback() {
+        return this._beforeMonthChangedCallback;
+    }
+
+    set beforeMonthChangedCallback(value: ((context: any) => Promise<any> | any) | undefined) {
+        this._beforeMonthChangedCallback = value;
         this.scheduleReinit();
     }
 
@@ -673,6 +690,15 @@ export class WebDaterangepickerElement extends HTMLElement {
 
     set formatSummaryCallback(value: ((data: any) => string) | undefined) {
         this._formatSummaryCallback = value;
+        this.scheduleReinit();
+    }
+
+    get getUnifiedHeaderCallback(): ((data: { firstMonth: Date; lastMonth: Date; anchorMonth: Date; monthNames: string[] }) => string) | undefined {
+        return this._getUnifiedHeaderCallback;
+    }
+
+    set getUnifiedHeaderCallback(value: ((data: { firstMonth: Date; lastMonth: Date; anchorMonth: Date; monthNames: string[] }) => string) | undefined) {
+        this._getUnifiedHeaderCallback = value;
         this.scheduleReinit();
     }
 

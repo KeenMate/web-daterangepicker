@@ -22,8 +22,12 @@ import * as Interaction from './date-picker-interaction';
 import * as UI from './date-picker-ui';
 import { resolveLocale, getLocaleStrings, getWeekdayNames, getMonthNames } from './date-picker-locales';
 import { drpLogger, navigationLogger, enableLogging, disableLogging } from './logger';
+// Import styles for static injection (only used when injectGlobalStyles is called)
+import styles from './scss/main.scss?inline';
 
 class DateRangePicker {
+    // Static flag to track if styles have been injected
+    private static stylesInjected: boolean = false;
     input: HTMLInputElement | null;
     options: Required<DatePickerOptions>;
     formatInfo: FormatInfo;
@@ -70,6 +74,16 @@ class DateRangePicker {
     private isValidating: boolean = false;
     private loadingOverlay?: HTMLElement;
 
+    // Month change callback state
+    private isMonthChanging: boolean = false;
+    bulkMetadataCache: Map<string, DateInfo> | null = null;
+
+    // Unified navigation state
+    private unifiedHeader?: HTMLElement;
+    private unifiedRangeDisplay?: HTMLElement;
+    private unifiedRollingSelector?: HTMLElement;
+    private showingUnifiedRollingSelector: boolean = false;
+
     // Floating UI tooltips
     private tooltip?: HTMLElement;
     private tooltipArrow?: HTMLElement;
@@ -108,6 +122,10 @@ class DateRangePicker {
             monthLayout: options.monthLayout || 'horizontal',
             gridRows: options.gridRows,
             gridColumns: options.gridColumns,
+            unifiedNavigation: options.unifiedNavigation || false,
+            unifiedNavigationAnchorIndex: options.unifiedNavigationAnchorIndex ?? 0,
+            unifiedHeaderInteractive: options.unifiedHeaderInteractive || false,
+            getUnifiedHeaderCallback: options.getUnifiedHeaderCallback,
             weekStartDay: options.weekStartDay !== undefined ? options.weekStartDay : 'auto',
             minDate: options.minDate,
             maxDate: options.maxDate,
@@ -123,18 +141,8 @@ class DateRangePicker {
             customStrings: options.customStrings,
             monthNames: options.monthNames,
             formatSummaryCallback: options.formatSummaryCallback,
-            beforeDateSelect: options.beforeDateSelect || (
-                // Wrap deprecated validateRangeCallback to match new signature
-                options.validateRangeCallback
-                    ? async (selection: Date | DateRange) => {
-                        if (typeof selection === 'object' && 'start' in selection) {
-                            return options.validateRangeCallback!(selection.start, selection.end);
-                        }
-                        return { action: 'accept' as const };
-                    }
-                    : undefined
-            ),
-            validateRangeCallback: options.validateRangeCallback, // Deprecated, kept for compatibility
+            beforeDateSelectCallback: options.beforeDateSelectCallback,
+            beforeMonthChangedCallback: options.beforeMonthChangedCallback,
             showDebugInfo: options.showDebugInfo || false,
             rollingYearRange: options.rollingYearRange,
             rollingMonthRange: options.rollingMonthRange,
@@ -164,9 +172,13 @@ class DateRangePicker {
             disableLogging();
         }
 
-        // Deprecation warning for validateRangeCallback
-        if (options.validateRangeCallback && !options.beforeDateSelect) {
-            console.warn('[DEPRECATION] validateRangeCallback is deprecated and will be removed in v2.0.0. Please use beforeDateSelect instead.');
+        // Validate anchor index is within bounds
+        if (this.options.unifiedNavigation && this.options.unifiedNavigationAnchorIndex !== undefined) {
+            const maxIndex = this.options.visibleMonthsCount - 1;
+            if (this.options.unifiedNavigationAnchorIndex < 0 || this.options.unifiedNavigationAnchorIndex > maxIndex) {
+                console.warn(`unifiedNavigationAnchorIndex (${this.options.unifiedNavigationAnchorIndex}) out of bounds. Using 0.`);
+                this.options.unifiedNavigationAnchorIndex = 0;
+            }
         }
 
         // Detect/set week start day
@@ -202,11 +214,11 @@ class DateRangePicker {
             drpLogger.debug(`Using initialDate: ${initialDisplayDate.toISOString()}`);
         } else if (this.options.rollingYearRange || this.options.rollingMonthRange) {
             // If rolling ranges are set, use first allowed year/month
-            const yearRange = this.options.rollingYearRange ? this.parseYearRange(this.options.rollingYearRange) : null;
-            const monthRange = this.options.rollingMonthRange ? this.parseMonthRange(this.options.rollingMonthRange) : null;
+            const yearRange = this.getEffectiveYearRange();
+            const monthRange = this.getEffectiveMonthRange();
 
-            const year = yearRange ? yearRange.min : new Date().getFullYear();
-            const month = monthRange ? monthRange.min - 1 : 0; // Convert to 0-based
+            const year = yearRange.min;
+            const month = monthRange.min - 1; // Convert to 0-based
 
             initialDisplayDate = new Date(year, month, 1);
             drpLogger.debug(`Using first allowed year/month as initial: ${initialDisplayDate.toISOString()}`);
@@ -293,6 +305,14 @@ class DateRangePicker {
             this.calendar.classList.add('drp-date-picker--visible', 'drp-date-picker--inline');
             this.isCalendarActive = true; // Make inline calendar keyboard-accessible immediately
             this.isFirstRender = false;
+
+            // Call beforeMonthChangedCallback for initial month load
+            Navigation.handleInitialMonthLoad(this);
+
+            // Attach click outside handler for inline mode (closes rolling selectors when clicking outside)
+            if (this.clickOutsideHandler) {
+                document.addEventListener('click', this.clickOutsideHandler);
+            }
         }
         // Note: for floating mode, renderCalendar() is called on first show() instead of here
         // to avoid rendering days before the calendar is displayed
@@ -339,21 +359,23 @@ class DateRangePicker {
     }
 
     /**
-     * Parse year range string to min/max values
+     * Get effective year range considering all constraints
+     * Returns the year range that should be enforced for date validation and navigation
+     * Considers: rollingYearRange option, minDate/maxDate, or defaults to today ± 1
      */
-    private parseYearRange(range: string): { min: number, max: number } {
-        if (range.includes('-')) {
-            const [minStr, maxStr] = range.split('-');
-            return { min: parseInt(minStr, 10), max: parseInt(maxStr, 10) };
-        } else {
-            const year = parseInt(range, 10);
-            return { min: year, max: year };
-        }
+    getEffectiveYearRange(): { min: number, max: number } {
+        const todayYear = new Date().getFullYear();
+        return Rendering.parseYearRange(this.options.rollingYearRange, todayYear, this);
     }
 
     /**
-     * Parse month range string to min/max values
+     * Get effective month range considering all constraints
+     * Returns the month range that should be enforced for date validation and navigation
+     * Considers: rollingMonthRange option, or defaults to all months (1-12)
      */
+    getEffectiveMonthRange(): { min: number, max: number } {
+        return Rendering.parseMonthRange(this.options.rollingMonthRange);
+    }
     /**
      * Render action buttons based on configuration
      * Implements priority system matching web-multiselect:
@@ -593,20 +615,18 @@ class DateRangePicker {
      */
     isDateDisabledInternal(date: Date): boolean {
         // FIRST: Check rolling selector ranges (primary constraints)
-        if (this.options.rollingYearRange) {
-            const yearRange = this.parseYearRange(this.options.rollingYearRange);
-            const year = date.getFullYear();
-            if (year < yearRange.min || year > yearRange.max) {
-                return true; // Outside allowed year range
-            }
+        // Always check year range (considers rollingYearRange, minDate/maxDate, or defaults to today ± 1)
+        const yearRange = this.getEffectiveYearRange();
+        const year = date.getFullYear();
+        if (year < yearRange.min || year > yearRange.max) {
+            return true; // Outside allowed year range
         }
 
-        if (this.options.rollingMonthRange) {
-            const monthRange = this.parseMonthRange(this.options.rollingMonthRange);
-            const month = date.getMonth() + 1; // Convert to 1-12
-            if (month < monthRange.min || month > monthRange.max) {
-                return true; // Outside allowed month range
-            }
+        // Always check month range (considers rollingMonthRange or defaults to all months 1-12)
+        const monthRange = this.getEffectiveMonthRange();
+        const month = date.getMonth() + 1; // Convert to 1-12
+        if (month < monthRange.min || month > monthRange.max) {
+            return true; // Outside allowed month range
         }
 
         // SECOND: Check secondary constraints (min/max dates, disabled dates, etc.)
@@ -621,12 +641,21 @@ class DateRangePicker {
 
     /**
      * Get additional info for a date (special styling, labels, etc.)
-     * Priority: callback wins over specialDates
+     * Priority: bulkMetadataCache > callback > specialDates
      */
     getDateInfoInternal(date: Date): DateInfo | null {
         const dateKey = Validation.formatDateKey(date);
 
-        // 1. Check callback FIRST (highest priority - callback wins)
+        // 1. Check bulk metadata cache FIRST (highest priority - from beforeMonthChangedCallback)
+        if (this.bulkMetadataCache && this.bulkMetadataCache.has(dateKey)) {
+            const cachedInfo = this.bulkMetadataCache.get(dateKey)!;
+            return {
+                ...cachedInfo,
+                isDisabled: cachedInfo.isDisabled !== undefined ? cachedInfo.isDisabled : this.isDateDisabledInternal(date)
+            };
+        }
+
+        // 2. Check callback SECOND (per-day callback)
         if (this.options.getDateMetadataCallback) {
             const customInfo = this.options.getDateMetadataCallback(date);
             if (customInfo) {
@@ -637,7 +666,7 @@ class DateRangePicker {
             }
         }
 
-        // 2. Check specialDates SECOND (with member mapping)
+        // 3. Check specialDates THIRD (static array with member mapping)
         if (this.normalizedSpecialDates.has(dateKey)) {
             const specialDate = this.normalizedSpecialDates.get(dateKey)!;
 
@@ -734,6 +763,41 @@ class DateRangePicker {
         this.calendar = document.createElement('div');
         this.calendar.className = 'drp-date-picker';
 
+        // Add unified navigation class if enabled
+        if (this.options.unifiedNavigation) {
+            this.calendar.classList.add('drp-date-picker--unified-nav');
+        }
+
+        // Create unified navigation header (if enabled)
+        if (this.options.unifiedNavigation) {
+            this.unifiedHeader = document.createElement('div');
+            this.unifiedHeader.className = 'drp-date-picker__unified-header';
+
+            // Conditionally make range display interactive
+            const rangeClass = this.options.unifiedHeaderInteractive ? '' : ' drp-date-picker__unified-range--static';
+            const rangeAction = this.options.unifiedHeaderInteractive ? ' data-action="toggle-unified-rolling"' : '';
+
+            this.unifiedHeader.innerHTML = `
+                <button class="drp-date-picker__nav drp-date-picker__nav--prev" data-action="unified-prev"></button>
+                <div class="drp-date-picker__unified-range${rangeClass}"${rangeAction}></div>
+                <button class="drp-date-picker__nav drp-date-picker__nav--next" data-action="unified-next"></button>
+            `;
+
+            // Create unified rolling selector
+            this.unifiedRollingSelector = document.createElement('div');
+            this.unifiedRollingSelector.className = 'drp-date-picker__unified-rolling-selector';
+            this.unifiedRollingSelector.innerHTML = `
+                <div class="drp-date-picker__rolling-list" data-list="years" data-unified="true"></div>
+                <div class="drp-date-picker__rolling-list" data-list="months" data-unified="true"></div>
+            `;
+
+            this.calendar.appendChild(this.unifiedHeader);
+            this.calendar.appendChild(this.unifiedRollingSelector);
+
+            // Store reference to range display element
+            this.unifiedRangeDisplay = this.unifiedHeader.querySelector('.drp-date-picker__unified-range') as HTMLElement;
+        }
+
         // Create container for months
         const monthsContainer = document.createElement('div');
         // Add layout class based on layout option
@@ -755,12 +819,21 @@ class DateRangePicker {
             const monthCalendar = document.createElement('div');
             monthCalendar.className = 'drp-date-picker__month';
             monthCalendar.dataset.monthIndex = String(i);
-            monthCalendar.innerHTML = `
-                <div class="drp-date-picker__header">
+
+            // In unified mode, headers are static (non-interactive)
+            // In non-unified mode, headers have navigation and rolling selector
+            const headerHtml = this.options.unifiedNavigation
+                ? `<div class="drp-date-picker__header drp-date-picker__header--static">
+                    <div class="drp-date-picker__month-year"></div>
+                </div>`
+                : `<div class="drp-date-picker__header">
                     <button class="drp-date-picker__nav drp-date-picker__nav--prev" data-action="prev" data-month-index="${i}"></button>
                     <div class="drp-date-picker__month-year" data-action="toggle-rolling" data-month-index="${i}"></div>
                     <button class="drp-date-picker__nav drp-date-picker__nav--next" data-action="next" data-month-index="${i}"></button>
-                </div>
+                </div>`;
+
+            monthCalendar.innerHTML = `
+                ${headerHtml}
                 <div class="drp-date-picker__calendar-container">
                     <div class="drp-date-picker__rolling-selector" data-month-index="${i}">
                         <div class="drp-date-picker__rolling-list" data-list="years" data-month-index="${i}"></div>
@@ -850,9 +923,20 @@ class DateRangePicker {
             const monthIndexAttr = target.dataset.monthIndex;
             const monthIndex = monthIndexAttr ? parseInt(monthIndexAttr) : 0;
 
+            // Check if navigation button is disabled (respects rollingYearRange/rollingMonthRange boundaries)
+            if (action === 'prev' || action === 'next' || action === 'unified-prev' || action === 'unified-next') {
+                const button = target as HTMLButtonElement;
+                if (button.disabled || button.classList.contains('drp-date-picker__nav--disabled')) {
+                    return;
+                }
+            }
+
             if (action === 'prev') this.prevMonth(monthIndex);
             else if (action === 'next') this.nextMonth(monthIndex);
+            else if (action === 'unified-prev') this.unifiedPrevMonth();
+            else if (action === 'unified-next') this.unifiedNextMonth();
             else if (action === 'toggle-rolling') this.toggleRollingSelector(monthIndex);
+            else if (action === 'toggle-unified-rolling') this.toggleUnifiedRollingSelector();
             else if (action === 'today') this.selectToday();
             else if (action === 'clear') this.clearSelection();
             else if (action === 'apply') this.apply();
@@ -873,9 +957,17 @@ class DateRangePicker {
                     return;
                 }
                 const year = yearElement.dataset.year;
-                const monthIdx = yearElement.dataset.monthIndex;
-                if (year && monthIdx) {
-                    this.selectYear(parseInt(year), parseInt(monthIdx));
+
+                // Check if this is unified navigation
+                if (yearElement.dataset.unified === 'true') {
+                    if (year) {
+                        this.setUnifiedYear(parseInt(year));
+                    }
+                } else {
+                    const monthIdx = yearElement.dataset.monthIndex;
+                    if (year && monthIdx) {
+                        this.selectYear(parseInt(year), parseInt(monthIdx));
+                    }
                 }
             }
             else if (target.closest('[data-month]')) {
@@ -885,9 +977,45 @@ class DateRangePicker {
                     return;
                 }
                 const month = monthElement.dataset.month;
-                const monthIdx = monthElement.dataset.monthIndex;
-                if (month && monthIdx) {
-                    this.selectMonth(parseInt(month), parseInt(monthIdx));
+
+                // Check if this is unified navigation
+                if (monthElement.dataset.unified === 'true') {
+                    if (month) {
+                        this.setUnifiedMonth(parseInt(month));
+                    }
+                } else {
+                    const monthIdx = monthElement.dataset.monthIndex;
+                    if (month && monthIdx) {
+                        this.selectMonth(parseInt(month), parseInt(monthIdx));
+                    }
+                }
+            }
+            else {
+                // Clicked somewhere else in calendar (not a handled element)
+                // Check if click was outside rolling selector elements
+                if (!target.closest('.drp-date-picker__rolling-selector') &&
+                    !target.closest('.drp-date-picker__unified-rolling-selector')) {
+
+                    let needsRender = false;
+
+                    // Close any open individual selectors
+                    for (let i = 0; i < this.showingRollingSelector.length; i++) {
+                        if (this.showingRollingSelector[i]) {
+                            this.showingRollingSelector[i] = false;
+                            needsRender = true;
+                        }
+                    }
+
+                    // Close unified selector if open
+                    if (this.showingUnifiedRollingSelector) {
+                        this.showingUnifiedRollingSelector = false;
+                        needsRender = true;
+                    }
+
+                    // Re-render to apply closed state
+                    if (needsRender) {
+                        this.renderCalendar();
+                    }
                 }
             }
         });
@@ -1228,25 +1356,48 @@ class DateRangePicker {
             }
         });
 
-        // Close on outside click (only for floating mode)
-        if (this.options.positioningMode === 'floating') {
-            this.clickOutsideHandler = (e: MouseEvent) => {
-                // Get the actual target (works with Shadow DOM)
-                const path = e.composedPath();
-                const actualTarget = path[0] as HTMLElement;
+        // Close on outside click (for all positioning modes)
+        this.clickOutsideHandler = (e: MouseEvent) => {
+            // Get the actual target (works with Shadow DOM)
+            const path = e.composedPath();
+            const actualTarget = path[0] as HTMLElement;
 
-                // Don't hide if clicking the calendar, input, or calendar button
-                const clickedCalendar = path.includes(this.calendar);
-                const clickedInput = this.input && path.includes(this.input);
-                const isCalendarButton = actualTarget.closest?.('[data-calendar-button]');
+            // Don't do anything if clicking the calendar, input, or calendar button
+            const clickedCalendar = path.includes(this.calendar);
+            const clickedInput = this.input && path.includes(this.input);
+            const isCalendarButton = actualTarget.closest?.('[data-calendar-button]');
 
-                if (!clickedCalendar && !clickedInput && !isCalendarButton) {
+            if (!clickedCalendar && !clickedInput && !isCalendarButton) {
+                if (this.options.positioningMode === 'floating') {
+                    // Floating mode: close entire calendar (and rolling selectors with it)
                     this.hide();
+                } else {
+                    // Inline/fixed/absolute mode: close only rolling selectors, keep calendar visible
+                    let needsRender = false;
+
+                    // Close any open individual selectors
+                    for (let i = 0; i < this.showingRollingSelector.length; i++) {
+                        if (this.showingRollingSelector[i]) {
+                            this.showingRollingSelector[i] = false;
+                            needsRender = true;
+                        }
+                    }
+
+                    // Close unified selector if open
+                    if (this.showingUnifiedRollingSelector) {
+                        this.showingUnifiedRollingSelector = false;
+                        needsRender = true;
+                    }
+
+                    // Re-render to apply closed state
+                    if (needsRender) {
+                        this.renderCalendar();
+                    }
                 }
-            };
-            // NOTE: The listener is added in show() with a delay to avoid catching the same click that triggered show()
-            // and removed in hide() to clean up properly
-        }
+            }
+        };
+        // NOTE: The listener is added in show() with a delay to avoid catching the same click that triggered show()
+        // and removed in hide() to clean up properly
     }
 
     // Helper methods
@@ -1427,6 +1578,14 @@ class DateRangePicker {
     checkAndResolveCollisions(changedIdx: number) { return Navigation.checkAndResolveCollisions(this, changedIdx); }
     prevMonth(monthIndex: number) { return Navigation.prevMonth(this, monthIndex); }
     nextMonth(monthIndex: number) { return Navigation.nextMonth(this, monthIndex); }
+
+    // Unified navigation methods
+    unifiedPrevMonth() { return Navigation.unifiedPrevMonth(this); }
+    unifiedNextMonth() { return Navigation.unifiedNextMonth(this); }
+    toggleUnifiedRollingSelector() { return Navigation.toggleUnifiedRollingSelector(this); }
+    setUnifiedMonth(month: number) { return Navigation.setUnifiedMonth(this, month); }
+    setUnifiedYear(year: number) { return Navigation.setUnifiedYear(this, year); }
+
     findNextEnabledDayIndex(startIndex: number, offset: number, days: NodeListOf<Element>, monthIndex: number) { return Navigation.findNextEnabledDayIndex(this, startIndex, offset, days, monthIndex); }
     moveFocus(offset: number) { return Navigation.moveFocus(this, offset); }
 
@@ -1449,6 +1608,73 @@ class DateRangePicker {
     handlePaste(event: ClipboardEvent) { return Interaction.handlePaste(this, event); }
     updateCalendarFromInput() { return Interaction.updateCalendarFromInput(this); }
     parseAndUpdateSingleDate(value: string, dateType: string = 'single') { return Interaction.parseAndUpdateSingleDate(this, value, dateType); }
+
+    /**
+     * Inject global styles for the date picker
+     *
+     * This is a helper method for when you're using the DateRangePicker class directly
+     * (not the web component). The web component automatically injects styles into its
+     * Shadow DOM, but the base class expects global CSS to be loaded.
+     *
+     * Call this once before creating any DateRangePicker instances if you want to
+     * inject styles programmatically instead of importing the CSS file.
+     *
+     * @param force - Force re-injection even if styles were already injected
+     *
+     * @example
+     * ```typescript
+     * import { DateRangePicker } from '@keenmate/web-daterangepicker';
+     *
+     * // Inject styles once
+     * DateRangePicker.injectGlobalStyles();
+     *
+     * // Then create pickers
+     * const picker = new DateRangePicker(inputElement, options);
+     * ```
+     */
+    static injectGlobalStyles(force: boolean = false): void {
+        // Only inject once unless forced
+        if (DateRangePicker.stylesInjected && !force) {
+            drpLogger.debug('Styles already injected, skipping');
+            return;
+        }
+
+        // Create a style element
+        const styleElement = document.createElement('style');
+        styleElement.setAttribute('data-source', 'web-daterangepicker');
+        styleElement.textContent = styles;
+
+        // Inject into document head
+        document.head.appendChild(styleElement);
+
+        DateRangePicker.stylesInjected = true;
+        drpLogger.info('Global styles injected successfully');
+    }
+
+    /**
+     * Check if styles appear to be loaded
+     *
+     * This is a helper method that attempts to detect if date picker styles are loaded
+     * by checking if the CSS custom property --drp-accent-color is defined.
+     *
+     * Note: This is a best-effort check and may not be 100% accurate.
+     *
+     * @returns true if styles appear to be loaded, false otherwise
+     */
+    static areStylesLoaded(): boolean {
+        // Check if our custom property exists
+        const testElement = document.createElement('div');
+        testElement.className = 'drp-date-picker';
+        testElement.style.display = 'none';
+        document.body.appendChild(testElement);
+
+        const styles = window.getComputedStyle(testElement);
+        const accentColor = styles.getPropertyValue('--drp-accent-color');
+
+        document.body.removeChild(testElement);
+
+        return accentColor !== '';
+    }
 }
 
 // Export the class

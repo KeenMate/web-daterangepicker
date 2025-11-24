@@ -41,7 +41,7 @@ EVENTS & VALIDATION
 date-select event → events-callbacks.txt
 change event → events-callbacks.txt
 event data, event detail → events-callbacks.txt
-beforeDateSelect, validation → events-callbacks.txt
+beforeDateSelectCallback, validation → events-callbacks.txt
 async validation, api check → events-callbacks.txt
 prevent selection, block invalid → events-callbacks.txt
 adjust dates, auto-correct → events-callbacks.txt
@@ -167,7 +167,7 @@ dayTooltipCallback → custom-rendering.txt (property, not attribute)
 renderDayCallback → custom-rendering.txt (property, not attribute)
 renderDayContentCallback → custom-rendering.txt (property, not attribute)
 customStylesCallback → custom-rendering.txt (property, not attribute)
-beforeDateSelect → events-callbacks.txt (property, not attribute)
+beforeDateSelectCallback → events-callbacks.txt (property, not attribute)
 
 JAVASCRIPT API ONLY FEATURES
 -----------------------------
@@ -218,7 +218,7 @@ date-restrictions.txt
   Start here for: Blocking dates, availability, validation
 
 events-callbacks.txt
-  Interaction: Events, beforeDateSelect validation, async checks
+  Interaction: Events, beforeDateSelectCallback validation, async checks
   Start here for: Selection handling, validation, business rules
 
 disabled-dates-handling.txt
@@ -266,7 +266,7 @@ getDateMetadata
 
 Validation
   → date-restrictions.txt (static restrictions)
-  → events-callbacks.txt (beforeDateSelect dynamic validation)
+  → events-callbacks.txt (beforeDateSelectCallback dynamic validation)
 
 Range mode
   → basic-usage.txt (basic range selection)
@@ -288,7 +288,7 @@ Problem: Dates not getting disabled
 → date-restrictions.txt (check restriction types)
 
 Problem: Need to validate selection before accepting
-→ events-callbacks.txt (beforeDateSelect)
+→ events-callbacks.txt (beforeDateSelectCallback)
 
 Problem: Want to show room availability
 → custom-rendering.txt (badges with getDateMetadata)
@@ -324,7 +324,7 @@ Hotel booking system:
 
 Appointment scheduler:
 → date-restrictions.txt (business hours, disabled weekdays)
-→ events-callbacks.txt (beforeDateSelect validation)
+→ events-callbacks.txt (beforeDateSelectCallback validation)
 
 Vacation rental:
 → disabled-dates-handling.txt ('block' mode, 'split' mode)

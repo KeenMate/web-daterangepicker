@@ -7,6 +7,7 @@
 
 import { computePosition, flip, shift, offset, arrow, autoUpdate } from '@floating-ui/dom';
 import { uiLogger } from './logger';
+import { handleInitialMonthLoad } from './date-picker-navigation';
 
 // Cleanup function for autoUpdate
 let cleanupAutoUpdate: (() => void) | null = null;
@@ -29,6 +30,9 @@ export function show(picker: any) {
     if (picker.isFirstRender) {
         picker.renderCalendar();
         picker.isFirstRender = false;
+
+        // Call beforeMonthChangedCallback for initial month load
+        handleInitialMonthLoad(picker);
     }
 
     picker.calendar.classList.add('drp-date-picker--visible');

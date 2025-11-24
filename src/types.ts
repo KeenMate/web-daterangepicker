@@ -1,5 +1,5 @@
 /**
- * Result from beforeDateSelect callback
+ * Result from beforeDateSelectCallback
  * Tells the component what action to take with the proposed selection
  */
 export interface BeforeSelectResult {
@@ -29,6 +29,53 @@ export interface BeforeSelectResult {
  * @deprecated Use BeforeSelectResult instead. Will be removed in v2.0.0
  */
 export type AsyncValidationResult = BeforeSelectResult;
+
+/**
+ * Context passed to beforeMonthChangedCallback
+ * Provides information about the target month being navigated to
+ */
+export interface BeforeMonthChangeContext {
+  /** Target year (e.g., 2025) */
+  year: number;
+
+  /** Target month (0-11, where January = 0) */
+  month: number;
+
+  /** Which visible month column is changing (0-based) */
+  monthIndex: number;
+
+  /** First date visible in the calendar grid (may be from previous month) */
+  firstVisibleDate: Date;
+
+  /** Last date visible in the calendar grid (may be from next month) */
+  lastVisibleDate: Date;
+}
+
+/**
+ * Result from beforeMonthChangedCallback
+ * Tells the component whether to proceed with month navigation and provides bulk metadata
+ */
+export interface BeforeMonthChangeResult {
+  /**
+   * Action to take:
+   * - 'accept': Allow navigation to proceed, update metadata cache if provided
+   * - 'block': Prevent navigation, stay on current month
+   */
+  action: 'accept' | 'block';
+
+  /**
+   * Bulk metadata for all dates in the visible range
+   * Key: YYYY-MM-DD string
+   * Value: DateInfo with styling/disabled state
+   *
+   * When provided, these values are cached and used instead of calling
+   * getDateMetadataCallback for individual dates during rendering
+   */
+  metadata?: Map<string, DateInfo>;
+
+  /** Optional message to log or display (typically used with 'block' action) */
+  message?: string;
+}
 
 /**
  * Action button configuration for calendar actions (Today, Clear, Apply, custom actions)
@@ -95,6 +142,24 @@ export interface DatePickerOptions {
   monthLayout?: 'horizontal' | 'grid'; // Layout mode: 'horizontal' = flex row (default), 'grid' = CSS grid
   gridRows?: number; // Number of rows for grid layout (e.g., 2 for 2x3 grid)
   gridColumns?: number; // Number of columns for grid layout (e.g., 3 for 2x3 grid)
+  unifiedNavigation?: boolean; // When true, shows single navigation header above all months (for multi-month calendars). Individual month headers show only month/year text without nav buttons. Default: false
+  /**
+   * Which month column serves as the anchor for unified navigation (0-based index)
+   * Default: 0 (first month)
+   *
+   * Example: For a 3×3 grid (9 months), set to 4 to use the center month as anchor
+   * When navigating, the anchor month moves and all other months are calculated relative to it
+   *
+   * Only applies when unifiedNavigation is true
+   */
+  unifiedNavigationAnchorIndex?: number;
+  /**
+   * When true, clicking the unified header range display shows month/year selector
+   * Default: false (header is static text only)
+   *
+   * Only applies when unifiedNavigation is true
+   */
+  unifiedHeaderInteractive?: boolean;
 
   // Week start configuration
   weekStartDay?: 'auto' | 0 | 1 | 2 | 3 | 4 | 5 | 6; // 'auto' = detect from locale, 0 = Sunday, 1 = Monday, etc.
@@ -172,6 +237,31 @@ export interface DatePickerOptions {
   formatSummaryCallback?: (data: SummaryCallbackData) => string; // Custom function to format the summary display (receives all selection data, returns HTML string)
 
   /**
+   * Callback to customize unified header range display text
+   *
+   * @param data - Contains first month, last month, anchor month, and month names
+   * @returns HTML string to display in unified header
+   *
+   * @example Display only anchor month
+   * getUnifiedHeaderCallback: ({ anchorMonth, monthNames }) => {
+   *   return `${monthNames[anchorMonth.getMonth()]} ${anchorMonth.getFullYear()}`;
+   *   // Returns: "May 2025" for 3×3 grid with anchor index 4
+   * }
+   *
+   * @example Display full range
+   * getUnifiedHeaderCallback: ({ firstMonth, lastMonth, monthNames }) => {
+   *   return `${monthNames[firstMonth.getMonth()]} - ${monthNames[lastMonth.getMonth()]} ${lastMonth.getFullYear()}`;
+   *   // Returns: "Jan - Sep 2025"
+   * }
+   */
+  getUnifiedHeaderCallback?: (data: {
+    firstMonth: Date;
+    lastMonth: Date;
+    anchorMonth: Date;
+    monthNames: string[];
+  }) => string;
+
+  /**
    * Callback invoked BEFORE a date selection is finalized (single or range mode).
    * Can be sync or async. Allows you to:
    * - Validate against business rules or API
@@ -185,14 +275,14 @@ export interface DatePickerOptions {
    * @returns BeforeSelectResult or Promise<BeforeSelectResult> with action to take
    *
    * @example Single mode - check against API
-   * beforeDateSelect: async (date) => {
+   * beforeDateSelectCallback: async (date) => {
    *   const response = await fetch(`/api/check-date/${date.toISOString()}`);
    *   const { available } = await response.json();
    *   return available ? { action: 'accept' } : { action: 'restore', message: 'Date unavailable' };
    * }
    *
    * @example Range mode - adjust to business rules
-   * beforeDateSelect: async (range) => {
+   * beforeDateSelectCallback: async (range) => {
    *   const nights = Math.floor((range.end - range.start) / (1000 * 60 * 60 * 24));
    *   if (nights < 2) {
    *     return { action: 'restore', message: 'Minimum 2 nights required' };
@@ -200,12 +290,52 @@ export interface DatePickerOptions {
    *   return { action: 'accept' };
    * }
    */
-  beforeDateSelect?: (selection: Date | DateRange) => Promise<BeforeSelectResult> | BeforeSelectResult;
+  beforeDateSelectCallback?: (selection: Date | DateRange) => Promise<BeforeSelectResult> | BeforeSelectResult;
 
   /**
-   * @deprecated Use beforeDateSelect instead. Will be removed in v2.0.0
+   * Callback invoked BEFORE month navigation occurs (before rendering new month).
+   * Can be sync or async. Allows you to:
+   * - Load bulk metadata for all visible dates in one API call (performance optimization)
+   * - Block navigation to unavailable months
+   * - Show loading overlay during async operations
+   *
+   * Called before the calendar re-renders with the new month.
+   *
+   * @param context - Context about the target month and visible date range
+   * @returns BeforeMonthChangeResult or Promise<BeforeMonthChangeResult> with action and optional bulk metadata
+   *
+   * @example Hotel availability - bulk load for entire month
+   * beforeMonthChangedCallback: async ({ year, month, firstVisibleDate, lastVisibleDate }) => {
+   *   const response = await fetch('/api/availability', {
+   *     method: 'POST',
+   *     body: JSON.stringify({
+   *       start: firstVisibleDate.toISOString(),
+   *       end: lastVisibleDate.toISOString()
+   *     })
+   *   });
+   *   const data = await response.json();
+   *
+   *   const metadata = new Map();
+   *   data.forEach(day => {
+   *     metadata.set(day.date, {
+   *       isDisabled: day.available === 0,
+   *       badgeText: `$${day.price}`,
+   *       dayTooltip: `${day.available} rooms available`
+   *     });
+   *   });
+   *
+   *   return { action: 'accept', metadata };
+   * }
+   *
+   * @example Block navigation to unavailable period
+   * beforeMonthChangedCallback: async ({ year, month }) => {
+   *   const isAvailable = await checkPeriodAvailability(year, month);
+   *   return isAvailable
+   *     ? { action: 'accept' }
+   *     : { action: 'block', message: 'Data not available for this period' };
+   * }
    */
-  validateRangeCallback?: (startDate: Date, endDate: Date) => Promise<AsyncValidationResult>;
+  beforeMonthChangedCallback?: (context: BeforeMonthChangeContext) => Promise<BeforeMonthChangeResult> | BeforeMonthChangeResult;
 
   // Debug mode - enables detailed console logging for troubleshooting
   showDebugInfo?: boolean;

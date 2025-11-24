@@ -15,6 +15,19 @@
   justify-content: space-between;
   margin-bottom: var(--drp-spacing-md);
   gap: var(--drp-spacing-sm);
+
+  // Static header (used in unified navigation mode)
+  &--static {
+    justify-content: center;
+
+    .drp-date-picker__month-year {
+      cursor: default;
+
+      &:hover {
+        background-color: transparent;
+      }
+    }
+  }
 }
 
 // ==============================================================================
@@ -184,4 +197,177 @@
   white-space: nowrap;
   width: 100%;
   min-width: 0; // Allow flex child to shrink below content size
+}
+
+// ==============================================================================
+// UNIFIED NAVIGATION (MULTI-MONTH CALENDARS)
+// ==============================================================================
+
+// Unified header - appears above all months
+.drp-date-picker__unified-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--drp-spacing-lg);
+  gap: var(--drp-spacing-sm);
+  padding: 0 var(--drp-spacing-sm);
+}
+
+// Date range display in unified header (e.g., "Jan 2025 - Jun 2025")
+.drp-date-picker__unified-range {
+  flex: 1;
+  text-align: center;
+  font-weight: var(--drp-font-weight-semibold);
+  font-size: var(--drp-font-size-lg);
+  color: var(--drp-text-primary);
+  padding: var(--drp-spacing-sm) var(--drp-spacing-md);
+  border-radius: var(--drp-border-radius);
+  cursor: pointer;
+
+  &:hover {
+    background-color: var(--drp-primary-bg);
+  }
+
+  &:active {
+    background-color: var(--drp-primary-bg-hover);
+  }
+
+  // Non-interactive state (when unifiedHeaderInteractive is false)
+  &--static {
+    cursor: default !important;
+
+    &:hover {
+      background-color: transparent;
+    }
+
+    &:active {
+      background-color: transparent;
+    }
+  }
+}
+
+// Unified rolling selector - overlay for all months
+.drp-date-picker__unified-rolling-selector {
+  position: absolute;
+  // Position below unified header
+  top: calc(var(--drp-spacing-lg) + var(--drp-spacing-lg) * 2);
+  // Center horizontally
+  left: 50%;
+  transform: translateX(-50%);
+
+  // Size constraints (responsive but limited)
+  width: min(90%, 450px); // 90% of calendar width or 450px, whichever is smaller
+  height: 350px;
+  max-height: 350px;
+
+  display: none;
+  z-index: 100; // Above everything
+  background: var(--drp-card-bg); // White background to cover calendar below
+  gap: var(--drp-spacing-xs); // Match normal rolling selector gap
+
+  &--visible {
+    display: flex;
+  }
+
+  // Apply rolling list styles to child lists
+  .drp-date-picker__rolling-list {
+    flex: 1;
+    min-width: 0;
+    height: 100%;
+    overflow-y: auto;
+    border: var(--drp-border-width-base) solid var(--drp-border-color);
+    border-radius: var(--drp-border-radius);
+    display: flex;
+    flex-direction: column;
+    scroll-behavior: smooth;
+
+    // Custom scrollbar
+    &::-webkit-scrollbar {
+      width: $drp-rolling-scrollbar-width;
+    }
+
+    &::-webkit-scrollbar-track {
+      background: var(--drp-primary-bg);
+    }
+
+    &::-webkit-scrollbar-thumb {
+      background: var(--drp-border-color);
+      border-radius: 3px;
+
+      &:hover {
+        background: var(--drp-accent-color);
+      }
+    }
+  }
+
+  // Apply rolling item styles to child items
+  .drp-date-picker__rolling-item {
+    padding: #{$drp-rolling-item-padding-v} #{$drp-rolling-item-padding-h};
+    cursor: pointer;
+    font-size: #{$drp-rolling-item-font-size};
+    min-height: calc(#{$drp-rolling-item-min-height} * var(--drp-cell-scale));
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: var(--drp-rolling-item-justify-content, #{$drp-rolling-item-justify-content});
+
+    &:hover {
+      background-color: $drp-rolling-item-bg-hover;
+    }
+
+    &--selected {
+      background-color: $drp-rolling-item-bg-selected;
+      color: $drp-rolling-item-color-selected;
+      font-weight: $drp-rolling-item-font-weight-selected;
+
+      &:hover {
+        background-color: var(--drp-accent-color-hover);
+      }
+    }
+
+    &--disabled {
+      color: var(--drp-text-secondary);
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+  }
+
+  // Text wrapper for ellipsis support
+  .drp-date-picker__rolling-item-text {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    width: 100%;
+    min-width: 0;
+  }
+}
+
+// When unified navigation is enabled, hide individual month headers nav buttons
+// but keep the month/year text visible (it becomes static display, not clickable)
+.drp-date-picker--unified-nav {
+  .drp-date-picker__month {
+    .drp-date-picker__header {
+      // Hide nav buttons in individual month headers
+      .drp-date-picker__nav {
+        display: none;
+      }
+
+      // Make month/year display static (not clickable)
+      .drp-date-picker__month-year {
+        cursor: default;
+        font-size: var(--drp-font-size-base);
+        font-weight: var(--drp-font-weight-normal);
+        color: var(--drp-text-secondary);
+
+        &:hover {
+          background-color: transparent;
+        }
+      }
+    }
+
+    // Hide individual month rolling selectors
+    .drp-date-picker__rolling-selector {
+      display: none !important;
+    }
+  }
 }

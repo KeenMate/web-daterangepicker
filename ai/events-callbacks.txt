@@ -135,7 +135,7 @@ CRITICAL: JavaScript API ONLY
 Validation/control BEFORE selection finalized.
 
 const picker = new DateRangePicker(input, {
-  beforeDateSelect: (dateOrRange) => {
+  beforeDateSelectCallback: (dateOrRange) => {
     // Return action object
     return {
       action: 'accept' | 'adjust' | 'restore' | 'clear',
@@ -158,7 +158,7 @@ SINGLE MODE VALIDATION
 ----------------------
 Block weekends:
 
-beforeDateSelect: (date) => {
+beforeDateSelectCallback: (date) => {
   const isWeekend = date.getDay() === 0 || date.getDay() === 6;
 
   if (isWeekend) {
@@ -173,7 +173,7 @@ beforeDateSelect: (date) => {
 
 Adjust to next business day:
 
-beforeDateSelect: (date) => {
+beforeDateSelectCallback: (date) => {
   const day = date.getDay();
 
   if (day === 0) { // Sunday → Monday
@@ -199,7 +199,7 @@ beforeDateSelect: (date) => {
 
 Block past dates:
 
-beforeDateSelect: (date) => {
+beforeDateSelectCallback: (date) => {
   const today = new Date();
   today.setHours(0, 0, 0, 0);
 
@@ -217,7 +217,7 @@ RANGE MODE VALIDATION
 ---------------------
 Minimum nights requirement:
 
-beforeDateSelect: (range) => {
+beforeDateSelectCallback: (range) => {
   const nights = Math.floor(
     (range.end - range.start) / (1000 * 60 * 60 * 24)
   );
@@ -234,7 +234,7 @@ beforeDateSelect: (range) => {
 
 Maximum nights limit:
 
-beforeDateSelect: (range) => {
+beforeDateSelectCallback: (range) => {
   const nights = Math.floor(
     (range.end - range.start) / (1000 * 60 * 60 * 24)
   );
@@ -251,7 +251,7 @@ beforeDateSelect: (range) => {
 
 Adjust end date to checkout day (Sunday):
 
-beforeDateSelect: (range) => {
+beforeDateSelectCallback: (range) => {
   const endDay = range.end.getDay();
 
   if (endDay !== 0) { // Not Sunday
@@ -272,9 +272,9 @@ beforeDateSelect: (range) => {
 
 ASYNC VALIDATION
 ----------------
-beforeDateSelect supports async:
+beforeDateSelectCallback supports async:
 
-beforeDateSelect: async (dateOrRange) => {
+beforeDateSelectCallback: async (dateOrRange) => {
   // Show loading overlay automatically
   const response = await fetch('/api/check-availability', {
     method: 'POST',
@@ -309,7 +309,7 @@ COMBINING VALIDATIONS
 ---------------------
 Multiple checks in one callback:
 
-beforeDateSelect: async (range) => {
+beforeDateSelectCallback: async (range) => {
   // 1. Check min/max nights
   const nights = Math.floor(
     (range.end - range.start) / (1000 * 60 * 60 * 24)
@@ -343,7 +343,7 @@ EXECUTION ORDER
 For a selection to complete:
 
 1. Local validation (disabled dates, min/max)
-2. beforeDateSelect callback (if provided)
+2. beforeDateSelectCallback callback (if provided)
 3. Selection finalized
 4. date-select event fires
 
@@ -380,7 +380,7 @@ SHOWING MESSAGES
 Display validation messages:
 
 const picker = new DateRangePicker(input, {
-  beforeDateSelect: async (range) => {
+  beforeDateSelectCallback: async (range) => {
     const result = await validate(range);
 
     if (!result.valid) {
@@ -400,7 +400,7 @@ ERROR HANDLING
 --------------
 Handle async errors:
 
-beforeDateSelect: async (range) => {
+beforeDateSelectCallback: async (range) => {
   try {
     const available = await checkAvailability(range);
     return available
@@ -417,7 +417,7 @@ DEBUGGING
 ---------
 Log all validation calls:
 
-beforeDateSelect: (dateOrRange) => {
+beforeDateSelectCallback: (dateOrRange) => {
   console.log('Validating:', dateOrRange);
 
   const result = performValidation(dateOrRange);
@@ -429,7 +429,7 @@ beforeDateSelect: (dateOrRange) => {
 
 Track performance:
 
-beforeDateSelect: async (range) => {
+beforeDateSelectCallback: async (range) => {
   const start = performance.now();
 
   const result = await validate(range);
@@ -471,11 +471,11 @@ BEST PRACTICES
 
 WEB COMPONENT LIMITATIONS
 --------------------------
-beforeDateSelect is JavaScript API ONLY.
+beforeDateSelectCallback is JavaScript API ONLY.
 
 ✅ Works:
 const picker = new DateRangePicker(input, {
-  beforeDateSelect: (date) => { ... }
+  beforeDateSelectCallback: (date) => { ... }
 });
 
 ❌ Doesn't work:
@@ -497,3 +497,281 @@ picker.addEventListener('date-select', (event) => {
 
 NOTE: Event-based validation happens AFTER selection.
 Use JavaScript API for BEFORE validation.
+
+BEFOREMONTHCHANGEDCALLBACK
+===========================
+CRITICAL: JavaScript API ONLY (Web Component Property)
+Performance optimization for bulk metadata loading.
+
+OVERVIEW
+--------
+beforeMonthChangedCallback is called BEFORE month navigation occurs.
+Allows you to:
+- Load bulk metadata for all visible dates in ONE API call
+- Block navigation to unavailable months
+- Show loading overlay during async operations
+
+PERFORMANCE BENEFIT
+-------------------
+WITHOUT beforeMonthChangedCallback:
+- User navigates to November
+- Calendar renders 35-42 days
+- getDateMetadataCallback called 35-42 times
+- Result: 35-42 API calls or lookups
+
+WITH beforeMonthChangedCallback:
+- User navigates to November
+- beforeMonthChangedCallback called ONCE with date range
+- 1 API call fetches all 35-42 days
+- Metadata cached and applied to all days
+- Result: 1 API call
+
+CALLBACK SIGNATURE
+------------------
+JavaScript API:
+
+const picker = new DateRangePicker(input, {
+  beforeMonthChangedCallback: async (context) => {
+    // context: { year, month, monthIndex, firstVisibleDate, lastVisibleDate }
+    // Returns: { action: 'accept' | 'block', metadata?, message? }
+  }
+});
+
+Web Component (Property):
+
+const picker = document.querySelector('web-daterangepicker');
+picker.beforeMonthChangedCallback = async (context) => {
+  // Same as above
+};
+
+CONTEXT PARAMETER
+-----------------
+{
+  year: number,              // 2025
+  month: number,             // 0-11 (January = 0)
+  monthIndex: number,        // Which visible month column (0, 1, 2...)
+  firstVisibleDate: Date,    // First date in calendar grid (may be prev month)
+  lastVisibleDate: Date      // Last date in calendar grid (may be next month)
+}
+
+DATE RANGE CALCULATION
+----------------------
+Single Month Mode:
+- firstVisibleDate/lastVisibleDate span ~42 days (6 weeks around the target month)
+- Example: November calendar shows ~Oct 26 to Dec 6
+
+Unified Navigation Mode:
+- firstVisibleDate/lastVisibleDate span ALL visible months
+- Example: 2×3 grid showing Jan-Jun = ~180 days (late Dec to mid-Jul)
+- Allows bulk loading metadata for entire visible range in one API call
+- Significantly reduces API calls for multi-month displays
+
+RETURN ACTIONS
+--------------
+'accept' - Allow navigation, proceed to new month
+'block' - Prevent navigation, stay on current month
+
+RETURN STRUCTURE
+----------------
+{
+  action: 'accept' | 'block',
+  metadata?: Map<string, DateInfo>,  // YYYY-MM-DD -> DateInfo
+  message?: string                    // Optional (for block action)
+}
+
+HOTEL AVAILABILITY EXAMPLE
+---------------------------
+Load pricing and availability for entire month:
+
+beforeMonthChangedCallback: async ({ firstVisibleDate, lastVisibleDate }) => {
+  // Single API call for entire visible range
+  const response = await fetch('/api/hotel/availability', {
+    method: 'POST',
+    body: JSON.stringify({
+      startDate: firstVisibleDate.toISOString().split('T')[0],
+      endDate: lastVisibleDate.toISOString().split('T')[0],
+      roomType: 'deluxe'
+    })
+  });
+
+  const availability = await response.json();
+  // [
+  //   { date: "2025-11-01", available: 5, price: 150 },
+  //   { date: "2025-11-02", available: 0, price: 150 },
+  //   ...
+  // ]
+
+  // Build metadata map
+  const metadata = new Map();
+  availability.forEach(day => {
+    metadata.set(day.date, {
+      isDisabled: day.available === 0,
+      badgeText: day.available === 0 ? '✕' : `$${day.price}`,
+      badgeClass: day.available === 0 ? 'sold-out' : 'available',
+      dayTooltip: day.available === 0
+        ? 'Sold out'
+        : `${day.available} rooms available at $${day.price}/night`
+    });
+  });
+
+  return {
+    action: 'accept',
+    metadata: metadata
+  };
+}
+
+BLOCK NAVIGATION EXAMPLE
+-------------------------
+Prevent navigation to months without data:
+
+beforeMonthChangedCallback: async ({ year, month }) => {
+  try {
+    const response = await fetch(`/api/check-period/${year}/${month + 1}`);
+    const { dataReady } = await response.json();
+
+    if (!dataReady) {
+      return {
+        action: 'block',
+        message: 'Data not yet available for this period'
+      };
+    }
+
+    return { action: 'accept' };
+  } catch (error) {
+    console.error('Failed to check period:', error);
+    return {
+      action: 'block',
+      message: 'Unable to load data for this period'
+    };
+  }
+}
+
+LOADING OVERLAY
+---------------
+Loading overlay shown AUTOMATICALLY during async operations.
+No manual control needed.
+
+METADATA PRIORITY
+-----------------
+When rendering dates, priority is:
+1. Bulk metadata cache (from beforeMonthChangedCallback)
+2. getDateMetadataCallback (per-day callback)
+3. specialDates (static array)
+
+Bulk metadata has HIGHEST priority.
+
+CACHE BEHAVIOR
+--------------
+- Cache is REPLACED on each successful navigation
+- Navigating to September → cache updated
+- Navigating to October → cache updated
+- Navigating BACK to September → callback called AGAIN, cache updated
+
+No automatic caching - callback is called every time.
+If you want caching, implement it IN your callback.
+
+COMBINING WITH getDateMetadataCallback
+---------------------------------------
+You can use BOTH callbacks together:
+
+beforeMonthChangedCallback: async ({ firstVisibleDate, lastVisibleDate }) => {
+  // Bulk load pricing
+  const metadata = new Map();
+  // ... load pricing for all dates
+  return { action: 'accept', metadata };
+},
+
+getDateMetadataCallback: (date) => {
+  // Override specific dates with special conditions
+  if (isHoliday(date)) {
+    return {
+      badgeText: '🎉',
+      badgeClass: 'holiday',
+      isDisabled: true
+    };
+  }
+  return null; // Use bulk cache
+}
+
+Priority: getDateMetadataCallback wins if it returns non-null.
+
+BEST PRACTICES
+--------------
+1. Use for expensive operations
+   - API calls to fetch pricing/availability
+   - Database lookups
+   - Complex calculations
+
+2. Keep it fast
+   - Single API call, not multiple
+   - Use Promise.all for parallel requests
+   - Cache responses in your app if appropriate
+
+3. Handle errors gracefully
+   - Try/catch async operations
+   - Return 'block' on error to be safe
+   - Log errors for debugging
+
+4. Provide clear messages
+   - Use 'message' field with 'block' action
+   - Help users understand why navigation was blocked
+
+5. Build metadata efficiently
+   - Use Map for O(1) lookups
+   - Format date keys as YYYY-MM-DD
+   - Only include dates that need metadata
+
+EXAMPLE: EVENT CALENDAR
+------------------------
+Color-code days with events:
+
+beforeMonthChangedCallback: async ({ firstVisibleDate, lastVisibleDate }) => {
+  const events = await fetchEvents(firstVisibleDate, lastVisibleDate);
+
+  const metadata = new Map();
+  events.forEach(event => {
+    metadata.set(event.date, {
+      badgeText: event.type === 'conference' ? '🎤' : '💻',
+      dayClass: `event-${event.type}`,
+      dayTooltip: event.title
+    });
+  });
+
+  return { action: 'accept', metadata };
+}
+
+DEBUGGING
+---------
+Log all callback invocations:
+
+beforeMonthChangedCallback: async (context) => {
+  console.log('Month change:', context.year, context.month + 1);
+  console.log('Visible range:',
+    context.firstVisibleDate.toISOString().split('T')[0],
+    'to',
+    context.lastVisibleDate.toISOString().split('T')[0]
+  );
+
+  const startTime = performance.now();
+  const result = await loadMonthData(context);
+  const duration = performance.now() - startTime;
+
+  console.log('Loaded in', duration, 'ms');
+  console.log('Metadata entries:', result.metadata?.size || 0);
+
+  return result;
+}
+
+LIMITATIONS
+-----------
+1. JavaScript API or Web Component Property ONLY
+   Cannot be set as HTML attribute
+
+2. Called every navigation
+   No built-in caching - implement in your callback if needed
+
+3. Blocks UI during async
+   Keep operations fast (< 1 second recommended)
+
+4. No cancellation
+   Once triggered, callback runs to completion

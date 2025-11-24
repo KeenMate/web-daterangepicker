@@ -17,7 +17,7 @@ import { renderingLogger } from './logger';
  * @param picker - Picker instance to check for minDate/maxDate constraints
  * @returns { min: number, max: number }
  */
-function parseYearRange(range: string | undefined, currentYear: number, picker?: any): { min: number, max: number } {
+export function parseYearRange(range: string | undefined, currentYear: number, picker?: any): { min: number, max: number } {
     if (!range) {
         // If no explicit range but minDate/maxDate are set, use those to constrain years
         if (picker?.normalizedMinDate || picker?.normalizedMaxDate) {
@@ -45,7 +45,7 @@ function parseYearRange(range: string | undefined, currentYear: number, picker?:
  * @param range - Examples: "01-12" (all months), "06-08" (summer), "11-12" (year-end)
  * @returns { min: number, max: number } - Month numbers (1-12)
  */
-function parseMonthRange(range: string | undefined): { min: number, max: number } {
+export function parseMonthRange(range: string | undefined): { min: number, max: number } {
     if (!range) {
         // Default: all months
         return { min: 1, max: 12 };
@@ -58,6 +58,11 @@ function parseMonthRange(range: string | undefined): { min: number, max: number 
 export function renderCalendar(picker: any) {
     renderingLogger.debug(`[DatePicker 18] renderCalendar called, showingRollingSelector:`, picker.showingRollingSelector, `activeCol: ${picker.activeMonthIndex}`);
     renderingLogger.debug('[DatePicker 18] monthDates array:', picker.monthDates.map((d: Date, i: number) => `Col${i}: ${d.getFullYear()}-${d.getMonth()+1}`).join(', '));
+
+    // Handle unified rolling selector (if enabled)
+    if (picker.options.unifiedNavigation && picker.showingUnifiedRollingSelector) {
+        renderUnifiedRollingSelector(picker);
+    }
 
     // Render each month
     for (let i = 0; i < picker.options.visibleMonthsCount; i++) {
@@ -107,6 +112,77 @@ export function renderNormalView(picker: any, monthIndex: number) {
     const monthYear = monthContainer.querySelector('.drp-date-picker__month-year');
     if (monthYear) {
         monthYear.textContent = `${picker.monthNames[date.getMonth()]} ${date.getFullYear()}`;
+    }
+
+    // Update unified navigation (if enabled and this is the first month change)
+    if (picker.options.unifiedNavigation && monthIndex === 0 && picker.unifiedRangeDisplay) {
+        // Hide unified rolling selector (only if it's not supposed to be showing)
+        if (picker.unifiedRollingSelector && !picker.showingUnifiedRollingSelector) {
+            picker.unifiedRollingSelector.classList.remove('drp-date-picker__unified-rolling-selector--visible');
+        }
+
+        // Update unified range display
+        const firstMonth = picker.monthDates[0];
+        const lastMonth = picker.monthDates[picker.monthDates.length - 1];
+        const anchorIndex = picker.options.unifiedNavigationAnchorIndex ?? 0;
+        const anchorMonth = picker.monthDates[anchorIndex];
+
+        // Use callback if provided, otherwise use default format
+        if (picker.options.getUnifiedHeaderCallback) {
+            const headerText = picker.options.getUnifiedHeaderCallback({
+                firstMonth,
+                lastMonth,
+                anchorMonth,
+                monthNames: picker.monthNames
+            });
+            picker.unifiedRangeDisplay.textContent = headerText;
+        } else {
+            // Default format: "Jan 2025 - Jun 2025" or "Dec 2024 - Jan 2025"
+            const firstMonthName = picker.monthNames[firstMonth.getMonth()];
+            const lastMonthName = picker.monthNames[lastMonth.getMonth()];
+            const firstYear = firstMonth.getFullYear();
+            const lastYear = lastMonth.getFullYear();
+
+            if (firstYear === lastYear) {
+                picker.unifiedRangeDisplay.textContent = `${firstMonthName} ${firstYear} - ${lastMonthName} ${lastYear}`;
+            } else {
+                picker.unifiedRangeDisplay.textContent = `${firstMonthName} ${firstYear} - ${lastMonthName} ${lastYear}`;
+            }
+        }
+
+        // Update unified nav buttons state
+        const unifiedHeader = picker.unifiedHeader;
+        if (unifiedHeader) {
+            // Check if previous month has enabled days
+            const prevYear = firstMonth.getMonth() === 0 ? firstMonth.getFullYear() - 1 : firstMonth.getFullYear();
+            const prevMonth = firstMonth.getMonth() === 0 ? 11 : firstMonth.getMonth() - 1;
+            const prevButton = unifiedHeader.querySelector('.drp-date-picker__nav--prev');
+            if (prevButton) {
+                const hasPrevEnabled = hasEnabledDaysInMonth(picker, prevYear, prevMonth);
+                if (hasPrevEnabled) {
+                    prevButton.removeAttribute('disabled');
+                    prevButton.classList.remove('drp-date-picker__nav--disabled');
+                } else {
+                    prevButton.setAttribute('disabled', 'true');
+                    prevButton.classList.add('drp-date-picker__nav--disabled');
+                }
+            }
+
+            // Check if next month has enabled days (check the month after the last visible month)
+            const nextYear = lastMonth.getMonth() === 11 ? lastMonth.getFullYear() + 1 : lastMonth.getFullYear();
+            const nextMonth = lastMonth.getMonth() === 11 ? 0 : lastMonth.getMonth() + 1;
+            const nextButton = unifiedHeader.querySelector('.drp-date-picker__nav--next');
+            if (nextButton) {
+                const hasNextEnabled = hasEnabledDaysInMonth(picker, nextYear, nextMonth);
+                if (hasNextEnabled) {
+                    nextButton.removeAttribute('disabled');
+                    nextButton.classList.remove('drp-date-picker__nav--disabled');
+                } else {
+                    nextButton.setAttribute('disabled', 'true');
+                    nextButton.classList.add('drp-date-picker__nav--disabled');
+                }
+            }
+        }
     }
 
     // Update navigation buttons disabled state based on enabled days
@@ -572,6 +648,56 @@ export function renderRollingSelector(picker: any, monthIndex: number) {
             const disabled = !hasEnabledDays ? 'drp-date-picker__rolling-item--disabled' : '';
 
             monthsHtml += `<div class="drp-date-picker__rolling-item ${selected} ${disabled}" data-month="${monthIndex0Based}" data-month-index="${monthIndex}"><span class="drp-date-picker__rolling-item-text">${name}</span></div>`;
+        }
+        monthsContainer.innerHTML = monthsHtml;
+    }
+}
+
+export function renderUnifiedRollingSelector(picker: any) {
+    if (!picker.options.unifiedNavigation || !picker.unifiedRollingSelector) return;
+
+    picker.unifiedRollingSelector.classList.add('drp-date-picker__unified-rolling-selector--visible');
+
+    // Use anchor month for rolling selector reference
+    const anchorIndex = picker.options.unifiedNavigationAnchorIndex ?? 0;
+    const date = picker.monthDates[anchorIndex];
+    const currentYear = date.getFullYear();
+    const currentMonth = date.getMonth();
+
+    // Get effective ranges (centralized calculation ensures consistency with validation)
+    const yearRange = picker.getEffectiveYearRange();
+    const monthRange = picker.getEffectiveMonthRange();
+
+    // Render years
+    const yearsContainer = picker.unifiedRollingSelector.querySelector('[data-list="years"]');
+    let yearsHtml = '';
+    for (let year = yearRange.min; year <= yearRange.max; year++) {
+        const selected = year === currentYear ? 'drp-date-picker__rolling-item--selected' : '';
+
+        // Check if year has any enabled days and mark as disabled if not
+        const hasEnabledDays = hasEnabledDaysInYear(picker, year);
+        const disabled = !hasEnabledDays ? 'drp-date-picker__rolling-item--disabled' : '';
+
+        yearsHtml += `<div class="drp-date-picker__rolling-item ${selected} ${disabled}" data-year="${year}" data-unified="true"><span class="drp-date-picker__rolling-item-text">${year}</span></div>`;
+    }
+    if (yearsContainer) {
+        yearsContainer.innerHTML = yearsHtml;
+    }
+
+    // Render months
+    const monthsContainer = picker.unifiedRollingSelector.querySelector('[data-list="months"]');
+    if (monthsContainer) {
+        let monthsHtml = '';
+        // Only render months within the configured range
+        for (let monthIndex0Based = monthRange.min - 1; monthIndex0Based <= monthRange.max - 1; monthIndex0Based++) {
+            const name = picker.monthNames[monthIndex0Based];
+            const selected = monthIndex0Based === currentMonth ? 'drp-date-picker__rolling-item--selected' : '';
+
+            // Check if month has any enabled days and mark as disabled if not
+            const hasEnabledDays = hasEnabledDaysInMonth(picker, currentYear, monthIndex0Based);
+            const disabled = !hasEnabledDays ? 'drp-date-picker__rolling-item--disabled' : '';
+
+            monthsHtml += `<div class="drp-date-picker__rolling-item ${selected} ${disabled}" data-month="${monthIndex0Based}" data-unified="true"><span class="drp-date-picker__rolling-item-text">${name}</span></div>`;
         }
         monthsContainer.innerHTML = monthsHtml;
     }
