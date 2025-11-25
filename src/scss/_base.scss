@@ -87,24 +87,220 @@
   --drp-input-padding-h: #{$drp-input-padding-h};
   --drp-grid-columns: #{$drp-grid-columns};
   --drp-grid-rows: #{$drp-grid-rows};
+
+  // ===========================================================================
+  // INPUT FIELD SEMANTIC VARIABLES
+  // ===========================================================================
+  // Semantic variables for input customization (loosely coupled)
+
+  // Input colors
+  --drp-input-background: var(--drp-card-bg);
+  --drp-input-color: var(--drp-text-primary);
+  --drp-input-border-color: var(--drp-border-color);
+  --drp-input-border-color-hover: var(--drp-accent-color);
+  --drp-input-border-color-focus: var(--drp-accent-color);
+  --drp-input-placeholder-color: var(--drp-text-secondary);
+  --drp-input-disabled-background: var(--drp-primary-bg);
+
+  // Input focus state
+  --drp-input-focus-shadow-color: rgba(59, 130, 246, 0.1);
+  --drp-input-focus-shadow-size: 3px;
+
+  // Input icon
+  --drp-input-icon-opacity: #{$drp-input-icon-opacity};
+
+  // ===========================================================================
+  // INPUT SIZE VARIANTS (BASE VALUES)
+  // ===========================================================================
+  // Three size variants for the input element
+
+  --drp-input-size-sm-font: #{$drp-font-size-sm};
+  --drp-input-size-sm-padding-v: #{$drp-spacing-xs};
+  --drp-input-size-sm-padding-h: #{$drp-spacing-sm};
+  --drp-input-size-sm-height: 2rem;
+  --drp-input-size-sm-icon-size: 0.875em;
+
+  --drp-input-size-md-font: #{$drp-font-size-base};
+  --drp-input-size-md-padding-v: #{$drp-spacing-sm};
+  --drp-input-size-md-padding-h: #{$padding-base};
+  --drp-input-size-md-height: 2.5rem;
+  --drp-input-size-md-icon-size: 1em;
+
+  --drp-input-size-lg-font: #{$drp-font-size-lg};
+  --drp-input-size-lg-padding-v: #{$drp-spacing-md};
+  --drp-input-size-lg-padding-h: #{$drp-spacing-md};
+  --drp-input-size-lg-height: 3rem;
+  --drp-input-size-lg-icon-size: 1.125em;
+
+  // ===========================================================================
+  // HEADER & NAVIGATION SEMANTIC VARIABLES
+  // ===========================================================================
+
+  --drp-header-text-color: var(--drp-text-primary);
+  --drp-header-bg-hover: var(--drp-primary-bg);
+  --drp-header-bg-active: var(--drp-primary-bg-hover);
+
+  --drp-nav-text-color: var(--drp-text-primary);
+  --drp-nav-border-color: var(--drp-border-color);
+  --drp-nav-bg-hover: var(--drp-primary-bg);
+  --drp-nav-bg-active: var(--drp-primary-bg-hover);
+  --drp-nav-border-hover: var(--drp-accent-color);
+
+  --drp-rolling-bg: var(--drp-primary-bg);
+  --drp-rolling-border-color: var(--drp-border-color);
+  --drp-rolling-scrollbar-thumb: var(--drp-border-color);
+  --drp-rolling-scrollbar-thumb-hover: var(--drp-accent-color);
+  --drp-rolling-item-bg-hover: var(--drp-primary-bg);
+  --drp-rolling-item-bg-selected: var(--drp-accent-color);
+  --drp-rolling-item-color-selected: var(--drp-accent-text-color);
+  --drp-rolling-item-bg-selected-hover: var(--drp-accent-color-hover);
+
+  // ===========================================================================
+  // CALENDAR GRID & DAY CELLS SEMANTIC VARIABLES
+  // ===========================================================================
+
+  --drp-weekday-color: var(--drp-text-secondary);
+
+  --drp-day-text-color: var(--drp-text-primary);
+  --drp-day-bg-hover: var(--drp-primary-bg);
+  --drp-day-border-hover: var(--drp-accent-color);
+  --drp-day-today-border: var(--drp-accent-color);
+  --drp-day-selected-bg: var(--drp-accent-color);
+  --drp-day-selected-color: var(--drp-accent-text-color);
+  --drp-day-selected-bg-hover: var(--drp-accent-color-hover);
+  --drp-day-focused-outline: var(--drp-accent-color);
+  --drp-day-disabled-color: var(--drp-text-secondary);
+  --drp-day-other-month-color: var(--drp-text-secondary);
+  --drp-day-range-bg: var(--drp-accent-color);
+  --drp-day-range-color: var(--drp-accent-text-color);
+
+  // ===========================================================================
+  // SUMMARY & ACTIONS SEMANTIC VARIABLES
+  // ===========================================================================
+
+  --drp-summary-text-color: var(--drp-text-secondary);
+  --drp-summary-border-color: var(--drp-border-color);
+  --drp-summary-count-color: var(--drp-accent-color);
+
+  --drp-button-border-color: var(--drp-border-color);
+  --drp-button-bg-hover: var(--drp-primary-bg);
+  --drp-button-border-hover: var(--drp-accent-color);
+  --drp-button-today-color: var(--drp-accent-color);
+  --drp-button-clear-color: var(--drp-text-secondary);
+  --drp-button-cancel-color: var(--drp-text-secondary);
+  --drp-button-apply-bg: var(--drp-accent-color);
+  --drp-button-apply-color: var(--drp-button-text-color);
+  --drp-button-apply-border: var(--drp-accent-color);
+  --drp-button-apply-bg-hover: var(--drp-accent-color-hover);
+
+  // ===========================================================================
+  // BADGE SYSTEM SEMANTIC VARIABLES
+  // ===========================================================================
+
+  --drp-badge-number-bg: var(--drp-accent-color);
+  --drp-badge-number-color: var(--drp-accent-text-color);
+  --drp-badge-count-bg: #{$drp-color-error};
+  --drp-badge-count-color: #{$drp-color-white};
+  --drp-badge-text-bg: var(--drp-text-secondary);
+  --drp-badge-text-color: #{$drp-color-white};
+
+  // ===========================================================================
+  // UNIFIED NAV SEMANTIC VARIABLES
+  // ===========================================================================
+
+  --drp-unified-range-text-color: var(--drp-text-primary);
+  --drp-unified-range-bg-hover: var(--drp-primary-bg);
+  --drp-unified-range-bg-active: var(--drp-primary-bg-hover);
+  --drp-unified-month-color: var(--drp-text-secondary);
+  --drp-unified-rolling-disabled-color: var(--drp-text-secondary);
 }
 
 // ==============================================================================
 // DATE PICKER INPUT FIELD
 // ==============================================================================
 
+// Input element itself (actual <input> tag)
+.drp-input {
+  width: 100%;
+  font-family: inherit;
+  font-size: var(--drp-input-size-md-font);
+  line-height: 1.5;
+  color: var(--drp-input-color);
+  background-color: var(--drp-input-background);
+  border: var(--drp-border-width-base) solid var(--drp-input-border-color);
+  border-radius: var(--drp-border-radius);
+  padding: var(--drp-input-size-md-padding-v) var(--drp-input-size-md-padding-h);
+  padding-right: calc(var(--drp-input-size-md-padding-h) * 2.5); // Extra space for calendar icon
+  height: var(--drp-input-size-md-height);
+  box-sizing: border-box;
+  transition: border-color var(--drp-transition-fast) var(--drp-easing-snappy),
+              box-shadow var(--drp-transition-fast) var(--drp-easing-snappy);
+
+  &::placeholder {
+    color: var(--drp-input-placeholder-color);
+    opacity: 0.6;
+  }
+
+  &:hover:not(:disabled) {
+    border-color: var(--drp-input-border-color-hover);
+  }
+
+  &:focus {
+    outline: none;
+    border-color: var(--drp-input-border-color-focus);
+    box-shadow: 0 0 0 var(--drp-input-focus-shadow-size) var(--drp-input-focus-shadow-color);
+  }
+
+  &:disabled {
+    opacity: #{$drp-opacity-disabled};
+    cursor: not-allowed;
+    background-color: var(--drp-input-disabled-background);
+  }
+
+  // Size variants
+  &.drp-input--sm {
+    font-size: var(--drp-input-size-sm-font);
+    padding: var(--drp-input-size-sm-padding-v) var(--drp-input-size-sm-padding-h);
+    padding-right: calc(var(--drp-input-size-sm-padding-h) * 2.5);
+    height: var(--drp-input-size-sm-height);
+  }
+
+  &.drp-input--lg {
+    font-size: var(--drp-input-size-lg-font);
+    padding: var(--drp-input-size-lg-padding-v) var(--drp-input-size-lg-padding-h);
+    padding-right: calc(var(--drp-input-size-lg-padding-h) * 2.5);
+    height: var(--drp-input-size-lg-height);
+  }
+}
+
+// Input wrapper container (for positioning calendar icon)
 .drp-date-picker-input {
   position: relative;
   cursor: pointer;
+  display: inline-block;
+  width: 100%;
 
+  // Calendar icon
   &::after {
     content: '📅';
     position: absolute;
-    right: var(--drp-input-padding-h);
+    right: var(--drp-input-size-md-padding-h);
     top: 50%;
     transform: translateY(-50%);
     pointer-events: none;
-    opacity: $drp-input-icon-opacity;
+    opacity: var(--drp-input-icon-opacity);
+    font-size: var(--drp-input-size-md-icon-size);
+  }
+
+  // Size variant icon positioning
+  &.drp-date-picker-input--sm::after {
+    right: var(--drp-input-size-sm-padding-h);
+    font-size: var(--drp-input-size-sm-icon-size);
+  }
+
+  &.drp-date-picker-input--lg::after {
+    right: var(--drp-input-size-lg-padding-h);
+    font-size: var(--drp-input-size-lg-icon-size);
   }
 }
 

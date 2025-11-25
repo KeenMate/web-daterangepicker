@@ -827,21 +827,21 @@
         <button onclick="document.getElementById('api-demo').show()" style="padding: 0.5rem 1rem; border: 1px solid #d1d5db; border-radius: 0.375rem; cursor: pointer;">Show</button>
         <button onclick="document.getElementById('api-demo').hide()" style="padding: 0.5rem 1rem; border: 1px solid #d1d5db; border-radius: 0.375rem; cursor: pointer;">Hide</button>
         <button onclick="document.getElementById('api-demo').toggle()" style="padding: 0.5rem 1rem; border: 1px solid #d1d5db; border-radius: 0.375rem; cursor: pointer;">Toggle</button>
-        <button onclick="document.getElementById('api-demo').clear()" style="padding: 0.5rem 1rem; border: 1px solid #d1d5db; border-radius: 0.375rem; cursor: pointer;">Clear</button>
-        <button onclick="alert(document.getElementById('api-demo').getValue())" style="padding: 0.5rem 1rem; border: 1px solid #d1d5db; border-radius: 0.375rem; cursor: pointer;">Get Value</button>
+        <button onclick="document.getElementById('api-demo').clearSelection()" style="padding: 0.5rem 1rem; border: 1px solid #d1d5db; border-radius: 0.375rem; cursor: pointer;">Clear</button>
+        <button onclick="alert(document.getElementById('api-demo').getInputValue())" style="padding: 0.5rem 1rem; border: 1px solid #d1d5db; border-radius: 0.375rem; cursor: pointer;">Get Value</button>
       </div>
     </div>
 
     <div class="code">
-const picker = document.querySelector('date-range-picker');
+const picker = document.querySelector('web-daterangepicker');
 
 // Methods
 picker.show();        // Show calendar
 picker.hide();        // Hide calendar
 picker.toggle();      // Toggle calendar
-picker.clear();       // Clear selection
-picker.getValue();    // Get current value
-picker.setValue('2025-11-15'); // Set value
+picker.clearSelection();       // Clear selection
+picker.getInputValue();    // Get current value
+picker.setInputValue('2025-11-15'); // Set value
 
 // Properties
 picker.mode = 'range';

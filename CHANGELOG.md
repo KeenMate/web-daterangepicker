@@ -7,6 +7,61 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.3.0] - 2025-01-25
+
+### Added
+
+- **Comprehensive Input Styling**: Added complete styling system for input elements with CSS custom properties
+  - New `.drp-input` class with full styling (borders, colors, focus states, disabled states)
+  - Three size variants: small, medium (default), and large
+  - Size variant classes: `.drp-input--sm`, `.drp-input--lg`
+  - Proper calendar icon positioning for all sizes via `.drp-date-picker-input--sm/lg`
+  - Input-specific CSS custom properties:
+    - `--drp-input-background`, `--drp-input-color`
+    - `--drp-input-border-color`, `--drp-input-border-color-hover`, `--drp-input-border-color-focus`
+    - `--drp-input-placeholder-color`, `--drp-input-disabled-background`
+    - `--drp-input-focus-shadow-color`, `--drp-input-focus-shadow-size`
+    - `--drp-input-icon-opacity`
+    - Size variant variables for sm/md/lg (font, padding, height, icon size)
+
+### Changed
+
+- **CSS Architecture: Decoupled Component Variables** - Eliminated tight coupling between component styles
+  - **Problem**: All components directly referenced base variables (e.g., `var(--drp-text-primary)`, `var(--drp-accent-color)`), creating dependencies where changing one component affected unrelated components
+  - **Solution**: Added semantic CSS custom property layer that maps component-specific properties to base variables
+  - **Benefits**: Each component can now be styled independently without affecting others
+
+  **New Semantic Variables Added** (in `_base.scss`):
+
+  - **Header & Navigation**: `--drp-header-text-color`, `--drp-header-bg-hover`, `--drp-nav-text-color`, `--drp-nav-border-color`, `--drp-nav-bg-hover`, `--drp-rolling-*` variables
+  - **Calendar Grid & Days**: `--drp-weekday-color`, `--drp-day-text-color`, `--drp-day-bg-hover`, `--drp-day-selected-bg`, `--drp-day-selected-color`, `--drp-day-focused-outline`, etc.
+  - **Summary & Actions**: `--drp-summary-text-color`, `--drp-summary-count-color`, `--drp-button-border-color`, `--drp-button-today-color`, `--drp-button-apply-bg`, etc.
+  - **Badges**: `--drp-badge-number-bg`, `--drp-badge-number-color`, `--drp-badge-count-bg`, `--drp-badge-text-bg`
+  - **Unified Navigation**: `--drp-unified-range-text-color`, `--drp-unified-month-color`
+
+  **Files Modified**:
+  - `src/scss/_base.scss`: Added 60+ semantic CSS custom properties
+  - `src/scss/_header-navigation.scss`: Updated to use semantic variables instead of base variables
+  - `src/scss/_calendar-grid.scss`: Updated day cells, weekdays to use semantic variables
+  - `src/scss/_summary-actions.scss`: Updated summary and buttons to use semantic variables
+  - `src/scss/_badges.scss`: Converted from SCSS variables to CSS custom properties
+
+  **Example Usage**:
+  ```css
+  /* Now you can customize components independently */
+  :root {
+    /* Customize just the input without affecting calendar */
+    --drp-input-background: #f0f0f0;
+    --drp-input-border-color: #999;
+
+    /* Customize buttons without affecting day cells */
+    --drp-button-today-color: green;
+    --drp-button-apply-bg: purple;
+  }
+  ```
+
+  **Pattern**: Semantic variables default to base variables (e.g., `--drp-input-color: var(--drp-text-primary)`), but can be overridden independently for fine-grained customization.
+
 ## [1.2.0] - 2025-01-24
 
 ### Fixed

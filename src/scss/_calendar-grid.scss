@@ -20,7 +20,7 @@
   text-align: center;
   font-size: var(--drp-font-size-xs);
   font-weight: var(--drp-font-weight-semibold);
-  color: var(--drp-text-secondary);
+  color: var(--drp-weekday-color);
   padding: var(--drp-spacing-xs);
   text-transform: uppercase;
 }
@@ -52,7 +52,7 @@
   align-items: center;
   justify-content: center;
   font-size: var(--drp-font-size-sm);
-  color: var(--drp-text-primary);
+  color: var(--drp-day-text-color);
   border-radius: var(--drp-border-radius);
   cursor: pointer;
   // Scale border width with cell-scale
@@ -60,15 +60,15 @@
   position: relative; // For absolute positioning of labels
 
   &:hover:not(.drp-date-picker__day--disabled):not(.drp-date-picker__day--other-month) {
-    background-color: var(--drp-primary-bg);
-    border-color: var(--drp-accent-color);
+    background-color: var(--drp-day-bg-hover);
+    border-color: var(--drp-day-border-hover);
   }
 
   // --------------------------------------
   // Today
   // --------------------------------------
   &--today {
-    border-color: var(--drp-accent-color);
+    border-color: var(--drp-day-today-border);
     font-weight: var(--drp-font-weight-semibold);
   }
 
@@ -76,12 +76,12 @@
   // Selected
   // --------------------------------------
   &--selected {
-    background-color: var(--drp-accent-color);
-    color: var(--drp-accent-text-color);
+    background-color: var(--drp-day-selected-bg);
+    color: var(--drp-day-selected-color);
     font-weight: var(--drp-font-weight-semibold);
 
     &:hover {
-      background-color: var(--drp-accent-color-hover);
+      background-color: var(--drp-day-selected-bg-hover);
     }
   }
 
@@ -90,7 +90,7 @@
   // --------------------------------------
   &--focused {
     // Scale outline with cell-scale
-    outline: calc(#{$drp-day-focused-outline-width} * var(--drp-cell-scale)) solid var(--drp-accent-color);
+    outline: calc(#{$drp-day-focused-outline-width} * var(--drp-cell-scale)) solid var(--drp-day-focused-outline);
     outline-offset: calc(#{$drp-day-focused-outline-offset} * var(--drp-cell-scale));
   }
 
@@ -98,7 +98,7 @@
   // Disabled
   // --------------------------------------
   &--disabled {
-    color: var(--drp-text-secondary);
+    color: var(--drp-day-disabled-color);
     opacity: $drp-day-disabled-opacity;
     cursor: not-allowed;
     position: relative;
@@ -132,7 +132,7 @@
   // Other month days (previous/next month)
   // --------------------------------------
   &--other-month {
-    color: var(--drp-text-secondary);
+    color: var(--drp-day-other-month-color);
     opacity: $drp-day-other-month-opacity;
 
     // Reset opacity when other-month days are part of range selection
@@ -149,8 +149,8 @@
   // --------------------------------------
   &--range-start,
   &--range-end {
-    background-color: var(--drp-accent-color);
-    color: var(--drp-accent-text-color);
+    background-color: var(--drp-day-range-bg);
+    color: var(--drp-day-range-color);
     font-weight: var(--drp-font-weight-semibold);
     cursor: grab;
     user-select: none;
@@ -161,10 +161,10 @@
   }
 
   &--in-range {
-    background-color: color-mix(in srgb, var(--drp-accent-color) $drp-day-in-range-bg-opacity * 100%, transparent);
+    background-color: color-mix(in srgb, var(--drp-day-range-bg) $drp-day-in-range-bg-opacity * 100%, transparent);
 
     &:hover {
-      background-color: color-mix(in srgb, var(--drp-accent-color) $drp-day-in-range-hover-bg-opacity * 100%, transparent);
+      background-color: color-mix(in srgb, var(--drp-day-range-bg) $drp-day-in-range-hover-bg-opacity * 100%, transparent);
     }
   }
 
@@ -179,14 +179,14 @@
   }
 
   &--drag-preview {
-    background-color: color-mix(in srgb, var(--drp-accent-color) $drp-day-drag-preview-bg-opacity * 100%, transparent);
+    background-color: color-mix(in srgb, var(--drp-day-range-bg) $drp-day-drag-preview-bg-opacity * 100%, transparent);
     // Scale border width with cell-scale
-    border: calc(#{$drp-day-border-width} * var(--drp-cell-scale)) $drp-day-drag-preview-border-style var(--drp-accent-color);
+    border: calc(#{$drp-day-border-width} * var(--drp-cell-scale)) $drp-day-drag-preview-border-style var(--drp-day-range-bg);
 
     &.drp-date-picker__day--range-start,
     &.drp-date-picker__day--range-end {
-      background-color: color-mix(in srgb, var(--drp-accent-color) $drp-day-drag-preview-edge-bg-opacity * 100%, transparent);
-      color: var(--drp-accent-text-color);
+      background-color: color-mix(in srgb, var(--drp-day-range-bg) $drp-day-drag-preview-edge-bg-opacity * 100%, transparent);
+      color: var(--drp-day-range-color);
     }
   }
 
@@ -227,7 +227,7 @@
 // (e.g., when outside rollingYearRange/rollingMonthRange or minDate/maxDate)
 
 .drp-date-picker__rolling-item--disabled {
-  color: var(--drp-text-secondary);
+  color: var(--drp-unified-rolling-disabled-color);
   opacity: 0.4;
   cursor: not-allowed;
   pointer-events: none; // Prevent clicking

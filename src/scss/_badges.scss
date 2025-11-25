@@ -47,16 +47,16 @@
 
 // Number Badge (e.g., day number, count)
 .drp-date-picker__badge-cell.badge-number {
-  background-color: $drp-badge-number-bg;
-  color: $drp-badge-number-color;
+  background-color: var(--drp-badge-number-bg);
+  color: var(--drp-badge-number-color);
   font-size: 0.7rem;
   font-weight: 600;
 }
 
 // Count Badge (e.g., number of events)
 .drp-date-picker__badge-cell.badge-count {
-  background-color: $drp-badge-count-bg;
-  color: $drp-badge-count-color;
+  background-color: var(--drp-badge-count-bg);
+  color: var(--drp-badge-count-color);
   font-size: 0.7rem;
   font-weight: 700;
 }
@@ -66,8 +66,8 @@
 // should be defined by the application, not the component library.
 // See index.html examples for how to customize badge colors for your use case.
 .drp-date-picker__badge-cell.badge-text {
-  background-color: $drp-badge-text-bg;
-  color: $drp-badge-text-color;
+  background-color: var(--drp-badge-text-bg);
+  color: var(--drp-badge-text-color);
   font-size: 0.65rem;
   font-weight: 700;
   text-transform: uppercase;
