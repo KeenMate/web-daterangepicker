@@ -29,16 +29,16 @@ npm install @keenmate/web-daterangepicker
 ```html
 <!-- Single date picker -->
 <web-daterangepicker
-  mode="single"
-  format="YYYY-MM-DD"
+  selection-mode="single"
+  date-format-mask="YYYY-MM-DD"
   placeholder="Select date"
 ></web-daterangepicker>
 
 <!-- Date range picker -->
 <web-daterangepicker
-  mode="range"
-  format="YYYY-MM-DD"
-  months-to-show="2"
+  selection-mode="range"
+  date-format-mask="YYYY-MM-DD"
+  visible-months-count="2"
   placeholder="Select date range"
 ></web-daterangepicker>
 ```
@@ -65,9 +65,9 @@ picker.addEventListener('date-select', (e) => {
 picker.show();        // Show calendar
 picker.hide();        // Hide calendar
 picker.toggle();      // Toggle calendar
-picker.clear();       // Clear selection
-picker.getValue();    // Get current value
-picker.setValue('2025-11-15'); // Set value
+picker.clearSelection();       // Clear selection
+picker.getInputValue();    // Get current value
+picker.setInputValue('2025-11-15'); // Set value
 ```
 
 ### JavaScript Instantiation (Direct Class Usage)
@@ -123,28 +123,32 @@ See the [JavaScript Instantiation Examples](examples-javascript-instantiation.ht
 
 ## Attributes
 
+> **Note:** HTML attributes use kebab-case (e.g., `selection-mode`), while JavaScript options use camelCase (e.g., `selectionMode`).
+
 | Attribute | Type | Default | Description |
 |-----------|------|---------|-------------|
-| `mode` | `'single' \| 'range'` | `'single'` | Single date or date range selection |
-| `format` | `string` | `'YYYY-MM-DD'` | Date format (YYYY-MM-DD, DD.MM.YYYY, MM/DD/YYYY, etc.) |
-| `months-to-show` | `number` | `1` (single), `2` (range) | Number of months to display |
-| `trigger` | `'auto' \| 'button'` | `'auto'` | How to open calendar (auto = click/focus, button = button only) |
+| `selection-mode` | `'single' \| 'range'` | `'single'` | Single date or date range selection |
+| `date-format-mask` | `string` | `'YYYY-MM-DD'` | Date format (YYYY-MM-DD, DD.MM.YYYY, MM/DD/YYYY, etc.) |
+| `visible-months-count` | `number` | `1` (single), `2` (range) | Number of months to display |
+| `calendar-open-trigger` | `'focus' \| 'typing' \| 'manual'` | `'focus'` | How to open calendar (focus = on input focus, typing = when user types, manual = programmatic only) |
 | `value` | `string` | - | Current value |
 | `placeholder` | `string` | - | Input placeholder text |
 | `disabled` | `boolean` | `false` | Disable the picker |
 | `week-start-day` | `'auto' \| 0-6` | `'auto'` | First day of week (0=Sunday, 1=Monday, etc. 'auto'=detect from locale) |
 | `min-date` | `string` | - | Minimum selectable date (YYYY-MM-DD) |
 | `max-date` | `string` | - | Maximum selectable date (YYYY-MM-DD) |
-| `disabled-days` | `string` | - | Comma-separated day numbers to disable (e.g., "0,6" for weekends) |
-| `range-disabled-mode` | `'allow' \| 'block' \| 'split' \| 'individual'` | `'allow'` | How to handle range selections over disabled dates (see [Range Selection Modes](#range-selection-modes)) |
+| `disabled-weekdays` | `string` | - | Comma-separated day numbers to disable (e.g., "0,6" for weekends) |
+| `disabled-dates-handling` | `'allow' \| 'prevent' \| 'block' \| 'split' \| 'individual'` | `'allow'` | How to handle range selections over disabled dates (see [Range Selection Modes](#range-selection-modes)) |
 | `highlight-disabled-in-range` | `boolean` | `true` | Whether to visually highlight disabled dates within a selected range. Set to `false` to only highlight enabled dates. |
+| `auto-close` | `'never' \| 'selection' \| 'apply'` | `'selection'` | When to close calendar (selection = after picking, apply = after Apply button, never = manual) |
+| `positioning-mode` | `'inline' \| 'floating'` | `'floating'` | Calendar positioning (inline = embedded, floating = popup) |
 
 ## Properties
 
 ```typescript
-// Get/set properties
-picker.mode = 'range';
-picker.format = 'DD.MM.YYYY';
+// Get/set properties (use camelCase in JavaScript)
+picker.selectionMode = 'range';
+picker.dateFormatMask = 'DD.MM.YYYY';
 picker.value = '2025-11-15';
 picker.disabled = true;
 ```
@@ -153,12 +157,12 @@ picker.disabled = true;
 
 | Method | Description |
 |--------|-------------|
-| `show()` | Show the calendar |
+| `show()` | Show the calendar (floating mode only) |
 | `hide()` | Hide the calendar |
 | `toggle()` | Toggle calendar visibility |
-| `clear()` | Clear the current selection |
-| `getValue()` | Get the current value as a string |
-| `setValue(value: string)` | Set the value |
+| `clearSelection()` | Clear the current selection |
+| `getInputValue()` | Get the current value as a string |
+| `setInputValue(value: string)` | Set the value |
 
 ## Events
 
@@ -205,7 +209,7 @@ Control which day the week starts on (auto-detected by default from user's local
 
 ```html
 <!-- Disable weekends -->
-<web-daterangepicker disabled-days="0,6"></web-daterangepicker>
+<web-daterangepicker disabled-weekdays="0,6"></web-daterangepicker>
 
 <!-- Date range restriction -->
 <web-daterangepicker
@@ -246,48 +250,48 @@ const picker = document.querySelector('web-daterangepicker');
 picker.specialDates = [
   {
     date: '2025-12-25',
-    class: 'holiday',  // CSS class for styling
-    label: '🎄',       // Emoji or short text overlay
-    tooltip: 'Christmas Day'
+    dayClass: 'holiday',     // CSS class for the day cell
+    badgeText: '🎄',         // Badge overlay (emoji or short text)
+    dayTooltip: 'Christmas Day'
   },
   {
     date: '2025-07-04',
-    class: 'holiday',
-    label: '🎆',
-    tooltip: 'Independence Day'
+    dayClass: 'holiday',
+    badgeText: '🎆',
+    dayTooltip: 'Independence Day'
   },
   {
     date: '2025-02-14',
-    class: 'event',
-    label: '❤️',
-    tooltip: 'Valentine\'s Day'
+    dayClass: 'event',
+    badgeText: '❤️',
+    dayTooltip: 'Valentine\'s Day'
   }
 ];
 ```
 
 ### Advanced Styling & Info
 
-For complete control, use the `getDateInfo` callback:
+For complete control, use the `getDateMetadataCallback`:
 
 ```javascript
-picker.getDateInfo = (date) => {
+picker.getDateMetadataCallback = (date) => {
   const dateStr = date.toISOString().split('T')[0];
 
   // Check if it's a peak season date
   if (isPeakSeason(date)) {
     return {
-      class: 'peak-season',
-      label: '$$$',
-      tooltip: 'Peak season pricing'
+      dayClass: 'peak-season',
+      badgeText: '$$$',
+      dayTooltip: 'Peak season pricing'
     };
   }
 
   // Check if it's a special offer date
   if (specialOffers[dateStr]) {
     return {
-      class: 'special-offer',
-      label: '%',
-      tooltip: `${specialOffers[dateStr]}% off!`
+      dayClass: 'special-offer',
+      badgeText: '%',
+      dayTooltip: `${specialOffers[dateStr]}% off!`
     };
   }
 
@@ -317,7 +321,7 @@ web-daterangepicker::part(calendar) .pa-date-picker__day.peak-season {
 
 ## Range Selection Modes
 
-When selecting date ranges that include disabled dates (e.g., selecting a working week where weekends are disabled), you can control how the selection is handled using the `range-disabled-mode` attribute:
+When selecting date ranges that include disabled dates (e.g., selecting a working week where weekends are disabled), you can control how the selection is handled using the `disabled-dates-handling` attribute:
 
 ### Mode: 'allow' (default)
 
@@ -325,9 +329,9 @@ Allows range selections over disabled dates. Returns both enabled and disabled d
 
 ```html
 <web-daterangepicker
-  mode="range"
-  disabled-days="0,6"
-  range-disabled-mode="allow">
+  selection-mode="range"
+  disabled-weekdays="0,6"
+  disabled-dates-handling="allow">
 </web-daterangepicker>
 
 <script>
@@ -342,14 +346,27 @@ picker.addEventListener('date-select', (e) => {
 
 **Use case:** Selecting working weeks where you need to know both working days and weekends (e.g., "Select 3 weeks of work" where weekends are included in the range but you get a separate array of working days).
 
+### Mode: 'prevent'
+
+Prevents selecting disabled dates entirely. Clicking a disabled date does nothing:
+
+```html
+<web-daterangepicker
+  selection-mode="range"
+  disabled-dates-handling="prevent">
+</web-daterangepicker>
+```
+
+**Use case:** Strict date selection where disabled dates should never be part of any selection.
+
 ### Mode: 'block'
 
 Prevents range selections from crossing disabled dates. Automatically snaps to the last enabled date before the gap:
 
 ```html
 <web-daterangepicker
-  mode="range"
-  range-disabled-mode="block">
+  selection-mode="range"
+  disabled-dates-handling="block">
 </web-daterangepicker>
 ```
 
@@ -363,9 +380,9 @@ Returns multiple date ranges separated by disabled dates:
 
 ```html
 <web-daterangepicker
-  mode="range"
-  disabled-days="0,6"
-  range-disabled-mode="split">
+  selection-mode="range"
+  disabled-weekdays="0,6"
+  disabled-dates-handling="split">
 </web-daterangepicker>
 
 <script>
@@ -386,9 +403,9 @@ Returns a flat array of individual enabled dates:
 
 ```html
 <web-daterangepicker
-  mode="range"
-  disabled-days="0,6"
-  range-disabled-mode="individual">
+  selection-mode="range"
+  disabled-weekdays="0,6"
+  disabled-dates-handling="individual">
 </web-daterangepicker>
 
 <script>
@@ -408,6 +425,7 @@ picker.addEventListener('date-select', (e) => {
 | Mode | Properties | Description |
 |------|-----------|-------------|
 | `allow` | `dateRange`, `enabledDates`, `disabledDates`, `getTotalDays()`, `getEnabledDateCount()` | Full range with helper methods |
+| `prevent` | `dateRange`, `dates` | Only enabled dates can be selected |
 | `block` | `dateRange`, `dates` | Single continuous range (no disabled dates) |
 | `split` | `dateRanges`, `dates` | Multiple ranges split by disabled dates |
 | `individual` | `dates` | Flat array of enabled dates |
@@ -419,16 +437,16 @@ By default, when you select a range that includes disabled dates, all dates (bot
 ```html
 <!-- Default: highlights all dates in range, including disabled weekends -->
 <web-daterangepicker
-  mode="range"
-  disabled-days="0,6"
-  range-disabled-mode="split">
+  selection-mode="range"
+  disabled-weekdays="0,6"
+  disabled-dates-handling="split">
 </web-daterangepicker>
 
 <!-- Only highlight enabled dates (Mon-Fri), skip weekends -->
 <web-daterangepicker
-  mode="range"
-  disabled-days="0,6"
-  range-disabled-mode="split"
+  selection-mode="range"
+  disabled-weekdays="0,6"
+  disabled-dates-handling="split"
   highlight-disabled-in-range="false">
 </web-daterangepicker>
 ```
@@ -444,6 +462,11 @@ Customize the appearance using CSS custom properties:
 
 ```css
 :root {
+  /* Scale Multipliers - adjust these to scale the entire component */
+  --drp-font-scale: 1;      /* Scale all font sizes (e.g., 1.2 = 20% larger) */
+  --drp-spacing-scale: 1;   /* Scale all padding/margins/gaps */
+  --drp-cell-scale: 1;      /* Scale day cell dimensions */
+
   /* Colors */
   --drp-card-bg: #ffffff;
   --drp-border-color: #e5e7eb;
@@ -453,13 +476,15 @@ Customize the appearance using CSS custom properties:
   --drp-accent-color-hover: #2563eb;
   --drp-text-primary: #111827;
   --drp-text-secondary: #6b7280;
+  --drp-accent-text-color: #ffffff;
 
-  /* Spacing */
-  --drp-spacing-xs: 0.25rem;
-  --drp-spacing-sm: 0.5rem;
-  --drp-spacing-md: 1rem;
-  --drp-spacing-lg: 1.5rem;
-  --drp-spacing-xl: 2rem;
+  /* Input Field */
+  --drp-input-background: var(--drp-card-bg);
+  --drp-input-color: var(--drp-text-primary);
+  --drp-input-border-color: var(--drp-border-color);
+  --drp-input-border-color-hover: var(--drp-accent-color);
+  --drp-input-border-color-focus: var(--drp-accent-color);
+  --drp-input-placeholder-color: var(--drp-text-secondary);
 
   /* Typography */
   --drp-font-size-xs: 0.75rem;
@@ -478,6 +503,24 @@ Customize the appearance using CSS custom properties:
   /* Transitions */
   --drp-transition-fast: 150ms;
   --drp-easing-snappy: cubic-bezier(0.4, 0.0, 0.2, 1);
+}
+```
+
+### Quick Sizing Examples
+
+```css
+/* Compact size */
+:root {
+  --drp-font-scale: 0.875;
+  --drp-spacing-scale: 0.75;
+  --drp-cell-scale: 0.875;
+}
+
+/* Large size */
+:root {
+  --drp-font-scale: 1.125;
+  --drp-spacing-scale: 1.25;
+  --drp-cell-scale: 1.125;
 }
 ```
 
