@@ -112,7 +112,13 @@
   // ===========================================================================
   // INPUT SIZE VARIANTS (BASE VALUES)
   // ===========================================================================
-  // Three size variants for the input element
+  // Five size variants for the input element (xs, sm, md, lg, xl)
+
+  --drp-input-size-xs-font: #{$font-size-xs};
+  --drp-input-size-xs-padding-v: #{$padding-xs};
+  --drp-input-size-xs-padding-h: #{$padding-xs};
+  --drp-input-size-xs-height: 1.5rem;
+  --drp-input-size-xs-icon-size: 0.75em;
 
   --drp-input-size-sm-font: #{$drp-font-size-sm};
   --drp-input-size-sm-padding-v: #{$drp-spacing-xs};
@@ -131,6 +137,12 @@
   --drp-input-size-lg-padding-h: #{$drp-spacing-md};
   --drp-input-size-lg-height: 3rem;
   --drp-input-size-lg-icon-size: 1.125em;
+
+  --drp-input-size-xl-font: #{$font-size-xl};
+  --drp-input-size-xl-padding-v: #{$drp-spacing-md};
+  --drp-input-size-xl-padding-h: #{$drp-spacing-lg};
+  --drp-input-size-xl-height: 3.5rem;
+  --drp-input-size-xl-icon-size: 1.25em;
 
   // ===========================================================================
   // HEADER & NAVIGATION SEMANTIC VARIABLES
@@ -258,6 +270,13 @@
   }
 
   // Size variants
+  &.drp-input--xs {
+    font-size: var(--drp-input-size-xs-font);
+    padding: var(--drp-input-size-xs-padding-v) var(--drp-input-size-xs-padding-h);
+    padding-right: calc(var(--drp-input-size-xs-padding-h) * 2.5);
+    height: var(--drp-input-size-xs-height);
+  }
+
   &.drp-input--sm {
     font-size: var(--drp-input-size-sm-font);
     padding: var(--drp-input-size-sm-padding-v) var(--drp-input-size-sm-padding-h);
@@ -270,6 +289,13 @@
     padding: var(--drp-input-size-lg-padding-v) var(--drp-input-size-lg-padding-h);
     padding-right: calc(var(--drp-input-size-lg-padding-h) * 2.5);
     height: var(--drp-input-size-lg-height);
+  }
+
+  &.drp-input--xl {
+    font-size: var(--drp-input-size-xl-font);
+    padding: var(--drp-input-size-xl-padding-v) var(--drp-input-size-xl-padding-h);
+    padding-right: calc(var(--drp-input-size-xl-padding-h) * 2.5);
+    height: var(--drp-input-size-xl-height);
   }
 }
 
@@ -293,6 +319,11 @@
   }
 
   // Size variant icon positioning
+  &.drp-date-picker-input--xs::after {
+    right: var(--drp-input-size-xs-padding-h);
+    font-size: var(--drp-input-size-xs-icon-size);
+  }
+
   &.drp-date-picker-input--sm::after {
     right: var(--drp-input-size-sm-padding-h);
     font-size: var(--drp-input-size-sm-icon-size);
@@ -301,6 +332,11 @@
   &.drp-date-picker-input--lg::after {
     right: var(--drp-input-size-lg-padding-h);
     font-size: var(--drp-input-size-lg-icon-size);
+  }
+
+  &.drp-date-picker-input--xl::after {
+    right: var(--drp-input-size-xl-padding-h);
+    font-size: var(--drp-input-size-xl-icon-size);
   }
 }
 

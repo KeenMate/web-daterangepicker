@@ -109,9 +109,12 @@ nights calculation, hotel summary → basic-usage.txt
 
 SIZING & APPEARANCE
 -------------------
-wrapper classes, drp-font, drp-spacing → basic-usage.txt
+input-size attribute → basic-usage.txt
+spacing attribute → basic-usage.txt
+font-size attribute → basic-usage.txt
+cell-size attribute → basic-usage.txt
 size xs sm md lg xl → basic-usage.txt
-responsive sizing → basic-usage.txt
+drp-font, drp-spacing, drp-cell classes → basic-usage.txt
 custom css, styling → custom-rendering.txt
 
 COMMON USE CASES
@@ -189,6 +192,11 @@ show-clear-button → action-buttons.txt
 show-apply-button → action-buttons.txt
 auto-close → action-buttons.txt
 locale → basic-usage.txt
+input-size → basic-usage.txt
+spacing → basic-usage.txt
+font-size → basic-usage.txt
+cell-size → basic-usage.txt
+enable-transitions → basic-usage.txt
 
 PROPERTIES (Web Component)
 ---------------------------
@@ -201,11 +209,8 @@ isOpen → basic-usage.txt
 ERROR PATTERNS TO AVOID
 -----------------------
 ❌ setting callbacks as HTML attributes → basic-usage.txt (use JS properties)
-❌ font-size attribute (use wrapper) → basic-usage.txt
-❌ spacing attribute (use wrapper) → basic-usage.txt
 ❌ customStrings on web component → basic-usage.txt (JS API only)
 ❌ actionButtons on web component → action-buttons.txt (JS API only)
-❌ initial-date attribute (doesn't exist) → basic-usage.txt
 
 FILE DESCRIPTIONS
 -----------------
@@ -278,7 +283,7 @@ Custom buttons
   → basic-usage.txt (show/hide built-in buttons)
 
 Styling
-  → basic-usage.txt (wrapper classes for sizing)
+  → basic-usage.txt (size attributes: input-size, spacing, font-size, cell-size)
   → custom-rendering.txt (per-date styling, badges)
   → action-buttons.txt (button styling)
 
@@ -306,7 +311,7 @@ Problem: Wrong date format
 → basic-usage.txt (date-format-mask)
 
 Problem: Calendar too small/large
-→ basic-usage.txt (wrapper classes drp-font-*, drp-spacing-*)
+→ basic-usage.txt (input-size, spacing, font-size, cell-size attributes)
 
 Problem: Need preset date ranges
 → action-buttons.txt (custom preset buttons)

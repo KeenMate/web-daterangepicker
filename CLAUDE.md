@@ -114,6 +114,26 @@ Key state properties:
 - All SCSS variables have been converted to CSS custom properties with `--drp-` prefix
 - No external CSS frameworks required
 
+### Size System
+
+The component uses a consistent 5-level size scale (xs, sm, md, lg, xl) across all sizing attributes:
+
+**Web Component Attributes:**
+- `input-size` - Input field size (floating mode only)
+- `spacing` - Calendar spacing scale
+- `font-size` - Calendar font size scale
+- `cell-size` - Calendar day cell size
+
+**CSS Variables (per size):**
+- Input: `--drp-input-size-{size}-font`, `--drp-input-size-{size}-padding-v`, `--drp-input-size-{size}-padding-h`, `--drp-input-size-{size}-height`, `--drp-input-size-{size}-icon-size`
+- Calendar: Uses `.drp-spacing-{size}`, `.drp-font-{size}`, `.drp-cell-{size}` classes
+
+**Example:**
+```html
+<web-daterangepicker input-size="lg" spacing="lg" font-size="lg" cell-size="lg">
+</web-daterangepicker>
+```
+
 ## Build System
 
 ### Build Tools

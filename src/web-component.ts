@@ -45,7 +45,8 @@ export class WebDaterangepickerElement extends HTMLElement {
             'initial-date', 'rolling-year-range', 'rolling-month-range',
             'spacing', 'font-size', 'cell-size', 'enable-transitions',
             'auto-close', 'show-today-button', 'show-clear-button', 'show-apply-button',
-            'unified-navigation', 'unified-navigation-anchor-index', 'unified-header-interactive'
+            'unified-navigation', 'unified-navigation-anchor-index', 'unified-header-interactive',
+            'input-size'
         ];
     }
 
@@ -88,6 +89,22 @@ export class WebDaterangepickerElement extends HTMLElement {
         }
     }
 
+    private applyInputSizeStyles() {
+        if (!this.inputElement) return;
+
+        const inputSize = this.getAttribute('input-size');
+
+        // Remove existing size classes
+        this.inputElement.classList.remove('drp-input--xs', 'drp-input--sm', 'drp-input--lg', 'drp-input--xl');
+        this.inputElement.classList.remove('drp-date-picker-input--xs', 'drp-date-picker-input--sm', 'drp-date-picker-input--lg', 'drp-date-picker-input--xl');
+
+        // Add new size classes (md is default, no class needed)
+        if (inputSize && inputSize !== 'md') {
+            this.inputElement.classList.add(`drp-input--${inputSize}`);
+            this.inputElement.classList.add(`drp-date-picker-input--${inputSize}`);
+        }
+    }
+
     connectedCallback() {
         this.render();
         this.initializePicker();
@@ -109,6 +126,12 @@ export class WebDaterangepickerElement extends HTMLElement {
             if (this.picker && name === 'cell-size') {
                 this.picker.renderCalendar();
             }
+            return;
+        }
+
+        // Handle input-size attribute without re-initializing picker
+        if (name === 'input-size') {
+            this.applyInputSizeStyles();
             return;
         }
 
@@ -168,6 +191,9 @@ export class WebDaterangepickerElement extends HTMLElement {
             }
 
             this.shadow.appendChild(this.inputElement);
+
+            // Apply input size styles
+            this.applyInputSizeStyles();
         }
         // For inline mode, no input element needed
     }
@@ -582,6 +608,14 @@ export class WebDaterangepickerElement extends HTMLElement {
         } else {
             this.removeAttribute('enable-transitions');
         }
+    }
+
+    get inputSize(): string {
+        return this.getAttribute('input-size') || 'md';
+    }
+
+    set inputSize(value: string) {
+        this.setAttribute('input-size', value);
     }
 
     // Complex data properties (not attributes)

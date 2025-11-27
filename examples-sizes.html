@@ -183,6 +183,97 @@
   <p class="page-description">Examples demonstrating the unified density system for controlling calendar size.</p>
 
   <div class="card">
+    <h2>Input Size Attribute</h2>
+    <p>Control input field size independently using the <code>input-size</code> attribute (floating mode only).</p>
+    <div class="grid">
+      <div class="form-group">
+        <label>Extra Small Input (xs)</label>
+        <web-daterangepicker
+          input-size="xs"
+          selection-mode="single"
+          placeholder="YYYY-MM-DD"></web-daterangepicker>
+        <small>Very compact input - 1.5rem height</small>
+      </div>
+
+      <div class="form-group">
+        <label>Small Input (sm)</label>
+        <web-daterangepicker
+          input-size="sm"
+          selection-mode="single"
+          placeholder="YYYY-MM-DD"></web-daterangepicker>
+        <small>Compact input - 2rem height</small>
+      </div>
+
+      <div class="form-group">
+        <label>Medium Input (md - default)</label>
+        <web-daterangepicker
+          input-size="md"
+          selection-mode="single"
+          placeholder="YYYY-MM-DD"></web-daterangepicker>
+        <small>Normal input - 2.5rem height</small>
+      </div>
+
+      <div class="form-group">
+        <label>Large Input (lg)</label>
+        <web-daterangepicker
+          input-size="lg"
+          selection-mode="single"
+          placeholder="YYYY-MM-DD"></web-daterangepicker>
+        <small>Spacious input - 3rem height</small>
+      </div>
+
+      <div class="form-group">
+        <label>Extra Large Input (xl)</label>
+        <web-daterangepicker
+          input-size="xl"
+          selection-mode="single"
+          placeholder="YYYY-MM-DD"></web-daterangepicker>
+        <small>Touch-friendly input - 3.5rem height</small>
+      </div>
+    </div>
+
+    <h3>Coordinated Input + Calendar Sizing</h3>
+    <p>Combine <code>input-size</code> with calendar sizing attributes for consistent UI.</p>
+    <div class="grid">
+      <div class="form-group">
+        <label>All Small (sm)</label>
+        <web-daterangepicker
+          input-size="sm"
+          spacing="sm"
+          font-size="sm"
+          cell-size="sm"
+          selection-mode="single"
+          placeholder="YYYY-MM-DD"></web-daterangepicker>
+        <small>Compact input with compact calendar</small>
+      </div>
+
+      <div class="form-group">
+        <label>All Large (lg)</label>
+        <web-daterangepicker
+          input-size="lg"
+          spacing="lg"
+          font-size="lg"
+          cell-size="lg"
+          selection-mode="single"
+          placeholder="YYYY-MM-DD"></web-daterangepicker>
+        <small>Large input with large calendar</small>
+      </div>
+
+      <div class="form-group">
+        <label>Mixed: XL Input + SM Calendar</label>
+        <web-daterangepicker
+          input-size="xl"
+          spacing="sm"
+          font-size="sm"
+          cell-size="sm"
+          selection-mode="single"
+          placeholder="YYYY-MM-DD"></web-daterangepicker>
+        <small>Large touch target, compact popup</small>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
     <h2>Unified Density System</h2>
     <p>The component uses a unified density system that scales everything proportionally:</p>
     <ul class="features">

@@ -7,6 +7,32 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.4.0] - 2025-11-27 ✅ Published
+
+### Added
+
+- **Input Size Attribute**: New `input-size` attribute for controlling input field dimensions
+  - Supports 5-level scale: `xs`, `sm`, `md` (default), `lg`, `xl`
+  - Consistent with calendar sizing attributes (`spacing`, `font-size`, `cell-size`)
+  - Added CSS variables for xs and xl sizes:
+    - `--drp-input-size-xs-*` (font, padding-v, padding-h, height, icon-size)
+    - `--drp-input-size-xl-*` (font, padding-v, padding-h, height, icon-size)
+  - CSS classes: `.drp-input--xs`, `.drp-input--xl` and icon positioning classes
+
+### Changed
+
+- **Complete 5-Level Size Scale**: All size attributes now support consistent xs/sm/md/lg/xl scale
+  - `input-size` - Input field size (floating mode only)
+  - `spacing` - Calendar spacing scale
+  - `font-size` - Calendar font size scale
+  - `cell-size` - Calendar day cell size
+
+### Documentation
+
+- Updated API.md with size attributes in attributes table
+- Updated AI documentation (ai/basic-usage.txt, ai/INDEX.txt) with correct size attribute usage
+- Added Input Size Variants section to CSS Custom Properties documentation
+
 ## [1.3.0] - 2025-11-25
 
 ### Added

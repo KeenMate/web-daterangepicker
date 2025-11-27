@@ -379,19 +379,35 @@ import '@keenmate/web-daterangepicker';
 
 SIZING
 ------
-Use wrapper div with CSS classes (Shadow DOM styling):
+Use size attributes directly on the web component:
 
-<div class="drp-font-lg drp-spacing-md">
-  <web-daterangepicker selection-mode="single"></web-daterangepicker>
-</div>
+<web-daterangepicker
+  input-size="lg"
+  spacing="lg"
+  font-size="lg"
+  cell-size="lg">
+</web-daterangepicker>
 
-Available classes:
+Available size values (consistent across all): xs, sm, md (default), lg, xl
+
+Size attributes:
+- input-size: Input field size (floating mode only)
+- spacing: Calendar spacing scale
+- font-size: Calendar font size scale
+- cell-size: Calendar day cell size
+
+Example - compact picker:
+<web-daterangepicker input-size="sm" spacing="sm" font-size="sm" cell-size="sm">
+</web-daterangepicker>
+
+Example - large picker:
+<web-daterangepicker input-size="xl" spacing="lg" font-size="lg" cell-size="lg">
+</web-daterangepicker>
+
+CSS classes also available for calendar (applied internally):
 - Font: drp-font-xs, drp-font-sm, drp-font-md, drp-font-lg, drp-font-xl
 - Spacing: drp-spacing-xs, drp-spacing-sm, drp-spacing-md, drp-spacing-lg, drp-spacing-xl
-- Responsive: drp-responsive (auto-scales with breakpoints)
-
-✅ CORRECT: Wrapper classes
-❌ WRONG: Attributes like font-size="lg" (don't exist)
+- Cell: drp-cell-xs, drp-cell-sm, drp-cell-md, drp-cell-lg, drp-cell-xl
 
 COMMON PATTERNS
 ---------------

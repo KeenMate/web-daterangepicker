@@ -96,6 +96,11 @@ All attributes can be set directly on the `<web-daterangepicker>` HTML element.
 | `locale` | `string \| 'auto'` | `'auto'` | Locale for UI strings and date formatting. Use `'auto'` for browser detection, or specify: `'en'`, `'de'`, `'fr'`, `'es'` |
 | `display-format-mask` | `string` | Same as `date-format-mask` | Localized format mask shown to users (e.g., `'dd/mm/aaaa'` in Spanish). Validation still uses `date-format-mask` |
 | `show-debug-info` | `boolean` | `false` | When present, enables detailed debug logging to browser console. See [Debugging & Logging](#debugging--logging) |
+| `input-size` | `'xs' \| 'sm' \| 'md' \| 'lg' \| 'xl'` | `'md'` | Input field size variant (floating mode only) |
+| `spacing` | `'xs' \| 'sm' \| 'md' \| 'lg' \| 'xl'` | `'md'` | Calendar spacing scale |
+| `font-size` | `'xs' \| 'sm' \| 'md' \| 'lg' \| 'xl'` | `'md'` | Calendar font size scale |
+| `cell-size` | `'xs' \| 'sm' \| 'md' \| 'lg' \| 'xl'` | `'md'` | Calendar day cell size |
+| `enable-transitions` | `boolean` | `false` | Enable CSS transitions/animations (opt-in for performance) |
 
 **Smart default positioning:**
 - Grid layouts: `'bottom'` (centered)
@@ -146,6 +151,21 @@ The `range-disabled-handling` attribute controls behavior when selecting ranges 
   date-format-mask="YYYY-MM-DD"
   display-format-mask="dd/mm/aaaa"
   placeholder="Selecciona una fecha">
+</web-daterangepicker>
+
+<!-- Size variants - coordinated input and calendar sizing -->
+<web-daterangepicker
+  input-size="sm"
+  spacing="sm"
+  font-size="sm"
+  cell-size="sm">
+</web-daterangepicker>
+
+<web-daterangepicker
+  input-size="lg"
+  spacing="lg"
+  font-size="lg"
+  cell-size="lg">
 </web-daterangepicker>
 ```
 
@@ -746,6 +766,38 @@ web-daterangepicker {
 |----------|---------|-------------|
 | `--drp-transition-fast` | `150ms` | Fast transition duration |
 | `--drp-easing-snappy` | `cubic-bezier(0.4, 0.0, 0.2, 1)` | Snappy easing curve |
+
+### Input Size Variants
+
+Five size variants for the input element, customizable via CSS variables:
+
+| Property | Default | Description |
+|----------|---------|-------------|
+| `--drp-input-size-xs-font` | `0.75rem` | Extra small font size |
+| `--drp-input-size-xs-padding-v` | `0.25rem` | Extra small vertical padding |
+| `--drp-input-size-xs-padding-h` | `0.25rem` | Extra small horizontal padding |
+| `--drp-input-size-xs-height` | `1.5rem` | Extra small height |
+| `--drp-input-size-xs-icon-size` | `0.75em` | Extra small icon size |
+| `--drp-input-size-sm-font` | `0.875rem` | Small font size |
+| `--drp-input-size-sm-padding-v` | `0.25rem` | Small vertical padding |
+| `--drp-input-size-sm-padding-h` | `0.5rem` | Small horizontal padding |
+| `--drp-input-size-sm-height` | `2rem` | Small height |
+| `--drp-input-size-sm-icon-size` | `0.875em` | Small icon size |
+| `--drp-input-size-md-font` | `1rem` | Medium font size (default) |
+| `--drp-input-size-md-padding-v` | `0.5rem` | Medium vertical padding |
+| `--drp-input-size-md-padding-h` | `0.75rem` | Medium horizontal padding |
+| `--drp-input-size-md-height` | `2.5rem` | Medium height |
+| `--drp-input-size-md-icon-size` | `1em` | Medium icon size |
+| `--drp-input-size-lg-font` | `1.125rem` | Large font size |
+| `--drp-input-size-lg-padding-v` | `1rem` | Large vertical padding |
+| `--drp-input-size-lg-padding-h` | `1rem` | Large horizontal padding |
+| `--drp-input-size-lg-height` | `3rem` | Large height |
+| `--drp-input-size-lg-icon-size` | `1.125em` | Large icon size |
+| `--drp-input-size-xl-font` | `1.25rem` | Extra large font size |
+| `--drp-input-size-xl-padding-v` | `1rem` | Extra large vertical padding |
+| `--drp-input-size-xl-padding-h` | `1.5rem` | Extra large horizontal padding |
+| `--drp-input-size-xl-height` | `3.5rem` | Extra large height |
+| `--drp-input-size-xl-icon-size` | `1.25em` | Extra large icon size |
 
 ### Other
 
