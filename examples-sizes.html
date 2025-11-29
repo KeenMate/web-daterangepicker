@@ -183,6 +183,65 @@
   <p class="page-description">Examples demonstrating the unified density system for controlling calendar size.</p>
 
   <div class="card">
+    <h2>📐 Sizing Reference Table</h2>
+    <p>All sizes use a 10px-based system (<code>--drp-rem: 10px</code>) for clean, predictable dimensions.</p>
+
+    <h3>Input Heights</h3>
+    <table style="width: 100%; border-collapse: collapse; margin: 1rem 0;">
+      <thead>
+        <tr style="background: #f3f4f6;">
+          <th style="padding: 0.5rem; border: 1px solid #e5e7eb; text-align: left;">Size</th>
+          <th style="padding: 0.5rem; border: 1px solid #e5e7eb; text-align: left;">Attribute</th>
+          <th style="padding: 0.5rem; border: 1px solid #e5e7eb; text-align: left;">Multiplier</th>
+          <th style="padding: 0.5rem; border: 1px solid #e5e7eb; text-align: left;">Pixels</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td style="padding: 0.5rem; border: 1px solid #e5e7eb;">XS</td><td style="padding: 0.5rem; border: 1px solid #e5e7eb;"><code>input-size="xs"</code></td><td style="padding: 0.5rem; border: 1px solid #e5e7eb;">3.1</td><td style="padding: 0.5rem; border: 1px solid #e5e7eb;"><strong>31px</strong></td></tr>
+        <tr><td style="padding: 0.5rem; border: 1px solid #e5e7eb;">SM</td><td style="padding: 0.5rem; border: 1px solid #e5e7eb;"><code>input-size="sm"</code></td><td style="padding: 0.5rem; border: 1px solid #e5e7eb;">3.3</td><td style="padding: 0.5rem; border: 1px solid #e5e7eb;"><strong>33px</strong></td></tr>
+        <tr style="background: #f0fdf4;"><td style="padding: 0.5rem; border: 1px solid #e5e7eb;">MD</td><td style="padding: 0.5rem; border: 1px solid #e5e7eb;"><code>input-size="md"</code> (default)</td><td style="padding: 0.5rem; border: 1px solid #e5e7eb;">3.5</td><td style="padding: 0.5rem; border: 1px solid #e5e7eb;"><strong>35px</strong></td></tr>
+        <tr><td style="padding: 0.5rem; border: 1px solid #e5e7eb;">LG</td><td style="padding: 0.5rem; border: 1px solid #e5e7eb;"><code>input-size="lg"</code></td><td style="padding: 0.5rem; border: 1px solid #e5e7eb;">3.8</td><td style="padding: 0.5rem; border: 1px solid #e5e7eb;"><strong>38px</strong></td></tr>
+        <tr><td style="padding: 0.5rem; border: 1px solid #e5e7eb;">XL</td><td style="padding: 0.5rem; border: 1px solid #e5e7eb;"><code>input-size="xl"</code></td><td style="padding: 0.5rem; border: 1px solid #e5e7eb;">4.1</td><td style="padding: 0.5rem; border: 1px solid #e5e7eb;"><strong>41px</strong></td></tr>
+      </tbody>
+    </table>
+
+    <h3>Calendar Scale Factors</h3>
+    <table style="width: 100%; border-collapse: collapse; margin: 1rem 0;">
+      <thead>
+        <tr style="background: #f3f4f6;">
+          <th style="padding: 0.5rem; border: 1px solid #e5e7eb; text-align: left;">Size</th>
+          <th style="padding: 0.5rem; border: 1px solid #e5e7eb; text-align: left;">Scale</th>
+          <th style="padding: 0.5rem; border: 1px solid #e5e7eb; text-align: left;">Percentage</th>
+          <th style="padding: 0.5rem; border: 1px solid #e5e7eb; text-align: left;">Use Case</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td style="padding: 0.5rem; border: 1px solid #e5e7eb;">XS</td><td style="padding: 0.5rem; border: 1px solid #e5e7eb;">0.6×</td><td style="padding: 0.5rem; border: 1px solid #e5e7eb;">60%</td><td style="padding: 0.5rem; border: 1px solid #e5e7eb;">Dense dashboards, data tables</td></tr>
+        <tr><td style="padding: 0.5rem; border: 1px solid #e5e7eb;">SM</td><td style="padding: 0.5rem; border: 1px solid #e5e7eb;">0.8×</td><td style="padding: 0.5rem; border: 1px solid #e5e7eb;">80%</td><td style="padding: 0.5rem; border: 1px solid #e5e7eb;">Mobile apps, modals, forms</td></tr>
+        <tr style="background: #f0fdf4;"><td style="padding: 0.5rem; border: 1px solid #e5e7eb;">MD</td><td style="padding: 0.5rem; border: 1px solid #e5e7eb;">1.0×</td><td style="padding: 0.5rem; border: 1px solid #e5e7eb;">100%</td><td style="padding: 0.5rem; border: 1px solid #e5e7eb;">Default, general use</td></tr>
+        <tr><td style="padding: 0.5rem; border: 1px solid #e5e7eb;">LG</td><td style="padding: 0.5rem; border: 1px solid #e5e7eb;">1.5×</td><td style="padding: 0.5rem; border: 1px solid #e5e7eb;">150%</td><td style="padding: 0.5rem; border: 1px solid #e5e7eb;">Desktop applications, spacious layouts</td></tr>
+        <tr><td style="padding: 0.5rem; border: 1px solid #e5e7eb;">XL</td><td style="padding: 0.5rem; border: 1px solid #e5e7eb;">2.0×</td><td style="padding: 0.5rem; border: 1px solid #e5e7eb;">200%</td><td style="padding: 0.5rem; border: 1px solid #e5e7eb;">Touch interfaces, accessibility, kiosks</td></tr>
+      </tbody>
+    </table>
+
+    <h3>Customizing Heights</h3>
+    <div class="code">/* Option 1: Direct px override */
+web-daterangepicker {
+  --drp-input-size-md-height: 42px;
+}
+
+/* Option 2: Scale all sizes via --drp-rem */
+web-daterangepicker {
+  --drp-rem: 12px;  /* MD = 3.5 × 12 = 42px */
+}
+
+/* Option 3: Override specific size with calc */
+web-daterangepicker {
+  --drp-input-size-md-height: calc(4.2 * var(--drp-rem));
+}</div>
+  </div>
+
+  <div class="card">
     <h2>Input Size Attribute</h2>
     <p>Control input field size independently using the <code>input-size</code> attribute (floating mode only).</p>
     <div class="grid">
@@ -192,7 +251,7 @@
           input-size="xs"
           selection-mode="single"
           placeholder="YYYY-MM-DD"></web-daterangepicker>
-        <small>Very compact input - 1.5rem height</small>
+        <small>Very compact input - 3.1rem (31px) height</small>
       </div>
 
       <div class="form-group">
@@ -201,7 +260,7 @@
           input-size="sm"
           selection-mode="single"
           placeholder="YYYY-MM-DD"></web-daterangepicker>
-        <small>Compact input - 2rem height</small>
+        <small>Compact input - 3.3rem (33px) height</small>
       </div>
 
       <div class="form-group">
@@ -210,7 +269,7 @@
           input-size="md"
           selection-mode="single"
           placeholder="YYYY-MM-DD"></web-daterangepicker>
-        <small>Normal input - 2.5rem height</small>
+        <small>Normal input - 3.5rem (35px) height</small>
       </div>
 
       <div class="form-group">
@@ -219,7 +278,7 @@
           input-size="lg"
           selection-mode="single"
           placeholder="YYYY-MM-DD"></web-daterangepicker>
-        <small>Spacious input - 3rem height</small>
+        <small>Spacious input - 3.8rem (38px) height</small>
       </div>
 
       <div class="form-group">
@@ -228,7 +287,7 @@
           input-size="xl"
           selection-mode="single"
           placeholder="YYYY-MM-DD"></web-daterangepicker>
-        <small>Touch-friendly input - 3.5rem height</small>
+        <small>Touch-friendly input - 4.1rem (41px) height</small>
       </div>
     </div>
 

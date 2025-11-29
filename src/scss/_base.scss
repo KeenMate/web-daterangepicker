@@ -8,11 +8,23 @@
 // ==============================================================================
 // CSS CUSTOM PROPERTIES (CSS VARIABLES)
 // ==============================================================================
-// Define CSS custom properties with SCSS fallbacks for runtime customization
-// Using :host for Shadow DOM (web component) and :root for Light DOM (direct class usage)
+// Define CSS custom properties with SCSS fallbacks for runtime customization.
+// Using :host for Shadow DOM (web component) and :root for Light DOM (direct class usage).
+//
+// CSS custom properties inherit through the Shadow DOM boundary, so external
+// :root definitions will cascade into the component. The :host/:root selector
+// here sets defaults that can be overridden.
 
 :host,
 :root {
+  // ===========================================================================
+  // BASE REM UNIT
+  // ===========================================================================
+  // Internal 10px-based unit for clean math. Override to scale the component.
+  // Default 10px produces same visual output as standard 16px rem.
+  // Set to 1rem in Pure Admin (10px base) to scale with document.
+  --drp-rem: 10px;
+
   // ===========================================================================
   // SIZING SCALE SYSTEM (THREE INDEPENDENT MULTIPLIERS)
   // ===========================================================================
@@ -117,31 +129,31 @@
   --drp-input-size-xs-font: #{$font-size-xs};
   --drp-input-size-xs-padding-v: #{$padding-xs};
   --drp-input-size-xs-padding-h: #{$padding-xs};
-  --drp-input-size-xs-height: 1.5rem;
+  --drp-input-size-xs-height: calc(3.1 * var(--drp-rem));   // 31px
   --drp-input-size-xs-icon-size: 0.75em;
 
   --drp-input-size-sm-font: #{$drp-font-size-sm};
   --drp-input-size-sm-padding-v: #{$drp-spacing-xs};
   --drp-input-size-sm-padding-h: #{$drp-spacing-sm};
-  --drp-input-size-sm-height: 2rem;
+  --drp-input-size-sm-height: calc(3.3 * var(--drp-rem));   // 33px
   --drp-input-size-sm-icon-size: 0.875em;
 
   --drp-input-size-md-font: #{$drp-font-size-base};
   --drp-input-size-md-padding-v: #{$drp-spacing-sm};
   --drp-input-size-md-padding-h: #{$padding-base};
-  --drp-input-size-md-height: 2.5rem;
+  --drp-input-size-md-height: calc(3.5 * var(--drp-rem));   // 35px
   --drp-input-size-md-icon-size: 1em;
 
   --drp-input-size-lg-font: #{$drp-font-size-lg};
   --drp-input-size-lg-padding-v: #{$drp-spacing-md};
   --drp-input-size-lg-padding-h: #{$drp-spacing-md};
-  --drp-input-size-lg-height: 3rem;
+  --drp-input-size-lg-height: calc(3.8 * var(--drp-rem));   // 38px
   --drp-input-size-lg-icon-size: 1.125em;
 
   --drp-input-size-xl-font: #{$font-size-xl};
   --drp-input-size-xl-padding-v: #{$drp-spacing-md};
   --drp-input-size-xl-padding-h: #{$drp-spacing-lg};
-  --drp-input-size-xl-height: 3.5rem;
+  --drp-input-size-xl-height: calc(4.1 * var(--drp-rem));   // 41px
   --drp-input-size-xl-icon-size: 1.25em;
 
   // ===========================================================================

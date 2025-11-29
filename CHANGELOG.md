@@ -7,6 +7,40 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.5.0] - 2025-11-28
+
+### Changed
+
+- **10px-Based Sizing System**: Converted all rem units to a 10px-based system using `--drp-rem: 10px`
+  - All spacing, padding, border-radius, font-size, and height values now use `calc(multiplier * var(--drp-rem))`
+  - Visual output remains **identical** - same pixel values, cleaner internal math
+  - Enables easy scaling by overriding single `--drp-rem` variable
+  - Formula: `multiplier = old_rem_value × 16 ÷ 10`
+
+- **New Input Height Values**: Updated input sizes to match Pure Admin design system
+  | Size | Value | Pixels |
+  |------|-------|--------|
+  | XS | 3.1rem | 31px |
+  | SM | 3.3rem | 33px |
+  | MD | 3.5rem | 35px |
+  | LG | 3.8rem | 38px |
+  | XL | 4.1rem | 41px |
+
+### Added
+
+- **`--drp-rem` CSS Variable**: New base unit variable for scaling
+  - Default: `10px` (produces same visual output as before)
+  - Override to scale entire component: `--drp-rem: 1rem` (inherits from document)
+  - Three customization methods documented in README
+
+### Documentation
+
+- Updated README with Input Size Scale section and customization examples
+- Documented three ways to customize input heights:
+  1. Direct px override: `--drp-input-size-md-height: 42px`
+  2. Scale via `--drp-rem`: `--drp-rem: 12px`
+  3. Override with calc: `--drp-input-size-md-height: calc(4.2 * var(--drp-rem))`
+
 ## [1.4.0] - 2025-11-27 ✅ Published
 
 ### Added

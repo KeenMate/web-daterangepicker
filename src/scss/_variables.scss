@@ -10,24 +10,26 @@
 // ==============================================================================
 // These are foundational values that can be used across the component
 
-$padding-xs: 0.25rem !default;
-$padding-sm: 0.5rem !default;
-$padding-base: 0.75rem !default;
-$padding-md: 1rem !default;
-$padding-lg: 1.5rem !default;
+// All values use calc() with --drp-rem (10px base) for clean math
+// Formula: old_rem_value × 16 ÷ 10 = multiplier
+$padding-xs: calc(0.4 * var(--drp-rem)) !default;      // 4px (was 0.25rem)
+$padding-sm: calc(0.8 * var(--drp-rem)) !default;      // 8px (was 0.5rem)
+$padding-base: calc(1.2 * var(--drp-rem)) !default;    // 12px (was 0.75rem)
+$padding-md: calc(1.6 * var(--drp-rem)) !default;      // 16px (was 1rem)
+$padding-lg: calc(2.4 * var(--drp-rem)) !default;      // 24px (was 1.5rem)
 
-$border-radius-sm: 0.25rem !default;
-$border-radius-base: 0.375rem !default;
-$border-radius-md: 0.5rem !default;
+$border-radius-sm: calc(0.4 * var(--drp-rem)) !default;   // 4px (was 0.25rem)
+$border-radius-base: calc(0.6 * var(--drp-rem)) !default; // 6px (was 0.375rem)
+$border-radius-md: calc(0.8 * var(--drp-rem)) !default;   // 8px (was 0.5rem)
 $border-radius-full: 9999px !default;
 
-$font-size-2xs: 0.625rem !default;
-$font-size-xs: 0.75rem !default;
-$font-size-sm: 0.875rem !default;
-$font-size-base: 1rem !default;
-$font-size-lg: 1.125rem !default;
-$font-size-xl: 1.25rem !default;
-$font-size-2xl: 1.5rem !default;
+$font-size-2xs: calc(1 * var(--drp-rem)) !default;     // 10px (was 0.625rem)
+$font-size-xs: calc(1.2 * var(--drp-rem)) !default;    // 12px (was 0.75rem)
+$font-size-sm: calc(1.4 * var(--drp-rem)) !default;    // 14px (was 0.875rem)
+$font-size-base: calc(1.6 * var(--drp-rem)) !default;  // 16px (was 1rem)
+$font-size-lg: calc(1.8 * var(--drp-rem)) !default;    // 18px (was 1.125rem)
+$font-size-xl: calc(2 * var(--drp-rem)) !default;      // 20px (was 1.25rem)
+$font-size-2xl: calc(2.4 * var(--drp-rem)) !default;   // 24px (was 1.5rem)
 
 $border-width-base: 1px !default;
 
@@ -35,11 +37,11 @@ $border-width-base: 1px !default;
 // SPACING SCALE
 // ==============================================================================
 
-$drp-spacing-xs: 0.25rem !default;
-$drp-spacing-sm: 0.5rem !default;
-$drp-spacing-md: 1rem !default;
-$drp-spacing-lg: 1.5rem !default;
-$drp-spacing-xl: 2rem !default;
+$drp-spacing-xs: calc(0.4 * var(--drp-rem)) !default;   // 4px (was 0.25rem)
+$drp-spacing-sm: calc(0.8 * var(--drp-rem)) !default;   // 8px (was 0.5rem)
+$drp-spacing-md: calc(1.6 * var(--drp-rem)) !default;   // 16px (was 1rem)
+$drp-spacing-lg: calc(2.4 * var(--drp-rem)) !default;   // 24px (was 1.5rem)
+$drp-spacing-xl: calc(3.2 * var(--drp-rem)) !default;   // 32px (was 2rem)
 
 // ==============================================================================
 // COLOR PALETTE
@@ -164,7 +166,7 @@ $drp-month-year-border-radius: $drp-border-radius !default;
 // --------------------------------------
 // Navigation Buttons
 // --------------------------------------
-$drp-nav-size: 2rem !default;
+$drp-nav-size: calc(3.2 * var(--drp-rem)) !default;   // 32px (was 2rem)
 $drp-nav-font-size: $drp-font-size-lg !default;
 $drp-nav-border-color: $drp-border-color !default;
 $drp-nav-border-width: $drp-border-width-base !default;
@@ -190,7 +192,7 @@ $drp-rolling-scrollbar-thumb-hover: $drp-color-accent !default;
 $drp-rolling-item-padding-v: $drp-spacing-xs !default;  // Half of sm (0.25rem instead of 0.5rem)
 $drp-rolling-item-padding-h: $drp-spacing-md !default;
 $drp-rolling-item-font-size: $drp-font-size-sm !default;
-$drp-rolling-item-min-height: 2rem !default;
+$drp-rolling-item-min-height: calc(3.2 * var(--drp-rem)) !default;   // 32px (was 2rem)
 $drp-rolling-item-justify-content: center !default;
 $drp-rolling-item-bg-hover: $drp-color-neutral-lighter !default;
 $drp-rolling-item-bg-selected: $drp-color-accent !default;

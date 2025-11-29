@@ -511,6 +511,39 @@ Customize the appearance using CSS custom properties:
 }
 ```
 
+### Input Size Scale
+
+The component uses a 10px-based sizing system (`--drp-rem: 10px`) for clean, predictable dimensions:
+
+| Size | Attribute | Height |
+|------|-----------|--------|
+| XS   | `input-size="xs"` | 31px |
+| SM   | `input-size="sm"` | 33px |
+| MD   | `input-size="md"` | 35px (default) |
+| LG   | `input-size="lg"` | 38px |
+| XL   | `input-size="xl"` | 41px |
+
+#### Customizing Input Heights
+
+Three ways to customize input dimensions:
+
+```css
+/* Option 1: Direct px override */
+web-daterangepicker {
+  --drp-input-size-md-height: 42px;
+}
+
+/* Option 2: Scale all sizes via --drp-rem */
+web-daterangepicker {
+  --drp-rem: 12px;  /* MD = 3.5 × 12 = 42px */
+}
+
+/* Option 3: Override specific size with calc */
+web-daterangepicker {
+  --drp-input-size-md-height: calc(4.2 * var(--drp-rem));
+}
+```
+
 ### Quick Sizing Examples
 
 ```css
