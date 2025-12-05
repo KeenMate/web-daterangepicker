@@ -73,6 +73,16 @@ export interface BeforeMonthChangeResult {
    */
   metadata?: Map<string, DateInfo>;
 
+  /**
+   * Custom header text for each month
+   * Key: "YYYY-MM" string (e.g., "2026-01" for January 2026)
+   * Value: Custom header text to display (e.g., "Jan 2026 (10 rooms)")
+   *
+   * When provided, these values override the default month header format.
+   * Takes precedence over getMonthHeaderCallback.
+   */
+  monthHeaders?: Map<string, string>;
+
   /** Optional message to log or display (typically used with 'block' action) */
   message?: string;
 }
@@ -259,6 +269,31 @@ export interface DatePickerOptions {
     lastMonth: Date;
     anchorMonth: Date;
     monthNames: string[];
+  }) => string;
+
+  /**
+   * Callback to customize individual month header display text
+   *
+   * @param data - Contains the month being displayed and localized info
+   * @returns String to display in month header
+   *
+   * Priority order for month headers:
+   * 1. monthHeaders from beforeMonthChangedCallback result (if key exists)
+   * 2. getMonthHeaderCallback (if defined)
+   * 3. Default: "${monthName} ${year}"
+   *
+   * @example Display room availability
+   * getMonthHeaderCallback: ({ month, monthName, year }) => {
+   *   const key = `${year}-${String(month.getMonth()).padStart(2, '0')}`;
+   *   const rooms = roomAvailability[key] || 0;
+   *   return `${monthName} ${year} (${rooms} rooms)`;
+   * }
+   */
+  getMonthHeaderCallback?: (data: {
+    month: Date;
+    monthIndex: number;
+    monthName: string;
+    year: number;
   }) => string;
 
   /**

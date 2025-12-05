@@ -7,6 +7,39 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.6.0] - 2025-12-05
+
+### Added
+
+- **Custom Month Headers** - New `getMonthHeaderCallback` option to customize individual month header text
+  - Callback receives `{ month, monthIndex, monthName, year }` and returns custom header string
+  - Example: Display room availability like "Jan 2026 (10 rooms)"
+
+- **Month Headers from beforeMonthChangedCallback** - The `beforeMonthChangedCallback` can now return a `monthHeaders` map
+  - Key: `"YYYY-MM"` format (e.g., "2026-01")
+  - Value: Custom header text to display
+  - Useful when header content depends on async-loaded data
+  - Priority order: `monthHeaders` > `getMonthHeaderCallback` > default format
+
+- **Themeable Loading Overlay** - New CSS variables for async loading overlay styling
+  - `--drp-loading-overlay-background` - Overlay background color (default: semi-transparent white)
+  - `--drp-loading-spinner-color` - Spinner border color
+  - `--drp-loading-spinner-accent` - Spinner accent/animated color
+  - Enables proper dark theme support for loading states
+
+### Changed
+
+- **BREAKING: Unified Theming Variable Renames** - Renamed several CSS variables for consistency with unified theming system across KeenMate components
+  - `--drp-accent-text-color` → `--drp-text-on-accent`
+  - `--drp-input-disabled-background` → `--drp-input-background-disabled`
+  - `--drp-card-bg` → `--drp-dropdown-background`
+  - `--drp-tooltip-bg` → `--drp-tooltip-background`
+  - `--drp-tooltip-color` → `--drp-tooltip-text-color`
+  - This ensures consistent naming patterns across all KeenMate components (web-multiselect, web-daterangepicker, etc.)
+  - Tier 1 variables (core colors, inputs, dropdowns, tooltips) now have identical suffixes across components
+  - Enables better integration with the [Theme Designer](https://theme-designer.keenmate.dev) tool
+  - **Migration**: Find and replace the old variable names with the new ones in your stylesheets
+
 ## [1.5.0] - 2025-11-28
 
 ### Changed

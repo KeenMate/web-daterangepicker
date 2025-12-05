@@ -145,7 +145,7 @@
 
     /* Dark theme */
     web-daterangepicker.theme-dark {
-      --drp-card-bg: #1e293b;
+      --drp-dropdown-background: #1e293b;
       --drp-text-primary: #f1f5f9;
       --drp-text-secondary: #cbd5e1;
       --drp-border-color: #334155;
@@ -153,7 +153,7 @@
       --drp-accent-color-hover: #2563eb;
       --drp-primary-bg: #334155;
       --drp-primary-bg-hover: #475569;
-      --drp-accent-text-color: #ffffff;
+      --drp-text-on-accent: #ffffff;
       --drp-button-text-color: #ffffff;
     }
 
@@ -175,13 +175,13 @@
 
     /* Pastel yellow/orange theme */
     web-daterangepicker.theme-pastel {
-      --drp-card-bg: #fef3c7;
+      --drp-dropdown-background: #fef3c7;
       --drp-border-color: #fbbf24;
       --drp-accent-color: #f59e0b;
       --drp-accent-color-hover: #d97706;
       --drp-primary-bg: #fed7aa;
       --drp-primary-bg-hover: #fdba74;
-      --drp-accent-text-color: #ffffff;
+      --drp-text-on-accent: #ffffff;
     }
   </style>
 </head>
@@ -278,7 +278,7 @@ web-daterangepicker.theme-green {
       ✓ If calendar has dark background and light text, multiple variable override is working!
     </div>
     <div class="code-block">web-daterangepicker.theme-dark {
-  --drp-card-bg: #1e293b;
+  --drp-dropdown-background: #1e293b;
   --drp-text-primary: #f1f5f9;
   --drp-text-secondary: #cbd5e1;
   --drp-border-color: #334155;
@@ -286,7 +286,7 @@ web-daterangepicker.theme-green {
   --drp-accent-color-hover: #2563eb;
   --drp-primary-bg: #334155;
   --drp-primary-bg-hover: #475569;
-  --drp-accent-text-color: #ffffff;
+  --drp-text-on-accent: #ffffff;
   --drp-button-text-color: #ffffff;
 }</div>
   </div>
@@ -357,7 +357,7 @@ web-daterangepicker.theme-green {
     <p>All variables you can override with <code>--drp-</code> prefix:</p>
 
     <h3 style="margin-top: 1.5rem; font-size: 1.1rem;">Colors</h3>
-    <div class="code-block">--drp-card-bg              /* Calendar background */
+    <div class="code-block">--drp-dropdown-background              /* Calendar background */
 --drp-border-color          /* Border color */
 --drp-primary-bg            /* Primary background (hover states) */
 --drp-primary-bg-hover      /* Primary background hover */

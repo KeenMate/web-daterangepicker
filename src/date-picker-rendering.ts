@@ -107,11 +107,37 @@ export function renderNormalView(picker: any, monthIndex: number) {
 
     // Get picker month's date
     const date = picker.monthDates[monthIndex];
+    const year = date.getFullYear();
+    const month = date.getMonth();
+    const monthName = picker.monthNames[month];
 
-    // Update month/year display
+    // Update month/year display with custom header support
     const monthYear = monthContainer.querySelector('.drp-date-picker__month-year');
     if (monthYear) {
-        monthYear.textContent = `${picker.monthNames[date.getMonth()]} ${date.getFullYear()}`;
+        // Priority order:
+        // 1. monthHeaders from beforeMonthChangedCallback result
+        // 2. getMonthHeaderCallback
+        // 3. Default format
+        const monthKey = `${year}-${String(month).padStart(2, '0')}`;
+        let headerText: string;
+
+        if (picker.monthHeadersCache?.has(monthKey)) {
+            // Use cached header from beforeMonthChangedCallback
+            headerText = picker.monthHeadersCache.get(monthKey)!;
+        } else if (picker.options.getMonthHeaderCallback) {
+            // Use callback to generate header
+            headerText = picker.options.getMonthHeaderCallback({
+                month: date,
+                monthIndex: monthIndex,
+                monthName: monthName,
+                year: year
+            });
+        } else {
+            // Default format
+            headerText = `${monthName} ${year}`;
+        }
+
+        monthYear.textContent = headerText;
     }
 
     // Update unified navigation (if enabled and this is the first month change)

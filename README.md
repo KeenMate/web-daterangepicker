@@ -463,6 +463,66 @@ By default, when you select a range that includes disabled dates, all dates (bot
 
 ## Theming
 
+### Theme Designer
+
+The easiest way to customize the appearance of this component is using the **KeenMate Theme Designer** at:
+
+**[theme-designer.keenmate.dev](https://theme-designer.keenmate.dev)**
+
+#### How It Works
+
+1. **Choose 3 base colors** - background, text, and accent
+2. **Preview changes live** - see your theme applied instantly
+3. **Fine-tune individual variables** - lock specific values while adjusting others
+4. **Export your theme** - copy CSS, JSON, or SCSS to your project
+
+#### CSS Variable Layers
+
+KeenMate components support a **two-layer theming architecture**:
+
+**Standalone Mode (Simple)** - Just override the component-specific variables you need:
+
+```css
+:root {
+  --drp-accent-color: #your-brand-color;
+  --drp-primary-bg: #your-background;
+  --drp-text-primary: #your-text-color;
+}
+```
+
+**Cascading Mode (Multi-Component)** - When using multiple KeenMate components, you can define a shared base layer:
+
+```css
+:root {
+  /* Base layer - single source of truth */
+  --base-accent-color: #3b82f6;
+  --base-primary-bg: #ffffff;
+  --base-text-primary: #111827;
+
+  /* Components reference base layer */
+  --ms-accent-color: var(--base-accent-color);
+  --drp-accent-color: var(--base-accent-color);
+}
+```
+
+Change `--base-accent-color` once → all components update automatically.
+
+#### Unified Variable Naming
+
+All KeenMate components follow a consistent naming convention for **Tier 1 variables** (core theming):
+
+| Purpose | web-multiselect | web-daterangepicker |
+|---------|-----------------|---------------------|
+| Brand color | `--ms-accent-color` | `--drp-accent-color` |
+| Background | `--ms-primary-bg` | `--drp-primary-bg` |
+| Text color | `--ms-text-primary` | `--drp-text-primary` |
+| Text on accent | `--ms-text-on-accent` | `--drp-text-on-accent` |
+| Border color | `--ms-border-color` | `--drp-border-color` |
+
+Learn the pattern once, apply it across all components.
+
+### CSS Custom Properties
+
 Customize the appearance using CSS custom properties:
 
 ```css
@@ -473,7 +533,7 @@ Customize the appearance using CSS custom properties:
   --drp-cell-scale: 1;      /* Scale day cell dimensions */
 
   /* Colors */
-  --drp-card-bg: #ffffff;
+  --drp-dropdown-background: #ffffff;
   --drp-border-color: #e5e7eb;
   --drp-primary-bg: #f3f4f6;
   --drp-primary-bg-hover: #e5e7eb;
@@ -481,10 +541,10 @@ Customize the appearance using CSS custom properties:
   --drp-accent-color-hover: #2563eb;
   --drp-text-primary: #111827;
   --drp-text-secondary: #6b7280;
-  --drp-accent-text-color: #ffffff;
+  --drp-text-on-accent: #ffffff;
 
   /* Input Field */
-  --drp-input-background: var(--drp-card-bg);
+  --drp-input-background: var(--drp-dropdown-background);
   --drp-input-color: var(--drp-text-primary);
   --drp-input-border-color: var(--drp-border-color);
   --drp-input-border-color-hover: var(--drp-accent-color);

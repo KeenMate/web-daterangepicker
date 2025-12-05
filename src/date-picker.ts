@@ -77,6 +77,7 @@ class DateRangePicker {
     // Month change callback state
     private isMonthChanging: boolean = false;
     bulkMetadataCache: Map<string, DateInfo> | null = null;
+    monthHeadersCache: Map<string, string> | null = null;
 
     // Unified navigation state
     private unifiedHeader?: HTMLElement;
@@ -126,6 +127,7 @@ class DateRangePicker {
             unifiedNavigationAnchorIndex: options.unifiedNavigationAnchorIndex ?? 0,
             unifiedHeaderInteractive: options.unifiedHeaderInteractive || false,
             getUnifiedHeaderCallback: options.getUnifiedHeaderCallback,
+            getMonthHeaderCallback: options.getMonthHeaderCallback,
             weekStartDay: options.weekStartDay !== undefined ? options.weekStartDay : 'auto',
             minDate: options.minDate,
             maxDate: options.maxDate,

@@ -262,7 +262,7 @@
 
   display: none;
   z-index: 100; // Above everything
-  background: var(--drp-card-bg); // White background to cover calendar below
+  background: var(--drp-dropdown-background); // White background to cover calendar below
   gap: var(--drp-spacing-xs); // Match normal rolling selector gap
 
   &--visible {

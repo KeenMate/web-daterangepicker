@@ -20,6 +20,7 @@ export class WebDaterangepickerElement extends HTMLElement {
     private _beforeMonthChangedCallback?: (context: any) => Promise<any> | any;
     private _formatSummaryCallback?: (data: any) => string;
     private _getUnifiedHeaderCallback?: (data: { firstMonth: Date; lastMonth: Date; anchorMonth: Date; monthNames: string[] }) => string;
+    private _getMonthHeaderCallback?: (data: { month: Date; monthIndex: number; monthName: string; year: number }) => string;
 
     // Member mapping properties for specialDates array
     private _dateMember?: string;
@@ -286,6 +287,7 @@ export class WebDaterangepickerElement extends HTMLElement {
             beforeMonthChangedCallback: this._beforeMonthChangedCallback,
             formatSummaryCallback: this._formatSummaryCallback,
             getUnifiedHeaderCallback: this._getUnifiedHeaderCallback,
+            getMonthHeaderCallback: this._getMonthHeaderCallback,
 
             // Action button configuration
             autoClose: (this.getAttribute('auto-close') as 'never' | 'selection' | 'apply') || undefined,
@@ -733,6 +735,15 @@ export class WebDaterangepickerElement extends HTMLElement {
 
     set getUnifiedHeaderCallback(value: ((data: { firstMonth: Date; lastMonth: Date; anchorMonth: Date; monthNames: string[] }) => string) | undefined) {
         this._getUnifiedHeaderCallback = value;
+        this.scheduleReinit();
+    }
+
+    get getMonthHeaderCallback(): ((data: { month: Date; monthIndex: number; monthName: string; year: number }) => string) | undefined {
+        return this._getMonthHeaderCallback;
+    }
+
+    set getMonthHeaderCallback(value: ((data: { month: Date; monthIndex: number; monthName: string; year: number }) => string) | undefined) {
+        this._getMonthHeaderCallback = value;
         this.scheduleReinit();
     }
 

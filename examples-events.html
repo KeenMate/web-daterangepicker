@@ -616,6 +616,99 @@ picker.beforeDateSelectCallback = async (range) => {
     </div>
   </div>
 
+  <!-- Custom Month Headers -->
+  <div class="card">
+    <h2>Custom Month Headers</h2>
+    <p>
+      Customize the month header text (e.g., "January 2026") to display additional information
+      like room availability, occupancy rates, or any business-specific data.
+    </p>
+
+    <div class="info-box">
+      <strong>Two Approaches:</strong>
+      <ul style="margin: 0.5rem 0 0 1.5rem;">
+        <li><code>getMonthHeaderCallback</code> - Callback to generate header on-the-fly</li>
+        <li><code>monthHeaders</code> in <code>beforeMonthChangedCallback</code> result - Return headers with async-loaded data</li>
+      </ul>
+      <p style="margin-top: 0.5rem;"><strong>Priority:</strong> monthHeaders &gt; getMonthHeaderCallback &gt; default format</p>
+    </div>
+
+    <div class="grid">
+      <!-- Example: getMonthHeaderCallback -->
+      <div class="form-group">
+        <label>Working Days in Headers</label>
+        <web-daterangepicker id="header-callback" selection-mode="range" visible-months-count="2"></web-daterangepicker>
+        <small>Headers show working day counts (excludes weekends &amp; holidays)</small>
+        <div id="log-header-callback" class="event-log" style="max-height: 150px;">
+          <div style="color: #9ca3af;">Headers will update as you navigate...</div>
+        </div>
+      </div>
+
+      <!-- Example: monthHeaders from beforeMonthChangedCallback -->
+      <div class="form-group">
+        <label>Headers from Async Data</label>
+        <web-daterangepicker id="header-async" selection-mode="range" visible-months-count="2"></web-daterangepicker>
+        <small>Headers loaded with pricing data</small>
+        <div id="log-header-async" class="event-log" style="max-height: 150px;">
+          <div style="color: #9ca3af;">Navigate to load headers with data...</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="grid">
+      <div class="form-group">
+        <label>
+          <span class="status-indicator status-blocked"></span>
+          Block Navigation (3 months max)
+        </label>
+        <web-daterangepicker id="header-block" selection-mode="range" visible-months-count="1"></web-daterangepicker>
+        <small>Cannot navigate more than 3 months ahead</small>
+        <div id="log-header-block" class="event-log" style="max-height: 150px;">
+          <div style="color: #9ca3af;">Try navigating past 3 months...</div>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>3-Month Grid with Occupancy</label>
+        <web-daterangepicker
+          id="header-grid"
+          selection-mode="range"
+          visible-months-count="3"
+          unified-navigation="true"
+        ></web-daterangepicker>
+        <small>Headers show occupancy rates with icons</small>
+        <div id="log-header-grid" class="event-log" style="max-height: 150px;">
+          <div style="color: #9ca3af;">Headers show occupancy percentage...</div>
+        </div>
+      </div>
+    </div>
+
+    <h3>Code Examples</h3>
+    <pre><code>// Approach 1: getMonthHeaderCallback
+picker.getMonthHeaderCallback = ({ month, monthName, year }) => {
+  const key = `${year}-${String(month.getMonth()).padStart(2, '0')}`;
+  const rooms = roomAvailability[key] || 0;
+  return `${monthName} ${year} (${rooms} rooms)`;
+};
+
+// Approach 2: monthHeaders from beforeMonthChangedCallback
+picker.beforeMonthChangedCallback = async ({ year, month }) => {
+  const data = await fetchAvailability(year, month);
+
+  const monthHeaders = new Map();
+  const monthKey = `${year}-${String(month).padStart(2, '0')}`;
+  const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+                      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  monthHeaders.set(monthKey, `${monthNames[month]} ${year} (${data.totalRooms} rooms)`);
+
+  return {
+    action: 'accept',
+    metadata: data.dateMetadata,
+    monthHeaders  // Custom headers returned with data
+  };
+};</code></pre>
+  </div>
+
   <script type="module">
     import { WebDaterangepickerElement } from './src/index.ts';
 
@@ -1083,6 +1176,210 @@ picker.beforeDateSelectCallback = async (range) => {
         action: 'accept',
         metadata: metadata
       };
+    };
+
+    // =================================================================
+    // Custom Month Headers Examples
+    // =================================================================
+
+    // Example: Working Days Count in Headers
+    const headerCallback = document.getElementById('header-callback');
+
+    // Helper to format date as YYYY-MM-DD (local timezone, no UTC shift)
+    function formatDateKey(date) {
+      const y = date.getFullYear();
+      const m = String(date.getMonth() + 1).padStart(2, '0');
+      const d = String(date.getDate()).padStart(2, '0');
+      return `${y}-${m}-${d}`;
+    }
+
+    // Generate special days dynamically relative to current date
+    // This ensures the demo always has visible holidays regardless of when viewed
+    function generateSpecialDays() {
+      const specialDays = new Set();
+      const today = new Date();
+      const currentYear = today.getFullYear();
+      const currentMonth = today.getMonth();
+
+      // For current month and surrounding months (±3 to +6), add some "holidays"
+      for (let offset = -3; offset <= 6; offset++) {
+        const targetDate = new Date(currentYear, currentMonth + offset, 1);
+        const year = targetDate.getFullYear();
+        const month = targetDate.getMonth();
+
+        // Add 15th of each month as a "company day off"
+        specialDays.add(formatDateKey(new Date(year, month, 15)));
+
+        // Add last Friday of each month as "monthly review day"
+        const lastDay = new Date(year, month + 1, 0);
+        while (lastDay.getDay() !== 5) lastDay.setDate(lastDay.getDate() - 1);
+        specialDays.add(formatDateKey(lastDay));
+
+        // Add first Monday of each month as "planning day"
+        const firstDay = new Date(year, month, 1);
+        while (firstDay.getDay() !== 1) firstDay.setDate(firstDay.getDate() + 1);
+        specialDays.add(formatDateKey(firstDay));
+      }
+      return specialDays;
+    }
+
+    const specialDays = generateSpecialDays();
+
+    // Custom styles for working day and special day highlighting
+    headerCallback.customStylesCallback = () => `
+      .drp-date-picker__day.working-day {
+        background-color: rgba(34, 197, 94, 0.15);
+      }
+      .drp-date-picker__day.special-day {
+        background-color: rgba(251, 191, 36, 0.25);
+      }
+    `;
+
+    // Calculate working days for a month
+    function getWorkingDays(year, month) {
+      const daysInMonth = new Date(year, month + 1, 0).getDate();
+      let workingDays = 0;
+
+      for (let day = 1; day <= daysInMonth; day++) {
+        const date = new Date(year, month, day);
+        const dayOfWeek = date.getDay();
+        const dateStr = formatDateKey(date);
+
+        // Mon-Fri (1-5) and not a special day
+        if (dayOfWeek >= 1 && dayOfWeek <= 5 && !specialDays.has(dateStr)) {
+          workingDays++;
+        }
+      }
+      return workingDays;
+    }
+
+    headerCallback.getMonthHeaderCallback = ({ month, monthName, year }) => {
+      const monthNum = month.getMonth();
+      const workingDays = getWorkingDays(year, monthNum);
+      const monthStr = String(monthNum + 1).padStart(2, '0');
+      logEvent('log-header-callback', `Header: ${monthStr}/${year}`, { workingDays }, 'success');
+      return `${monthStr}/${year} ${workingDays}WD`;
+    };
+
+    // Mark working days and special days with colors
+    headerCallback.beforeMonthChangedCallback = ({ firstVisibleDate, lastVisibleDate }) => {
+      const metadata = new Map();
+      const current = new Date(firstVisibleDate);
+      const endDate = new Date(lastVisibleDate);
+
+      while (current <= endDate) {
+        const dateStr = formatDateKey(current);
+        const dayOfWeek = current.getDay();
+        const isWeekday = dayOfWeek >= 1 && dayOfWeek <= 5;
+        const isSpecialDay = specialDays.has(dateStr);
+
+        if (isWeekday && !isSpecialDay) {
+          // Working day - light green
+          metadata.set(dateStr, { dayClass: 'working-day' });
+        } else if (isSpecialDay) {
+          // Special non-working day - amber/yellow
+          metadata.set(dateStr, {
+            dayClass: 'special-day',
+            dayTooltip: 'Non-working day'
+          });
+        }
+        current.setDate(current.getDate() + 1);
+      }
+
+      return { action: 'accept', metadata };
+    };
+
+    // Example: monthHeaders from beforeMonthChangedCallback
+    const headerAsync = document.getElementById('header-async');
+
+    // Custom styles for badge classes
+    headerAsync.customStylesCallback = () => `
+      .drp-date-picker__badge-cell.rooms-high {
+        background-color: rgba(34, 197, 94, 0.3);
+        color: #166534;
+      }
+      .drp-date-picker__badge-cell.rooms-low {
+        background-color: rgba(251, 191, 36, 0.3);
+        color: #92400e;
+      }
+      .drp-date-picker__badge-cell.rooms-none {
+        background-color: rgba(239, 68, 68, 0.2);
+        color: #991b1b;
+      }
+    `;
+
+    headerAsync.beforeMonthChangedCallback = async ({ year, month, firstVisibleDate, lastVisibleDate }) => {
+      const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+                          'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+      logEvent('log-header-async', `Loading ${monthNames[month]} ${year}...`, {}, 'info');
+
+      // Simulate API delay
+      await new Promise(resolve => setTimeout(resolve, 400));
+
+      // Generate metadata
+      const metadata = new Map();
+      const monthHeaders = new Map();
+      let totalRooms = 0;
+
+      const currentDate = new Date(firstVisibleDate);
+      while (currentDate <= lastVisibleDate) {
+        const dateKey = currentDate.toISOString().split('T')[0];
+        const rooms = Math.floor(Math.random() * 20);
+        totalRooms += rooms;
+
+        metadata.set(dateKey, {
+          badgeText: rooms > 0 ? `${rooms}` : '✕',
+          badgeClass: rooms >= 10 ? 'rooms-high' : rooms > 0 ? 'rooms-low' : 'rooms-none',
+          dayTooltip: `${rooms} rooms available`
+        });
+
+        currentDate.setDate(currentDate.getDate() + 1);
+      }
+
+      // Set month header with loaded data
+      const monthKey = `${year}-${String(month).padStart(2, '0')}`;
+      monthHeaders.set(monthKey, `${monthNames[month]} ${year} (${totalRooms} total)`);
+
+      logEvent('log-header-async', `Loaded`, { header: monthHeaders.get(monthKey) }, 'success');
+
+      return { action: 'accept', metadata, monthHeaders };
+    };
+
+    // Example: Block Navigation
+    const headerBlock = document.getElementById('header-block');
+    const todayForBlock = new Date();
+    const maxMonthForBlock = new Date(todayForBlock.getFullYear(), todayForBlock.getMonth() + 3, 1);
+
+    headerBlock.beforeMonthChangedCallback = ({ year, month }) => {
+      const targetDate = new Date(year, month, 1);
+      const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+                          'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+      if (targetDate > maxMonthForBlock) {
+        logEvent('log-header-block', `BLOCKED: ${monthNames[month]} ${year}`, { reason: 'Too far ahead' }, 'error');
+        return { action: 'block', message: 'Cannot view more than 3 months ahead' };
+      }
+
+      logEvent('log-header-block', `Allowed: ${monthNames[month]} ${year}`, {}, 'success');
+      return { action: 'accept' };
+    };
+
+    // Example: Grid with Occupancy
+    const headerGrid = document.getElementById('header-grid');
+    const occupancyRates = {
+      '2025-00': 78, '2025-01': 65, '2025-02': 82,
+      '2025-03': 91, '2025-04': 88, '2025-05': 95,
+      '2025-06': 98, '2025-07': 97, '2025-08': 85,
+      '2025-09': 72, '2025-10': 68, '2025-11': 89
+    };
+
+    headerGrid.getMonthHeaderCallback = ({ month, monthName, year }) => {
+      const key = `${year}-${String(month.getMonth()).padStart(2, '0')}`;
+      const occupancy = occupancyRates[key] || Math.floor(50 + Math.random() * 50);
+      const status = occupancy >= 90 ? '🔥' : occupancy >= 70 ? '📈' : '📉';
+      logEvent('log-header-grid', `${monthName} ${year}`, { occupancy: `${occupancy}%` }, 'success');
+      return `${monthName} ${year} ${status} ${occupancy}%`;
     };
   </script>
 </body>

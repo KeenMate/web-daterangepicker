@@ -74,7 +74,7 @@
   // COLORS (not affected by density)
   // ===========================================================================
 
-  --drp-card-bg: #{$drp-calendar-bg};
+  --drp-dropdown-background: #{$drp-calendar-bg};
   --drp-border-color: #{$drp-border-color};
   --drp-primary-bg: #{$drp-color-neutral-lighter};
   --drp-primary-bg-hover: #{$drp-color-neutral-light};
@@ -82,10 +82,15 @@
   --drp-accent-color-hover: #{$drp-color-accent-dark};
   --drp-text-primary: #{$drp-color-neutral-darkest};
   --drp-text-secondary: #{$drp-color-neutral-dark};
-  --drp-accent-text-color: #{$drp-color-white};
+  --drp-text-on-accent: #{$drp-color-white};
   --drp-button-text-color: #{$drp-color-white};
-  --drp-tooltip-bg: #{$drp-tooltip-bg};
-  --drp-tooltip-color: #{$drp-tooltip-color};
+  --drp-tooltip-background: #{$drp-tooltip-bg};
+  --drp-tooltip-text-color: #{$drp-tooltip-color};
+
+  // Loading overlay (for async operations)
+  --drp-loading-overlay-background: rgba(255, 255, 255, 0.8);
+  --drp-loading-spinner-color: var(--drp-border-color);
+  --drp-loading-spinner-accent: var(--drp-accent-color);
 
   // ===========================================================================
   // OTHER PROPERTIES (not affected by density)
@@ -106,13 +111,13 @@
   // Semantic variables for input customization (loosely coupled)
 
   // Input colors
-  --drp-input-background: var(--drp-card-bg);
+  --drp-input-background: var(--drp-dropdown-background);
   --drp-input-color: var(--drp-text-primary);
   --drp-input-border-color: var(--drp-border-color);
   --drp-input-border-color-hover: var(--drp-accent-color);
   --drp-input-border-color-focus: var(--drp-accent-color);
   --drp-input-placeholder-color: var(--drp-text-secondary);
-  --drp-input-disabled-background: var(--drp-primary-bg);
+  --drp-input-background-disabled: var(--drp-primary-bg);
 
   // Input focus state
   --drp-input-focus-shadow-color: rgba(59, 130, 246, 0.1);
@@ -176,7 +181,7 @@
   --drp-rolling-scrollbar-thumb-hover: var(--drp-accent-color);
   --drp-rolling-item-bg-hover: var(--drp-primary-bg);
   --drp-rolling-item-bg-selected: var(--drp-accent-color);
-  --drp-rolling-item-color-selected: var(--drp-accent-text-color);
+  --drp-rolling-item-color-selected: var(--drp-text-on-accent);
   --drp-rolling-item-bg-selected-hover: var(--drp-accent-color-hover);
 
   // ===========================================================================
@@ -190,13 +195,13 @@
   --drp-day-border-hover: var(--drp-accent-color);
   --drp-day-today-border: var(--drp-accent-color);
   --drp-day-selected-bg: var(--drp-accent-color);
-  --drp-day-selected-color: var(--drp-accent-text-color);
+  --drp-day-selected-color: var(--drp-text-on-accent);
   --drp-day-selected-bg-hover: var(--drp-accent-color-hover);
   --drp-day-focused-outline: var(--drp-accent-color);
   --drp-day-disabled-color: var(--drp-text-secondary);
   --drp-day-other-month-color: var(--drp-text-secondary);
   --drp-day-range-bg: var(--drp-accent-color);
-  --drp-day-range-color: var(--drp-accent-text-color);
+  --drp-day-range-color: var(--drp-text-on-accent);
 
   // ===========================================================================
   // SUMMARY & ACTIONS SEMANTIC VARIABLES
@@ -222,7 +227,7 @@
   // ===========================================================================
 
   --drp-badge-number-bg: var(--drp-accent-color);
-  --drp-badge-number-color: var(--drp-accent-text-color);
+  --drp-badge-number-color: var(--drp-text-on-accent);
   --drp-badge-count-bg: #{$drp-color-error};
   --drp-badge-count-color: #{$drp-color-white};
   --drp-badge-text-bg: var(--drp-text-secondary);
@@ -278,7 +283,7 @@
   &:disabled {
     opacity: #{$drp-opacity-disabled};
     cursor: not-allowed;
-    background-color: var(--drp-input-disabled-background);
+    background-color: var(--drp-input-background-disabled);
   }
 
   // Size variants
@@ -359,7 +364,7 @@
 .drp-date-picker {
   position: absolute;
   z-index: $drp-z-index-dropdown;
-  background: var(--drp-card-bg);
+  background: var(--drp-dropdown-background);
   border: var(--drp-border-width-base) solid var(--drp-border-color);
   border-radius: var(--drp-border-radius);
   box-shadow: var(--drp-shadow-xl);

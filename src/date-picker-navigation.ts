@@ -115,11 +115,20 @@ export async function handleInitialMonthLoad(picker: any): Promise<void> {
                 hideLoadingOverlay(picker);
             }
 
-            navigationLogger.debug(`handleInitialMonthLoad() [UNIFIED] - callback completed, metadata items: ${result.metadata?.size || 0}`);
+            navigationLogger.debug(`handleInitialMonthLoad() [UNIFIED] - callback completed, metadata items: ${result.metadata?.size || 0}, monthHeaders: ${result.monthHeaders?.size || 0}`);
 
             if (result.metadata) {
                 picker.bulkMetadataCache = result.metadata;
                 navigationLogger.debug(`handleInitialMonthLoad() [UNIFIED] - bulk metadata cache updated with ${result.metadata.size} entries`);
+            }
+
+            // Store month headers if provided
+            if (result.monthHeaders) {
+                picker.monthHeadersCache = result.monthHeaders;
+                navigationLogger.debug(`handleInitialMonthLoad() [UNIFIED] - month headers cache updated with ${result.monthHeaders.size} entries`);
+            }
+
+            if (result.metadata || result.monthHeaders) {
                 picker.renderCalendar();
             }
 
@@ -127,8 +136,9 @@ export async function handleInitialMonthLoad(picker: any): Promise<void> {
             // NON-UNIFIED MODE: Call callback for EACH visible month separately
             navigationLogger.debug(`handleInitialMonthLoad() [NON-UNIFIED] - calling callback for ${picker.monthDates.length} months`);
 
-            // Initialize empty metadata map
+            // Initialize empty maps for combined data
             const combinedMetadata = new Map<string, any>();
+            const combinedMonthHeaders = new Map<string, string>();
             let hadAsync = false;
 
             for (let i = 0; i < picker.monthDates.length; i++) {
@@ -164,12 +174,19 @@ export async function handleInitialMonthLoad(picker: any): Promise<void> {
 
                 const result: BeforeMonthChangeResult = await Promise.resolve(callbackResult);
 
-                navigationLogger.debug(`handleInitialMonthLoad() [NON-UNIFIED] Col${i} - callback completed, metadata items: ${result.metadata?.size || 0}`);
+                navigationLogger.debug(`handleInitialMonthLoad() [NON-UNIFIED] Col${i} - callback completed, metadata items: ${result.metadata?.size || 0}, monthHeaders: ${result.monthHeaders?.size || 0}`);
 
                 // Merge metadata into combined map
                 if (result.metadata) {
                     result.metadata.forEach((value, key) => {
                         combinedMetadata.set(key, value);
+                    });
+                }
+
+                // Merge month headers into combined map
+                if (result.monthHeaders) {
+                    result.monthHeaders.forEach((value, key) => {
+                        combinedMonthHeaders.set(key, value);
                     });
                 }
             }
@@ -182,6 +199,15 @@ export async function handleInitialMonthLoad(picker: any): Promise<void> {
             if (combinedMetadata.size > 0) {
                 picker.bulkMetadataCache = combinedMetadata;
                 navigationLogger.debug(`handleInitialMonthLoad() [NON-UNIFIED] - combined metadata cache updated with ${combinedMetadata.size} entries`);
+            }
+
+            // Update month headers cache with combined data from all months
+            if (combinedMonthHeaders.size > 0) {
+                picker.monthHeadersCache = combinedMonthHeaders;
+                navigationLogger.debug(`handleInitialMonthLoad() [NON-UNIFIED] - combined month headers cache updated with ${combinedMonthHeaders.size} entries`);
+            }
+
+            if (combinedMetadata.size > 0 || combinedMonthHeaders.size > 0) {
                 picker.renderCalendar();
             }
         }
@@ -315,7 +341,7 @@ export async function handleBeforeMonthChange(
         }
 
         // Action is 'accept'
-        navigationLogger.debug(`handleBeforeMonthChange() - navigation accepted, metadata items: ${result.metadata?.size || 0}`);
+        navigationLogger.debug(`handleBeforeMonthChange() - navigation accepted, metadata items: ${result.metadata?.size || 0}, monthHeaders: ${result.monthHeaders?.size || 0}`);
 
         // Update bulk metadata cache if provided
         if (result.metadata) {
@@ -333,6 +359,21 @@ export async function handleBeforeMonthChange(
         } else {
             // Clear cache if no metadata provided
             picker.bulkMetadataCache = null;
+        }
+
+        // Update month headers cache if provided
+        if (result.monthHeaders) {
+            if (!picker.monthHeadersCache) {
+                // No existing cache, create new one
+                picker.monthHeadersCache = result.monthHeaders;
+                navigationLogger.debug(`handleBeforeMonthChange() - month headers cache created with ${result.monthHeaders.size} entries`);
+            } else {
+                // Merge new headers into existing cache
+                result.monthHeaders.forEach((value, key) => {
+                    picker.monthHeadersCache.set(key, value);
+                });
+                navigationLogger.debug(`handleBeforeMonthChange() - merged ${result.monthHeaders.size} entries into headers cache (total: ${picker.monthHeadersCache.size})`);
+            }
         }
 
         return true; // Allow navigation
