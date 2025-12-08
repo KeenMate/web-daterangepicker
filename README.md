@@ -143,9 +143,6 @@ See the [JavaScript Instantiation Examples](examples-javascript-instantiation.ht
 | `auto-close` | `'never' \| 'selection' \| 'apply'` | `'selection'` | When to close calendar (selection = after picking, apply = after Apply button, never = manual) |
 | `positioning-mode` | `'inline' \| 'floating'` | `'floating'` | Calendar positioning (inline = embedded, floating = popup) |
 | `input-size` | `'xs' \| 'sm' \| 'md' \| 'lg' \| 'xl'` | `'md'` | Input field size (floating mode only) |
-| `spacing` | `'xs' \| 'sm' \| 'md' \| 'lg' \| 'xl'` | `'md'` | Calendar spacing scale |
-| `font-size` | `'xs' \| 'sm' \| 'md' \| 'lg' \| 'xl'` | `'md'` | Calendar font size scale |
-| `cell-size` | `'xs' \| 'sm' \| 'md' \| 'lg' \| 'xl'` | `'md'` | Calendar day cell size |
 | `enable-transitions` | `boolean` | `false` | Enable CSS transitions/animations |
 
 ## Properties
@@ -306,22 +303,26 @@ picker.getDateMetadataCallback = (date) => {
 
 ### CSS Styling for Special Dates
 
-```css
-/* Holiday styling (predefined class) */
-web-daterangepicker::part(calendar) .pa-date-picker__day.holiday {
-  background-color: rgba(239, 68, 68, 0.1);
-}
+Since the component uses Shadow DOM, inject custom styles via the `customStylesCallback`:
 
-/* Event styling (predefined class) */
-web-daterangepicker::part(calendar) .pa-date-picker__day.event {
-  background-color: rgba(16, 185, 129, 0.1);
-}
+```javascript
+picker.customStylesCallback = () => `
+  /* Holiday styling */
+  .drp-date-picker__day.holiday {
+    background-color: rgba(239, 68, 68, 0.1);
+  }
 
-/* Custom class example */
-web-daterangepicker::part(calendar) .pa-date-picker__day.peak-season {
-  background-color: rgba(251, 191, 36, 0.15);
-  font-weight: 600;
-}
+  /* Event styling */
+  .drp-date-picker__day.event {
+    background-color: rgba(16, 185, 129, 0.1);
+  }
+
+  /* Custom class example */
+  .drp-date-picker__day.peak-season {
+    background-color: rgba(251, 191, 36, 0.15);
+    font-weight: 600;
+  }
+`;
 ```
 
 ## Range Selection Modes
@@ -527,10 +528,8 @@ Customize the appearance using CSS custom properties:
 
 ```css
 :root {
-  /* Scale Multipliers - adjust these to scale the entire component */
-  --drp-font-scale: 1;      /* Scale all font sizes (e.g., 1.2 = 20% larger) */
-  --drp-spacing-scale: 1;   /* Scale all padding/margins/gaps */
-  --drp-cell-scale: 1;      /* Scale day cell dimensions */
+  /* Base Unit - scale entire component by changing this */
+  --drp-rem: 10px;          /* Default base unit (change to scale everything) */
 
   /* Colors */
   --drp-dropdown-background: #ffffff;
@@ -551,12 +550,17 @@ Customize the appearance using CSS custom properties:
   --drp-input-border-color-focus: var(--drp-accent-color);
   --drp-input-placeholder-color: var(--drp-text-secondary);
 
-  /* Typography */
-  --drp-font-size-xs: 0.75rem;
-  --drp-font-size-sm: 0.875rem;
-  --drp-font-size-base: 1rem;
+  /* Typography (all scale with --drp-rem) */
+  --drp-font-size-xs: calc(1.2 * var(--drp-rem));   /* 12px */
+  --drp-font-size-sm: calc(1.4 * var(--drp-rem));   /* 14px */
+  --drp-font-size-base: calc(1.6 * var(--drp-rem)); /* 16px */
   --drp-font-weight-medium: 500;
   --drp-font-weight-semibold: 600;
+
+  /* Spacing (all scale with --drp-rem) */
+  --drp-spacing-xs: calc(0.4 * var(--drp-rem));  /* 4px */
+  --drp-spacing-sm: calc(0.8 * var(--drp-rem));  /* 8px */
+  --drp-spacing-md: calc(1.6 * var(--drp-rem));  /* 16px */
 
   /* Borders */
   --drp-border-width-base: 1px;
@@ -606,23 +610,38 @@ web-daterangepicker {
 }
 ```
 
-### Quick Sizing Examples
+### Calendar Scaling
+
+Scale the entire calendar by setting `--drp-rem` directly on the `<web-daterangepicker>` element:
 
 ```css
-/* Compact size */
-:root {
-  --drp-font-scale: 0.875;
-  --drp-spacing-scale: 0.75;
-  --drp-cell-scale: 0.875;
+/* Compact size (80%) */
+web-daterangepicker.compact {
+  --drp-rem: 8px;
 }
 
-/* Large size */
-:root {
-  --drp-font-scale: 1.125;
-  --drp-spacing-scale: 1.25;
-  --drp-cell-scale: 1.125;
+/* Large size (150%) */
+web-daterangepicker.large {
+  --drp-rem: 15px;
+}
+
+/* Or use inline style */
+<web-daterangepicker style="--drp-rem: 12px;"></web-daterangepicker>
+```
+
+**Important:** Due to Shadow DOM, CSS variables must be set on the `<web-daterangepicker>` element itself (via class or inline style), not on a wrapper div.
+
+For fine-grained control, override individual variables:
+
+```css
+web-daterangepicker.custom {
+  --drp-rem: 12px;
+  --drp-spacing-xs: 2px;  /* Tighter gaps */
+  --drp-font-size-base: 18px;  /* Larger text */
 }
 ```
+
+See [examples-sizes.html](examples-sizes.html) for interactive demos.
 
 ## Development
 
