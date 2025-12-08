@@ -259,22 +259,10 @@ export function onDragMove(picker: any, event: MouseEvent) {
             dragLogger.debug('PREVENT mode - range contains disabled dates, blocking preview update');
             // Don't update preview if range contains disabled dates
             return;
-        } else if (mode === 'block' && picker.hasDisabledDatesInRange(picker.dragPreviewStart, picker.dragPreviewEnd)) {
-            dragLogger.debug('BLOCK mode - range contains disabled dates, adjusting preview');
-            // Adjust the preview to stop at the last enabled date before the gap
-            if (picker.draggingType === 'start' && picker.originalEndDate) {
-                // Moving start, so find last enabled before hitting a disabled date going toward end
-                const lastEnabled = picker.findLastEnabledBeforeGap(picker.dragPreviewStart, picker.originalEndDate);
-                dragLogger.debug('BLOCK mode - adjusted end (dragging start):', lastEnabled);
-                picker.dragPreviewEnd = lastEnabled;
-            } else if (picker.originalStartDate) {
-                // Moving end, so find last enabled before hitting a disabled date going from start
-                const lastEnabled = picker.findLastEnabledBeforeGap(picker.originalStartDate, picker.dragPreviewEnd);
-                dragLogger.debug('BLOCK mode - adjusted end (dragging end):', lastEnabled);
-                picker.dragPreviewEnd = lastEnabled;
-            }
         }
-        // For 'allow' mode (default), no local validation - let it through
+        // For 'block' mode: Allow preview to span disabled dates (like 'allow' mode)
+        // The actual snapping to last enabled date happens in onDragEnd() via validateRangeAsync()
+        // For 'allow', 'split', 'individual' modes: no local validation - let preview through
     }
 
     // Update preview visuals

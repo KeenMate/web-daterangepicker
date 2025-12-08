@@ -1,5 +1,8 @@
 .PHONY: help setup dev build package publish publish-dry clean test lint
 
+# Use bash-compatible commands for Git Bash on Windows
+SHELL := /bin/bash
+
 help: ## Show this help message
 	@echo "Available targets:"
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "  %-15s %s\n", $$1, $$2}'
@@ -30,22 +33,20 @@ publish-dry: build ## Publish to npm (dry run)
 
 publish: clean-dist build ## Publish to npm
 	@echo "WARNING: This will publish to npm registry"
-	@echo "Press Ctrl+C to cancel, or Enter to continue..."
-	@pause
+	@echo "Press Enter to continue (Ctrl+C to cancel)..."
+	@read -r
 	@echo "Publishing to npm..."
 	npm publish
 	@echo "Published successfully"
 
 clean: ## Clean build artifacts and node_modules
 	@echo "Cleaning build artifacts..."
-	@if exist dist rmdir /s /q dist
-	@if exist node_modules rmdir /s /q node_modules
-	@if exist *.tgz del /q *.tgz
+	rm -rf dist node_modules *.tgz
 	@echo "Clean complete"
 
 clean-dist: ## Clean only dist folder
 	@echo "Cleaning dist folder..."
-	@if exist dist rmdir /s /q dist
+	rm -rf dist
 	@echo "Dist cleaned"
 
 preview: build ## Preview production build

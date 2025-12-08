@@ -118,7 +118,7 @@ export function renderNormalView(picker: any, monthIndex: number) {
         // 1. monthHeaders from beforeMonthChangedCallback result
         // 2. getMonthHeaderCallback
         // 3. Default format
-        const monthKey = `${year}-${String(month).padStart(2, '0')}`;
+        const monthKey = `${year}-${String(month + 1).padStart(2, '0')}`;
         let headerText: string;
 
         if (picker.monthHeadersCache?.has(monthKey)) {

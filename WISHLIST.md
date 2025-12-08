@@ -188,6 +188,230 @@ Screen readers should announce:
 
 ---
 
+### Keep Selection on Validation Failure
+
+**Status:** Not Implemented
+**Priority:** Medium
+**Requested:** 2025-12-08
+
+When `beforeDateSelectCallback` returns `action: 'restore'` (validation fails), the user's selection disappears. There should be an option to keep the invalid selection visible so users can see what they selected and understand why it failed.
+
+**Current Behavior:**
+- User selects a date range
+- Async validation fails
+- Selection reverts to previous state (or clears)
+- User loses visual context of what they tried to select
+
+**Proposed API:**
+
+```javascript
+// Return corrected/fallback dates when validation fails
+beforeDateSelectCallback: async (selection) => {
+  if (!isAvailable) {
+    return {
+      action: 'restore',
+      message: 'Selected dates are not available',
+      // NEW: Keep showing the attempted selection (visually marked as invalid)
+      showAttemptedSelection: true,
+      // OR: Provide corrected dates to display
+      suggestedStartDate: nearestAvailableStart,
+      suggestedEndDate: nearestAvailableEnd
+    };
+  }
+  return { action: 'accept' };
+}
+```
+
+**Use Cases:**
+- **Hotel bookings:** Show unavailable dates with visual indicator, suggest nearest available
+- **Appointment scheduling:** Keep selection visible so user understands the conflict
+- **Better UX:** Users don't lose context of what they were trying to select
+
+**Implementation Notes:**
+- Could add CSS class like `drp-date-picker__day--attempted` for styling
+- Could show attempted selection with different visual treatment (strikethrough, red highlight)
+- Should work with the message display feature (see below)
+
+---
+
+### Display Validation Messages in Calendar
+
+**Status:** Not Implemented
+**Priority:** Medium
+**Requested:** 2025-12-08
+
+When `beforeDateSelectCallback` returns a validation failure with a `message`, there is currently no built-in way to display this message to the user. The message is only logged or available programmatically.
+
+**Current Behavior:**
+- Callback returns `{ action: 'restore', message: 'Dates not available' }`
+- Message is not displayed anywhere in the UI
+- Developer must manually create and manage a message element outside the picker
+
+**Proposed API:**
+
+```html
+<!-- Web Component -->
+<web-daterangepicker
+  selection-mode="range"
+  show-validation-messages="true"
+  validation-message-position="bottom">
+</web-daterangepicker>
+```
+
+```javascript
+// JavaScript API
+const picker = new DateRangePicker(input, {
+  selectionMode: 'range',
+  showValidationMessages: true,
+  validationMessagePosition: 'bottom', // 'top', 'bottom', 'tooltip'
+  validationMessageDuration: 5000, // Auto-hide after 5s, 0 = persist
+
+  // Custom message styling
+  validationMessageClass: 'my-custom-message',
+
+  // Or fully custom rendering
+  renderValidationMessage: (message, type) => {
+    return `<div class="alert alert-${type}">${message}</div>`;
+  }
+});
+```
+
+**Message Types:**
+- `error` - Validation failed, selection blocked
+- `warning` - Selection adjusted or has issues
+- `info` - Informational message
+- `success` - Selection accepted (optional confirmation)
+
+**Proposed UI Locations:**
+- **Bottom:** Message bar below the calendar (default)
+- **Top:** Message bar above the calendar
+- **Tooltip:** Floating tooltip near the selection
+- **Summary:** Integrate with existing summary section (range mode)
+
+**CSS Variables:**
+```css
+--drp-validation-message-background: #fee2e2;
+--drp-validation-message-text-color: #991b1b;
+--drp-validation-message-border-color: #fca5a5;
+--drp-validation-message-padding: 0.5rem 1rem;
+```
+
+**Use Cases:**
+- **Hotel bookings:** "These dates are fully booked. Try different dates."
+- **Min/max stay:** "Minimum stay is 3 nights"
+- **Blackout dates:** "Selected range includes holidays - not available"
+- **API errors:** "Unable to check availability. Please try again."
+
+**Implementation Notes:**
+- Should auto-clear message when user makes new selection
+- Should support HTML content for rich messages (links, formatting)
+- Should be dismissible (close button or auto-hide)
+- Should be accessible (aria-live region for screen readers)
+- Consider animation for showing/hiding messages
+
+**Related Features:**
+- Works together with "Keep Selection on Validation Failure" feature
+- Could integrate with existing summary section in range mode
+
+---
+
+### Input Validation Event (Real-time Feedback)
+
+**Status:** Not Implemented
+**Priority:** Medium
+**Requested:** 2025-12-08
+
+Fire an event as the user types to indicate whether the current input value is a valid date. This enables real-time visual feedback like red borders for invalid input.
+
+**Current Behavior:**
+- User types in the input field
+- No event fires until a complete, valid date is selected
+- No way to show validation state during typing
+- Calendar doesn't navigate if the typed date is invalid (e.g., month 13)
+
+**Proposed API:**
+
+```html
+<!-- Web Component -->
+<web-daterangepicker
+  selection-mode="single"
+  date-format-mask="MM/DD/YYYY">
+</web-daterangepicker>
+
+<script>
+picker.addEventListener('input-validation', (e) => {
+  const { isValid, value, parsedDate, error } = e.detail;
+
+  if (!isValid) {
+    picker.classList.add('invalid');
+    showError(error); // e.g., "Invalid month: 13"
+  } else {
+    picker.classList.remove('invalid');
+    clearError();
+  }
+});
+</script>
+```
+
+```javascript
+// JavaScript API
+const picker = new DateRangePicker(input, {
+  dateFormatMask: 'MM/DD/YYYY',
+  onInputValidation: (validation) => {
+    // Called on every input change
+    const { isValid, value, parsedDate, error, isComplete } = validation;
+
+    if (isComplete && !isValid) {
+      input.classList.add('is-invalid');
+    } else {
+      input.classList.remove('is-invalid');
+    }
+  }
+});
+```
+
+**Event Detail Properties:**
+- `isValid` - Boolean: Is the current input a valid date?
+- `isComplete` - Boolean: Is the input complete (all segments filled)?
+- `value` - String: Current input value
+- `parsedDate` - Date | null: Parsed date if valid, null otherwise
+- `error` - String | null: Error message if invalid (e.g., "Invalid month", "Day out of range")
+- `segment` - String: Which segment has error ('month', 'day', 'year')
+
+**Validation States:**
+- **Empty** - `isValid: true, isComplete: false` (no error for empty)
+- **Partial valid** - `isValid: true, isComplete: false` (e.g., "12/" is valid so far)
+- **Partial invalid** - `isValid: false, isComplete: false` (e.g., "13/" invalid month)
+- **Complete valid** - `isValid: true, isComplete: true` (fires `date-select` too)
+- **Complete invalid** - `isValid: false, isComplete: true` (e.g., "02/30/2024")
+
+**Use Cases:**
+- **Form validation:** Show red border on input as user types invalid date
+- **Submit button:** Disable submit until valid date entered
+- **Error messages:** Display specific error like "Month must be 1-12"
+- **Accessibility:** Announce validation errors to screen readers
+
+**Implementation Notes:**
+- Should fire on every input change (debounced optional)
+- Should distinguish between "incomplete but valid so far" vs "invalid"
+- Should provide specific error messages for different failure modes
+- Consider `validate-on-blur` option to only validate when leaving field
+- For range mode, should validate both start and end inputs independently
+
+**CSS Classes (optional built-in):**
+```css
+/* Auto-applied based on validation state */
+.drp-input--valid { border-color: green; }
+.drp-input--invalid { border-color: red; }
+.drp-input--incomplete { border-color: orange; }
+```
+
+**Related Features:**
+- Could integrate with "Display Validation Messages" feature
+- Could add `aria-invalid` attribute automatically
+
+---
+
 ## Contributing
 
 Have a feature request? Please:

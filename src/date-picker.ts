@@ -1234,28 +1234,42 @@ class DateRangePicker {
                     navigationLogger.debug('Ctrl+Home: Navigate to year start');
                     // Ctrl+Home: Go to January 1st of current year
                     // If already there, go to January 1st of previous year
+                    const yearRange = this.getEffectiveYearRange();
+                    const monthRange = this.getEffectiveMonthRange();
                     const isJanuary = currentMonth === 0;
                     const isFirstDay = this.focusedDayIndex === 0;
 
+                    let targetYear = currentYear;
+                    let targetMonth = Math.max(0, monthRange.min - 1); // Use first allowed month (monthRange is 1-based)
+
                     if (isJanuary && isFirstDay) {
-                        // Already at Jan 1 - go to previous year
-                        navigationLogger.debug('Already at Jan 1, going to previous year');
-                        this.monthDates[this.activeMonthIndex] = new Date(currentYear - 1, 0, 1);
-                    } else {
-                        // Go to Jan 1 of current year
-                        navigationLogger.debug('Going to Jan 1 of current year');
-                        this.monthDates[this.activeMonthIndex] = new Date(currentYear, 0, 1);
+                        // Already at Jan 1 - try to go to previous year
+                        targetYear = currentYear - 1;
                     }
-                    this.renderCalendar();
-                    setTimeout(() => {
-                        const daysContainer = this.calendar.querySelector(`.drp-date-picker__days[data-month-index="${this.activeMonthIndex}"]`);
-                        const days = daysContainer?.querySelectorAll('.drp-date-picker__day:not(.drp-date-picker__day--other-month)');
-                        if (days) {
-                            this.focusedDayIndex = 0;
-                            days[0]?.classList.add('drp-date-picker__day--focused');
-                            days[0]?.scrollIntoView({ block: 'nearest' });
-                        }
-                    }, 0);
+
+                    // Clamp to allowed year range
+                    if (targetYear < yearRange.min) {
+                        navigationLogger.debug('Ctrl+Home: Target year below min, clamping to', yearRange.min);
+                        targetYear = yearRange.min;
+                    }
+
+                    // Only navigate if not already at the boundary
+                    const newDate = new Date(targetYear, targetMonth, 1);
+                    const currentDate = this.monthDates[this.activeMonthIndex];
+                    if (newDate.getFullYear() !== currentDate.getFullYear() || newDate.getMonth() !== currentDate.getMonth() || this.focusedDayIndex !== 0) {
+                        navigationLogger.debug('Going to', targetMonth + 1, '/', targetYear);
+                        this.monthDates[this.activeMonthIndex] = newDate;
+                        this.renderCalendar();
+                        setTimeout(() => {
+                            const daysContainer = this.calendar.querySelector(`.drp-date-picker__days[data-month-index="${this.activeMonthIndex}"]`);
+                            const days = daysContainer?.querySelectorAll('.drp-date-picker__day:not(.drp-date-picker__day--other-month)');
+                            if (days) {
+                                this.focusedDayIndex = 0;
+                                days[0]?.classList.add('drp-date-picker__day--focused');
+                                days[0]?.scrollIntoView({ block: 'nearest' });
+                            }
+                        }, 0);
+                    }
                 } else {
                     navigationLogger.debug('Home: Navigate to first day (cycles to previous month if already there)');
                     // Home: Go to first day of current month
@@ -1299,6 +1313,8 @@ class DateRangePicker {
                     navigationLogger.debug('Ctrl+End: Navigate to year end');
                     // Ctrl+End: Go to December 31st of current year
                     // If already there, go to December 31st of next year
+                    const yearRange = this.getEffectiveYearRange();
+                    const monthRange = this.getEffectiveMonthRange();
                     const isDecember = currentMonth === 11;
 
                     // Check if we're at the last day
@@ -1306,23 +1322,38 @@ class DateRangePicker {
                     const days = daysContainer?.querySelectorAll('.drp-date-picker__day:not(.drp-date-picker__day--other-month)');
                     const isLastDay = days && this.focusedDayIndex === days.length - 1;
 
+                    let targetYear = currentYear;
+                    let targetMonth = Math.min(11, monthRange.max - 1); // Use last allowed month (monthRange is 1-based)
+
                     if (isDecember && isLastDay) {
-                        // Already at Dec 31 - go to next year
-                        this.monthDates[this.activeMonthIndex] = new Date(currentYear + 1, 11, 31);
-                    } else {
-                        // Go to Dec 31 of current year
-                        this.monthDates[this.activeMonthIndex] = new Date(currentYear, 11, 31);
+                        // Already at Dec 31 - try to go to next year
+                        targetYear = currentYear + 1;
                     }
-                    this.renderCalendar();
-                    setTimeout(() => {
-                        const newContainer = this.calendar.querySelector(`.drp-date-picker__days[data-month-index="${this.activeMonthIndex}"]`);
-                        const newDays = newContainer?.querySelectorAll('.drp-date-picker__day:not(.drp-date-picker__day--other-month)');
-                        if (newDays) {
-                            this.focusedDayIndex = newDays.length - 1;
-                            newDays[this.focusedDayIndex]?.classList.add('drp-date-picker__day--focused');
-                            newDays[this.focusedDayIndex]?.scrollIntoView({ block: 'nearest' });
-                        }
-                    }, 0);
+
+                    // Clamp to allowed year range
+                    if (targetYear > yearRange.max) {
+                        navigationLogger.debug('Ctrl+End: Target year above max, clamping to', yearRange.max);
+                        targetYear = yearRange.max;
+                    }
+
+                    // Only navigate if not already at the boundary
+                    const lastDayOfMonth = new Date(targetYear, targetMonth + 1, 0).getDate(); // Get last day of target month
+                    const newDate = new Date(targetYear, targetMonth, lastDayOfMonth);
+                    const currentDate = this.monthDates[this.activeMonthIndex];
+                    if (newDate.getFullYear() !== currentDate.getFullYear() || newDate.getMonth() !== currentDate.getMonth() || !isLastDay) {
+                        navigationLogger.debug('Going to', targetMonth + 1, '/', targetYear);
+                        this.monthDates[this.activeMonthIndex] = newDate;
+                        this.renderCalendar();
+                        setTimeout(() => {
+                            const newContainer = this.calendar.querySelector(`.drp-date-picker__days[data-month-index="${this.activeMonthIndex}"]`);
+                            const newDays = newContainer?.querySelectorAll('.drp-date-picker__day:not(.drp-date-picker__day--other-month)');
+                            if (newDays) {
+                                this.focusedDayIndex = newDays.length - 1;
+                                newDays[this.focusedDayIndex]?.classList.add('drp-date-picker__day--focused');
+                                newDays[this.focusedDayIndex]?.scrollIntoView({ block: 'nearest' });
+                            }
+                        }, 0);
+                    }
                 } else {
                     navigationLogger.debug('End: Navigate to last day (cycles to next month if already there)');
                     // End: Go to last day of current month

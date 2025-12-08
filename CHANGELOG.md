@@ -5,7 +5,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [1.7.0-rc01] - 2025-12-08
+## [1.7.0] - 2025-12-08
 
 ### Changed
 
@@ -60,6 +60,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **'block' Mode Forward Selection**: Fixed `disabled-dates-handling="block"` mode where forward selection (left to right) was behaving like 'prevent' mode
+  - Forward drag preview was immediately clipping at disabled dates, preventing users from seeing what they were trying to select
+  - Now allows preview to span disabled dates visually, then snaps to last enabled date on completion
+  - Both forward and backward selection now work consistently
+
+- **Disabled Dates Visual Highlighting in Range**: Fixed `highlight-disabled-in-range` option not showing visible difference
+  - When `highlight-disabled-in-range="true"`, disabled dates within a range now show blue tint behind the disabled overlay
+  - When `highlight-disabled-in-range="false"`, disabled dates remain gray (no blue tint)
+  - Added CSS rule for `.drp-date-picker__day--disabled.drp-date-picker__day--in-range` combination
+
 - **Today Key ('t') Multi-Month Collision**: Pressing 't' to jump to today now correctly adjusts adjacent months in multi-month view
   - Previously, if right column showed Jan 2026 and you pressed 't', it would show Dec 2025 but left column stayed at Jan 2026 (out of order)
   - Now calls `checkAndResolveCollisions()` to ensure all visible months remain in chronological order
@@ -71,6 +81,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Button Font Inheritance**: Added `font-family: inherit` to action buttons (Today, Clear, Apply)
   - Buttons now inherit the custom font from `--base-font-family`
   - Previously buttons used browser default font for `<button>` elements
+
+- **Keyboard Navigation Boundary Enforcement**: Ctrl+Home and Ctrl+End now respect `rolling-year-range`, `min-date`, and `max-date` constraints
+  - Previously these shortcuts could navigate outside allowed date ranges
+  - Now stops at the configured boundaries
+
+- **monthHeaders Key Format**: Fixed `monthHeaders` map key format to use 1-based months (YYYY-MM where January = 01)
+  - Previously used 0-based months internally which didn't match the documented API
+  - Keys like "2025-01" now correctly map to January 2025
 
 ## [1.6.0] - 2025-12-05
 

@@ -124,6 +124,11 @@
       background-color: transparent;
       border-color: transparent;
     }
+
+    // Disabled day that is also in range - show range background behind disabled overlay
+    &.drp-date-picker__day--in-range {
+      background-color: color-mix(in srgb, var(--drp-day-range-bg) $drp-day-in-range-bg-opacity * 100%, transparent);
+    }
   }
 
   // --------------------------------------
