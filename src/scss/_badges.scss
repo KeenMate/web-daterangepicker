@@ -13,10 +13,8 @@
   display: grid;
   grid-template-columns: repeat(7, 1fr);
   gap: var(--drp-spacing-xs);
-  margin-bottom: var(--drp-spacing-xs);
-  // Scale badge height with cell-scale
-  max-height: calc(#{$drp-badge-max-height} * var(--drp-cell-scale));
-  min-height: calc(#{$drp-badge-max-height} * var(--drp-cell-scale));
+  max-height: var(--drp-badge-row-height);
+  min-height: var(--drp-badge-row-height);
 }
 
 .drp-date-picker__badge-cell {
@@ -24,13 +22,11 @@
   align-items: center;
   justify-content: center;
   font-size: var(--drp-font-size-2xs);
-  // Scale badge padding with cell-scale
-  padding: calc(#{$drp-badge-padding-v} * var(--drp-cell-scale)) calc(#{$drp-badge-padding-h} * var(--drp-cell-scale));
+  padding: $drp-badge-padding-v $drp-badge-padding-h;
   border-radius: $drp-badge-border-radius;
   cursor: pointer;
   height: 100%;
-  // Scale badge height with cell-scale
-  max-height: calc(#{$drp-badge-max-height} * var(--drp-cell-scale));
+  max-height: var(--drp-badge-row-height);
 
   &:empty {
     visibility: hidden;

@@ -340,16 +340,3 @@ $drp-button-apply-bg-hover: $drp-color-accent-dark !default;
 $drp-months-gap: $drp-spacing-lg !default;
 $drp-grid-columns: 3 !default;
 $drp-grid-rows: 2 !default;
-
-// ==============================================================================
-// DENSITY MULTIPLIERS
-// ==============================================================================
-// Used to scale the entire calendar proportionally (spacing, fonts, cells, etc.)
-// Applied via --drp-density CSS custom property
-// Range: 0.6× (very compact) to 2.0× (very large) for dramatic visual differences
-
-$drp-density-xs: 0.6 !default;   // 60% - Very compact
-$drp-density-sm: 0.8 !default;   // 80% - Compact
-$drp-density-md: 1 !default;     // 100% - Normal (baseline)
-$drp-density-lg: 1.5 !default;   // 150% - Large
-$drp-density-xl: 2.0 !default;   // 200% - Very large

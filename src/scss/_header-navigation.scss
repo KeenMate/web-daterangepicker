@@ -58,9 +58,8 @@
 // ==============================================================================
 
 .drp-date-picker__nav {
-  // Scale nav button size with cell-scale
-  width: calc(#{$drp-nav-size} * var(--drp-cell-scale));
-  height: calc(#{$drp-nav-size} * var(--drp-cell-scale));
+  width: $drp-nav-size;
+  height: $drp-nav-size;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -164,9 +163,7 @@
   padding: #{$drp-rolling-item-padding-v} #{$drp-rolling-item-padding-h};
   cursor: pointer;
   font-size: #{$drp-rolling-item-font-size};
-  // Scale item height with cell-scale for consistent sizing
-  min-height: calc(#{$drp-rolling-item-min-height} * var(--drp-cell-scale));
-  // Prevent flex item from growing beyond min-height
+  min-height: $drp-rolling-item-min-height;
   flex-shrink: 0;
 
   // Flexbox for vertical and horizontal centering
@@ -305,7 +302,7 @@
     padding: #{$drp-rolling-item-padding-v} #{$drp-rolling-item-padding-h};
     cursor: pointer;
     font-size: #{$drp-rolling-item-font-size};
-    min-height: calc(#{$drp-rolling-item-min-height} * var(--drp-cell-scale));
+    min-height: $drp-rolling-item-min-height;
     flex-shrink: 0;
     display: flex;
     align-items: center;

@@ -12,7 +12,7 @@
     body {
       font-family: system-ui, -apple-system, sans-serif;
       line-height: 1.6;
-      max-width: 1200px;
+      max-width: 1400px;
       margin: 0 auto;
       padding: 2rem;
       background: #f9fafb;
@@ -43,6 +43,13 @@
       margin: 1rem 0;
     }
 
+    .grid-wide {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+      gap: 1.5rem;
+      margin: 1rem 0;
+    }
+
     .form-group {
       margin-bottom: 1rem;
     }
@@ -54,26 +61,6 @@
       color: #374151;
     }
 
-    .drp-input {
-      width: 100%;
-      padding: 0.5rem 0.75rem;
-      border: 1px solid #d1d5db;
-      border-radius: 0.375rem;
-      font-size: 1rem;
-      transition: border-color 150ms;
-    }
-
-    .drp-input:focus {
-      outline: none;
-      border-color: #3b82f6;
-      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
-    }
-
-    .drp-input:disabled {
-      background: #f3f4f6;
-      cursor: not-allowed;
-    }
-
     small {
       display: block;
       margin-top: 0.25rem;
@@ -82,23 +69,31 @@
     }
 
     .code {
-      background: #f3f4f6;
-      border: 1px solid #e5e7eb;
+      background: #1f2937;
+      color: #e5e7eb;
       border-radius: 0.375rem;
       padding: 1rem;
       margin: 1rem 0;
-      font-family: 'Courier New', monospace;
-      font-size: 0.875rem;
+      font-family: 'Monaco', 'Consolas', monospace;
+      font-size: 0.8125rem;
       overflow-x: auto;
+      white-space: pre;
     }
 
-    .features {
-      list-style-position: inside;
-      color: #374151;
+    .code .comment {
+      color: #6b7280;
     }
 
-    .features li {
-      margin-bottom: 0.5rem;
+    .code .property {
+      color: #93c5fd;
+    }
+
+    .code .value {
+      color: #86efac;
+    }
+
+    .code .selector {
+      color: #fde047;
     }
 
     .header-nav {
@@ -135,661 +130,498 @@
       font-size: 1.125rem;
     }
 
-    /* Calendar button styles */
-    .date-input-group {
-      display: flex;
-      gap: 0.5rem;
-      align-items: stretch;
-    }
-
-    .date-input-group web-daterangepicker {
-      flex: 1;
-    }
-
-    .calendar-btn {
-      padding: 0.375rem 0.625rem;
-      border: 1px solid #d1d5db;
+    .info-box {
+      background: #eff6ff;
+      border: 1px solid #bfdbfe;
       border-radius: 0.375rem;
-      cursor: pointer;
-      background: white;
-      font-size: 1rem;
-      transition: all 150ms;
+      padding: 1rem;
+      margin: 1rem 0;
+      color: #1e40af;
+    }
+
+    .warning-box {
+      background: #fef3c7;
+      border: 1px solid #fcd34d;
+      border-radius: 0.375rem;
+      padding: 1rem;
+      margin: 1rem 0;
+      color: #92400e;
+    }
+
+    /* Target web-daterangepicker elements directly for CSS variable overrides */
+    /* This is how you style web components with shadow DOM! */
+
+    .scale-xs { --drp-rem: 6px; }
+    .scale-sm { --drp-rem: 8px; }
+    .scale-md { --drp-rem: 10px; }
+    .scale-lg { --drp-rem: 15px; }
+    .scale-xl { --drp-rem: 20px; }
+
+    /* Spacing overrides */
+    .spacing-compact {
+      --drp-spacing-xs: 1px;
+      --drp-spacing-sm: 2px;
+      --drp-spacing-md: 4px;
+      --drp-spacing-lg: 6px;
+      --drp-spacing-xl: 8px;
+    }
+
+    .spacing-spacious {
+      --drp-spacing-xs: 6px;
+      --drp-spacing-sm: 10px;
+      --drp-spacing-md: 16px;
+      --drp-spacing-lg: 24px;
+      --drp-spacing-xl: 32px;
+    }
+
+    /* Font size overrides */
+    .fonts-small {
+      --drp-font-size-2xs: 8px;
+      --drp-font-size-xs: 9px;
+      --drp-font-size-sm: 10px;
+      --drp-font-size-base: 11px;
+      --drp-font-size-lg: 12px;
+      --drp-font-size-xl: 14px;
+    }
+
+    .fonts-large {
+      --drp-font-size-2xs: 12px;
+      --drp-font-size-xs: 14px;
+      --drp-font-size-sm: 16px;
+      --drp-font-size-base: 18px;
+      --drp-font-size-lg: 20px;
+      --drp-font-size-xl: 24px;
+    }
+
+    /* Responsive sizing - target the element directly */
+    @media (max-width: 768px) {
+      .responsive-calendar {
+        --drp-rem: 8px;
+      }
+    }
+
+    @media (min-width: 769px) and (max-width: 1200px) {
+      .responsive-calendar {
+        --drp-rem: 10px;
+      }
+    }
+
+    @media (min-width: 1201px) {
+      .responsive-calendar {
+        --drp-rem: 12px;
+      }
+    }
+
+    /* Interactive demo controls */
+    .demo-controls {
       display: flex;
-      align-items: center;
-      justify-content: center;
-      min-width: 36px;
-      line-height: 1;
-    }
-
-    .calendar-btn:hover {
+      gap: 1rem;
+      flex-wrap: wrap;
+      margin-bottom: 1rem;
+      padding: 1rem;
       background: #f3f4f6;
-      border-color: #9ca3af;
+      border-radius: 0.375rem;
     }
 
-    .calendar-btn:active {
+    .demo-controls label {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      margin-bottom: 0;
+    }
+
+    .demo-controls input[type="range"] {
+      width: 150px;
+    }
+
+    .demo-controls output {
+      font-family: monospace;
       background: #e5e7eb;
+      padding: 0.125rem 0.5rem;
+      border-radius: 0.25rem;
+      font-size: 0.875rem;
     }
   </style>
 </head>
 <body>
   <div class="header-nav">
     <a href="index.html" class="back-link">
-      <span>←</span>
+      <span>&larr;</span>
       <span>All Examples</span>
     </a>
   </div>
 
-  <h1 class="page-title">📏 Calendar Sizing Examples</h1>
-  <p class="page-description">Examples demonstrating the unified density system for controlling calendar size.</p>
+  <h1 class="page-title">Calendar Sizing with CSS Variables</h1>
+  <p class="page-description">Control calendar sizing using CSS custom properties for maximum flexibility.</p>
 
-  <div class="card">
-    <h2>📐 Sizing Reference Table</h2>
-    <p>All sizes use a 10px-based system (<code>--drp-rem: 10px</code>) for clean, predictable dimensions.</p>
-
-    <h3>Input Heights</h3>
-    <table style="width: 100%; border-collapse: collapse; margin: 1rem 0;">
-      <thead>
-        <tr style="background: #f3f4f6;">
-          <th style="padding: 0.5rem; border: 1px solid #e5e7eb; text-align: left;">Size</th>
-          <th style="padding: 0.5rem; border: 1px solid #e5e7eb; text-align: left;">Attribute</th>
-          <th style="padding: 0.5rem; border: 1px solid #e5e7eb; text-align: left;">Multiplier</th>
-          <th style="padding: 0.5rem; border: 1px solid #e5e7eb; text-align: left;">Pixels</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr><td style="padding: 0.5rem; border: 1px solid #e5e7eb;">XS</td><td style="padding: 0.5rem; border: 1px solid #e5e7eb;"><code>input-size="xs"</code></td><td style="padding: 0.5rem; border: 1px solid #e5e7eb;">3.1</td><td style="padding: 0.5rem; border: 1px solid #e5e7eb;"><strong>31px</strong></td></tr>
-        <tr><td style="padding: 0.5rem; border: 1px solid #e5e7eb;">SM</td><td style="padding: 0.5rem; border: 1px solid #e5e7eb;"><code>input-size="sm"</code></td><td style="padding: 0.5rem; border: 1px solid #e5e7eb;">3.3</td><td style="padding: 0.5rem; border: 1px solid #e5e7eb;"><strong>33px</strong></td></tr>
-        <tr style="background: #f0fdf4;"><td style="padding: 0.5rem; border: 1px solid #e5e7eb;">MD</td><td style="padding: 0.5rem; border: 1px solid #e5e7eb;"><code>input-size="md"</code> (default)</td><td style="padding: 0.5rem; border: 1px solid #e5e7eb;">3.5</td><td style="padding: 0.5rem; border: 1px solid #e5e7eb;"><strong>35px</strong></td></tr>
-        <tr><td style="padding: 0.5rem; border: 1px solid #e5e7eb;">LG</td><td style="padding: 0.5rem; border: 1px solid #e5e7eb;"><code>input-size="lg"</code></td><td style="padding: 0.5rem; border: 1px solid #e5e7eb;">3.8</td><td style="padding: 0.5rem; border: 1px solid #e5e7eb;"><strong>38px</strong></td></tr>
-        <tr><td style="padding: 0.5rem; border: 1px solid #e5e7eb;">XL</td><td style="padding: 0.5rem; border: 1px solid #e5e7eb;"><code>input-size="xl"</code></td><td style="padding: 0.5rem; border: 1px solid #e5e7eb;">4.1</td><td style="padding: 0.5rem; border: 1px solid #e5e7eb;"><strong>41px</strong></td></tr>
-      </tbody>
-    </table>
-
-    <h3>Calendar Scale Factors</h3>
-    <table style="width: 100%; border-collapse: collapse; margin: 1rem 0;">
-      <thead>
-        <tr style="background: #f3f4f6;">
-          <th style="padding: 0.5rem; border: 1px solid #e5e7eb; text-align: left;">Size</th>
-          <th style="padding: 0.5rem; border: 1px solid #e5e7eb; text-align: left;">Scale</th>
-          <th style="padding: 0.5rem; border: 1px solid #e5e7eb; text-align: left;">Percentage</th>
-          <th style="padding: 0.5rem; border: 1px solid #e5e7eb; text-align: left;">Use Case</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr><td style="padding: 0.5rem; border: 1px solid #e5e7eb;">XS</td><td style="padding: 0.5rem; border: 1px solid #e5e7eb;">0.6×</td><td style="padding: 0.5rem; border: 1px solid #e5e7eb;">60%</td><td style="padding: 0.5rem; border: 1px solid #e5e7eb;">Dense dashboards, data tables</td></tr>
-        <tr><td style="padding: 0.5rem; border: 1px solid #e5e7eb;">SM</td><td style="padding: 0.5rem; border: 1px solid #e5e7eb;">0.8×</td><td style="padding: 0.5rem; border: 1px solid #e5e7eb;">80%</td><td style="padding: 0.5rem; border: 1px solid #e5e7eb;">Mobile apps, modals, forms</td></tr>
-        <tr style="background: #f0fdf4;"><td style="padding: 0.5rem; border: 1px solid #e5e7eb;">MD</td><td style="padding: 0.5rem; border: 1px solid #e5e7eb;">1.0×</td><td style="padding: 0.5rem; border: 1px solid #e5e7eb;">100%</td><td style="padding: 0.5rem; border: 1px solid #e5e7eb;">Default, general use</td></tr>
-        <tr><td style="padding: 0.5rem; border: 1px solid #e5e7eb;">LG</td><td style="padding: 0.5rem; border: 1px solid #e5e7eb;">1.5×</td><td style="padding: 0.5rem; border: 1px solid #e5e7eb;">150%</td><td style="padding: 0.5rem; border: 1px solid #e5e7eb;">Desktop applications, spacious layouts</td></tr>
-        <tr><td style="padding: 0.5rem; border: 1px solid #e5e7eb;">XL</td><td style="padding: 0.5rem; border: 1px solid #e5e7eb;">2.0×</td><td style="padding: 0.5rem; border: 1px solid #e5e7eb;">200%</td><td style="padding: 0.5rem; border: 1px solid #e5e7eb;">Touch interfaces, accessibility, kiosks</td></tr>
-      </tbody>
-    </table>
-
-    <h3>Customizing Heights</h3>
-    <div class="code">/* Option 1: Direct px override */
-web-daterangepicker {
-  --drp-input-size-md-height: 42px;
-}
-
-/* Option 2: Scale all sizes via --drp-rem */
-web-daterangepicker {
-  --drp-rem: 12px;  /* MD = 3.5 × 12 = 42px */
-}
-
-/* Option 3: Override specific size with calc */
-web-daterangepicker {
-  --drp-input-size-md-height: calc(4.2 * var(--drp-rem));
-}</div>
+  <div class="info-box">
+    <strong>How it works:</strong> The calendar uses <code>--drp-rem</code> (default: 10px) as a base unit.
+    All spacing, fonts, and sizes derive from this. Change <code>--drp-rem</code> to scale everything proportionally,
+    or override individual CSS variables for fine-grained control.
   </div>
 
+  <div class="warning-box">
+    <strong>Shadow DOM Note:</strong> CSS variables must be set directly on the <code>&lt;web-daterangepicker&gt;</code>
+    element (via inline style or CSS selector), not on a wrapper div. This is because the component uses Shadow DOM.
+  </div>
+
+  <!-- Input Size Attribute (still works!) -->
   <div class="card">
     <h2>Input Size Attribute</h2>
-    <p>Control input field size independently using the <code>input-size</code> attribute (floating mode only).</p>
+    <p>The <code>input-size</code> attribute controls input field size in floating mode. This is a built-in attribute.</p>
+
     <div class="grid">
       <div class="form-group">
-        <label>Extra Small Input (xs)</label>
+        <label>Extra Small (xs) - 31px</label>
         <web-daterangepicker
           input-size="xs"
           selection-mode="single"
           placeholder="YYYY-MM-DD"></web-daterangepicker>
-        <small>Very compact input - 3.1rem (31px) height</small>
       </div>
 
       <div class="form-group">
-        <label>Small Input (sm)</label>
+        <label>Small (sm) - 33px</label>
         <web-daterangepicker
           input-size="sm"
           selection-mode="single"
           placeholder="YYYY-MM-DD"></web-daterangepicker>
-        <small>Compact input - 3.3rem (33px) height</small>
       </div>
 
       <div class="form-group">
-        <label>Medium Input (md - default)</label>
+        <label>Medium (md) - 35px (default)</label>
         <web-daterangepicker
           input-size="md"
           selection-mode="single"
           placeholder="YYYY-MM-DD"></web-daterangepicker>
-        <small>Normal input - 3.5rem (35px) height</small>
       </div>
 
       <div class="form-group">
-        <label>Large Input (lg)</label>
+        <label>Large (lg) - 38px</label>
         <web-daterangepicker
           input-size="lg"
           selection-mode="single"
           placeholder="YYYY-MM-DD"></web-daterangepicker>
-        <small>Spacious input - 3.8rem (38px) height</small>
       </div>
 
       <div class="form-group">
-        <label>Extra Large Input (xl)</label>
+        <label>Extra Large (xl) - 41px</label>
         <web-daterangepicker
           input-size="xl"
           selection-mode="single"
           placeholder="YYYY-MM-DD"></web-daterangepicker>
-        <small>Touch-friendly input - 4.1rem (41px) height</small>
       </div>
     </div>
 
-    <h3>Coordinated Input + Calendar Sizing</h3>
-    <p>Combine <code>input-size</code> with calendar sizing attributes for consistent UI.</p>
-    <div class="grid">
-      <div class="form-group">
-        <label>All Small (sm)</label>
-        <web-daterangepicker
-          input-size="sm"
-          spacing="sm"
-          font-size="sm"
-          cell-size="sm"
-          selection-mode="single"
-          placeholder="YYYY-MM-DD"></web-daterangepicker>
-        <small>Compact input with compact calendar</small>
-      </div>
-
-      <div class="form-group">
-        <label>All Large (lg)</label>
-        <web-daterangepicker
-          input-size="lg"
-          spacing="lg"
-          font-size="lg"
-          cell-size="lg"
-          selection-mode="single"
-          placeholder="YYYY-MM-DD"></web-daterangepicker>
-        <small>Large input with large calendar</small>
-      </div>
-
-      <div class="form-group">
-        <label>Mixed: XL Input + SM Calendar</label>
-        <web-daterangepicker
-          input-size="xl"
-          spacing="sm"
-          font-size="sm"
-          cell-size="sm"
-          selection-mode="single"
-          placeholder="YYYY-MM-DD"></web-daterangepicker>
-        <small>Large touch target, compact popup</small>
-      </div>
-    </div>
+    <div class="code"><span class="comment">/* Usage */</span>
+<span class="selector">&lt;web-daterangepicker</span> <span class="property">input-size</span>=<span class="value">"lg"</span><span class="selector">&gt;&lt;/web-daterangepicker&gt;</span></div>
   </div>
 
+  <!-- Global Scaling via --drp-rem -->
   <div class="card">
-    <h2>Unified Density System</h2>
-    <p>The component uses a unified density system that scales everything proportionally:</p>
-    <ul class="features">
-      <li><strong>Spacing Attributes:</strong> <code>spacing="xs|sm|md|lg|xl"</code> - Sets density on the web component</li>
-      <li><strong>Font Attributes:</strong> <code>font-size="xs|sm|md|lg|xl"</code> - Alternative syntax (both set density)</li>
-      <li><strong>CSS Classes:</strong> <code>.drp-spacing-*</code> or <code>.drp-font-*</code> - Wrapper div approach</li>
-      <li><strong>What Scales:</strong> Fonts, spacing, cell sizes, borders, buttons, badges all scale together</li>
-      <li><strong>Semantic Meaning Preserved:</strong> <code>--drp-spacing-xs</code> always means "extra small" (value scales, not meaning)</li>
-    </ul>
-  </div>
-
-  <div class="card">
-    <h2>Three Independent Sizing Systems</h2>
-    <p>Control font, spacing, and cell dimensions independently:</p>
-    <ul>
-      <li><strong>Font Size:</strong> <code>font-size="xs|sm|md|lg|xl"</code> - Controls text size only</li>
-      <li><strong>Spacing:</strong> <code>spacing="xs|sm|md|lg|xl"</code> - Controls gaps, padding, margins only</li>
-      <li><strong>Cell Size:</strong> <code>cell-size="xs|sm|md|lg|xl"</code> - Controls day cell dimensions and structural sizes only</li>
-      <li><strong>Independence:</strong> Each system works independently - combine them any way you like!</li>
-    </ul>
-
-    <h3>Independent Control Examples</h3>
-    <div class="grid">
-      <div class="form-group">
-        <label>Large Font + Compact Spacing + Medium Cells</label>
-        <web-daterangepicker
-          font-size="lg"
-          spacing="xs"
-          cell-size="md"
-          selection-mode="single"
-          placeholder="YYYY-MM-DD"></web-daterangepicker>
-        <small>Readable text in a tight layout with normal cells</small>
-      </div>
-
-      <div class="form-group">
-        <label>Small Font + Spacious Layout + Small Cells</label>
-        <web-daterangepicker
-          font-size="sm"
-          spacing="lg"
-          cell-size="sm"
-          selection-mode="single"
-          placeholder="YYYY-MM-DD"></web-daterangepicker>
-        <small>Compact text with generous spacing and small cells</small>
-      </div>
-
-      <div class="form-group">
-        <label>XL Font + XL Spacing + XL Cells</label>
-        <web-daterangepicker
-          font-size="xl"
-          spacing="xl"
-          cell-size="xl"
-          selection-mode="single"
-          placeholder="YYYY-MM-DD"></web-daterangepicker>
-        <small>Maximum size for everything - very touch-friendly</small>
-      </div>
-
-      <div class="form-group">
-        <label>XL Font + XS Spacing + SM Cells</label>
-        <web-daterangepicker
-          font-size="xl"
-          spacing="xs"
-          cell-size="sm"
-          selection-mode="single"
-          placeholder="YYYY-MM-DD"></web-daterangepicker>
-        <small>Large readable text in ultra-compact layout</small>
-      </div>
-
-      <div class="form-group">
-        <label>XS Font + XL Spacing + LG Cells</label>
-        <web-daterangepicker
-          font-size="xs"
-          spacing="xl"
-          cell-size="lg"
-          selection-mode="single"
-          placeholder="YYYY-MM-DD"></web-daterangepicker>
-        <small>Tiny text with massive spacing and large cells</small>
-      </div>
-
-      <div class="form-group">
-        <label>MD Font + XS Spacing + XL Cells</label>
-        <web-daterangepicker
-          font-size="md"
-          spacing="xs"
-          cell-size="xl"
-          selection-mode="single"
-          placeholder="YYYY-MM-DD"></web-daterangepicker>
-        <small>Normal text in compact layout with huge cells</small>
-      </div>
-    </div>
-
-    <h3>Uniform Sizing Examples</h3>
-    <p>Examples where all three systems scale together uniformly.</p>
-    <div class="grid">
-      <div class="form-group">
-        <label>Extra Small (Very Compact)</label>
-        <web-daterangepicker
-          font-size="xs"
-          spacing="xs"
-          cell-size="xs"
-          selection-mode="single"
-          placeholder="YYYY-MM-DD"></web-daterangepicker>
-        <small>Very compact - 0.6× scale (60% of normal size)</small>
-      </div>
-
-      <div class="form-group">
-        <label>Small (Compact)</label>
-        <web-daterangepicker
-          font-size="sm"
-          spacing="sm"
-          cell-size="sm"
-          selection-mode="single"
-          placeholder="YYYY-MM-DD"></web-daterangepicker>
-        <small>Compact - 0.8× scale (80% of normal size)</small>
-      </div>
-
-      <div class="form-group">
-        <label>Medium (Default)</label>
-        <web-daterangepicker
-          selection-mode="single"
-          placeholder="YYYY-MM-DD"></web-daterangepicker>
-        <small>Normal size - 1.0× scale (baseline, no attributes needed)</small>
-      </div>
-    </div>
-
-    <div class="grid">
-      <div class="form-group">
-        <label>Large (Spacious)</label>
-        <web-daterangepicker
-          font-size="lg"
-          spacing="lg"
-          cell-size="lg"
-          selection-mode="single"
-          placeholder="YYYY-MM-DD"></web-daterangepicker>
-        <small>Large & spacious - 1.5× scale (150% of normal size)</small>
-      </div>
-
-      <div class="form-group">
-        <label>Extra Large (Very Large)</label>
-        <web-daterangepicker
-          font-size="xl"
-          spacing="xl"
-          cell-size="xl"
-          selection-mode="single"
-          placeholder="YYYY-MM-DD"></web-daterangepicker>
-        <small>Very large & touch-friendly - 2.0× scale (200% of normal size)</small>
-      </div>
-    </div>
-
-    <h3>Grid Layout Sizing</h3>
-    <div class="form-group">
-      <label>Compact 2×3 Grid (Extra Small)</label>
-      <web-daterangepicker
-        id="grid-small"
-        font-size="xs"
-        spacing="xs"
-        cell-size="xs"
-        selection-mode="single"
-        positioning-mode="inline"
-        visible-months-count="6"
-        month-layout="grid"
-        grid-rows="2"
-        grid-columns="3"></web-daterangepicker>
-      <small>Dense dashboard calendar - 0.6× scale (60%), very compact</small>
-    </div>
+    <h2>Global Scaling via --drp-rem</h2>
+    <p>Scale the entire calendar by setting <code>--drp-rem</code> directly on the element. Default is 10px.</p>
 
     <div class="form-group">
-      <label>Touch-Friendly 2×3 Grid (Large)</label>
+      <label>Extra Small (--drp-rem: 6px) - 60%</label>
       <web-daterangepicker
-        id="grid-large"
-        font-size="lg"
-        spacing="lg"
-        cell-size="lg"
-        selection-mode="single"
-        positioning-mode="inline"
-        visible-months-count="6"
-        month-layout="grid"
-        grid-rows="2"
-        grid-columns="3"></web-daterangepicker>
-      <small>Large calendar with generous touch targets - 1.5× scale (150%)</small>
-    </div>
-
-    <div class="form-group">
-      <label>Normal Single Month (Small)</label>
-      <web-daterangepicker
-        id="single-xl"
-        font-size="sm"
-        spacing="sm"
-        cell-size="sm"
+        class="scale-xs"
         selection-mode="single"
         positioning-mode="inline"></web-daterangepicker>
-      <small>Compact single month - 0.8× scale (80%)</small>
+      <small>Perfect for dense dashboards</small>
     </div>
-  </div>
 
-  <div class="card">
-    <h2>Inline Grid Layout (2×3)</h2>
-    <p>Display 6 months in a 2×3 grid layout, always visible (not a popup).</p>
     <div class="form-group">
-      <label>6 Months Grid Calendar (Compact Size)</label>
+      <label>Small (--drp-rem: 8px) - 80%</label>
       <web-daterangepicker
-        id="inline-grid"
-        font-size="sm"
-        spacing="sm"
-        cell-size="sm"
+        class="scale-sm"
         selection-mode="single"
-        positioning-mode="inline"
-        visible-months-count="6"
-        month-layout="grid"
-        grid-rows="2"
-        grid-columns="3"></web-daterangepicker>
-      <small>Perfect for dashboards - compact size (0.8× scale / 80%)</small>
-      <div id="inline-grid-output" style="margin-top: 8px; font-size: 0.875rem; color: #666;"></div>
-    </div>
-  </div>
-
-  <div class="card">
-    <h2>Custom Month Names & Alignment</h2>
-    <p>Examples demonstrating custom month names (numeric, abbreviated, or custom text) and rolling selector alignment.</p>
-
-    <h3>Numeric Months (01-12)</h3>
-    <div class="grid">
-      <div class="form-group">
-        <label>Numeric Months (Centered)</label>
-        <web-daterangepicker
-          id="numeric-months-centered"
-          selection-mode="single"
-          positioning-mode="inline"></web-daterangepicker>
-        <small>Month names as numbers 01-12, centered alignment</small>
-      </div>
-
-      <div class="form-group">
-        <label>Numeric Months (Left Aligned)</label>
-        <web-daterangepicker
-          id="numeric-months-left"
-          selection-mode="single"
-          positioning-mode="inline"></web-daterangepicker>
-        <small>Month names as numbers 01-12, left-aligned</small>
-      </div>
+        positioning-mode="inline"></web-daterangepicker>
+      <small>Good for compact layouts</small>
     </div>
 
-    <h3>Long Month Names (Ellipsis Test)</h3>
-    <div class="grid">
-      <div class="form-group">
-        <label>Very Long Custom Month Names</label>
-        <web-daterangepicker
-          id="long-month-names"
-          selection-mode="single"
-          positioning-mode="inline"></web-daterangepicker>
-        <small>Tests ellipsis (...) for extremely long month names</small>
-      </div>
-
-      <div class="form-group">
-        <label>Long Names + Left Aligned</label>
-        <web-daterangepicker
-          id="long-month-names-left"
-          selection-mode="single"
-          positioning-mode="inline"></web-daterangepicker>
-        <small>Long names with left alignment to see ellipsis effect</small>
-      </div>
-    </div>
-  </div>
-
-  <div class="card">
-    <h2>Everything at XS Size (Ultra Compact)</h2>
-    <p>All calendar features at extra small size (0.6× scale / 60%) - perfect for dense layouts and dashboards.</p>
-
-    <h3>Basic Pickers</h3>
-    <div class="grid">
-      <div class="form-group">
-        <label>Single Date (XS)</label>
-        <web-daterangepicker
-          font-size="xs"
-          spacing="xs"
-          cell-size="xs"
-          selection-mode="single"
-          placeholder="YYYY-MM-DD"></web-daterangepicker>
-        <small>Compact single date picker</small>
-      </div>
-
-      <div class="form-group">
-        <label>Date Range (XS)</label>
-        <web-daterangepicker
-          font-size="xs"
-          spacing="xs"
-          cell-size="xs"
-          selection-mode="range"
-          placeholder="Select range"></web-daterangepicker>
-        <small>Compact range picker</small>
-      </div>
-
-      <div class="form-group">
-        <label>Pre-filled (XS)</label>
-        <web-daterangepicker
-          font-size="xs"
-          spacing="xs"
-          cell-size="xs"
-          selection-mode="single"
-          value="2025-06-15"
-          placeholder="YYYY-MM-DD"></web-daterangepicker>
-        <small>With initial value</small>
-      </div>
-    </div>
-
-    <h3>Multi-Month & Grid (XS)</h3>
     <div class="form-group">
-      <label>3 Months Side-by-Side (XS)</label>
+      <label>Medium (--drp-rem: 10px) - 100% (default)</label>
       <web-daterangepicker
-        font-size="xs"
-        spacing="xs"
-        cell-size="xs"
+        class="scale-md"
+        selection-mode="single"
+        positioning-mode="inline"></web-daterangepicker>
+      <small>Standard size</small>
+    </div>
+
+    <div class="form-group">
+      <label>Large (--drp-rem: 15px) - 150%</label>
+      <web-daterangepicker
+        class="scale-lg"
+        selection-mode="single"
+        positioning-mode="inline"></web-daterangepicker>
+      <small>Spacious desktop layouts</small>
+    </div>
+
+    <div class="form-group">
+      <label>Extra Large (--drp-rem: 20px) - 200%</label>
+      <web-daterangepicker
+        class="scale-xl"
+        selection-mode="single"
+        positioning-mode="inline"></web-daterangepicker>
+      <small>Touch-friendly, accessibility, kiosks</small>
+    </div>
+
+    <div class="code"><span class="comment">/* Option 1: CSS class targeting the element */</span>
+<span class="selector">web-daterangepicker.scale-sm</span> {
+  <span class="property">--drp-rem</span>: <span class="value">8px</span>;
+}
+
+<span class="comment">/* Option 2: Inline style */</span>
+<span class="selector">&lt;web-daterangepicker</span> <span class="property">style</span>=<span class="value">"--drp-rem: 8px"</span><span class="selector">&gt;</span>
+
+<span class="comment">/* Option 3: ID selector */</span>
+<span class="selector">#my-calendar</span> {
+  <span class="property">--drp-rem</span>: <span class="value">15px</span>;
+}</div>
+  </div>
+
+  <!-- Interactive Demo -->
+  <div class="card">
+    <h2>Interactive Scale Demo</h2>
+    <p>Drag the slider to see live scaling:</p>
+
+    <div class="demo-controls">
+      <label>
+        --drp-rem:
+        <input type="range" id="remSlider" min="5" max="25" value="10" step="1">
+        <output id="remValue">10px</output>
+      </label>
+    </div>
+
+    <web-daterangepicker
+      id="interactive-demo"
+      style="--drp-rem: 10px;"
+      selection-mode="range"
+      positioning-mode="inline"
+      visible-months-count="2"></web-daterangepicker>
+
+    <div class="code"><span class="comment">/* The CSS variable being changed: */</span>
+<span class="selector">#interactive-demo</span> {
+  <span class="property">--drp-rem</span>: <span class="value" id="codeRemValue">10px</span>;
+}</div>
+  </div>
+
+  <!-- Spacing Control -->
+  <div class="card">
+    <h2>Custom Spacing</h2>
+    <p>Override spacing variables for fine-grained control over gaps and padding:</p>
+
+    <div class="grid-wide">
+      <div class="form-group">
+        <label>Compact Spacing</label>
+        <web-daterangepicker
+          class="spacing-compact"
+          selection-mode="single"
+          positioning-mode="inline"></web-daterangepicker>
+        <small>Tighter gaps between elements</small>
+      </div>
+
+      <div class="form-group">
+        <label>Spacious Layout</label>
+        <web-daterangepicker
+          class="spacing-spacious"
+          selection-mode="single"
+          positioning-mode="inline"></web-daterangepicker>
+        <small>More breathing room</small>
+      </div>
+    </div>
+
+    <div class="code"><span class="comment">/* Target the element directly */</span>
+<span class="selector">web-daterangepicker.compact</span> {
+  <span class="property">--drp-spacing-xs</span>: <span class="value">1px</span>;
+  <span class="property">--drp-spacing-sm</span>: <span class="value">2px</span>;
+  <span class="property">--drp-spacing-md</span>: <span class="value">4px</span>;
+  <span class="property">--drp-spacing-lg</span>: <span class="value">6px</span>;
+  <span class="property">--drp-spacing-xl</span>: <span class="value">8px</span>;
+}
+
+<span class="selector">web-daterangepicker.spacious</span> {
+  <span class="property">--drp-spacing-xs</span>: <span class="value">6px</span>;
+  <span class="property">--drp-spacing-sm</span>: <span class="value">10px</span>;
+  <span class="property">--drp-spacing-md</span>: <span class="value">16px</span>;
+  <span class="property">--drp-spacing-lg</span>: <span class="value">24px</span>;
+  <span class="property">--drp-spacing-xl</span>: <span class="value">32px</span>;
+}</div>
+  </div>
+
+  <!-- Font Size Control -->
+  <div class="card">
+    <h2>Custom Font Sizes</h2>
+    <p>Override font size variables independently from the overall scale:</p>
+
+    <div class="grid-wide">
+      <div class="form-group">
+        <label>Small Fonts</label>
+        <web-daterangepicker
+          class="fonts-small"
+          selection-mode="single"
+          positioning-mode="inline"></web-daterangepicker>
+        <small>Smaller text for compact UIs</small>
+      </div>
+
+      <div class="form-group">
+        <label>Large Fonts</label>
+        <web-daterangepicker
+          class="fonts-large"
+          selection-mode="single"
+          positioning-mode="inline"></web-daterangepicker>
+        <small>Larger text for readability</small>
+      </div>
+    </div>
+
+    <div class="code"><span class="comment">/* Custom font sizes */</span>
+<span class="selector">web-daterangepicker.large-fonts</span> {
+  <span class="property">--drp-font-size-2xs</span>: <span class="value">12px</span>;
+  <span class="property">--drp-font-size-xs</span>: <span class="value">14px</span>;
+  <span class="property">--drp-font-size-sm</span>: <span class="value">16px</span>;
+  <span class="property">--drp-font-size-base</span>: <span class="value">18px</span>;
+  <span class="property">--drp-font-size-lg</span>: <span class="value">20px</span>;
+  <span class="property">--drp-font-size-xl</span>: <span class="value">24px</span>;
+}</div>
+  </div>
+
+  <!-- Combined Example -->
+  <div class="card">
+    <h2>Combined: Scale + Spacing + Fonts</h2>
+    <p>Mix and match different customizations using multiple classes:</p>
+
+    <div class="form-group">
+      <label>Large Scale + Compact Spacing + Large Fonts</label>
+      <web-daterangepicker
+        class="scale-lg spacing-compact fonts-large"
         selection-mode="range"
-        visible-months-count="3"
-        placeholder="Select range"></web-daterangepicker>
-      <small>Three months in ultra-compact view</small>
+        positioning-mode="inline"
+        visible-months-count="2"></web-daterangepicker>
+      <small>Big cells but tight layout with readable text</small>
     </div>
 
+    <div class="code"><span class="comment">/* Combine multiple classes */</span>
+<span class="selector">&lt;web-daterangepicker class=</span><span class="value">"scale-lg spacing-compact fonts-large"</span><span class="selector">&gt;</span>
+
+<span class="comment">/* Or use inline style for quick one-offs */</span>
+<span class="selector">&lt;web-daterangepicker</span> <span class="property">style</span>=<span class="value">"--drp-rem: 15px; --drp-spacing-xs: 2px;"</span><span class="selector">&gt;</span></div>
+  </div>
+
+  <!-- Responsive Example -->
+  <div class="card">
+    <h2>Responsive Sizing</h2>
+    <p>Use media queries targeting the element to scale based on viewport:</p>
+
     <div class="form-group">
-      <label>2×3 Grid - 6 Months (XS)</label>
+      <label>Responsive Calendar (resize browser to see effect)</label>
       <web-daterangepicker
-        id="grid-xs-demo"
-        font-size="xs"
-        spacing="xs"
-        cell-size="xs"
-        selection-mode="single"
+        class="responsive-calendar"
+        selection-mode="range"
+        positioning-mode="inline"
+        visible-months-count="2"></web-daterangepicker>
+      <small>8px on mobile, 10px on tablet, 12px on desktop</small>
+    </div>
+
+    <div class="code"><span class="comment">/* Responsive scaling with media queries */</span>
+<span class="selector">@media (max-width: 768px)</span> {
+  <span class="selector">web-daterangepicker.responsive-calendar</span> {
+    <span class="property">--drp-rem</span>: <span class="value">8px</span>;
+  }
+}
+
+<span class="selector">@media (min-width: 769px) and (max-width: 1200px)</span> {
+  <span class="selector">web-daterangepicker.responsive-calendar</span> {
+    <span class="property">--drp-rem</span>: <span class="value">10px</span>;
+  }
+}
+
+<span class="selector">@media (min-width: 1201px)</span> {
+  <span class="selector">web-daterangepicker.responsive-calendar</span> {
+    <span class="property">--drp-rem</span>: <span class="value">12px</span>;
+  }
+}</div>
+  </div>
+
+  <!-- Multi-Month Grid Examples -->
+  <div class="card">
+    <h2>Scaled Grid Layouts</h2>
+    <p>Multi-month grids at different scales:</p>
+
+    <div class="form-group">
+      <label>6-Month Grid at 60% Scale</label>
+      <web-daterangepicker
+        class="scale-xs"
+        selection-mode="range"
         positioning-mode="inline"
         visible-months-count="6"
         month-layout="grid"
         grid-rows="2"
         grid-columns="3"></web-daterangepicker>
-      <small>Six months in ultra-compact grid - perfect for dense dashboards</small>
+      <small>Dense dashboard view - perfect for year-at-a-glance</small>
     </div>
 
-    <h3>Inline Calendars (XS)</h3>
-    <div class="grid">
-      <div class="form-group">
-        <label>Inline Single (XS)</label>
-        <web-daterangepicker
-          font-size="xs"
-          spacing="xs"
-          cell-size="xs"
-          selection-mode="single"
-          positioning-mode="inline"></web-daterangepicker>
-        <small>Always-visible compact calendar</small>
-      </div>
-
-      <div class="form-group">
-        <label>Inline Range (XS)</label>
-        <web-daterangepicker
-          font-size="xs"
-          spacing="xs"
-          cell-size="xs"
-          selection-mode="range"
-          positioning-mode="inline"></web-daterangepicker>
-        <small>Compact inline range picker</small>
-      </div>
+    <div class="form-group">
+      <label>6-Month Grid at 100% Scale</label>
+      <web-daterangepicker
+        class="scale-md"
+        selection-mode="range"
+        positioning-mode="inline"
+        visible-months-count="6"
+        month-layout="grid"
+        grid-rows="2"
+        grid-columns="3"></web-daterangepicker>
+      <small>Normal size for standard displays</small>
     </div>
+  </div>
+
+  <!-- CSS Variables Reference -->
+  <div class="card">
+    <h2>CSS Variables Reference</h2>
+    <p>All available CSS variables for sizing. Set these on the <code>&lt;web-daterangepicker&gt;</code> element:</p>
+
+    <h3>Base Unit</h3>
+    <div class="code"><span class="property">--drp-rem</span>: <span class="value">10px</span>;  <span class="comment">/* Base unit - change this to scale everything */</span></div>
+
+    <h3>Spacing Variables</h3>
+    <div class="code"><span class="property">--drp-spacing-xs</span>: <span class="value">4px</span>;   <span class="comment">/* Extra small gaps */</span>
+<span class="property">--drp-spacing-sm</span>: <span class="value">8px</span>;   <span class="comment">/* Small gaps */</span>
+<span class="property">--drp-spacing-md</span>: <span class="value">16px</span>;  <span class="comment">/* Medium gaps */</span>
+<span class="property">--drp-spacing-lg</span>: <span class="value">24px</span>;  <span class="comment">/* Large gaps */</span>
+<span class="property">--drp-spacing-xl</span>: <span class="value">32px</span>;  <span class="comment">/* Extra large gaps */</span></div>
+
+    <h3>Font Size Variables</h3>
+    <div class="code"><span class="property">--drp-font-size-2xs</span>: <span class="value">10px</span>;   <span class="comment">/* Badges */</span>
+<span class="property">--drp-font-size-xs</span>: <span class="value">12px</span>;    <span class="comment">/* Small labels */</span>
+<span class="property">--drp-font-size-sm</span>: <span class="value">14px</span>;    <span class="comment">/* Day numbers */</span>
+<span class="property">--drp-font-size-base</span>: <span class="value">16px</span>;  <span class="comment">/* Header text */</span>
+<span class="property">--drp-font-size-lg</span>: <span class="value">18px</span>;    <span class="comment">/* Large text */</span>
+<span class="property">--drp-font-size-xl</span>: <span class="value">20px</span>;    <span class="comment">/* Unified header */</span></div>
+
+    <h3>Input Size Variables</h3>
+    <div class="code"><span class="comment">/* These are set automatically by input-size attribute */</span>
+<span class="property">--drp-input-size-xs-height</span>: <span class="value">31px</span>;
+<span class="property">--drp-input-size-sm-height</span>: <span class="value">33px</span>;
+<span class="property">--drp-input-size-md-height</span>: <span class="value">35px</span>;
+<span class="property">--drp-input-size-lg-height</span>: <span class="value">38px</span>;
+<span class="property">--drp-input-size-xl-height</span>: <span class="value">41px</span>;</div>
   </div>
 
   <script type="module" src="/src/index.ts"></script>
-  <script type="module">
+  <script>
+    // Interactive demo
     document.addEventListener('DOMContentLoaded', () => {
-      // Wait for web components to be defined
-      customElements.whenDefined('web-daterangepicker').then(() => {
-        // Give components time to initialize
-        setTimeout(() => {
-          // Custom month names examples
+      const slider = document.getElementById('remSlider');
+      const output = document.getElementById('remValue');
+      const codeValue = document.getElementById('codeRemValue');
+      const demoElement = document.getElementById('interactive-demo');
 
-          // 1. Numeric months (01-12) - Centered
-          const numericCentered = document.getElementById('numeric-months-centered');
-          if (numericCentered) {
-            numericCentered.setMonthNames(['01', '02', '03', '04', '05', '06', '07', '08', '09', '10', '11', '12']);
-          }
-
-          // 2. Numeric months (01-12) - Left aligned
-          const numericLeft = document.getElementById('numeric-months-left');
-          if (numericLeft) {
-            numericLeft.setMonthNames(['01', '02', '03', '04', '05', '06', '07', '08', '09', '10', '11', '12']);
-            numericLeft.setRollingItemAlignment('flex-start');
-          }
-
-          // 3. Long month names - Centered
-          const longNames = document.getElementById('long-month-names');
-          if (longNames) {
-            longNames.setMonthNames([
-              'Snow might come suddenly',
-              'Winter storms approaching',
-              'Spring flowers blooming',
-              'April showers bring May',
-              'Summer is getting closer',
-              'Longest day of the year',
-              'Hot and sunny vacation',
-              'Back to school season',
-              'Autumn leaves falling',
-              'Halloween preparations',
-              'Thanksgiving gathering',
-              'Christmas celebration'
-            ]);
-          }
-
-          // 4. Long month names - Left aligned
-          const longNamesLeft = document.getElementById('long-month-names-left');
-          if (longNamesLeft) {
-            longNamesLeft.setMonthNames([
-              'Snow might come suddenly',
-              'Winter storms approaching',
-              'Spring flowers blooming',
-              'April showers bring May',
-              'Summer is getting closer',
-              'Longest day of the year',
-              'Hot and sunny vacation',
-              'Back to school season',
-              'Autumn leaves falling',
-              'Halloween preparations',
-              'Thanksgiving gathering',
-              'Christmas celebration'
-            ]);
-            longNamesLeft.setRollingItemAlignment('flex-start');
-          }
-        }, 100); // Small delay to ensure pickers are initialized
-      });
-
-      // Setup sizing examples
-      const gridSmall = document.getElementById('grid-small');
-      if (gridSmall) {
-        gridSmall.addEventListener('date-select', (e) => {
-          if (e.detail.date) {
-            console.log('Small grid selected:', e.detail.date.toLocaleDateString());
-          }
-        });
-      }
-
-      const gridLarge = document.getElementById('grid-large');
-      if (gridLarge) {
-        gridLarge.addEventListener('date-select', (e) => {
-          if (e.detail.date) {
-            console.log('Large grid selected:', e.detail.date.toLocaleDateString());
-          }
-        });
-      }
-
-      const singleXL = document.getElementById('single-xl');
-      if (singleXL) {
-        singleXL.addEventListener('date-select', (e) => {
-          if (e.detail.date) {
-            console.log('XL calendar selected:', e.detail.date.toLocaleDateString());
-          }
-        });
-      }
-
-      // Setup inline grid example
-      const inlineGrid = document.getElementById('inline-grid');
-      if (inlineGrid) {
-        inlineGrid.addEventListener('date-select', (e) => {
-          const output = document.getElementById('inline-grid-output');
-          if (e.detail.date) {
-            output.textContent = `Selected: ${e.detail.date.toLocaleDateString()}`;
-          }
+      if (slider && output && demoElement) {
+        slider.addEventListener('input', (e) => {
+          const value = e.target.value + 'px';
+          output.textContent = value;
+          codeValue.textContent = value;
+          // Set directly on the element (important for shadow DOM!)
+          demoElement.style.setProperty('--drp-rem', value);
         });
       }
     });

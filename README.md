@@ -583,6 +583,8 @@ The component uses a 10px-based sizing system (`--drp-rem: 10px`) for clean, pre
 | LG   | `input-size="lg"` | 38px |
 | XL   | `input-size="xl"` | 41px |
 
+For complete size variable reference (font sizes, padding, spacing), see [SIZES.md](SIZES.md).
+
 #### Customizing Input Heights
 
 Three ways to customize input dimensions:

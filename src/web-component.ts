@@ -44,7 +44,7 @@ export class WebDaterangepickerElement extends HTMLElement {
             'highlight-disabled-in-range', 'positioning-mode', 'month-layout', 'grid-rows', 'grid-columns', 'calendar-placement',
             'locale', 'display-format-mask', 'show-debug-info',
             'initial-date', 'rolling-year-range', 'rolling-month-range',
-            'spacing', 'font-size', 'cell-size', 'enable-transitions',
+            'enable-transitions',
             'auto-close', 'show-today-button', 'show-clear-button', 'show-apply-button',
             'unified-navigation', 'unified-navigation-anchor-index', 'unified-header-interactive',
             'input-size'
@@ -56,31 +56,12 @@ export class WebDaterangepickerElement extends HTMLElement {
         this.shadow = this.attachShadow({ mode: 'open' });
     }
 
-    private applySizeStyles() {
+    private applyTransitionStyles() {
         // Target the calendar element inside shadow DOM
         const calendar = this.shadow.querySelector('.drp-date-picker') as HTMLElement;
         if (!calendar) return; // Calendar not created yet
 
-        const spacing = this.getAttribute('spacing');
-        const fontSize = this.getAttribute('font-size');
-        const cellSize = this.getAttribute('cell-size');
         const enableTransitions = this.hasAttribute('enable-transitions');
-
-        // Remove existing size classes
-        calendar.classList.remove('drp-spacing-xs', 'drp-spacing-sm', 'drp-spacing-lg', 'drp-spacing-xl');
-        calendar.classList.remove('drp-font-xs', 'drp-font-sm', 'drp-font-lg', 'drp-font-xl');
-        calendar.classList.remove('drp-cell-xs', 'drp-cell-sm', 'drp-cell-lg', 'drp-cell-xl');
-
-        // Add new size classes (md is default, no class needed)
-        if (spacing && spacing !== 'md') {
-            calendar.classList.add(`drp-spacing-${spacing}`);
-        }
-        if (fontSize && fontSize !== 'md') {
-            calendar.classList.add(`drp-font-${fontSize}`);
-        }
-        if (cellSize && cellSize !== 'md') {
-            calendar.classList.add(`drp-cell-${cellSize}`);
-        }
 
         // Handle transitions (opt-in for performance)
         if (enableTransitions) {
@@ -120,13 +101,9 @@ export class WebDaterangepickerElement extends HTMLElement {
     attributeChangedCallback(name: string, oldValue: string | null, newValue: string | null) {
         if (oldValue === newValue) return;
 
-        // Handle size and transition attributes without re-initializing picker
-        if (name === 'spacing' || name === 'font-size' || name === 'cell-size' || name === 'enable-transitions') {
-            this.applySizeStyles();
-            // Re-render picker if it exists to update rolling selector dimensions
-            if (this.picker && name === 'cell-size') {
-                this.picker.renderCalendar();
-            }
+        // Handle transition attribute without re-initializing picker
+        if (name === 'enable-transitions') {
+            this.applyTransitionStyles();
             return;
         }
 
@@ -313,9 +290,9 @@ export class WebDaterangepickerElement extends HTMLElement {
             }
         }
 
-        // Apply size styles to the calendar inside shadow DOM
+        // Apply transition styles to the calendar inside shadow DOM
         // Use setTimeout to ensure DOM is fully rendered
-        setTimeout(() => this.applySizeStyles(), 0);
+        setTimeout(() => this.applyTransitionStyles(), 0);
     }
 
     /**
@@ -575,31 +552,7 @@ export class WebDaterangepickerElement extends HTMLElement {
         }
     }
 
-    // Size properties
-    get spacing(): string {
-        return this.getAttribute('spacing') || 'md';
-    }
-
-    set spacing(value: string) {
-        this.setAttribute('spacing', value);
-    }
-
-    get fontSize(): string {
-        return this.getAttribute('font-size') || 'md';
-    }
-
-    set fontSize(value: string) {
-        this.setAttribute('font-size', value);
-    }
-
-    get cellSize(): string {
-        return this.getAttribute('cell-size') || 'md';
-    }
-
-    set cellSize(value: string) {
-        this.setAttribute('cell-size', value);
-    }
-
+    // Transition property
     get enableTransitions(): boolean {
         return this.hasAttribute('enable-transitions');
     }

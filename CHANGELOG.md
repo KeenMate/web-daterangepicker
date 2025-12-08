@@ -5,7 +5,72 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [1.7.0-rc01] - 2025-12-08
+
+### Changed
+
+- **Simplified Sizing System - Removed Scale Variables**: Removed the intermediate scale variable system (`--drp-font-scale`, `--drp-spacing-scale`, `--drp-cell-scale`) and associated modifier classes
+  - **What was removed**:
+    - SCSS variables: `$drp-density-xs` through `$drp-density-xl`
+    - CSS modifier classes: `.drp-font-xs/sm/md/lg/xl`, `.drp-spacing-xs/sm/md/lg/xl`, `.drp-cell-xs/sm/md/lg/xl`
+    - Responsive scaling classes: `.drp-responsive`
+    - Legacy size classes: `.drp-date-picker--xs/sm/lg/xl`
+    - Web component attributes: `spacing`, `font-size`, `cell-size`
+    - Web component properties: `spacing`, `fontSize`, `cellSize`
+  - **Why**: The `--drp-rem` base unit provides cleaner, more flexible scaling without intermediate multipliers
+  - **New approach**: Set CSS variables directly on the `<web-daterangepicker>` element
+    - Global scaling: `--drp-rem: 8px` (scales everything to 80%)
+    - Fine-grained control: `--drp-spacing-xs: 2px`, `--drp-font-size-base: 18px`
+  - **Shadow DOM note**: CSS variables must be set on the element itself (via class or inline style), not on wrapper divs
+  - **Migration**:
+    ```html
+    <!-- Before (removed) -->
+    <web-daterangepicker spacing="lg" font-size="lg" cell-size="lg">
+
+    <!-- After (CSS variables on element) -->
+    <web-daterangepicker style="--drp-rem: 15px;">
+
+    <!-- Or via CSS class -->
+    <style>
+      web-daterangepicker.large { --drp-rem: 15px; }
+    </style>
+    <web-daterangepicker class="large">
+    ```
+  - **Files modified**: `_base.scss`, `_modifiers.scss`, `_calendar-grid.scss`, `_header-navigation.scss`, `_badges.scss`, `_variables.scss`, `web-component.ts`
+  - See `examples-sizes.html` for comprehensive CSS variable sizing examples
+
+- **Font Size Variables - Unitless Multipliers**: Changed `--base-font-size-*` variables from expecting rem/em units to unitless multipliers
+  - Theme-designer now outputs: `--base-font-size-sm: 1.4` (unitless)
+  - Component computes: `calc(1.4 * var(--drp-rem))` = 14px
+  - Fixes issue where CSS `em`/`rem` units were computed at assignment time on `:root`, not relative to component's `--drp-rem`
+  - Font-size-base variables now use format: `calc(var(--base-font-size-sm, 1.4) * var(--drp-rem))`
+
+### Added
+
+- **`--drp-badge-row-height` CSS Variable**: New custom property for configuring badge row height at runtime
+  - Default: `16px` (SCSS variable `$drp-badge-max-height`)
+  - Override in your styles: `--drp-badge-row-height: 20px`
+  - Replaces hard-coded SCSS calculation with configurable CSS variable
+
+- **Base Variables Example** (`examples-base-variables.html`): New interactive demo for testing theme-designer typography integration
+  - Google Fonts loader with auto font-family detection
+  - Real-time controls for font sizes (2xs-2xl), weights, and line heights
+  - Live CSS output panel showing current variable values
+  - Floating and inline date picker demos with special dates
+
+### Fixed
+
+- **Today Key ('t') Multi-Month Collision**: Pressing 't' to jump to today now correctly adjusts adjacent months in multi-month view
+  - Previously, if right column showed Jan 2026 and you pressed 't', it would show Dec 2025 but left column stayed at Jan 2026 (out of order)
+  - Now calls `checkAndResolveCollisions()` to ensure all visible months remain in chronological order
+
+- **Badge Row Spacing**: Removed extra `margin-bottom` from `.drp-date-picker__badge-row`
+  - Parent `.drp-date-picker__days` gap already provides spacing between rows
+  - Reduces vertical whitespace around badge rows
+
+- **Button Font Inheritance**: Added `font-family: inherit` to action buttons (Today, Clear, Apply)
+  - Buttons now inherit the custom font from `--base-font-family`
+  - Previously buttons used browser default font for `<button>` elements
 
 ## [1.6.0] - 2025-12-05
 

@@ -1,0 +1,514 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Base Variables Demo - web-daterangepicker</title>
+  <link rel="stylesheet" href="examples-shared.css">
+  <style>
+    /* Controls Panel */
+    .controls {
+      background: white;
+      border-radius: 0.5rem;
+      padding: 1.5rem;
+      margin-bottom: 2rem;
+      box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1);
+    }
+
+    .controls-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1.5rem;
+    }
+
+    .controls-header h2 {
+      margin: 0;
+      font-size: 1.25rem;
+      border: none;
+      padding: 0;
+    }
+
+    .reset-btn {
+      background: #e53e3e;
+      color: white;
+      border: none;
+      padding: 0.5rem 1rem;
+      border-radius: 0.375rem;
+      cursor: pointer;
+      font-size: 0.875rem;
+      font-family: inherit;
+    }
+
+    .reset-btn:hover {
+      background: #c53030;
+    }
+
+    .control-section {
+      margin-bottom: 1.5rem;
+    }
+
+    .control-section:last-child {
+      margin-bottom: 0;
+    }
+
+    .control-section h3 {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: #6b7280;
+      margin: 0 0 0.75rem 0;
+      border-bottom: 1px solid #e5e7eb;
+      padding-bottom: 0.5rem;
+    }
+
+    .section-desc {
+      font-size: 0.75rem;
+      color: #6b7280;
+      margin: 0 0 0.75rem 0;
+      line-height: 1.4;
+    }
+
+    .section-desc strong {
+      color: #374151;
+    }
+
+    .control-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1rem;
+      align-items: flex-end;
+    }
+
+    .control-group {
+      display: flex;
+      flex-direction: column;
+      gap: 0.25rem;
+    }
+
+    .control-group label {
+      font-size: 0.75rem;
+      color: #374151;
+      font-weight: 500;
+    }
+
+    .control-group input {
+      padding: 0.5rem;
+      border: 1px solid #d1d5db;
+      border-radius: 0.375rem;
+      font-size: 0.875rem;
+    }
+
+    .control-group input[type="text"] {
+      width: 250px;
+    }
+
+    .control-group input[type="number"] {
+      width: 80px;
+    }
+
+    .font-link-input {
+      width: 500px !important;
+    }
+
+    .load-font-btn {
+      padding: 0.5rem 1rem;
+      border: 1px solid #d1d5db;
+      border-radius: 0.375rem;
+      cursor: pointer;
+      background: white;
+      font-family: inherit;
+    }
+
+    .load-font-btn:hover {
+      background: #f3f4f6;
+      border-color: #9ca3af;
+    }
+
+    /* Demo Cards */
+    .demos {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+      gap: 2rem;
+    }
+
+    .demo-card {
+      background: white;
+      border-radius: 0.5rem;
+      padding: 1.5rem;
+      box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1);
+    }
+
+    .demo-card h3 {
+      margin: 0 0 1rem 0;
+      color: #111827;
+      font-size: 1rem;
+      border: none;
+      padding: 0;
+    }
+
+    .demo-card p {
+      color: #6b7280;
+      font-size: 0.875rem;
+      margin: 0 0 1rem 0;
+    }
+
+    /* Date picker wrapper for inline mode */
+    .inline-picker-wrapper {
+      border: 1px solid #e5e7eb;
+      border-radius: 0.375rem;
+      padding: 1rem;
+      background: #f9fafb;
+    }
+
+    /* Current values display */
+    .current-values {
+      background: #1f2937;
+      color: #a5d6a7;
+      border-radius: 0.5rem;
+      padding: 1rem;
+      margin-top: 2rem;
+      font-family: 'Courier New', Consolas, Monaco, monospace;
+      font-size: 0.75rem;
+      line-height: 1.6;
+      white-space: pre-wrap;
+      max-height: 300px;
+      overflow-y: auto;
+    }
+
+    .current-values-header {
+      color: #93c5fd;
+      font-weight: bold;
+      margin-bottom: 0.5rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="header-nav">
+    <a href="index.html" class="back-link">
+      <span>←</span>
+      <span>All Examples</span>
+    </a>
+  </div>
+
+  <h1 class="page-title">🎨 Base Variables Demo</h1>
+  <p class="page-description">Test theme-designer <code>--base-*</code> typography variables with web-daterangepicker. Adjust font family, sizes, weights, and line heights in real-time.</p>
+
+  <!-- Controls Panel -->
+  <div class="controls">
+    <div class="controls-header">
+      <h2>Typography Controls</h2>
+      <button class="reset-btn" id="resetBtn">Reset All</button>
+    </div>
+
+    <!-- Font Link -->
+    <div class="control-section">
+      <h3>Font Link (Google Fonts, etc.)</h3>
+      <div class="control-row">
+        <div class="control-group">
+          <label for="fontLink">Paste &lt;link&gt; tag or URL</label>
+          <input type="text" id="fontLink" class="font-link-input" placeholder="e.g., https://fonts.googleapis.com/css2?family=Lexend...">
+        </div>
+        <button id="loadFontBtn" class="load-font-btn">Load Font</button>
+      </div>
+    </div>
+
+    <!-- Font Family -->
+    <div class="control-section">
+      <h3>Font Family</h3>
+      <div class="control-row">
+        <div class="control-group">
+          <label for="fontFamily">--base-font-family</label>
+          <input type="text" id="fontFamily" placeholder="e.g., 'Lexend', sans-serif">
+        </div>
+      </div>
+    </div>
+
+    <!-- Font Sizes -->
+    <div class="control-section">
+      <h3>Font Sizes (multipliers)</h3>
+      <p class="section-desc">
+        <strong>2xs:</strong> badges &bull;
+        <strong>xs:</strong> weekday headers, tooltips &bull;
+        <strong>sm:</strong> day numbers, summary text &bull;
+        <strong>base:</strong> month/year labels, input text &bull;
+        <strong>lg:</strong> navigation arrows
+      </p>
+      <div class="control-row">
+        <div class="control-group">
+          <label for="fontSize2xs">2xs</label>
+          <input type="number" id="fontSize2xs" value="1" step="0.1">
+        </div>
+        <div class="control-group">
+          <label for="fontSizeXs">xs</label>
+          <input type="number" id="fontSizeXs" value="1.2" step="0.1">
+        </div>
+        <div class="control-group">
+          <label for="fontSizeSm">sm</label>
+          <input type="number" id="fontSizeSm" value="1.4" step="0.1">
+        </div>
+        <div class="control-group">
+          <label for="fontSizeBase">base</label>
+          <input type="number" id="fontSizeBase" value="1.6" step="0.1">
+        </div>
+        <div class="control-group">
+          <label for="fontSizeLg">lg</label>
+          <input type="number" id="fontSizeLg" value="1.8" step="0.1">
+        </div>
+        <div class="control-group">
+          <label for="fontSizeXl">xl</label>
+          <input type="number" id="fontSizeXl" value="2" step="0.1">
+        </div>
+        <div class="control-group">
+          <label for="fontSize2xl">2xl</label>
+          <input type="number" id="fontSize2xl" value="2.4" step="0.1">
+        </div>
+      </div>
+    </div>
+
+    <!-- Font Weights -->
+    <div class="control-section">
+      <h3>Font Weights</h3>
+      <div class="control-row">
+        <div class="control-group">
+          <label for="fontWeightNormal">normal</label>
+          <input type="number" id="fontWeightNormal" value="400" step="100" min="100" max="900">
+        </div>
+        <div class="control-group">
+          <label for="fontWeightMedium">medium</label>
+          <input type="number" id="fontWeightMedium" value="500" step="100" min="100" max="900">
+        </div>
+        <div class="control-group">
+          <label for="fontWeightSemibold">semibold</label>
+          <input type="number" id="fontWeightSemibold" value="600" step="100" min="100" max="900">
+        </div>
+      </div>
+    </div>
+
+    <!-- Line Heights -->
+    <div class="control-section">
+      <h3>Line Heights</h3>
+      <div class="control-row">
+        <div class="control-group">
+          <label for="lineHeightTight">tight</label>
+          <input type="number" id="lineHeightTight" value="1.25" step="0.05" min="1" max="3">
+        </div>
+        <div class="control-group">
+          <label for="lineHeightNormal">normal</label>
+          <input type="number" id="lineHeightNormal" value="1.5" step="0.05" min="1" max="3">
+        </div>
+        <div class="control-group">
+          <label for="lineHeightRelaxed">relaxed</label>
+          <input type="number" id="lineHeightRelaxed" value="1.75" step="0.05" min="1" max="3">
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Demo Cards -->
+  <div class="demos">
+    <!-- Floating Mode (Range) -->
+    <div class="demo-card">
+      <h3>Floating Mode (Range)</h3>
+      <p>Click the input to open the calendar popup. Tests input styling + calendar typography.</p>
+      <web-daterangepicker
+        id="floatingPicker"
+        selection-mode="range"
+        placeholder="Select date range..."
+        date-format-mask="YYYY-MM-DD"
+      ></web-daterangepicker>
+    </div>
+
+    <!-- Inline Calendar Mode -->
+    <div class="demo-card">
+      <h3>Inline Calendar Mode (Range)</h3>
+      <p>Standalone calendar with range selection. Tests calendar typography directly.</p>
+      <div class="inline-picker-wrapper">
+        <web-daterangepicker
+          id="inlinePicker"
+          selection-mode="range"
+          positioning-mode="inline"
+          date-format-mask="YYYY-MM-DD"
+        ></web-daterangepicker>
+      </div>
+    </div>
+  </div>
+
+  <!-- Current Values Display -->
+  <div class="current-values">
+    <div class="current-values-header">/* Current --base-* CSS Variables */</div>
+    <div id="currentValues">:root {
+  /* No overrides set - using component defaults */
+}</div>
+  </div>
+
+  <script type="module" src="/src/index.ts"></script>
+  <script type="module">
+    // Variable mappings
+    const variableMap = {
+      fontFamily: '--base-font-family',
+      fontSize2xs: '--base-font-size-2xs',
+      fontSizeXs: '--base-font-size-xs',
+      fontSizeSm: '--base-font-size-sm',
+      fontSizeBase: '--base-font-size-base',
+      fontSizeLg: '--base-font-size-lg',
+      fontSizeXl: '--base-font-size-xl',
+      fontSize2xl: '--base-font-size-2xl',
+      fontWeightNormal: '--base-font-weight-normal',
+      fontWeightMedium: '--base-font-weight-medium',
+      fontWeightSemibold: '--base-font-weight-semibold',
+      lineHeightTight: '--base-line-height-tight',
+      lineHeightNormal: '--base-line-height-normal',
+      lineHeightRelaxed: '--base-line-height-relaxed'
+    };
+
+    // Track current values
+    const currentValues = {};
+
+    // Update CSS variable
+    function updateVariable(inputId, value) {
+      const varName = variableMap[inputId];
+      if (!varName) return;
+
+      if (value === '' || value === null || value === undefined) {
+        // Remove the variable
+        document.documentElement.style.removeProperty(varName);
+        delete currentValues[varName];
+      } else {
+        // Set the variable
+        let cssValue = value;
+
+        // Font sizes are unitless multipliers (component multiplies by --drp-rem)
+        // No unit conversion needed - just pass the number
+
+        document.documentElement.style.setProperty(varName, cssValue);
+        currentValues[varName] = cssValue;
+      }
+
+      updateDisplay();
+    }
+
+    // Update the display of current values
+    function updateDisplay() {
+      const display = document.getElementById('currentValues');
+      const keys = Object.keys(currentValues);
+
+      if (keys.length === 0) {
+        display.textContent = `:root {
+  /* No overrides set - using component defaults */
+}`;
+      } else {
+        const lines = keys.map(k => `  ${k}: ${currentValues[k]};`).join('\n');
+        display.textContent = `:root {\n${lines}\n}`;
+      }
+    }
+
+    // Reset all variables
+    function resetAll() {
+      // Clear all inputs
+      Object.keys(variableMap).forEach(inputId => {
+        const input = document.getElementById(inputId);
+        if (input) {
+          input.value = '';
+        }
+        const varName = variableMap[inputId];
+        document.documentElement.style.removeProperty(varName);
+      });
+
+      // Clear tracking
+      Object.keys(currentValues).forEach(k => delete currentValues[k]);
+      updateDisplay();
+    }
+
+    // Set up event listeners
+    Object.keys(variableMap).forEach(inputId => {
+      const input = document.getElementById(inputId);
+      if (input) {
+        input.addEventListener('input', (e) => {
+          updateVariable(inputId, e.target.value);
+        });
+      }
+    });
+
+    // Reset button
+    document.getElementById('resetBtn').addEventListener('click', resetAll);
+
+    // Load font button
+    document.getElementById('loadFontBtn').addEventListener('click', () => {
+      const input = document.getElementById('fontLink');
+      let value = input.value.trim();
+
+      if (!value) return;
+
+      // Extract URL if it's a full <link> tag
+      const hrefMatch = value.match(/href=["']([^"']+)["']/);
+      if (hrefMatch) {
+        value = hrefMatch[1];
+      }
+
+      // Remove existing font link if present
+      const existingLink = document.getElementById('customFontLink');
+      if (existingLink) {
+        existingLink.remove();
+      }
+
+      // Create and add new link
+      const link = document.createElement('link');
+      link.id = 'customFontLink';
+      link.rel = 'stylesheet';
+      link.href = value;
+      document.head.appendChild(link);
+
+      // Try to extract font family name from URL
+      const familyMatch = value.match(/family=([^:&]+)/);
+      if (familyMatch) {
+        const fontName = decodeURIComponent(familyMatch[1].replace(/\+/g, ' '));
+        const fontFamilyInput = document.getElementById('fontFamily');
+        fontFamilyInput.value = `'${fontName}', sans-serif`;
+        updateVariable('fontFamily', fontFamilyInput.value);
+      }
+    });
+
+    // Apply initial values on page load
+    Object.keys(variableMap).forEach(inputId => {
+      const input = document.getElementById(inputId);
+      if (input && input.value) {
+        updateVariable(inputId, input.value);
+      }
+    });
+
+    // Set up special dates for both pickers
+    const today = new Date();
+    const specialDates = [
+      { date: new Date(today.getFullYear(), today.getMonth(), 10), badgeText: '3', badgeClass: 'drp-badge--info' },
+      { date: new Date(today.getFullYear(), today.getMonth(), 15), badgeText: '!', badgeClass: 'drp-badge--warning' },
+      { date: new Date(today.getFullYear(), today.getMonth(), 20), badgeText: '5', badgeClass: 'drp-badge--success' },
+      { date: new Date(today.getFullYear(), today.getMonth(), 25), badgeText: '2', badgeClass: 'drp-badge--danger' },
+      { date: new Date(today.getFullYear(), today.getMonth() + 1, 5), badgeText: '1', badgeClass: 'drp-badge--info' },
+    ];
+
+    // Custom styles for badge classes (injected into shadow DOM)
+    const customStyles = () => `
+      .drp-badge--info { background-color: #3b82f6; color: white; }
+      .drp-badge--warning { background-color: #f59e0b; color: white; }
+      .drp-badge--success { background-color: #22c55e; color: white; }
+      .drp-badge--danger { background-color: #ef4444; color: white; }
+    `;
+
+    // Wait for custom elements to be defined
+    customElements.whenDefined('web-daterangepicker').then(() => {
+      const floatingPicker = document.getElementById('floatingPicker');
+      const inlinePicker = document.getElementById('inlinePicker');
+
+      if (floatingPicker) {
+        floatingPicker.specialDates = specialDates;
+        floatingPicker.customStylesCallback = customStyles;
+      }
+      if (inlinePicker) {
+        inlinePicker.specialDates = specialDates;
+        inlinePicker.customStylesCallback = customStyles;
+      }
+    });
+  </script>
+</body>
+</html>

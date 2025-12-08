@@ -1176,6 +1176,7 @@ class DateRangePicker {
             else if (e.key === 't' || e.key === 'T') {
                 // Jump to today in the active month column
                 this.monthDates[this.activeMonthIndex] = new Date();
+                Navigation.checkAndResolveCollisions(this, this.activeMonthIndex);
                 this.renderCalendar();
                 // Focus on today's day in the active month
                 setTimeout(() => {

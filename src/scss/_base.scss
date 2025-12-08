@@ -23,52 +23,47 @@
   // Internal 10px-based unit for clean math. Override to scale the component.
   // Default 10px produces same visual output as standard 16px rem.
   // Set to 1rem in Pure Admin (10px base) to scale with document.
+  //
+  // IMPORTANT: For web components, set --drp-rem on the <web-daterangepicker>
+  // element itself or on :root. Setting on wrapper divs won't work due to
+  // shadow DOM encapsulation.
   --drp-rem: 10px;
 
   // ===========================================================================
-  // SIZING SCALE SYSTEM (THREE INDEPENDENT MULTIPLIERS)
-  // ===========================================================================
-  // Three independent multipliers for fine-grained control:
-  // - font-scale: Controls text sizes only
-  // - spacing-scale: Controls gaps, padding, margins only
-  // - cell-scale: Controls day cell dimensions and structural sizes only
-
-  --drp-font-scale: #{$drp-density-md};    // Default to 1.0 (medium)
-  --drp-spacing-scale: #{$drp-density-md}; // Default to 1.0 (medium)
-  --drp-cell-scale: #{$drp-density-md};    // Default to 1.0 (medium)
-
-  // ===========================================================================
-  // BASE SPACING (semantic meaning never changes)
+  // SPACING
   // ===========================================================================
 
-  --drp-spacing-xs-base: #{$drp-spacing-xs};   // Always 0.25rem (4px)
-  --drp-spacing-sm-base: #{$drp-spacing-sm};   // Always 0.5rem (8px)
-  --drp-spacing-md-base: #{$drp-spacing-md};   // Always 1rem (16px)
-  --drp-spacing-lg-base: #{$drp-spacing-lg};   // Always 1.5rem (24px)
-  --drp-spacing-xl-base: #{$drp-spacing-xl};   // Always 2rem (32px)
-
-  // Computed spacing (base × spacing-scale)
-  --drp-spacing-xs: calc(var(--drp-spacing-xs-base) * var(--drp-spacing-scale));
-  --drp-spacing-sm: calc(var(--drp-spacing-sm-base) * var(--drp-spacing-scale));
-  --drp-spacing-md: calc(var(--drp-spacing-md-base) * var(--drp-spacing-scale));
-  --drp-spacing-lg: calc(var(--drp-spacing-lg-base) * var(--drp-spacing-scale));
-  --drp-spacing-xl: calc(var(--drp-spacing-xl-base) * var(--drp-spacing-scale));
+  --drp-spacing-xs: #{$drp-spacing-xs};   // 4px
+  --drp-spacing-sm: #{$drp-spacing-sm};   // 8px
+  --drp-spacing-md: #{$drp-spacing-md};   // 16px
+  --drp-spacing-lg: #{$drp-spacing-lg};   // 24px
+  --drp-spacing-xl: #{$drp-spacing-xl};   // 32px
 
   // ===========================================================================
-  // BASE TYPOGRAPHY (semantic meaning never changes)
+  // BASE TYPOGRAPHY (with theme-designer integration)
   // ===========================================================================
+  // Priority chain: --drp-* → --base-* → calc default
 
-  --drp-font-size-2xs-base: #{$drp-font-size-2xs};  // Always 0.625rem
-  --drp-font-size-xs-base: #{$drp-font-size-xs};    // Always 0.75rem
-  --drp-font-size-sm-base: #{$drp-font-size-sm};    // Always 0.875rem
-  --drp-font-size-base-base: #{$drp-font-size-base}; // Always 1rem
-  --drp-font-size-lg-base: #{$drp-font-size-lg};    // Always 1.125rem
-  --drp-font-size-xl-base: #{$drp-font-size-xl};    // Always 1.25rem
-  --drp-font-size-2xl-base: #{$drp-font-size-2xl};  // Always 1.5rem
+  // Font sizes (unitless multipliers from theme-designer, multiplied by --drp-rem)
+  // Theme-designer outputs: --base-font-size-sm: 1.4 (unitless)
+  // Component computes: calc(1.4 * 10px) = 14px
+  --drp-font-size-2xs: calc(var(--base-font-size-2xs, 1) * var(--drp-rem));     // 10px
+  --drp-font-size-xs: calc(var(--base-font-size-xs, 1.2) * var(--drp-rem));     // 12px
+  --drp-font-size-sm: calc(var(--base-font-size-sm, 1.4) * var(--drp-rem));     // 14px
+  --drp-font-size-base: calc(var(--base-font-size-base, 1.6) * var(--drp-rem)); // 16px
+  --drp-font-size-lg: calc(var(--base-font-size-lg, 1.8) * var(--drp-rem));     // 18px
+  --drp-font-size-xl: calc(var(--base-font-size-xl, 2) * var(--drp-rem));       // 20px
+  --drp-font-size-2xl: calc(var(--base-font-size-2xl, 2.4) * var(--drp-rem));   // 24px
 
-  // Font weights (not affected by density)
-  --drp-font-weight-medium: #{$drp-font-weight-medium};
-  --drp-font-weight-semibold: #{$drp-font-weight-semibold};
+  // Font weights (reference theme-designer base variables)
+  --drp-font-weight-normal: var(--base-font-weight-normal, 400);
+  --drp-font-weight-medium: var(--base-font-weight-medium, 500);
+  --drp-font-weight-semibold: var(--base-font-weight-semibold, 600);
+
+  // Line heights (reference theme-designer base variables)
+  --drp-line-height-tight: var(--base-line-height-tight, 1.25);
+  --drp-line-height-normal: var(--base-line-height-normal, 1.5);
+  --drp-line-height-relaxed: var(--base-line-height-relaxed, 1.75);
 
   // ===========================================================================
   // COLORS (not affected by density)
@@ -133,31 +128,31 @@
 
   --drp-input-size-xs-font: #{$font-size-xs};
   --drp-input-size-xs-padding-v: #{$padding-xs};
-  --drp-input-size-xs-padding-h: #{$padding-xs};
+  --drp-input-size-xs-padding-h: calc(0.8 * var(--drp-rem)); // 8px (aligned with web-multiselect, was 4px)
   --drp-input-size-xs-height: calc(3.1 * var(--drp-rem));   // 31px
   --drp-input-size-xs-icon-size: 0.75em;
 
-  --drp-input-size-sm-font: #{$drp-font-size-sm};
-  --drp-input-size-sm-padding-v: #{$drp-spacing-xs};
+  --drp-input-size-sm-font: calc(1.3 * var(--drp-rem));    // 13px (aligned with web-multiselect)
+  --drp-input-size-sm-padding-v: calc(0.5 * var(--drp-rem)); // 5px (aligned with web-multiselect)
   --drp-input-size-sm-padding-h: #{$drp-spacing-sm};
   --drp-input-size-sm-height: calc(3.3 * var(--drp-rem));   // 33px
   --drp-input-size-sm-icon-size: 0.875em;
 
-  --drp-input-size-md-font: #{$drp-font-size-base};
+  --drp-input-size-md-font: calc(1.4 * var(--drp-rem));     // 14px (aligned with web-multiselect, was 16px)
   --drp-input-size-md-padding-v: #{$drp-spacing-sm};
   --drp-input-size-md-padding-h: #{$padding-base};
   --drp-input-size-md-height: calc(3.5 * var(--drp-rem));   // 35px
   --drp-input-size-md-icon-size: 1em;
 
-  --drp-input-size-lg-font: #{$drp-font-size-lg};
-  --drp-input-size-lg-padding-v: #{$drp-spacing-md};
-  --drp-input-size-lg-padding-h: #{$drp-spacing-md};
+  --drp-input-size-lg-font: calc(1.6 * var(--drp-rem));     // 16px (aligned with web-multiselect, was 18px)
+  --drp-input-size-lg-padding-v: calc(1.0 * var(--drp-rem)); // 10px (aligned with web-multiselect, was 16px)
+  --drp-input-size-lg-padding-h: calc(1.4 * var(--drp-rem)); // 14px (aligned with web-multiselect, was 16px)
   --drp-input-size-lg-height: calc(3.8 * var(--drp-rem));   // 38px
   --drp-input-size-lg-icon-size: 1.125em;
 
-  --drp-input-size-xl-font: #{$font-size-xl};
-  --drp-input-size-xl-padding-v: #{$drp-spacing-md};
-  --drp-input-size-xl-padding-h: #{$drp-spacing-lg};
+  --drp-input-size-xl-font: calc(1.8 * var(--drp-rem));     // 18px (aligned with web-multiselect, was 20px)
+  --drp-input-size-xl-padding-v: calc(1.2 * var(--drp-rem)); // 12px (aligned with web-multiselect, was 16px)
+  --drp-input-size-xl-padding-h: calc(1.6 * var(--drp-rem)); // 16px (aligned with web-multiselect, was 24px)
   --drp-input-size-xl-height: calc(4.1 * var(--drp-rem));   // 41px
   --drp-input-size-xl-icon-size: 1.25em;
 
@@ -251,9 +246,9 @@
 // Input element itself (actual <input> tag)
 .drp-input {
   width: 100%;
-  font-family: inherit;
+  font-family: var(--drp-font-family, var(--base-font-family, inherit));
   font-size: var(--drp-input-size-md-font);
-  line-height: 1.5;
+  line-height: var(--drp-line-height-normal);
   color: var(--drp-input-color);
   background-color: var(--drp-input-background);
   border: var(--drp-border-width-base) solid var(--drp-input-border-color);
@@ -364,6 +359,7 @@
 .drp-date-picker {
   position: absolute;
   z-index: $drp-z-index-dropdown;
+  font-family: var(--drp-font-family, var(--base-font-family, inherit));
   background: var(--drp-dropdown-background);
   border: var(--drp-border-width-base) solid var(--drp-border-color);
   border-radius: var(--drp-border-radius);
@@ -374,15 +370,8 @@
   box-sizing: border-box;
   user-select: none;
 
-  // Computed font sizes (base × font-scale)
-  // Must be defined here (not in :host) so they use the correct --drp-font-scale value
-  --drp-font-size-2xs: calc(var(--drp-font-size-2xs-base) * var(--drp-font-scale));
-  --drp-font-size-xs: calc(var(--drp-font-size-xs-base) * var(--drp-font-scale));
-  --drp-font-size-sm: calc(var(--drp-font-size-sm-base) * var(--drp-font-scale));
-  --drp-font-size-base: calc(var(--drp-font-size-base-base) * var(--drp-font-scale));
-  --drp-font-size-lg: calc(var(--drp-font-size-lg-base) * var(--drp-font-scale));
-  --drp-font-size-xl: calc(var(--drp-font-size-xl-base) * var(--drp-font-scale));
-  --drp-font-size-2xl: calc(var(--drp-font-size-2xl-base) * var(--drp-font-scale));
+  // Badge row height
+  --drp-badge-row-height: #{$drp-badge-max-height};
 
   // Hide by default
   &:not(.drp-date-picker--visible) {
@@ -443,8 +432,7 @@
 
 .drp-date-picker__month {
   flex: 1;
-  // Scale month width with cell-scale for proper cell sizing
-  min-width: calc(#{$drp-month-min-width} * var(--drp-cell-scale));
+  min-width: $drp-month-min-width;
 
   // Make month a flex column container so calendar-container can fill vertical space
   display: flex;
@@ -452,7 +440,7 @@
 
   // Allow shrinking for inline mode
   .drp-date-picker--inline & {
-    min-width: calc(#{$drp-month-min-width-inline} * var(--drp-cell-scale));
+    min-width: $drp-month-min-width-inline;
   }
 
   // Grid layout: remove min-width to allow proper grid sizing
