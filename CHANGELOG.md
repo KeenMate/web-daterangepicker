@@ -5,6 +5,73 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+
+- **Border Radius Theme Integration**: Added `--drp-border-radius-sm/md/lg` CSS variables with theme-designer support
+  - Variables reference `--base-border-radius-sm/md/lg` from theme-designer with fallback defaults
+  - Pattern: `calc(var(--base-border-radius-md, 0.6) * var(--drp-rem))` (unitless multiplier × rem base)
+  - `--drp-border-radius` alias points to `--drp-border-radius-md` for backward compatibility
+
+- **Input Border Color Theme Integration**: Connected input border colors to theme-designer
+  - `--drp-input-border-color` → `var(--base-input-border-color, ...)`
+  - `--drp-input-border-color-hover` → `var(--base-input-border-color-hover, ...)`
+  - `--drp-input-border-color-focus` → `var(--base-input-border-color-focus, ...)`
+
+- **Input Size Heights Theme Integration** - Input height variables now reference `--base-input-size-*-height` from theme-designer
+  - `--drp-input-size-xs-height`: `calc(var(--base-input-size-xs-height, 3.1) * var(--drp-rem))` (31px)
+  - `--drp-input-size-sm-height`: `calc(var(--base-input-size-sm-height, 3.3) * var(--drp-rem))` (33px)
+  - `--drp-input-size-md-height`: `calc(var(--base-input-size-md-height, 3.5) * var(--drp-rem))` (35px)
+  - `--drp-input-size-lg-height`: `calc(var(--base-input-size-lg-height, 3.8) * var(--drp-rem))` (38px)
+  - `--drp-input-size-xl-height`: `calc(var(--base-input-size-xl-height, 4.1) * var(--drp-rem))` (41px)
+  - Ensures consistent input heights across all KeenMate components when using theme-designer
+
+### Changed
+
+- **BREAKING: SCSS to Pure CSS Migration** - Converted all styles from SCSS to pure CSS
+  - Removed SCSS dependency entirely - no more `sass` package required
+  - All CSS custom properties now defined in `_variables.css` with hardcoded fallback values
+  - Styles now use native CSS `color-mix()` function for opacity calculations (replaces SCSS `color.mix()`)
+  - Package exports changed: `./scss` → `./css`, `./scss/variables` → `./css/variables`
+  - Import path updated: `@keenmate/web-daterangepicker/css` instead of `@keenmate/web-daterangepicker/scss`
+
+- **Semantic Border Radius**: Applied industry-standard border-radius scale to components
+  - **sm** (4px): Day cells, disabled overlay, tooltips - small/compact elements
+  - **md** (6px): Input, buttons, nav buttons, month-year header - standard controls
+  - **lg** (8px): Calendar container, rolling selectors, loading overlay - larger containers
+
+### Fixed
+
+- **Badge Vertical Alignment** - Fixed badges aligning to top instead of center in calendar cells
+  - Removed `height: 100%` from `.drp-date-picker__badge-cell` which caused flex alignment issues
+
+### Removed
+
+- `sass` devDependency - SCSS compiler no longer needed
+- `src/scss/` folder - replaced by `src/css/`
+- SCSS-specific features like `@use`, `@forward`, `#{interpolation}`, `$variables`
+
+### Migration Guide
+
+**For users importing source styles:**
+```css
+/* Before */
+@import '@keenmate/web-daterangepicker/scss';
+@import '@keenmate/web-daterangepicker/scss/variables';
+
+/* After */
+@import '@keenmate/web-daterangepicker/css';
+@import '@keenmate/web-daterangepicker/css/variables';
+```
+
+**For users using the compiled CSS:**
+No changes needed - `dist/style.css` works the same way.
+
+**Browser Compatibility:**
+The `color-mix()` function requires modern browsers (Chrome 111+, Firefox 113+, Safari 16.2+).
+For older browser support, use the compiled `dist/style.css` which is processed by Vite.
+
 ## [1.7.0] - 2025-12-08
 
 ### Changed

@@ -1,0 +1,29 @@
+/* ==============================================================================
+   DATE RANGE PICKER COMPONENT - MAIN ENTRY POINT
+   ==============================================================================
+
+   File structure:
+   ├── _variables.css          - CSS custom properties at :host level
+   ├── _base.css               - Base container, input field, calendar popup
+   ├── _header-navigation.css  - Header, month/year display, nav buttons, rolling selector
+   ├── _calendar-grid.css      - Weekdays, day cells, all day states
+   ├── _badges.css             - Badge system for events/markers
+   ├── _summary-actions.css    - Selection summary and action buttons
+   ├── _tooltips.css           - Floating UI tooltips
+   ├── _loading.css            - Loading overlay and spinner for async validation
+   ├── _modifiers.css          - Transitions, inline mode
+   └── main.css                - This file (imports all partials)
+
+   Import order matters - variables must be first, modifiers should be last
+
+   ============================================================================== */
+
+@import './_variables.css';
+@import './_base.css';
+@import './_header-navigation.css';
+@import './_calendar-grid.css';
+@import './_badges.css';
+@import './_summary-actions.css';
+@import './_tooltips.css';
+@import './_loading.css';
+@import './_modifiers.css';

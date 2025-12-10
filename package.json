@@ -1,6 +1,6 @@
 {
   "name": "@keenmate/web-daterangepicker",
-  "version": "1.7.0",
+  "version": "1.8.0",
   "description": "Lightweight date picker web component with excellent keyboard navigation and range selection",
   "type": "module",
   "main": "./dist/web-daterangepicker.umd.js",
@@ -15,11 +15,11 @@
       "default": "./dist/web-daterangepicker.js"
     },
     "./style.css": "./dist/style.css",
-    "./scss": "./src/scss/main.scss",
-    "./scss/variables": "./src/scss/_variables.scss",
-    "./scss/base": "./src/scss/_base.scss",
+    "./css": "./src/css/main.css",
+    "./css/variables": "./src/css/_variables.css",
+    "./css/base": "./src/css/_base.css",
     "./dist/*": "./dist/*",
-    "./src/scss/*": "./src/scss/*",
+    "./src/css/*": "./src/css/*",
     "./package.json": "./package.json"
   },
   "sideEffects": [
@@ -29,7 +29,7 @@
   ],
   "files": [
     "dist",
-    "src/scss"
+    "src/css"
   ],
   "scripts": {
     "dev": "vite",
@@ -66,7 +66,6 @@
   },
   "devDependencies": {
     "rimraf": "^5.0.5",
-    "sass": "^1.69.5",
     "typescript": "^5.3.3",
     "vite": "^5.0.8"
   },

@@ -545,9 +545,9 @@ Customize the appearance using CSS custom properties:
   /* Input Field */
   --drp-input-background: var(--drp-dropdown-background);
   --drp-input-color: var(--drp-text-primary);
-  --drp-input-border-color: var(--drp-border-color);
-  --drp-input-border-color-hover: var(--drp-accent-color);
-  --drp-input-border-color-focus: var(--drp-accent-color);
+  --drp-input-border-color: var(--base-input-border-color, var(--drp-border-color));
+  --drp-input-border-color-hover: var(--base-input-border-color-hover, var(--drp-accent-color));
+  --drp-input-border-color-focus: var(--base-input-border-color-focus, var(--drp-accent-color));
   --drp-input-placeholder-color: var(--drp-text-secondary);
 
   /* Typography (all scale with --drp-rem) */
@@ -564,7 +564,10 @@ Customize the appearance using CSS custom properties:
 
   /* Borders */
   --drp-border-width-base: 1px;
-  --drp-border-radius: 0.375rem;
+  --drp-border-radius-sm: calc(var(--base-border-radius-sm, 0.4) * var(--drp-rem));  /* 4px - day cells, tooltips */
+  --drp-border-radius-md: calc(var(--base-border-radius-md, 0.6) * var(--drp-rem));  /* 6px - inputs, buttons */
+  --drp-border-radius-lg: calc(var(--base-border-radius-lg, 0.8) * var(--drp-rem));  /* 8px - calendar, dropdowns */
+  --drp-border-radius: var(--drp-border-radius-md);  /* default alias */
 
   /* Shadows */
   --drp-shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1);
@@ -579,32 +582,39 @@ Customize the appearance using CSS custom properties:
 
 The component uses a 10px-based sizing system (`--drp-rem: 10px`) for clean, predictable dimensions:
 
-| Size | Attribute | Height |
-|------|-----------|--------|
-| XS   | `input-size="xs"` | 31px |
-| SM   | `input-size="sm"` | 33px |
-| MD   | `input-size="md"` | 35px (default) |
-| LG   | `input-size="lg"` | 38px |
-| XL   | `input-size="xl"` | 41px |
+| Size | Attribute | Height | Base Variable |
+|------|-----------|--------|---------------|
+| XS   | `input-size="xs"` | 31px | `--base-input-size-xs-height` |
+| SM   | `input-size="sm"` | 33px | `--base-input-size-sm-height` |
+| MD   | `input-size="md"` | 35px (default) | `--base-input-size-md-height` |
+| LG   | `input-size="lg"` | 38px | `--base-input-size-lg-height` |
+| XL   | `input-size="xl"` | 41px | `--base-input-size-xl-height` |
+
+**Theme Designer Integration**: Input heights reference `--base-input-size-*-height` variables from the [Theme Designer](https://theme-designer.keenmate.dev). This ensures consistent input heights across all KeenMate components (web-multiselect, web-daterangepicker).
 
 For complete size variable reference (font sizes, padding, spacing), see [SIZES.md](SIZES.md).
 
 #### Customizing Input Heights
 
-Three ways to customize input dimensions:
+Four ways to customize input dimensions:
 
 ```css
-/* Option 1: Direct px override */
+/* Option 1: Via Theme Designer base variables (recommended for multi-component consistency) */
+:root {
+  --base-input-size-md-height: 4.2;  /* All components: 42px at 10px rem */
+}
+
+/* Option 2: Direct px override */
 web-daterangepicker {
   --drp-input-size-md-height: 42px;
 }
 
-/* Option 2: Scale all sizes via --drp-rem */
+/* Option 3: Scale all sizes via --drp-rem */
 web-daterangepicker {
   --drp-rem: 12px;  /* MD = 3.5 × 12 = 42px */
 }
 
-/* Option 3: Override specific size with calc */
+/* Option 4: Override specific size with calc */
 web-daterangepicker {
   --drp-input-size-md-height: calc(4.2 * var(--drp-rem));
 }

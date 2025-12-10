@@ -1,6 +1,6 @@
 import { DateRangePicker } from './date-picker';
 import type { DatePickerOptions, DateRange, DecoratedDate, DateInfo, DayRenderData, BeforeSelectResult, ActionButton } from './types';
-import styles from './scss/main.scss?inline';
+import styles from './css/main.css?inline';
 
 export class WebDaterangepickerElement extends HTMLElement {
     private picker?: DateRangePicker;

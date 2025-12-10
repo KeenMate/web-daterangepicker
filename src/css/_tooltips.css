@@ -1,0 +1,37 @@
+/* ==============================================================================
+   DATE RANGE PICKER - TOOLTIPS
+   ==============================================================================
+   Floating UI tooltips for badge hover information */
+
+/* ==============================================================================
+   FLOATING UI TOOLTIPS
+   ============================================================================== */
+
+.drp-date-picker__tooltip {
+  position: absolute;
+  z-index: var(--drp-z-index-tooltip);
+  background-color: var(--drp-tooltip-background);
+  color: var(--drp-tooltip-text-color);
+  padding: var(--drp-spacing-xs) var(--drp-spacing-sm);
+  border-radius: var(--drp-border-radius-sm);
+  font-size: var(--drp-font-size-xs);
+  line-height: var(--drp-tooltip-line-height);
+  max-width: var(--drp-tooltip-max-width);
+  word-wrap: break-word;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity var(--drp-transition-fast) var(--drp-easing-snappy);
+}
+
+.drp-date-picker__tooltip--visible {
+  opacity: 1;
+}
+
+/* Tooltip arrow */
+.drp-date-picker__tooltip-arrow {
+  position: absolute;
+  background-color: var(--drp-tooltip-background);
+  width: var(--drp-tooltip-arrow-size);
+  height: var(--drp-tooltip-arrow-size);
+  transform: rotate(45deg);
+}

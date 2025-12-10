@@ -1,0 +1,41 @@
+/* ==============================================================================
+   DATE RANGE PICKER - MODIFIERS
+   ============================================================================== */
+
+/* ==============================================================================
+   TRANSITIONS (OPT-IN FOR PERFORMANCE)
+   ==============================================================================
+   By default, no transitions for maximum performance
+   Add enable-transitions attribute to enable smooth animations */
+
+.drp-date-picker.drp-transitions-enabled .drp-date-picker__badge-cell {
+  transition: transform var(--drp-transition-fast) var(--drp-easing-snappy);
+}
+
+.drp-date-picker.drp-transitions-enabled .drp-date-picker__nav {
+  transition: background-color var(--drp-transition-fast) var(--drp-easing-snappy),
+              border-color var(--drp-transition-fast) var(--drp-easing-snappy);
+}
+
+.drp-date-picker.drp-transitions-enabled .drp-date-picker__action-btn {
+  transition: background-color var(--drp-transition-fast) var(--drp-easing-snappy),
+              border-color var(--drp-transition-fast) var(--drp-easing-snappy);
+}
+
+.drp-date-picker.drp-transitions-enabled .drp-date-picker__month-year {
+  transition: background-color var(--drp-transition-fast) var(--drp-easing-snappy);
+}
+
+.drp-date-picker.drp-transitions-enabled .drp-date-picker__rolling-item {
+  transition: background-color var(--drp-transition-fast) var(--drp-easing-snappy);
+}
+
+/* ==============================================================================
+   INLINE MODE MODIFIER
+   ============================================================================== */
+
+.drp-date-picker--inline {
+  position: static;
+  display: block;
+  box-shadow: none;
+}

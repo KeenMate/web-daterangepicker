@@ -1,0 +1,99 @@
+/* ==============================================================================
+   DATE RANGE PICKER - SUMMARY & ACTIONS
+   ==============================================================================
+   Selection summary (days/nights count) and action buttons (Today, Clear, Apply) */
+
+/* ==============================================================================
+   SELECTION SUMMARY (DAYS/NIGHTS COUNT)
+   ============================================================================== */
+
+.drp-date-picker__summary {
+  text-align: center;
+  padding: var(--drp-spacing-md);
+  border-top: var(--drp-border-width-base) solid var(--drp-summary-border-color);
+  font-size: var(--drp-font-size-sm);
+  color: var(--drp-summary-text-color);
+}
+
+.drp-date-picker__summary--visible {
+  display: block;
+}
+
+.drp-date-picker__summary--hidden {
+  display: none;
+}
+
+.drp-date-picker__summary-count {
+  font-weight: var(--drp-font-weight-semibold);
+  color: var(--drp-summary-count-color);
+  font-size: var(--drp-font-size-base);
+}
+
+/* ==============================================================================
+   ACTION BUTTONS
+   ============================================================================== */
+
+.drp-date-picker__actions {
+  display: flex;
+  gap: var(--drp-spacing-sm);
+  justify-content: space-between;
+  padding-top: var(--drp-spacing-sm);
+  border-top: var(--drp-border-width-base) solid var(--drp-summary-border-color);
+}
+
+.drp-date-picker__button {
+  flex: 1;
+  padding: var(--drp-spacing-sm) var(--drp-spacing-md);
+  border: var(--drp-border-width-base) solid var(--drp-button-border-color);
+  border-radius: var(--drp-border-radius);
+  background: transparent;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: var(--drp-font-size-sm);
+  font-weight: var(--drp-font-weight-medium);
+}
+
+.drp-date-picker__button:hover {
+  background-color: var(--drp-button-bg-hover);
+  border-color: var(--drp-button-border-hover);
+}
+
+/* Disabled state */
+.drp-date-picker__button:disabled,
+.drp-date-picker__button[disabled] {
+  opacity: var(--drp-opacity-disabled);
+  cursor: not-allowed;
+  pointer-events: none;  /* Critical - prevents all mouse interactions */
+}
+
+.drp-date-picker__button:disabled:hover,
+.drp-date-picker__button[disabled]:hover {
+  background-color: transparent;
+  border-color: var(--drp-button-border-color);
+}
+
+/* Today Button */
+.drp-date-picker__button--today {
+  color: var(--drp-button-today-color);
+}
+
+/* Clear Button */
+.drp-date-picker__button--clear {
+  color: var(--drp-button-clear-color);
+}
+
+/* Apply Button (primary action) */
+.drp-date-picker__button--apply {
+  background-color: var(--drp-button-apply-bg);
+  color: var(--drp-button-apply-color);
+  border-color: var(--drp-button-apply-border);
+}
+
+.drp-date-picker__button--apply:hover {
+  background-color: var(--drp-button-apply-bg-hover);
+}
+
+/* Cancel Button */
+.drp-date-picker__button--cancel {
+  color: var(--drp-button-cancel-color);
+}

@@ -1,5 +1,5 @@
 // Import styles
-import './scss/main.scss';
+import './css/main.css';
 
 // Import web component for auto-registration
 import { WebDaterangepickerElement } from './web-component';

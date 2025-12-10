@@ -23,7 +23,7 @@ import * as UI from './date-picker-ui';
 import { resolveLocale, getLocaleStrings, getWeekdayNames, getMonthNames } from './date-picker-locales';
 import { drpLogger, navigationLogger, enableLogging, disableLogging } from './logger';
 // Import styles for static injection (only used when injectGlobalStyles is called)
-import styles from './scss/main.scss?inline';
+import styles from './css/main.css?inline';
 
 class DateRangePicker {
     // Static flag to track if styles have been injected

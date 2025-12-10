@@ -1,0 +1,232 @@
+/* ==============================================================================
+   DATE RANGE PICKER - BASE STYLES
+   ==============================================================================
+   Base container styles, input field, and calendar popup */
+
+/* ==============================================================================
+   DATE PICKER INPUT FIELD
+   ============================================================================== */
+
+/* Input element itself (actual <input> tag) */
+.drp-input {
+  width: 100%;
+  font-family: var(--drp-font-family, var(--base-font-family, inherit));
+  font-size: var(--drp-input-size-md-font);
+  line-height: var(--drp-line-height-normal);
+  color: var(--drp-input-color);
+  background-color: var(--drp-input-background);
+  border: var(--drp-border-width-base) solid var(--drp-input-border-color);
+  border-radius: var(--drp-border-radius);
+  padding: var(--drp-input-size-md-padding-v) var(--drp-input-size-md-padding-h);
+  padding-right: calc(var(--drp-input-size-md-padding-h) * 2.5); /* Extra space for calendar icon */
+  height: var(--drp-input-size-md-height);
+  box-sizing: border-box;
+  transition: border-color var(--drp-transition-fast) var(--drp-easing-snappy),
+              box-shadow var(--drp-transition-fast) var(--drp-easing-snappy);
+}
+
+.drp-input::placeholder {
+  color: var(--drp-input-placeholder-color);
+  opacity: 0.6;
+}
+
+.drp-input:hover:not(:disabled) {
+  border-color: var(--drp-input-border-color-hover);
+}
+
+.drp-input:focus {
+  outline: none;
+  border-color: var(--drp-input-border-color-focus);
+  box-shadow: 0 0 0 var(--drp-input-focus-shadow-size) var(--drp-input-focus-shadow-color);
+}
+
+.drp-input:disabled {
+  opacity: var(--drp-opacity-disabled);
+  cursor: not-allowed;
+  background-color: var(--drp-input-background-disabled);
+}
+
+/* Input Size Variants */
+.drp-input.drp-input--xs {
+  font-size: var(--drp-input-size-xs-font);
+  padding: var(--drp-input-size-xs-padding-v) var(--drp-input-size-xs-padding-h);
+  padding-right: calc(var(--drp-input-size-xs-padding-h) * 2.5);
+  height: var(--drp-input-size-xs-height);
+}
+
+.drp-input.drp-input--sm {
+  font-size: var(--drp-input-size-sm-font);
+  padding: var(--drp-input-size-sm-padding-v) var(--drp-input-size-sm-padding-h);
+  padding-right: calc(var(--drp-input-size-sm-padding-h) * 2.5);
+  height: var(--drp-input-size-sm-height);
+}
+
+.drp-input.drp-input--lg {
+  font-size: var(--drp-input-size-lg-font);
+  padding: var(--drp-input-size-lg-padding-v) var(--drp-input-size-lg-padding-h);
+  padding-right: calc(var(--drp-input-size-lg-padding-h) * 2.5);
+  height: var(--drp-input-size-lg-height);
+}
+
+.drp-input.drp-input--xl {
+  font-size: var(--drp-input-size-xl-font);
+  padding: var(--drp-input-size-xl-padding-v) var(--drp-input-size-xl-padding-h);
+  padding-right: calc(var(--drp-input-size-xl-padding-h) * 2.5);
+  height: var(--drp-input-size-xl-height);
+}
+
+/* ==============================================================================
+   INPUT WRAPPER CONTAINER (for positioning calendar icon)
+   ============================================================================== */
+
+.drp-date-picker-input {
+  position: relative;
+  cursor: pointer;
+  display: inline-block;
+  width: 100%;
+}
+
+/* Calendar icon */
+.drp-date-picker-input::after {
+  content: '📅';
+  position: absolute;
+  right: var(--drp-input-size-md-padding-h);
+  top: 50%;
+  transform: translateY(-50%);
+  pointer-events: none;
+  opacity: var(--drp-input-icon-opacity);
+  font-size: var(--drp-input-size-md-icon-size);
+}
+
+/* Size variant icon positioning */
+.drp-date-picker-input.drp-date-picker-input--xs::after {
+  right: var(--drp-input-size-xs-padding-h);
+  font-size: var(--drp-input-size-xs-icon-size);
+}
+
+.drp-date-picker-input.drp-date-picker-input--sm::after {
+  right: var(--drp-input-size-sm-padding-h);
+  font-size: var(--drp-input-size-sm-icon-size);
+}
+
+.drp-date-picker-input.drp-date-picker-input--lg::after {
+  right: var(--drp-input-size-lg-padding-h);
+  font-size: var(--drp-input-size-lg-icon-size);
+}
+
+.drp-date-picker-input.drp-date-picker-input--xl::after {
+  right: var(--drp-input-size-xl-padding-h);
+  font-size: var(--drp-input-size-xl-icon-size);
+}
+
+/* ==============================================================================
+   CALENDAR POPUP CONTAINER
+   ============================================================================== */
+
+.drp-date-picker {
+  position: absolute;
+  z-index: var(--drp-z-index-dropdown);
+  font-family: var(--drp-font-family, var(--base-font-family, inherit));
+  background: var(--drp-dropdown-background);
+  border: var(--drp-border-width-base) solid var(--drp-border-color);
+  border-radius: var(--drp-border-radius-lg);
+  box-shadow: var(--drp-shadow-xl);
+  padding: var(--drp-spacing-md);
+  min-width: var(--drp-month-min-width);
+  max-width: var(--drp-calendar-max-width);
+  box-sizing: border-box;
+  user-select: none;
+}
+
+/* Hide by default */
+.drp-date-picker:not(.drp-date-picker--visible) {
+  display: none;
+}
+
+/* Inline mode modifier */
+.drp-date-picker--inline {
+  position: relative !important;
+  display: block !important;
+  z-index: auto;
+  min-width: 0;
+  max-width: 100%;
+  width: fit-content;
+  box-sizing: border-box;
+}
+
+/* ==============================================================================
+   MONTHS CONTAINER (MULTI-MONTH LAYOUT)
+   ============================================================================== */
+
+.drp-date-picker__months {
+  display: flex;
+  gap: var(--drp-spacing-lg);
+}
+
+/* Allow wrapping for inline mode on small screens */
+.drp-date-picker--inline .drp-date-picker__months {
+  flex-wrap: wrap;
+}
+
+/* Grid layout mode */
+.drp-date-picker__months--grid {
+  display: grid;
+  grid-template-columns: repeat(var(--drp-grid-columns, 3), minmax(0, 1fr));
+  grid-template-rows: repeat(var(--drp-grid-rows, 2), auto);
+  gap: var(--drp-spacing-lg);
+  width: 100%;
+}
+
+/* Responsive breakpoints for grid */
+@media (max-width: 1200px) {
+  .drp-date-picker__months--grid {
+    grid-template-columns: repeat(min(var(--drp-grid-columns, 3), 3), minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 768px) {
+  .drp-date-picker__months--grid {
+    grid-template-columns: repeat(min(var(--drp-grid-columns, 3), 2), minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 480px) {
+  .drp-date-picker__months--grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+/* ==============================================================================
+   INDIVIDUAL MONTH CONTAINER
+   ============================================================================== */
+
+.drp-date-picker__month {
+  flex: 1;
+  min-width: var(--drp-month-min-width);
+  /* Make month a flex column container so calendar-container can fill vertical space */
+  display: flex;
+  flex-direction: column;
+}
+
+/* Allow shrinking for inline mode */
+.drp-date-picker--inline .drp-date-picker__month {
+  min-width: var(--drp-month-min-width-inline);
+}
+
+/* Grid layout: remove min-width to allow proper grid sizing */
+.drp-date-picker__months--grid .drp-date-picker__month {
+  min-width: 0;
+  width: 100%;
+}
+
+/* Calendar container for swapping between calendar grid and rolling selector */
+.drp-date-picker__calendar-container {
+  position: relative; /* Establishes containing block for absolute positioning */
+  /* Fill available vertical space in month container */
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0; /* Allow flex item to shrink below content size if needed */
+  /* Calendar grid (weekdays + days) determines minimum size
+     Rolling selector overlays absolutely and fills this expanded space */
+}
