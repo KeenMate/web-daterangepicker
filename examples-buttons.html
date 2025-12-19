@@ -9,7 +9,31 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
   <style>
     /* All common styles moved to examples-shared.css */
-    /* This page has no page-specific styles */
+    .picker-with-clear {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.5rem;
+    }
+    .picker-with-clear web-daterangepicker {
+      flex: 1;
+    }
+    .clear-btn {
+      background: #ef4444;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      width: 32px;
+      height: 32px;
+      font-size: 1.25rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    .clear-btn:hover {
+      background: #dc2626;
+    }
   </style>
 </head>
 <body>
@@ -81,28 +105,43 @@
       <div class="form-group">
         <label>auto-close="never" (Manual Close Only)</label>
         <small>Calendar NEVER auto-closes, not even with Apply button - user must close manually</small>
-        <web-daterangepicker
-          selection-mode="range"
-          auto-close="never">
-        </web-daterangepicker>
+        <div class="picker-with-clear">
+          <web-daterangepicker
+            id="autoclose-never"
+            selection-mode="range"
+            auto-close="never"
+            show-today-button="false"
+            show-clear-button="false"
+            show-apply-button="true">
+          </web-daterangepicker>
+          <button class="clear-btn" onclick="clearPicker('autoclose-never')" title="Clear selection">&times;</button>
+        </div>
       </div>
 
       <div class="form-group">
         <label>auto-close="selection" (Auto-Close on Selection) - DEFAULT</label>
         <small>Closes when selection completes (click, drag-adjust). Note: Multiple mode never auto-closes</small>
-        <web-daterangepicker
-          selection-mode="range"
-          auto-close="selection">
-        </web-daterangepicker>
+        <div class="picker-with-clear">
+          <web-daterangepicker
+            id="autoclose-selection"
+            selection-mode="range"
+            auto-close="selection">
+          </web-daterangepicker>
+          <button class="clear-btn" onclick="clearPicker('autoclose-selection')" title="Clear selection">&times;</button>
+        </div>
       </div>
 
       <div class="form-group">
         <label>auto-close="apply" (Only Apply Closes)</label>
         <small>Only the Apply button closes the calendar</small>
-        <web-daterangepicker
-          selection-mode="range"
-          auto-close="apply">
-        </web-daterangepicker>
+        <div class="picker-with-clear">
+          <web-daterangepicker
+            id="autoclose-apply"
+            selection-mode="range"
+            auto-close="apply">
+          </web-daterangepicker>
+          <button class="clear-btn" onclick="clearPicker('autoclose-apply')" title="Clear selection">&times;</button>
+        </div>
       </div>
     </div>
 
@@ -860,6 +899,14 @@ picker.actionButtons = [{
     // Wait for components to be ready
     await customElements.whenDefined('web-daterangepicker');
 
+    // Clear picker function for auto-close examples
+    window.clearPicker = (id) => {
+      const picker = document.querySelector(`#${id}`);
+      if (picker && picker.picker) {
+        picker.picker.clearSelection();
+      }
+    };
+
     // 3. Custom Preset Buttons
     const presetPicker = document.querySelector('#preset-picker');
     presetPicker.actionButtons = [
@@ -867,12 +914,18 @@ picker.actionButtons = [{
         action: 'custom',
         text: 'Last Week',
         onClick: (picker) => {
-          const end = new Date();
-          const start = new Date();
-          start.setDate(end.getDate() - 7);
-          // Set dates directly on picker instance
-          picker.selectedStartDate = start;
-          picker.selectedEndDate = end;
+          const today = new Date();
+          const dayOfWeek = today.getDay(); // 0=Sun, 1=Mon, ...
+          // Find last Monday (go back to this Monday, then back 7 more days)
+          const daysToLastMonday = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
+          const lastMonday = new Date(today);
+          lastMonday.setDate(today.getDate() - daysToLastMonday - 7);
+          const lastSunday = new Date(lastMonday);
+          lastSunday.setDate(lastMonday.getDate() + 6);
+
+          picker.selectedStartDate = lastMonday;
+          picker.selectedEndDate = lastSunday;
+          picker.focusedDayIndex = null;
           picker.renderCalendar();
           picker.updateSummary();
         }
@@ -881,12 +934,18 @@ picker.actionButtons = [{
         action: 'custom',
         text: 'Next Week',
         onClick: (picker) => {
-          const start = new Date();
-          const end = new Date();
-          end.setDate(start.getDate() + 7);
-          // Set dates directly on picker instance
-          picker.selectedStartDate = start;
-          picker.selectedEndDate = end;
+          const today = new Date();
+          const dayOfWeek = today.getDay();
+          // Find next Monday
+          const daysToNextMonday = dayOfWeek === 0 ? 1 : 8 - dayOfWeek;
+          const nextMonday = new Date(today);
+          nextMonday.setDate(today.getDate() + daysToNextMonday);
+          const nextSunday = new Date(nextMonday);
+          nextSunday.setDate(nextMonday.getDate() + 6);
+
+          picker.selectedStartDate = nextMonday;
+          picker.selectedEndDate = nextSunday;
+          picker.focusedDayIndex = null;
           picker.renderCalendar();
           picker.updateSummary();
         }
@@ -895,12 +954,13 @@ picker.actionButtons = [{
         action: 'custom',
         text: 'Next Month',
         onClick: (picker) => {
-          const start = new Date();
-          const end = new Date();
-          end.setMonth(end.getMonth() + 1);
-          // Set dates directly on picker instance
+          const today = new Date();
+          const start = new Date(today.getFullYear(), today.getMonth() + 1, 1);
+          const end = new Date(today.getFullYear(), today.getMonth() + 2, 0);
+
           picker.selectedStartDate = start;
           picker.selectedEndDate = end;
+          picker.focusedDayIndex = null;
           picker.renderCalendar();
           picker.updateSummary();
         }

@@ -671,10 +671,16 @@ npm run preview
 
 ## Browser Support
 
-- Modern browsers with Web Components support
-- Chrome/Edge 54+
-- Firefox 63+
-- Safari 10.1+
+- Modern browsers with Web Components and CSS `color-mix()` support
+- Chrome/Edge 111+
+- Firefox 113+
+- Safari 16.2+
+
+For older browser support, use the compiled `dist/style.css` which is processed by Vite.
+
+## Changelog
+
+See [CHANGELOG.md](https://github.com/keenmate/web-daterangepicker/blob/main/CHANGELOG.md) for version history and migration guides.
 
 ## License
 

@@ -8,6 +8,7 @@
 import { computePosition, flip, shift, offset, arrow, autoUpdate } from '@floating-ui/dom';
 import { uiLogger } from './logger';
 import { handleInitialMonthLoad } from './date-picker-navigation';
+import { updateCalendarFromInput } from './date-picker-interaction';
 
 // Cleanup function for autoUpdate
 let cleanupAutoUpdate: (() => void) | null = null;
@@ -25,6 +26,9 @@ export function show(picker: any) {
         picker.originalInputValue = picker.input.value;
         uiLogger.debug('show() - stored original input value:', picker.originalInputValue);
     }
+
+    // Sync calendar selection with current input value (handles manually cleared input)
+    updateCalendarFromInput(picker);
 
     // Render calendar on first show to avoid rendering hidden days
     if (picker.isFirstRender) {

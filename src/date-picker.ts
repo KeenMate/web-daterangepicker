@@ -745,8 +745,8 @@ class DateRangePicker {
      * @returns true if Apply button is required and events should be deferred
      */
     requiresApplyButton(): boolean {
-        return this.options.autoClose === 'apply' ||
-               (this.options.showApplyButton && this.options.autoClose !== 'selection');
+        // Only defer selection commitment when autoClose is explicitly 'apply'
+        return this.options.autoClose === 'apply';
     }
 
     /**

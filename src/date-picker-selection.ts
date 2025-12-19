@@ -340,6 +340,14 @@ export function clearSelection(picker: any) {
     picker.selectedRanges = [];
     picker.selectedDates = [];
     picker.pendingSelection = null;
+
+    // Clear drag preview state
+    picker.dragPreviewStart = null;
+    picker.dragPreviewEnd = null;
+
+    // Clear focused day state
+    picker.focusedDayIndex = null;
+
     if (picker.input) {
         picker.input.value = '';
     }
@@ -348,42 +356,36 @@ export function clearSelection(picker: any) {
 }
 
 export function apply(picker: any) {
-    // Commit pending selection: update input value and fire deferred callback
-    if (picker.pendingSelection) {
-        // Update input value now (commit the selection)
-        if (picker.input) {
-            if (picker.options.selectionMode === 'range') {
-                // Range mode: format as "start - end"
-                picker.input.value = `${picker.formatDate(picker.selectedStartDate)} - ${picker.formatDate(picker.selectedEndDate)}`;
-            } else if (picker.options.selectionMode === 'single') {
-                // Single mode: format single date
-                picker.input.value = picker.formatDate(picker.selectedDate);
-            } else if (picker.options.selectionMode === 'multiple') {
-                // Multiple mode: show count
-                const count = picker.selectedDates.length + picker.selectedRanges.length;
-                picker.input.value = count > 0 ? `${count} selection(s)` : '';
-            }
+    // Always update input if dates are selected (handles custom buttons, programmatic setting)
+    if (picker.input) {
+        if (picker.options.selectionMode === 'range' && picker.selectedStartDate && picker.selectedEndDate) {
+            picker.input.value = `${picker.formatDate(picker.selectedStartDate)} - ${picker.formatDate(picker.selectedEndDate)}`;
+        } else if (picker.options.selectionMode === 'single' && picker.selectedDate) {
+            picker.input.value = picker.formatDate(picker.selectedDate);
+        } else if (picker.options.selectionMode === 'multiple') {
+            const count = picker.selectedDates.length + picker.selectedRanges.length;
+            picker.input.value = count > 0 ? `${count} selection(s)` : '';
         }
+    }
 
-        // Fire deferred onSelect callback
+    // Fire deferred callback if there was a pending selection
+    if (picker.pendingSelection) {
         if (picker.options.onSelect) {
             picker.options.onSelect(picker.pendingSelection);
         }
-
-        // Store committed values
-        if (picker.options.selectionMode === 'range') {
-            picker.committedStartDate = picker.selectedStartDate;
-            picker.committedEndDate = picker.selectedEndDate;
-        } else if (picker.options.selectionMode === 'single') {
-            picker.committedDate = picker.selectedDate;
-        }
-
-        // Clear pending selection
         picker.pendingSelection = null;
     }
 
-    // Only close if autoClose is not 'never'
-    if (picker.options.autoClose !== 'never' && picker.options.positioningMode === 'floating') {
+    // Store committed values
+    if (picker.options.selectionMode === 'range') {
+        picker.committedStartDate = picker.selectedStartDate;
+        picker.committedEndDate = picker.selectedEndDate;
+    } else if (picker.options.selectionMode === 'single') {
+        picker.committedDate = picker.selectedDate;
+    }
+
+    // Always close on Apply (inline mode never closes)
+    if (picker.options.positioningMode === 'floating') {
         picker.hide();
     }
 }

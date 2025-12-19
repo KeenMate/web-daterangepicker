@@ -699,7 +699,12 @@ export function updateCalendarFromInput(picker: any) {
     const value = picker.input.value;
     interactionLogger.debug('updateCalendarFromInput - value:', value);
 
-    if (!value) return;
+    if (!value) {
+        // Input is empty - clear selection to sync with empty input
+        picker.clearSelection();
+        picker.renderCalendar();
+        return;
+    }
 
     const { separator, parts, maxLength } = picker.formatInfo;
     interactionLogger.debug('Format info:', { separator, parts, maxLength });
@@ -715,9 +720,11 @@ export function updateCalendarFromInput(picker: any) {
         // Parse start date
         parseAndUpdateSingleDate(picker, startValue, 'start');
 
-        // Parse end date if present
+        // Parse end date if present, otherwise clear it
         if (endValue) {
             parseAndUpdateSingleDate(picker, endValue, 'end');
+        } else {
+            picker.selectedEndDate = null;
         }
 
         return;

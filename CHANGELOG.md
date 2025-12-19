@@ -5,7 +5,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [1.8.1] - 2025-12-19
 
 ### Added
 
@@ -42,6 +42,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - **lg** (8px): Calendar container, rolling selectors, loading overlay - larger containers
 
 ### Fixed
+
+- **Auto-Close Behavior Fixes**:
+  - `requiresApplyButton()` no longer incorrectly defers selection when `show-apply-button="true"` with `auto-close="never"` - selection now commits immediately
+  - Apply button now correctly closes the picker in `auto-close="never"` mode (never refers to auto-close on selection, not Apply button)
+  - `clearSelection()` now properly clears all visual state including `focusedDayIndex` and drag preview state
+  - Calendar now syncs with manually cleared input when reopened via `updateCalendarFromInput()` in `show()`
+  - Partial input edit (removing end date portion) now correctly clears `selectedEndDate`
+
+- **Apply Button with Custom Preset Buttons** - `apply()` now always updates input when dates are selected, not just when `pendingSelection` exists. Fixes custom preset buttons (like "Last Week") not committing to input on Apply click.
 
 - **Badge Vertical Alignment** - Fixed badges aligning to top instead of center in calendar cells
   - Removed `height: 100%` from `.drp-date-picker__badge-cell` which caused flex alignment issues
