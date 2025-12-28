@@ -91,7 +91,7 @@
   --drp-text-primary: var(--base-text-color-1, #111827);
   --drp-text-secondary: var(--base-text-color-3, #6b7280);
   --drp-text-on-accent: var(--base-text-on-accent, #ffffff);
-  --drp-button-text-color: var(--drp-text-on-accent);
+  --drp-button-accent-text-color: var(--drp-text-on-accent);
 
   /* Tooltip Colors */
   --drp-tooltip-background: var(--base-tooltip-background, #111827);
@@ -99,6 +99,8 @@
 
   /* Loading Overlay */
   --drp-loading-overlay-background: rgba(255, 255, 255, 0.8);
+  --drp-loading-spinner-size: 40px;
+  --drp-loading-spinner-border-width: 4px;
   --drp-loading-spinner-color: var(--drp-border-color);
   --drp-loading-spinner-accent: var(--drp-accent-color);
 
@@ -252,6 +254,7 @@
   /* Day Cell Dimensions & Borders */
   --drp-day-border-width: 2px;
   --drp-day-border-color: transparent;
+  --drp-day-border: var(--drp-day-border-width) solid var(--drp-day-border-color);
   --drp-day-focused-outline-width: 2px;
   --drp-day-focused-outline-offset: 2px;
 
@@ -267,6 +270,7 @@
   /* Day Dragging */
   --drp-day-dragging-scale: 1.1;
   --drp-day-drag-preview-border-style: dashed;
+  --drp-day-drag-border: var(--drp-day-border-width) var(--drp-day-drag-preview-border-style) var(--drp-day-range-bg);
   --drp-day-drag-invalid-bg: #ef4444;
   --drp-day-drag-invalid-bg-opacity: 0.20;
 
@@ -288,14 +292,16 @@
 
   --drp-button-border-color: var(--drp-border-color);
   --drp-button-border: var(--drp-border);
+  --drp-button-bg: transparent;
   --drp-button-bg-hover: var(--drp-primary-bg);
+  --drp-button-color: var(--drp-text-primary);
   --drp-button-border-hover: var(--drp-accent-color);
   --drp-button-border-hover-full: var(--drp-border-width-base) solid var(--drp-button-border-hover);
   --drp-button-today-color: var(--drp-accent-color);
   --drp-button-clear-color: var(--drp-text-secondary);
   --drp-button-cancel-color: var(--drp-text-secondary);
   --drp-button-apply-bg: var(--drp-accent-color);
-  --drp-button-apply-color: var(--drp-button-text-color);
+  --drp-button-apply-color: var(--drp-button-accent-text-color);
   --drp-button-apply-border: var(--drp-accent-color);
   --drp-button-apply-bg-hover: var(--drp-accent-color-hover);
 

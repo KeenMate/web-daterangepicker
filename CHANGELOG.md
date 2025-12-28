@@ -5,6 +5,30 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.9.2] - 2025-12-28
+
+### Changed
+
+- **BREAKING: Renamed `--drp-button-text-color` → `--drp-button-accent-text-color`**
+  - Clarifies this is for text on accent backgrounds (Apply button)
+  - New `--drp-button-color` is the base button text color
+
+## [1.9.1] - 2025-12-28
+
+### Added
+
+- **Additional CSS Variables**:
+  - `--drp-button-bg` - Action button background (default: transparent)
+  - `--drp-button-color` - Action button text color (default: --drp-text-primary)
+  - `--drp-day-border` - Day cell border
+  - `--drp-day-drag-border` - Drag preview border (dashed)
+  - `--drp-loading-spinner-size` (default: 40px)
+  - `--drp-loading-spinner-border-width` (default: 4px)
+
+### Fixed
+
+- Summary/actions dividers now use `--drp-summary-border` variable instead of hardcoded pattern
+
 ## [1.9.0] - 2025-12-28
 
 ### Changed

@@ -53,7 +53,7 @@
   color: var(--drp-day-text-color);
   border-radius: var(--drp-border-radius-sm);
   cursor: pointer;
-  border: var(--drp-day-border-width) solid var(--drp-day-border-color);
+  border: var(--drp-day-border);
   position: relative; /* For absolute positioning of labels */
 }
 
@@ -183,7 +183,7 @@
 
 .drp-date-picker__day--drag-preview {
   background-color: color-mix(in srgb, var(--drp-day-range-bg) calc(var(--drp-day-drag-preview-bg-opacity) * 100%), transparent);
-  border: var(--drp-day-border-width) var(--drp-day-drag-preview-border-style) var(--drp-day-range-bg);
+  border: var(--drp-day-drag-border);
 }
 
 .drp-date-picker__day--drag-preview.drp-date-picker__day--range-start,

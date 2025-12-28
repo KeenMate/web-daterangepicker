@@ -10,7 +10,7 @@
 .drp-date-picker__summary {
   text-align: center;
   padding: var(--drp-spacing-md);
-  border-top: var(--drp-border-width-base) solid var(--drp-summary-border-color);
+  border-top: var(--drp-summary-border);
   font-size: var(--drp-font-size-sm);
   color: var(--drp-summary-text-color);
 }
@@ -38,7 +38,7 @@
   gap: var(--drp-spacing-sm);
   justify-content: space-between;
   padding-top: var(--drp-spacing-sm);
-  border-top: var(--drp-border-width-base) solid var(--drp-summary-border-color);
+  border-top: var(--drp-summary-border);
 }
 
 .drp-date-picker__button {
@@ -46,7 +46,8 @@
   padding: var(--drp-spacing-sm) var(--drp-spacing-md);
   border: var(--drp-button-border);
   border-radius: var(--drp-border-radius);
-  background: transparent;
+  background: var(--drp-button-bg);
+  color: var(--drp-button-color);
   cursor: pointer;
   font-family: inherit;
   font-size: var(--drp-font-size-sm);
@@ -68,7 +69,7 @@
 
 .drp-date-picker__button:disabled:hover,
 .drp-date-picker__button[disabled]:hover {
-  background-color: transparent;
+  background-color: var(--drp-button-bg);
   border: var(--drp-button-border);
 }
 

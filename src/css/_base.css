@@ -128,7 +128,7 @@
   z-index: var(--drp-z-index-dropdown);
   font-family: var(--drp-font-family, var(--base-font-family, inherit));
   background: var(--drp-dropdown-background);
-  border: var(--drp-border-width-base) solid var(--drp-border-color);
+  border: var(--drp-border);
   border-radius: var(--drp-border-radius-lg);
   box-shadow: var(--drp-shadow-xl);
   padding: var(--drp-spacing-md);
