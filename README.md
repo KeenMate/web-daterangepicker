@@ -545,9 +545,9 @@ Customize the appearance using CSS custom properties:
   /* Input Field */
   --drp-input-background: var(--drp-dropdown-background);
   --drp-input-color: var(--drp-text-primary);
-  --drp-input-border-color: var(--base-input-border-color, var(--drp-border-color));
-  --drp-input-border-color-hover: var(--base-input-border-color-hover, var(--drp-accent-color));
-  --drp-input-border-color-focus: var(--base-input-border-color-focus, var(--drp-accent-color));
+  --drp-input-border: var(--base-input-border, var(--drp-border));
+  --drp-input-border-hover: var(--base-input-border-hover, var(--drp-border-width-base) solid var(--drp-accent-color));
+  --drp-input-border-focus: var(--base-input-border-focus, var(--drp-border-width-base) solid var(--drp-accent-color));
   --drp-input-placeholder-color: var(--drp-text-secondary);
 
   /* Typography (all scale with --drp-rem) */

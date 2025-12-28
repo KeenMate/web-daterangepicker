@@ -61,7 +61,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  border: var(--drp-border-width-base) solid var(--drp-nav-border-color);
+  border: var(--drp-nav-border);
   border-radius: var(--drp-border-radius);
   background: transparent;
   cursor: pointer;
@@ -71,7 +71,7 @@
 
 .drp-date-picker__nav:hover {
   background-color: var(--drp-nav-bg-hover);
-  border-color: var(--drp-nav-border-hover);
+  border: var(--drp-nav-border-hover-full);
 }
 
 .drp-date-picker__nav:active {
@@ -89,7 +89,7 @@
 .drp-date-picker__nav--disabled:hover,
 .drp-date-picker__nav[disabled]:hover {
   background-color: transparent;
-  border-color: var(--drp-nav-border-color);
+  border: var(--drp-nav-border);
 }
 
 .drp-date-picker__nav--prev::before {
@@ -128,7 +128,7 @@
   min-width: 0; /* Allow flex child to shrink below content size (enables ellipsis on items) */
   height: 100%; /* Fill parent height */
   overflow-y: auto;
-  border: var(--drp-border-width-base) solid var(--drp-rolling-border-color);
+  border: var(--drp-rolling-border);
   border-radius: var(--drp-border-radius-lg);
   /* Flex layout to control child item sizing */
   display: flex;
@@ -159,6 +159,7 @@
   padding: var(--drp-rolling-item-padding-v) var(--drp-rolling-item-padding-h);
   cursor: pointer;
   font-size: var(--drp-rolling-item-font-size);
+  color: var(--drp-rolling-item-color);
   min-height: var(--drp-rolling-item-min-height);
   flex-shrink: 0;
   /* Flexbox for vertical and horizontal centering */
@@ -266,7 +267,7 @@
   min-width: 0;
   height: 100%;
   overflow-y: auto;
-  border: var(--drp-border-width-base) solid var(--drp-rolling-border-color);
+  border: var(--drp-rolling-border);
   border-radius: var(--drp-border-radius-lg);
   display: flex;
   flex-direction: column;

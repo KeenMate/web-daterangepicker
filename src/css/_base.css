@@ -15,7 +15,7 @@
   line-height: var(--drp-line-height-normal);
   color: var(--drp-input-color);
   background-color: var(--drp-input-background);
-  border: var(--drp-border-width-base) solid var(--drp-input-border-color);
+  border: var(--drp-input-border);
   border-radius: var(--drp-border-radius);
   padding: var(--drp-input-size-md-padding-v) var(--drp-input-size-md-padding-h);
   padding-right: calc(var(--drp-input-size-md-padding-h) * 2.5); /* Extra space for calendar icon */
@@ -31,12 +31,12 @@
 }
 
 .drp-input:hover:not(:disabled) {
-  border-color: var(--drp-input-border-color-hover);
+  border: var(--drp-input-border-hover);
 }
 
 .drp-input:focus {
   outline: none;
-  border-color: var(--drp-input-border-color-focus);
+  border: var(--drp-input-border-focus);
   box-shadow: 0 0 0 var(--drp-input-focus-shadow-size) var(--drp-input-focus-shadow-color);
 }
 

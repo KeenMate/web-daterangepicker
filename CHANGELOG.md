@@ -5,6 +5,41 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.9.0] - 2025-12-28
+
+### Changed
+
+- **BREAKING: Border Variables Aligned with Theme-Designer Spec**
+
+  Input border variables now use full border strings (matching `--base-input-border` pattern) instead of color-only variables:
+
+  | Old Variable | New Variable |
+  |--------------|--------------|
+  | `--drp-input-border-color` | `--drp-input-border` |
+  | `--drp-input-border-color-hover` | `--drp-input-border-hover` |
+  | `--drp-input-border-color-focus` | `--drp-input-border-focus` |
+
+  **Migration:** If you were overriding `--drp-input-border-color: #999`, change to `--drp-input-border: 1px solid #999`
+
+### Added
+
+- **Generic Border Variable**: Added `--drp-border` as base full-border variable
+  - References `--base-border` from theme-designer (new in theme-designer)
+  - Fallback: `var(--drp-border-width-base) solid var(--drp-border-color)`
+
+- **Full Border Variables for Component Elements**:
+  - `--drp-nav-border`, `--drp-nav-border-hover-full` - Navigation buttons
+  - `--drp-rolling-border` - Rolling selectors
+  - `--drp-button-border`, `--drp-button-border-hover-full` - Action buttons
+  - `--drp-summary-border` - Summary section
+
+  All inherit from `--drp-border` by default, allowing unified border styling across the component.
+
+- **Theme-Designer Integration**: Input borders now correctly reference:
+  - `--base-input-border` (full border string like `1px solid #374151`)
+  - `--base-input-border-hover`
+  - `--base-input-border-focus`
+
 ## [1.8.1] - 2025-12-19
 
 ### Added

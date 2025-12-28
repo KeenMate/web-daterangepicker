@@ -78,6 +78,8 @@
   /* Core Colors */
   --drp-dropdown-background: var(--base-dropdown-background, #ffffff);
   --drp-border-color: var(--base-border-color, #e5e7eb);
+  /* Full border string - inherits from theme-designer --base-border */
+  --drp-border: var(--base-border, var(--drp-border-width-base) solid var(--drp-border-color));
   --drp-primary-bg: var(--base-primary-bg, #f3f4f6);
   --drp-primary-bg-hover: var(--base-primary-bg-hover, #e5e7eb);
 
@@ -145,9 +147,10 @@
      ========================================================================== */
   --drp-input-background: var(--base-input-background, var(--drp-dropdown-background));
   --drp-input-color: var(--base-input-color, var(--drp-text-primary));
-  --drp-input-border-color: var(--base-input-border-color, var(--drp-border-color));
-  --drp-input-border-color-hover: var(--base-input-border-color-hover, var(--drp-accent-color));
-  --drp-input-border-color-focus: var(--base-input-border-color-focus, var(--drp-accent-color));
+  /* Input field borders - uses theme-designer --base-input-border (full border) */
+  --drp-input-border: var(--base-input-border, var(--drp-border));
+  --drp-input-border-hover: var(--base-input-border-hover, var(--drp-border-width-base) solid var(--drp-accent-color));
+  --drp-input-border-focus: var(--base-input-border-focus, var(--drp-border-width-base) solid var(--drp-accent-color));
   --drp-input-placeholder-color: var(--base-input-placeholder-color, var(--drp-text-secondary));
   --drp-input-background-disabled: var(--base-input-background-disabled, var(--drp-primary-bg));
 
@@ -200,9 +203,11 @@
 
   --drp-nav-text-color: var(--drp-text-primary);
   --drp-nav-border-color: var(--drp-border-color);
+  --drp-nav-border: var(--drp-border);
   --drp-nav-bg-hover: var(--drp-primary-bg);
   --drp-nav-bg-active: var(--drp-primary-bg-hover);
   --drp-nav-border-hover: var(--drp-accent-color);
+  --drp-nav-border-hover-full: var(--drp-border-width-base) solid var(--drp-nav-border-hover);
 
   /* Navigation Button Dimensions */
   --drp-nav-size: calc(3.2 * var(--drp-rem));  /* 32px */
@@ -210,10 +215,12 @@
   /* Rolling Selector */
   --drp-rolling-bg: var(--drp-primary-bg);
   --drp-rolling-border-color: var(--drp-border-color);
+  --drp-rolling-border: var(--drp-border);
   --drp-rolling-scrollbar-width: 6px;
   --drp-rolling-scrollbar-thumb: var(--drp-border-color);
   --drp-rolling-scrollbar-thumb-hover: var(--drp-accent-color);
   --drp-rolling-item-bg-hover: var(--drp-primary-bg);
+  --drp-rolling-item-color: var(--drp-text-primary);
   --drp-rolling-item-bg-selected: var(--drp-accent-color);
   --drp-rolling-item-color-selected: var(--drp-text-on-accent);
   --drp-rolling-item-bg-selected-hover: var(--drp-accent-color-hover);
@@ -276,11 +283,14 @@
      ========================================================================== */
   --drp-summary-text-color: var(--drp-text-secondary);
   --drp-summary-border-color: var(--drp-border-color);
+  --drp-summary-border: var(--drp-border);
   --drp-summary-count-color: var(--drp-accent-color);
 
   --drp-button-border-color: var(--drp-border-color);
+  --drp-button-border: var(--drp-border);
   --drp-button-bg-hover: var(--drp-primary-bg);
   --drp-button-border-hover: var(--drp-accent-color);
+  --drp-button-border-hover-full: var(--drp-border-width-base) solid var(--drp-button-border-hover);
   --drp-button-today-color: var(--drp-accent-color);
   --drp-button-clear-color: var(--drp-text-secondary);
   --drp-button-cancel-color: var(--drp-text-secondary);
