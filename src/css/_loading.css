@@ -9,7 +9,7 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background-color: var(--drp-loading-overlay-background);
+  background-color: var(--drp-loading-overlay-bg);
   display: flex;
   align-items: center;
   justify-content: center;

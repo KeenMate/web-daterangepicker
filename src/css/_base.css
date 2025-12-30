@@ -14,7 +14,7 @@
   font-size: var(--drp-input-size-md-font);
   line-height: var(--drp-line-height-normal);
   color: var(--drp-input-color);
-  background-color: var(--drp-input-background);
+  background-color: var(--drp-input-bg);
   border: var(--drp-input-border);
   border-radius: var(--drp-border-radius);
   padding: var(--drp-input-size-md-padding-v) var(--drp-input-size-md-padding-h);
@@ -43,7 +43,7 @@
 .drp-input:disabled {
   opacity: var(--drp-opacity-disabled);
   cursor: not-allowed;
-  background-color: var(--drp-input-background-disabled);
+  background-color: var(--drp-input-bg-disabled);
 }
 
 /* Input Size Variants */
@@ -127,7 +127,7 @@
   position: absolute;
   z-index: var(--drp-z-index-dropdown);
   font-family: var(--drp-font-family, var(--base-font-family, inherit));
-  background: var(--drp-dropdown-background);
+  background: var(--drp-dropdown-bg);
   border: var(--drp-border);
   border-radius: var(--drp-border-radius-lg);
   box-shadow: var(--drp-shadow-xl);

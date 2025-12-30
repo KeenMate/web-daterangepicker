@@ -76,7 +76,7 @@
        3. Hardcoded default fallback */
 
   /* Core Colors */
-  --drp-dropdown-background: var(--base-dropdown-background, #ffffff);
+  --drp-dropdown-bg: var(--base-dropdown-bg, #ffffff);
   --drp-border-color: var(--base-border-color, #e5e7eb);
   /* Full border string - inherits from theme-designer --base-border */
   --drp-border: var(--base-border, var(--drp-border-width-base) solid var(--drp-border-color));
@@ -90,15 +90,15 @@
   /* Text Colors */
   --drp-text-primary: var(--base-text-color-1, #111827);
   --drp-text-secondary: var(--base-text-color-3, #6b7280);
-  --drp-text-on-accent: var(--base-text-on-accent, #ffffff);
-  --drp-button-accent-text-color: var(--drp-text-on-accent);
+  --drp-text-color-on-accent: var(--base-text-color-on-accent, #ffffff);
+  --drp-button-accent-text-color: var(--drp-text-color-on-accent);
 
   /* Tooltip Colors */
-  --drp-tooltip-background: var(--base-tooltip-background, #111827);
+  --drp-tooltip-bg: var(--base-tooltip-bg, #111827);
   --drp-tooltip-text-color: var(--base-tooltip-text-color, #ffffff);
 
   /* Loading Overlay */
-  --drp-loading-overlay-background: rgba(255, 255, 255, 0.8);
+  --drp-loading-overlay-bg: rgba(255, 255, 255, 0.8);
   --drp-loading-spinner-size: 40px;
   --drp-loading-spinner-border-width: 4px;
   --drp-loading-spinner-color: var(--drp-border-color);
@@ -147,14 +147,14 @@
   /* ==========================================================================
      INPUT FIELD SEMANTIC VARIABLES
      ========================================================================== */
-  --drp-input-background: var(--base-input-background, var(--drp-dropdown-background));
+  --drp-input-bg: var(--base-input-bg, var(--drp-dropdown-bg));
   --drp-input-color: var(--base-input-color, var(--drp-text-primary));
   /* Input field borders - uses theme-designer --base-input-border (full border) */
   --drp-input-border: var(--base-input-border, var(--drp-border));
   --drp-input-border-hover: var(--base-input-border-hover, var(--drp-border-width-base) solid var(--drp-accent-color));
   --drp-input-border-focus: var(--base-input-border-focus, var(--drp-border-width-base) solid var(--drp-accent-color));
   --drp-input-placeholder-color: var(--base-input-placeholder-color, var(--drp-text-secondary));
-  --drp-input-background-disabled: var(--base-input-background-disabled, var(--drp-primary-bg));
+  --drp-input-bg-disabled: var(--base-input-bg-disabled, var(--drp-primary-bg));
 
   /* Input Focus State */
   --drp-input-focus-shadow-color: rgba(59, 130, 246, 0.1);
@@ -224,7 +224,7 @@
   --drp-rolling-item-bg-hover: var(--drp-primary-bg);
   --drp-rolling-item-color: var(--drp-text-primary);
   --drp-rolling-item-bg-selected: var(--drp-accent-color);
-  --drp-rolling-item-color-selected: var(--drp-text-on-accent);
+  --drp-rolling-item-color-selected: var(--drp-text-color-on-accent);
   --drp-rolling-item-bg-selected-hover: var(--drp-accent-color-hover);
   --drp-rolling-item-justify-content: center;
   --drp-rolling-item-min-height: calc(3.2 * var(--drp-rem));  /* 32px */
@@ -243,13 +243,13 @@
   --drp-day-border-hover: var(--drp-accent-color);
   --drp-day-today-border: var(--drp-accent-color);
   --drp-day-selected-bg: var(--drp-accent-color);
-  --drp-day-selected-color: var(--drp-text-on-accent);
+  --drp-day-selected-color: var(--drp-text-color-on-accent);
   --drp-day-selected-bg-hover: var(--drp-accent-color-hover);
   --drp-day-focused-outline: var(--drp-accent-color);
   --drp-day-disabled-color: var(--drp-text-secondary);
   --drp-day-other-month-color: var(--drp-text-secondary);
   --drp-day-range-bg: var(--drp-accent-color);
-  --drp-day-range-color: var(--drp-text-on-accent);
+  --drp-day-range-color: var(--drp-text-color-on-accent);
 
   /* Day Cell Dimensions & Borders */
   --drp-day-border-width: 2px;
@@ -316,7 +316,7 @@
   --drp-badge-row-height: var(--drp-badge-max-height);
 
   --drp-badge-number-bg: var(--drp-accent-color);
-  --drp-badge-number-color: var(--drp-text-on-accent);
+  --drp-badge-number-color: var(--drp-text-color-on-accent);
   --drp-badge-count-bg: #ef4444;
   --drp-badge-count-color: #ffffff;
   --drp-badge-text-bg: var(--drp-text-secondary);
