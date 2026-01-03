@@ -80,8 +80,8 @@
   --drp-border-color: var(--base-border-color, #e5e7eb);
   /* Full border string - inherits from theme-designer --base-border */
   --drp-border: var(--base-border, var(--drp-border-width-base) solid var(--drp-border-color));
-  --drp-primary-bg: var(--base-primary-bg, #f3f4f6);
-  --drp-primary-bg-hover: var(--base-primary-bg-hover, #e5e7eb);
+  --drp-primary-bg: var(--base-main-bg, #f3f4f6);
+  --drp-primary-bg-hover: var(--base-hover-bg, #e5e7eb);
 
   /* Accent Colors */
   --drp-accent-color: var(--base-accent-color, #3b82f6);
@@ -247,6 +247,7 @@
   --drp-day-selected-bg-hover: var(--drp-accent-color-hover);
   --drp-day-focused-outline: var(--drp-accent-color);
   --drp-day-disabled-color: var(--drp-text-secondary);
+  --drp-day-disabled-bg: var(--base-disabled-bg, transparent);
   --drp-day-other-month-color: var(--drp-text-secondary);
   --drp-day-range-bg: var(--drp-accent-color);
   --drp-day-range-color: var(--drp-text-color-on-accent);

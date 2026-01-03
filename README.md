@@ -522,6 +522,16 @@ All KeenMate components follow a consistent naming convention for **Tier 1 varia
 
 Learn the pattern once, apply it across all components.
 
+#### Component Variables Manifest
+
+This package exports a `component-variables.manifest.json` file that documents all supported CSS variables for tooling integration (e.g., Theme Designer, IDE autocomplete):
+
+```javascript
+import manifest from '@keenmate/web-daterangepicker/component-variables.manifest.json';
+// manifest.baseVariables - list of --base-* variables the component responds to
+// manifest.componentVariables - list of --drp-* component-specific variables
+```
+
 ### CSS Custom Properties
 
 Customize the appearance using CSS custom properties:

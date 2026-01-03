@@ -99,6 +99,7 @@
   opacity: var(--drp-opacity-disabled);
   cursor: not-allowed;
   position: relative;
+  background-color: var(--drp-day-disabled-bg);
 }
 
 /* Diagonal hatched pattern overlay */
