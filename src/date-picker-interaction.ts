@@ -6,6 +6,7 @@
  */
 
 import { validateRangeAsync } from './date-picker-selection';
+import { hideMessage } from './date-picker-ui';
 import { dragLogger, interactionLogger } from './logger';
 import log from './logger';
 
@@ -90,6 +91,10 @@ export function startDrag(picker: any, event: MouseEvent, type: 'start' | 'end',
 
     picker.isDragging = true;
     picker.draggingType = type;
+
+    // Clear any previous invalid range when starting a new drag
+    picker.invalidRangeStart = null;
+    picker.invalidRangeEnd = null;
 
     // Parse date from the clicked element
     const clickedElement = dayElement;
@@ -273,6 +278,10 @@ export async function onDragEnd(picker: any, event: MouseEvent) {
     if (!picker.isDragging) return;
 
     dragLogger.debug('Ended dragging, finalizing selection');
+    console.log('[onDragEnd] Started - dragPreviewStart:', picker.dragPreviewStart, 'dragPreviewEnd:', picker.dragPreviewEnd);
+
+    // Track whether validation succeeded (for auto-close decision)
+    let validationSucceeded = false;
 
     // Finalize the selection with validation
     if (picker.dragPreviewStart && picker.dragPreviewEnd) {
@@ -287,19 +296,42 @@ export async function onDragEnd(picker: any, event: MouseEvent) {
 
         // Validate the range (local + async)
         dragLogger.debug('onDragEnd - calling validateRangeAsync with:', startDate, endDate);
+        console.log('[onDragEnd] Calling validateRangeAsync with:', startDate, endDate);
         const validation = await validateRangeAsync(picker, startDate, endDate);
         dragLogger.debug('onDragEnd - validation result:', validation);
+        console.log('[onDragEnd] Validation result:', validation);
 
         if (!validation.isValid) {
             // Validation failed - restore previous state or clear
             if (validation.message) {
                 log.warn('onDragEnd() - drag validation failed:', validation.message);
             }
+
+            // Handle showInvalidRange - keep invalid range visible with error styling
+            if (validation.showInvalidRange && validation.invalidStart && validation.invalidEnd) {
+                picker.invalidRangeStart = validation.invalidStart;
+                picker.invalidRangeEnd = validation.invalidEnd;
+                // Clear selected range so blue --in-range styling isn't applied
+                picker.selectedStartDate = null;
+                picker.selectedEndDate = null;
+            }
+
             // Range was already cleared if action was 'clear'
+            validationSucceeded = false;
         } else {
             // Apply validated/adjusted dates
             picker.selectedStartDate = validation.adjustedStart || startDate;
             picker.selectedEndDate = validation.adjustedEnd || endDate;
+            validationSucceeded = true;
+
+            // Clear any invalid range on successful selection
+            picker.invalidRangeStart = null;
+            picker.invalidRangeEnd = null;
+
+            // Clear any previous error message on successful selection (if no adjustment message)
+            if (!validation.message) {
+                hideMessage(picker);
+            }
 
             if (picker.input) {
                 // Only update input immediately if Apply button is NOT required
@@ -384,8 +416,8 @@ export async function onDragEnd(picker: any, event: MouseEvent) {
         }
     }
 
-    // Auto-close after drag if appropriate
-    if (picker.options.positioningMode === 'floating' && picker.shouldAutoClose()) {
+    // Auto-close after drag if appropriate (but NOT if validation failed - user needs to see error and retry)
+    if (picker.options.positioningMode === 'floating' && picker.shouldAutoClose() && validationSucceeded) {
         picker.hide();
     }
 }

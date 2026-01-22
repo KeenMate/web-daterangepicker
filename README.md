@@ -2,6 +2,8 @@
 
 A lightweight, accessible date picker web component with excellent keyboard navigation and range selection support.
 
+> **⚠️ Security Notice:** This component intentionally allows raw HTML in rendering callbacks and message content to give developers full control over content display. If you display user-generated content, you must sanitize it yourself. See [HTML Injection (XSS) Notice](#html-injection-xss-notice) for the complete list of affected callbacks and methods.
+
 ## Features
 
 - 🎯 **Input Masking** - Auto-format dates as you type with separator insertion
@@ -165,6 +167,8 @@ picker.disabled = true;
 | `clearSelection()` | Clear the current selection |
 | `getInputValue()` | Get the current value as a string |
 | `setInputValue(value: string)` | Set the value |
+| `showMessage(html: string)` | Display a message in the calendar with custom HTML content |
+| `hideMessage()` | Hide the currently displayed message |
 
 ## Events
 
@@ -172,6 +176,7 @@ picker.disabled = true;
 |-------|--------|-------------|
 | `date-select` | `{ date?, dateRange?, formattedValue }` | Fired when a date is selected |
 | `change` | `{ date?, dateRange?, formattedValue }` | Fired when selection changes |
+| `custom-action` | `{ [key: string]: string }` | Fired when a button with `data-action="custom"` is clicked. Detail contains all `data-*` attributes as camelCase keys. |
 
 ## Keyboard Shortcuts
 
@@ -324,6 +329,171 @@ picker.customStylesCallback = () => `
   }
 `;
 ```
+
+### Date Selection Validation (beforeDateSelectCallback)
+
+Validate or modify date selections before they're applied. Supports async validation (e.g., API calls):
+
+```javascript
+const picker = document.querySelector('web-daterangepicker');
+
+picker.beforeDateSelectCallback = async (selection) => {
+  // selection is Date (single mode) or { start: Date, end: Date } (range mode)
+
+  // Example: Check availability via API
+  const response = await fetch('/api/check-availability', {
+    method: 'POST',
+    body: JSON.stringify({
+      start: selection.start.toISOString(),
+      end: selection.end.toISOString()
+    })
+  });
+  const { available, message } = await response.json();
+
+  if (!available) {
+    return {
+      action: 'restore',
+      message: message,
+      showInvalidRange: true  // Keep selection visible with error styling
+    };
+  }
+
+  return { action: 'accept' };
+};
+```
+
+**Return object options:**
+
+| Property | Type | Description |
+|----------|------|-------------|
+| `action` | `'accept' \| 'adjust' \| 'restore' \| 'clear'` | **Required.** What to do with the selection |
+| `message` | `string` | Optional message to display in the calendar |
+| `showInvalidRange` | `boolean` | When `true` with `action: 'restore'`, keeps the invalid selection visible with red error styling |
+| `adjustedDate` | `Date` | For `action: 'adjust'` in single mode - the corrected date |
+| `adjustedStartDate` | `Date` | For `action: 'adjust'` in range mode - the corrected start date |
+| `adjustedEndDate` | `Date` | For `action: 'adjust'` in range mode - the corrected end date |
+
+**Action behaviors:**
+
+- **`accept`**: Apply the selection as-is. Hides any existing message.
+- **`adjust`**: Apply corrected dates instead (use with `adjustedDate` or `adjustedStartDate`/`adjustedEndDate`)
+- **`restore`**: Revert to previous selection. Use `showInvalidRange: true` to show what was attempted.
+- **`clear`**: Clear the selection entirely.
+
+**Example: Minimum nights validation with error display:**
+
+```javascript
+picker.beforeDateSelectCallback = (range) => {
+  const nights = Math.floor((range.end - range.start) / (1000 * 60 * 60 * 24));
+
+  if (nights < 2) {
+    return {
+      action: 'restore',
+      message: 'Minimum 2 nights required',
+      showInvalidRange: true  // Shows attempted range with red styling
+    };
+  }
+
+  if (nights > 14) {
+    return {
+      action: 'restore',
+      message: 'Maximum 14 nights allowed',
+      showInvalidRange: true
+    };
+  }
+
+  return { action: 'accept' };
+};
+```
+
+### Bulk Metadata Loading (beforeMonthChangedCallback)
+
+Load metadata for all visible dates in a single API call when the user navigates months. Much more efficient than `getDateMetadataCallback` which is called per-date:
+
+```javascript
+const picker = document.querySelector('web-daterangepicker');
+
+picker.beforeMonthChangedCallback = async (context) => {
+  // context: { year, month, monthIndex, firstVisibleDate, lastVisibleDate }
+
+  // Fetch availability for all visible dates in one call
+  const response = await fetch('/api/availability', {
+    method: 'POST',
+    body: JSON.stringify({
+      start: context.firstVisibleDate.toISOString(),
+      end: context.lastVisibleDate.toISOString()
+    })
+  });
+  const data = await response.json();
+
+  // Build metadata map (key: YYYY-MM-DD, value: DateInfo)
+  const metadata = new Map();
+  data.forEach(day => {
+    metadata.set(day.date, {
+      badgeText: `$${day.price}`,
+      isDisabled: !day.available,
+      dayTooltip: `${day.roomsLeft} rooms available`
+    });
+  });
+
+  return { action: 'accept', metadata };
+};
+```
+
+**Return object options:**
+
+| Property | Type | Description |
+|----------|------|-------------|
+| `action` | `'accept' \| 'block'` | **Required.** Allow or prevent month navigation |
+| `metadata` | `Map<string, DateInfo>` | Bulk metadata keyed by `YYYY-MM-DD`. Cached and used instead of `getDateMetadataCallback` |
+| `monthHeaders` | `Map<string, string>` | Custom month headers keyed by `YYYY-MM` (e.g., `"2026-01"` → `"Jan 2026 (5 rooms)"`) |
+| `message` | `string` | Optional message to display (useful with `action: 'block'`) |
+
+**Performance:** 1 API call per month navigation vs 35-42 calls with `getDateMetadataCallback`.
+
+### Messages & Custom Actions
+
+Display contextual messages in the calendar with interactive buttons:
+
+```javascript
+const picker = document.querySelector('web-daterangepicker');
+
+// Show a simple message
+picker.showMessage('<p>Please select a check-in date</p>');
+
+// Show a message with a close button
+picker.showMessage(`
+  <p>Weekend dates have higher rates</p>
+  <button data-action="close-message">Got it</button>
+`);
+
+// Show a message with custom action buttons
+picker.showMessage(`
+  <p>These dates are unavailable. Try:</p>
+  <button data-action="custom" data-start-date="2026-01-14" data-end-date="2026-01-17">
+    Jan 14 - Jan 17
+  </button>
+`);
+
+// Handle custom action button clicks
+picker.addEventListener('custom-action', (e) => {
+  const { startDate, endDate } = e.detail;
+  if (startDate && endDate) {
+    picker.selectedRanges = [{
+      start: new Date(startDate),
+      end: new Date(endDate)
+    }];
+    picker.hideMessage();
+  }
+});
+
+// Hide message programmatically
+picker.hideMessage();
+```
+
+**Built-in button actions:**
+- `data-action="close-message"` - Closes the message (no event fired)
+- `data-action="custom"` - Fires `custom-action` event with all `data-*` attributes
 
 ## Range Selection Modes
 
@@ -687,6 +857,29 @@ npm run preview
 - Safari 16.2+
 
 For older browser support, use the compiled `dist/style.css` which is processed by Vite.
+
+## HTML Injection (XSS) Notice
+
+The following callbacks and methods allow **raw HTML injection** and are intentionally **NOT XSS-safe**. This gives developers full control over rendering but requires sanitizing untrusted data:
+
+| Callback/Method | Output Used In | Risk Level |
+|-----------------|---------------|------------|
+| `showMessage(html)` | Message area (innerHTML) | HTML injection |
+| `renderDayCallback` | Day cells (innerHTML) | HTML injection |
+| `renderDayContentCallback` | Day cells (innerHTML) | HTML injection |
+| `getDateMetadataCallback` (badgeText, dayTooltip) | Badges/tooltips (innerHTML) | HTML injection |
+| `formatSummaryCallback` | Summary display (innerHTML) | HTML injection |
+| `getMonthHeaderCallback` | Month headers (innerHTML) | HTML injection |
+| `getUnifiedHeaderCallback` | Unified header (innerHTML) | HTML injection |
+| `customStylesCallback` | Style tag (textContent) | CSS injection |
+| `actionButtons[].label` | Button labels (innerHTML) | HTML injection |
+
+**Safe callbacks** (output is escaped or used as data):
+- `beforeDateSelectCallback`, `beforeMonthChangedCallback` (return action objects)
+- `onSelect`, `onChange` (event handlers)
+- `getDateMetadataCallback` (isDisabled, dayClass, badgeClass - CSS class names only)
+
+**If displaying user-generated content**, sanitize it before passing to these callbacks or methods.
 
 ## Changelog
 

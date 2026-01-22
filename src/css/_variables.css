@@ -340,6 +340,31 @@
   --drp-tooltip-arrow-size: 8px;
 
   /* ==========================================================================
+     MESSAGE AREA COLORS
+     ==========================================================================
+     Four type variants for feedback messages: error, warning, info, success */
+
+  /* Error - red */
+  --drp-message-error-bg: #fef2f2;
+  --drp-message-error-color: #991b1b;
+  --drp-message-error-border: #fecaca;
+
+  /* Warning - orange/amber */
+  --drp-message-warning-bg: #fffbeb;
+  --drp-message-warning-color: #92400e;
+  --drp-message-warning-border: #fde68a;
+
+  /* Info - blue */
+  --drp-message-info-bg: #eff6ff;
+  --drp-message-info-color: #1e40af;
+  --drp-message-info-border: #bfdbfe;
+
+  /* Success - green */
+  --drp-message-success-bg: #f0fdf4;
+  --drp-message-success-color: #166534;
+  --drp-message-success-border: #bbf7d0;
+
+  /* ==========================================================================
      CALENDAR DIMENSIONS
      ========================================================================== */
   --drp-month-min-width: 280px;

@@ -1,0 +1,114 @@
+/* ==============================================================================
+   MESSAGE AREA
+   ==============================================================================
+   Displays feedback messages between the calendar months and summary section.
+   Used for validation errors, warnings, info messages, and success confirmations.
+   ============================================================================== */
+
+/* Message container - hidden by default */
+.drp-date-picker__message {
+  display: none;
+  align-items: center;
+  gap: var(--drp-spacing-sm);
+  padding: var(--drp-spacing-sm) var(--drp-spacing-md);
+  margin: 0;
+  margin-bottom: var(--drp-spacing-sm);
+  border-radius: var(--drp-border-radius);
+  font-size: var(--drp-font-size-sm);
+  line-height: var(--drp-line-height-normal);
+}
+
+/* Visible state */
+.drp-date-picker__message--visible {
+  display: flex;
+}
+
+/* Message text - fills available space */
+.drp-date-picker__message-text {
+  flex: 1;
+}
+
+/* Close button */
+.drp-date-picker__message-close {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: calc(2 * var(--drp-rem));
+  height: calc(2 * var(--drp-rem));
+  padding: 0;
+  border: none;
+  background: transparent;
+  font-size: var(--drp-font-size-lg);
+  line-height: 1;
+  cursor: pointer;
+  opacity: 0.6;
+  transition: opacity var(--drp-transition-fast) var(--drp-easing-snappy);
+}
+
+.drp-date-picker__message-close:hover {
+  opacity: 1;
+}
+
+/* ==========================================================================
+   MESSAGE TYPE VARIANTS
+   ========================================================================== */
+
+/* Error - red */
+.drp-date-picker__message--error {
+  background-color: var(--drp-message-error-bg);
+  color: var(--drp-message-error-color);
+  border: 1px solid var(--drp-message-error-border);
+}
+
+.drp-date-picker__message--error .drp-date-picker__message-close {
+  color: var(--drp-message-error-color);
+}
+
+/* Warning - orange/amber */
+.drp-date-picker__message--warning {
+  background-color: var(--drp-message-warning-bg);
+  color: var(--drp-message-warning-color);
+  border: 1px solid var(--drp-message-warning-border);
+}
+
+.drp-date-picker__message--warning .drp-date-picker__message-close {
+  color: var(--drp-message-warning-color);
+}
+
+/* Info - blue */
+.drp-date-picker__message--info {
+  background-color: var(--drp-message-info-bg);
+  color: var(--drp-message-info-color);
+  border: 1px solid var(--drp-message-info-border);
+}
+
+.drp-date-picker__message--info .drp-date-picker__message-close {
+  color: var(--drp-message-info-color);
+}
+
+/* Success - green */
+.drp-date-picker__message--success {
+  background-color: var(--drp-message-success-bg);
+  color: var(--drp-message-success-color);
+  border: 1px solid var(--drp-message-success-border);
+}
+
+.drp-date-picker__message--success .drp-date-picker__message-close {
+  color: var(--drp-message-success-color);
+}
+
+/* Custom - no styling, full user control via HTML content */
+.drp-date-picker__message--custom {
+  /* No styling - programmer controls everything via HTML content */
+  background: transparent;
+  border: none;
+  padding: 0;
+  margin: 0;
+  margin-bottom: var(--drp-spacing-sm);
+}
+
+.drp-date-picker__message--custom .drp-date-picker__message-close {
+  /* Hide close button for custom messages - user controls everything */
+  display: none;
+}

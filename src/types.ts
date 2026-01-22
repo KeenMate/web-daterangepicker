@@ -23,6 +23,29 @@ export interface BeforeSelectResult {
 
   /** Optional message to log or display to user */
   message?: string;
+
+  /**
+   * When true with action 'restore', keeps the invalid range visible with distinct
+   * error styling (red-tinted background) instead of discarding it entirely.
+   * This provides visual feedback showing what the user attempted to select.
+   * The invalid range styling is cleared when the user makes a new selection attempt.
+   *
+   * Only applies to range mode with action 'restore'.
+   *
+   * @example
+   * beforeDateSelectCallback: (range) => {
+   *   const nights = Math.floor((range.end - range.start) / (1000 * 60 * 60 * 24));
+   *   if (nights > 7) {
+   *     return {
+   *       action: 'restore',
+   *       message: 'Maximum 7 nights allowed',
+   *       showInvalidRange: true  // Keep range visible with error styling
+   *     };
+   *   }
+   *   return { action: 'accept' };
+   * }
+   */
+  showInvalidRange?: boolean;
 }
 
 /**
@@ -147,6 +170,17 @@ export interface DatePickerOptions {
    * - 'apply': Only close when Apply button is clicked
    */
   autoClose?: 'never' | 'selection' | 'apply';
+
+  /**
+   * Controls whether the calendar closes when user scrolls the page (floating mode only)
+   * - true: Close on scroll (default)
+   * - false: Keep open on scroll
+   *
+   * Note: Even when true, scroll won't close if:
+   * - Apply button is required (showApplyButton: true)
+   * - A message is currently visible (validation error, etc.)
+   */
+  closeOnScroll?: boolean;
 
   // Calendar layout
   monthLayout?: 'horizontal' | 'grid'; // Layout mode: 'horizontal' = flex row (default), 'grid' = CSS grid

@@ -5,6 +5,99 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.10.1] - 2026-01-22 - PUBLISHED
+
+### Fixed
+
+- **Message Alert Horizontal Margins**: Removed unwanted left/right external margins from standard alert messages (error, warning, info, success)
+  - Changed `margin: 0 var(--drp-spacing-sm)` to `margin: 0` in `.drp-date-picker__message`
+  - Messages now span the full width of the calendar popup without side gaps
+  - Bottom margin preserved for proper vertical spacing
+
+## [1.10.0] - 2026-01-22 - PUBLISHED
+
+### Added
+
+- **`custom-action` Event**: New unified event for custom action buttons in both action buttons and messages
+  - Fires when any button with `data-action="custom"` is clicked
+  - Event detail contains all `data-*` attributes (except `data-action`) as a camelCase key-value map
+  - Works identically for action buttons and message buttons
+  - Enables declarative custom buttons in `showMessage()` HTML that communicate back to JavaScript
+  - Example usage:
+    ```javascript
+    picker.showMessage(`
+      <button data-action="custom" data-start-date="2026-01-14" data-end-date="2026-01-17">
+        Apply Jan 14 - Jan 17
+      </button>
+    `);
+
+    picker.addEventListener('custom-action', (e) => {
+      console.log(e.detail); // { startDate: '2026-01-14', endDate: '2026-01-17' }
+      picker.selectedRanges = [{
+        start: new Date(e.detail.startDate),
+        end: new Date(e.detail.endDate)
+      }];
+      picker.hideMessage();
+    });
+    ```
+
+- **`data-action="close-message"` Built-in Action**: Simple way to close messages from button clicks
+  - Any button with `data-action="close-message"` inside a message will close the message when clicked
+  - No JavaScript event listener required for basic close functionality
+
+### Fixed
+
+- **Custom Action Button Click Detection**: Fixed clicks on button child elements (like text nodes or inner spans) not triggering custom actions
+  - Now uses `target.closest('[data-action="custom"]')` to properly detect button clicks
+
+- **Selected Ranges Not Re-rendering**: Fixed bug where programmatically setting `selectedRanges` via the reactive setter would not clear invalid range state
+  - Now properly clears `invalidRangeStart`, `invalidRangeEnd`, and `focusedDayIndex` when ranges are set
+
+### Documentation
+
+- **XSS Security Notice**: Added security warning to README about callbacks and methods that allow raw HTML injection
+  - Lists all affected callbacks: `showMessage()`, `renderDayCallback`, `formatSummaryCallback`, etc.
+  - Recommends sanitizing user-generated content before display
+
+## [1.9.6] - 2026-01-21
+
+### Added
+
+- **Event Manager Architecture**: Introduced Pub/Sub event managers for cleaner, more maintainable event handling
+  - **ScrollEventManager** (`src/modules/scroll-events/index.ts`):
+    - Centralizes scroll event handling with single listener per source
+    - Supports `window` and `container` scroll sources
+    - Enables multiple subscribers without duplicate listeners
+  - **ClickEventManager** (`src/modules/click-events/index.ts`):
+    - Centralizes click event handling for inside/outside calendar detection
+    - Supports `outsideClick` and `calendarClick` event types
+    - Uses `composedPath()` for Shadow DOM compatibility
+    - Tracks mousedown/mouseup to survive DOM rebuilds between events
+
+### Fixed
+
+- **Calendar Not Closing on Window Scroll**: Fixed critical bug where the floating calendar would not close when scrolling the page
+  - Root cause: No window scroll listener was attached to close the calendar
+  - Solution: ScrollEventManager now subscribes to window scroll and closes the calendar in floating mode
+  - This was a regression that went unnoticed due to scattered event handling
+
+### Changed
+
+- **Event Handling Architecture**: Migrated from scattered `addEventListener` calls to centralized Pub/Sub pattern
+  - Removed `clickOutsideHandler` property and manual listener management
+  - Event subscriptions are now tracked and properly cleaned up in `destroy()`
+  - Pattern follows web-grid's proven event manager architecture
+  - Improves code maintainability and reduces potential for listener leaks
+
+### Documentation
+
+- **Unified Example Page Styling**: Refactored all example pages to use consistent shared CSS
+  - New `examples-shared.css` with comprehensive base styles matching web-grid's demo page style
+  - Fixed button text visibility (white text on white background) in examples-api-methods.html
+  - Fixed code block styling - `<code>` inside `<pre>` and `.code-block` now properly inherits colors
+  - Added `.copy-button` styling for code blocks with proper positioning
+  - Standardized header styling with gradient cards across all example pages
+
 ## [1.9.5] - 2026-01-03
 
 ### Added

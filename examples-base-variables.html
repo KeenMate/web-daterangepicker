@@ -6,13 +6,15 @@
   <title>Base Variables Demo - web-daterangepicker</title>
   <link rel="stylesheet" href="examples-shared.css">
   <style>
-    /* Controls Panel */
+    /* Controls Panel - override shared .controls class */
     .controls {
+      display: block !important;
       background: white;
       border-radius: 0.5rem;
       padding: 1.5rem;
       margin-bottom: 2rem;
       box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1);
+      align-items: initial;
     }
 
     .controls-header {
@@ -29,9 +31,9 @@
       padding: 0;
     }
 
-    .reset-btn {
-      background: #e53e3e;
-      color: white;
+    button.reset-btn {
+      background: #e53e3e !important;
+      color: white !important;
       border: none;
       padding: 0.5rem 1rem;
       border-radius: 0.375rem;
@@ -40,8 +42,8 @@
       font-family: inherit;
     }
 
-    .reset-btn:hover {
-      background: #c53030;
+    button.reset-btn:hover {
+      background: #c53030 !important;
     }
 
     .control-section {
@@ -90,6 +92,7 @@
       font-size: 0.75rem;
       color: #374151;
       font-weight: 500;
+      margin-bottom: 0.25rem;
     }
 
     .control-group input {
@@ -111,17 +114,18 @@
       width: 500px !important;
     }
 
-    .load-font-btn {
+    button.load-font-btn {
       padding: 0.5rem 1rem;
       border: 1px solid #d1d5db;
       border-radius: 0.375rem;
       cursor: pointer;
-      background: white;
+      background: white !important;
+      color: #374151 !important;
       font-family: inherit;
     }
 
-    .load-font-btn:hover {
-      background: #f3f4f6;
+    button.load-font-btn:hover {
+      background: #f3f4f6 !important;
       border-color: #9ca3af;
     }
 
@@ -184,15 +188,12 @@
   </style>
 </head>
 <body>
-  <div class="header-nav">
-    <a href="index.html" class="back-link">
-      <span>←</span>
-      <span>All Examples</span>
-    </a>
-  </div>
-
-  <h1 class="page-title">🎨 Base Variables Demo</h1>
-  <p class="page-description">Test theme-designer <code>--base-*</code> typography variables with web-daterangepicker. Adjust font family, sizes, weights, and line heights in real-time.</p>
+  <div class="container">
+    <header>
+      <a href="index.html" class="back-link">← Back to Examples</a>
+      <h1>🎨 Base Variables</h1>
+      <p class="subtitle">Theme-designer typography variables for fonts, sizes, weights, and line heights</p>
+    </header>
 
   <!-- Controls Panel -->
   <div class="controls">

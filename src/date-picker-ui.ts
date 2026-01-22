@@ -49,13 +49,7 @@ export function show(picker: any) {
         position(picker);
     });
 
-    // Add click outside handler with a slight delay to avoid catching the same click event that triggered show()
-    if (picker.clickOutsideHandler) {
-        // Use setTimeout to ensure the current click event completes before we start listening
-        setTimeout(() => {
-            document.addEventListener('click', picker.clickOutsideHandler);
-        }, 0);
-    }
+    // Note: Outside click handling is now managed by the clickEvents manager
 
     setTimeout(() => {
         const computedStyle = window.getComputedStyle(picker.calendar);
@@ -78,10 +72,7 @@ export function hide(picker: any) {
         cleanupAutoUpdate = null;
     }
 
-    // Remove click outside handler when hiding
-    if (picker.clickOutsideHandler) {
-        document.removeEventListener('click', picker.clickOutsideHandler);
-    }
+    // Note: Outside click handling is now managed by the clickEvents manager
 
     picker.calendar.classList.remove('drp-date-picker--visible');
     picker.isCalendarActive = false; // Deactivate calendar when hidden
@@ -238,4 +229,80 @@ export function hideLoadingOverlay(picker: any): void {
         picker.loadingOverlay.remove();
         picker.loadingOverlay = undefined;
     }
+}
+
+/**
+ * Show a message in the message area
+ * @param picker - The date picker instance
+ * @param content - Message content (plain text when type is provided, or full HTML for custom styling)
+ * @param type - Optional message type. If provided, uses built-in styled alert. If omitted, content is treated as raw HTML.
+ * @param autoHide - Optional auto-hide timeout in milliseconds
+ */
+export function showMessage(
+    picker: any,
+    content: string,
+    type?: 'error' | 'warning' | 'info' | 'success',
+    autoHide?: number
+): void {
+    console.log('[showMessage] content:', content, 'type:', type);
+
+    if (!picker.messageElement) {
+        console.log('[showMessage] ERROR: messageElement is null/undefined!');
+        return;
+    }
+
+    // Clear any existing auto-hide timeout
+    if (picker.messageAutoHideTimeout) {
+        clearTimeout(picker.messageAutoHideTimeout);
+        picker.messageAutoHideTimeout = undefined;
+    }
+
+    // Remove all type classes
+    picker.messageElement.classList.remove(
+        'drp-date-picker__message--error',
+        'drp-date-picker__message--warning',
+        'drp-date-picker__message--info',
+        'drp-date-picker__message--success',
+        'drp-date-picker__message--custom'
+    );
+
+    const textElement = picker.messageElement.querySelector('.drp-date-picker__message-text');
+    if (textElement) {
+        textElement.innerHTML = content;
+    }
+
+    if (type) {
+        // Type provided: use built-in styled alert box
+        picker.messageElement.classList.add(`drp-date-picker__message--${type}`);
+    } else {
+        // No type: raw HTML with full user control (minimal wrapper styling)
+        picker.messageElement.classList.add('drp-date-picker__message--custom');
+    }
+
+    // Show the message
+    picker.messageElement.classList.add('drp-date-picker__message--visible');
+
+    // Set up auto-hide if specified
+    if (autoHide && autoHide > 0) {
+        picker.messageAutoHideTimeout = setTimeout(() => {
+            hideMessage(picker);
+        }, autoHide);
+    }
+}
+
+/**
+ * Hide the message area
+ * @param picker - The date picker instance
+ */
+export function hideMessage(picker: any): void {
+    if (!picker.messageElement) return;
+
+    // Clear any existing auto-hide timeout
+    if (picker.messageAutoHideTimeout) {
+        clearTimeout(picker.messageAutoHideTimeout);
+        picker.messageAutoHideTimeout = undefined;
+    }
+
+    // Hide the message
+    picker.messageElement.classList.remove('drp-date-picker__message--visible');
 }

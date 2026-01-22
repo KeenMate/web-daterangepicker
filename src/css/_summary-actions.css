@@ -9,7 +9,9 @@
 
 .drp-date-picker__summary {
   text-align: center;
-  padding: var(--drp-spacing-md);
+  padding: 0;
+  margin: 0;
+  margin-bottom: var(--drp-spacing-sm);
   border-top: var(--drp-summary-border);
   font-size: var(--drp-font-size-sm);
   color: var(--drp-summary-text-color);

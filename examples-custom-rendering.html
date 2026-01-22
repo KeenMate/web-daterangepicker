@@ -4,85 +4,9 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Custom Rendering - Date Range Picker Examples</title>
+  <link rel="stylesheet" href="examples-shared.css">
   <style>
-    * {
-      box-sizing: border-box;
-    }
-
-    body {
-      font-family: system-ui, -apple-system, sans-serif;
-      line-height: 1.6;
-      max-width: 1200px;
-      margin: 0 auto;
-      padding: 2rem;
-      background: #f9fafb;
-    }
-
-    h1, h2, h3 {
-      color: #111827;
-      margin-top: 2rem;
-    }
-
-    h1 {
-      border-bottom: 2px solid #e5e7eb;
-      padding-bottom: 1rem;
-    }
-
-    .card {
-      background: white;
-      border-radius: 0.5rem;
-      padding: 1.5rem;
-      margin-bottom: 2rem;
-      box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1);
-    }
-
-    .grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-      gap: 1.5rem;
-      margin: 1rem 0;
-    }
-
-    .form-group {
-      margin-bottom: 1rem;
-    }
-
-    label {
-      display: block;
-      font-weight: 600;
-      color: #374151;
-      margin-bottom: 0.5rem;
-    }
-
-    .description {
-      color: #6b7280;
-      font-size: 0.875rem;
-      margin-bottom: 1rem;
-    }
-
-    code {
-      background: #f3f4f6;
-      padding: 0.125rem 0.375rem;
-      border-radius: 0.25rem;
-      font-family: 'Courier New', monospace;
-      font-size: 0.875em;
-    }
-
-    pre {
-      background: #1f2937;
-      color: #f9fafb;
-      padding: 1rem;
-      border-radius: 0.5rem;
-      overflow-x: auto;
-      font-size: 0.875rem;
-      margin: 1rem 0;
-    }
-
-    pre code {
-      background: none;
-      color: inherit;
-      padding: 0;
-    }
+    /* Page-specific styles only - base styles come from examples-shared.css */
 
     /* Custom day cell styles for examples */
     .event-dot {
@@ -122,53 +46,15 @@
       font-size: 18px;
       line-height: 1;
     }
-
-    .header-nav {
-      display: flex;
-      align-items: center;
-      gap: 1rem;
-      margin-bottom: 1rem;
-    }
-
-    .back-link {
-      display: inline-flex;
-      align-items: center;
-      gap: 0.5rem;
-      color: #6366f1;
-      text-decoration: none;
-      font-weight: 500;
-      padding: 0.5rem 1rem;
-      border-radius: 0.375rem;
-      transition: background-color 150ms;
-    }
-
-    .back-link:hover {
-      background-color: #eef2ff;
-    }
-
-    .page-title {
-      margin: 0 0 0.5rem 0;
-      color: #111827;
-    }
-
-    .page-description {
-      color: #6b7280;
-      margin-top: 0.5rem;
-      margin-bottom: 2rem;
-      font-size: 1.125rem;
-    }
   </style>
 </head>
 <body>
-  <div class="header-nav">
-    <a href="index.html" class="back-link">
-      <span>←</span>
-      <span>All Examples</span>
-    </a>
-  </div>
-
-  <h1 class="page-title">🎨 Custom Rendering</h1>
-  <p class="page-description">Advanced customization with slots and render callbacks. Create custom day cells with dynamic content, pricing, and event indicators.</p>
+  <div class="container">
+    <header>
+      <a href="index.html" class="back-link">← Back to Examples</a>
+      <h1>✨ Custom Rendering</h1>
+      <p class="subtitle">Advanced customization with slots and render callbacks for dynamic day cell content</p>
+    </header>
 
   <!-- Example 1: Per-Day Slots (Declarative) -->
   <div class="card">
@@ -201,7 +87,7 @@
       </web-daterangepicker>
     </div>
 
-    <pre><code>&lt;date-range-picker&gt;
+    <pre><code>&lt;web-daterangepicker&gt;
   &lt;div slot="day-2025-01-15" class="custom-day-content"&gt;
     &lt;strong&gt;15&lt;/strong&gt;
     &lt;span class="event-dot"&gt;&lt;/span&gt;
@@ -211,7 +97,7 @@
     &lt;span class="emoji-day"&gt;🎉&lt;/span&gt;
     &lt;small&gt;Holiday&lt;/small&gt;
   &lt;/div&gt;
-&lt;/date-range-picker&gt;</code></pre>
+&lt;/web-daterangepicker&gt;</code></pre>
   </div>
 
   <!-- Example 2: renderDayCallback (Full Replacement) -->

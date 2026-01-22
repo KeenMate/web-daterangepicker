@@ -11,6 +11,7 @@
    ├── _summary-actions.css    - Selection summary and action buttons
    ├── _tooltips.css           - Floating UI tooltips
    ├── _loading.css            - Loading overlay and spinner for async validation
+   ├── _message.css            - Message area for validation feedback
    ├── _modifiers.css          - Transitions, inline mode
    └── main.css                - This file (imports all partials)
 
@@ -26,4 +27,5 @@
 @import './_summary-actions.css';
 @import './_tooltips.css';
 @import './_loading.css';
+@import './_message.css';
 @import './_modifiers.css';

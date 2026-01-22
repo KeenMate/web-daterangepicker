@@ -4,7 +4,7 @@
  * Functions for date selection logic.
  */
 
-import { showLoadingOverlay, hideLoadingOverlay } from './date-picker-ui';
+import { showLoadingOverlay, hideLoadingOverlay, showMessage, hideMessage } from './date-picker-ui';
 import type { BeforeSelectResult, DateRange } from './types';
 import { validationLogger, selectionLogger } from './logger';
 import log from './logger';
@@ -15,7 +15,16 @@ import log from './logger';
 async function callBeforeSelectCallback(
     picker: any,
     selection: Date | DateRange
-): Promise<{ isValid: boolean; adjustedDate?: Date; adjustedStart?: Date; adjustedEnd?: Date; message?: string }> {
+): Promise<{
+    isValid: boolean;
+    adjustedDate?: Date;
+    adjustedStart?: Date;
+    adjustedEnd?: Date;
+    message?: string;
+    showInvalidRange?: boolean;
+    invalidStart?: Date;
+    invalidEnd?: Date;
+}> {
     if (!picker.options.beforeDateSelectCallback) {
         return { isValid: true };
     }
@@ -31,14 +40,22 @@ async function callBeforeSelectCallback(
 
         switch (result.action) {
             case 'accept':
+                // Clear any previous message on successful selection
+                hideMessage(picker);
                 return { isValid: true };
 
             case 'adjust':
                 if (selection instanceof Date && result.adjustedDate) {
-                    // Single mode adjustment
+                    // Single mode adjustment - show info message if provided
+                    if (result.message) {
+                        showMessage(picker, result.message, 'info');
+                    }
                     return { isValid: true, adjustedDate: result.adjustedDate, message: result.message };
                 } else if (typeof selection === 'object' && 'start' in selection && result.adjustedStartDate && result.adjustedEndDate) {
-                    // Range mode adjustment
+                    // Range mode adjustment - show info message if provided
+                    if (result.message) {
+                        showMessage(picker, result.message, 'info');
+                    }
                     return {
                         isValid: true,
                         adjustedStart: result.adjustedStartDate,
@@ -49,6 +66,16 @@ async function callBeforeSelectCallback(
                 return { isValid: false, message: result.message || 'Invalid adjustment' };
 
             case 'restore':
+                // Handle showInvalidRange - return the proposed range for visual feedback
+                if (result.showInvalidRange && typeof selection === 'object' && 'start' in selection) {
+                    return {
+                        isValid: false,
+                        message: result.message,
+                        showInvalidRange: true,
+                        invalidStart: selection.start,
+                        invalidEnd: selection.end
+                    };
+                }
                 return { isValid: false, message: result.message };
 
             case 'clear':
@@ -74,7 +101,15 @@ export async function validateRangeAsync(
     picker: any,
     startDate: Date,
     endDate: Date
-): Promise<{ isValid: boolean; adjustedStart?: Date; adjustedEnd?: Date; message?: string }> {
+): Promise<{
+    isValid: boolean;
+    adjustedStart?: Date;
+    adjustedEnd?: Date;
+    message?: string;
+    showInvalidRange?: boolean;
+    invalidStart?: Date;
+    invalidEnd?: Date;
+}> {
     validationLogger.debug(' validateRangeAsync called - mode:', picker.options.disabledDatesHandling, 'start:', startDate, 'end:', endDate);
 
     // 1. Local validation: check for disabled dates if mode requires it
@@ -97,7 +132,17 @@ export async function validateRangeAsync(
     // 2. Async validation: call beforeDateSelectCallback if provided
     const callbackResult = await callBeforeSelectCallback(picker, { start: startDate, end: endDate });
     if (!callbackResult.isValid) {
-        return callbackResult;
+        // Pass through showInvalidRange fields if present
+        if (callbackResult.showInvalidRange) {
+            return {
+                isValid: false,
+                message: callbackResult.message,
+                showInvalidRange: true,
+                invalidStart: callbackResult.invalidStart,
+                invalidEnd: callbackResult.invalidEnd
+            };
+        }
+        return { isValid: false, message: callbackResult.message };
     }
     if (callbackResult.adjustedStart || callbackResult.adjustedEnd) {
         return {
@@ -125,6 +170,9 @@ export async function selectDay(picker: any, dayElement: HTMLElement) {
     const [year, month, day] = dayElement.dataset.date.split('-').map(Number);
     const date = new Date(year, month - 1, day); // month is 1-based in data-date, but Date constructor expects 0-based
 
+    // Track if single mode date was adjusted (for focus update after render)
+    let singleModeAdjustedDate: Date | null = null;
+
     // Check if this is an "other month" day
     const isOtherMonth = dayElement.classList.contains('drp-date-picker__day--other-month');
 
@@ -147,8 +195,18 @@ export async function selectDay(picker: any, dayElement: HTMLElement) {
             return;
         }
 
+        // Clear any previous message on successful selection (if no adjustment message)
+        if (!callbackResult.message) {
+            hideMessage(picker);
+        }
+
         // Use adjusted date if provided
         const finalDate = callbackResult.adjustedDate || date;
+
+        // Track if date was adjusted for focus update after render
+        if (callbackResult.adjustedDate && !picker.isSameDay(date, finalDate)) {
+            singleModeAdjustedDate = finalDate;
+        }
 
         picker.selectedDate = finalDate;
         if (picker.input) {
@@ -208,7 +266,9 @@ export async function selectDay(picker: any, dayElement: HTMLElement) {
         }
     } else { // range
         if (!picker.selectedStartDate || picker.selectedEndDate) {
-            // Start new range
+            // Start new range - clear any previous invalid range
+            picker.invalidRangeStart = null;
+            picker.invalidRangeEnd = null;
             picker.selectedStartDate = date;
             picker.selectedEndDate = null;
             // Show first date in input immediately (only if Apply button is NOT required)
@@ -237,6 +297,16 @@ export async function selectDay(picker: any, dayElement: HTMLElement) {
                 if (validation.message) {
                     log.warn('selectDay() - range validation failed:', validation.message);
                 }
+
+                // Handle showInvalidRange - keep invalid range visible with error styling
+                if (validation.showInvalidRange && validation.invalidStart && validation.invalidEnd) {
+                    picker.invalidRangeStart = validation.invalidStart;
+                    picker.invalidRangeEnd = validation.invalidEnd;
+                    // Reset selection to start-only state so user can try again
+                    picker.selectedStartDate = null;
+                    picker.selectedEndDate = null;
+                }
+
                 // Range was already cleared if action was 'clear'
                 picker.renderCalendar();
                 picker.updateSummary();
@@ -246,6 +316,15 @@ export async function selectDay(picker: any, dayElement: HTMLElement) {
             // Apply validated/adjusted dates
             picker.selectedStartDate = validation.adjustedStart || startDate;
             picker.selectedEndDate = validation.adjustedEnd || endDate;
+
+            // Clear any invalid range on successful selection
+            picker.invalidRangeStart = null;
+            picker.invalidRangeEnd = null;
+
+            // Clear any previous message on successful selection (if no adjustment message)
+            if (!validation.message) {
+                hideMessage(picker);
+            }
 
             if (picker.input) {
                 // Only update input immediately if Apply button is NOT required
@@ -271,6 +350,49 @@ export async function selectDay(picker: any, dayElement: HTMLElement) {
 
     picker.renderCalendar();
     picker.updateSummary();
+
+    // Update focus to the adjusted date after rendering (for single mode)
+    // This ensures the focus indicator appears on the adjusted date, not the originally clicked date
+    if (singleModeAdjustedDate) {
+        for (let colIndex = 0; colIndex < picker.monthDates.length; colIndex++) {
+            const monthDate = picker.monthDates[colIndex];
+            if (singleModeAdjustedDate.getFullYear() === monthDate.getFullYear() &&
+                singleModeAdjustedDate.getMonth() === monthDate.getMonth()) {
+                // Found the column containing the adjusted date
+                picker.activeMonthIndex = colIndex;
+
+                // Find the day index within this column
+                const daysContainer = picker.calendar.querySelector(
+                    `.drp-date-picker__days[data-month-index="${colIndex}"]`
+                );
+                if (daysContainer) {
+                    const days = daysContainer.querySelectorAll(
+                        '.drp-date-picker__day:not(.drp-date-picker__day--other-month)'
+                    );
+                    const adjustedDayIndex = Array.from(days).findIndex((day: Element) => {
+                        const dateAttr = (day as HTMLElement).dataset.date;
+                        if (!dateAttr) return false;
+                        const [year, month, dayNum] = dateAttr.split('-').map(Number);
+                        const dayDate = new Date(year, month - 1, dayNum);
+                        return picker.isSameDay(dayDate, singleModeAdjustedDate!);
+                    });
+                    if (adjustedDayIndex !== -1) {
+                        picker.focusedDayIndex = adjustedDayIndex;
+                        // Re-apply the focused class to the correct day
+                        days.forEach((day: Element) =>
+                            day.classList.remove('drp-date-picker__day--focused')
+                        );
+                        if (days[adjustedDayIndex]) {
+                            (days[adjustedDayIndex] as HTMLElement).classList.add(
+                                'drp-date-picker__day--focused'
+                            );
+                        }
+                    }
+                }
+                break;
+            }
+        }
+    }
 
     // Update focus to the end date after rendering (for range mode)
     // This ensures the focus indicator appears on the end of the completed range
@@ -345,8 +467,15 @@ export function clearSelection(picker: any) {
     picker.dragPreviewStart = null;
     picker.dragPreviewEnd = null;
 
+    // Clear invalid range state
+    picker.invalidRangeStart = null;
+    picker.invalidRangeEnd = null;
+
     // Clear focused day state
     picker.focusedDayIndex = null;
+
+    // Clear any message
+    hideMessage(picker);
 
     if (picker.input) {
         picker.input.value = '';

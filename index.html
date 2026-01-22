@@ -3,388 +3,235 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Date Range Picker Examples - Choose Your Demo</title>
+    <title>Web DateRangePicker - Examples</title>
+    <link rel="stylesheet" href="examples-shared.css">
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: #f0f2f5;
             min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
             padding: 2rem;
+            max-width: none;
         }
 
-        .container {
-            max-width: 900px;
-            width: 100%;
+        .page-container {
+            max-width: 1200px;
+            margin: 0 auto;
         }
 
-        header {
-            text-align: center;
-            margin-bottom: 3rem;
+        .header-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 16px;
+            padding: 2.5rem 3rem;
+            margin-bottom: 2rem;
             color: white;
         }
 
-        h1 {
-            font-size: 3rem;
+        .header-card h1 {
+            font-size: 2.5rem;
             font-weight: 700;
-            margin-bottom: 0.5rem;
-            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+            margin: 0 0 0.5rem 0;
+            color: white;
+            border-bottom: none;
+            padding-bottom: 0;
         }
 
-        .subtitle {
-            font-size: 1.25rem;
+        .header-card .subtitle {
+            font-size: 1.1rem;
             opacity: 0.9;
-            font-weight: 300;
+            margin: 0 0 1rem 0;
         }
 
         .version-badge {
             display: inline-block;
             background: rgba(255, 255, 255, 0.2);
-            padding: 0.25rem 0.75rem;
-            border-radius: 12px;
+            padding: 0.35rem 0.85rem;
+            border-radius: 8px;
             font-size: 0.875rem;
-            margin-top: 0.5rem;
-            backdrop-filter: blur(10px);
+            font-weight: 500;
         }
 
         .cards {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 2rem;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 1.5rem;
         }
 
-        .card {
+        .card-link {
             background: white;
-            border-radius: 16px;
-            padding: 2rem;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            border-radius: 12px;
+            padding: 1.75rem;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
             cursor: pointer;
             text-decoration: none;
             color: inherit;
             display: block;
         }
 
-        .card:hover {
-            transform: translateY(-8px);
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+        .card-link:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+            text-decoration: none;
         }
 
         .card-icon {
-            font-size: 3rem;
+            font-size: 2.5rem;
             margin-bottom: 1rem;
+            filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
         }
 
-        .card-title {
-            font-size: 1.5rem;
+        .card-link h2.card-title {
+            font-size: 1.25rem;
             font-weight: 600;
-            margin-bottom: 0.5rem;
-            color: #2d3748;
+            margin: 0 0 0.5rem 0;
+            color: #1a202c;
+            border-bottom: none;
+            padding-bottom: 0;
         }
 
         .card-description {
-            color: #718096;
+            color: #64748b;
             line-height: 1.6;
-            margin-bottom: 1rem;
-        }
-
-        .card-features {
-            list-style: none;
-            margin-top: 1rem;
-        }
-
-        .card-features li {
-            padding: 0.5rem 0;
-            border-top: 1px solid #e2e8f0;
-            font-size: 0.875rem;
-            color: #4a5568;
-            display: flex;
-            align-items: center;
-        }
-
-        .card-features li:before {
-            content: "✓";
-            color: #667eea;
-            font-weight: bold;
-            margin-right: 0.5rem;
+            margin: 0;
+            font-size: 0.95rem;
         }
 
         .badge {
             display: inline-block;
-            background: #667eea;
+            background: #f56565;
             color: white;
-            padding: 0.25rem 0.75rem;
-            border-radius: 12px;
-            font-size: 0.75rem;
+            padding: 0.15rem 0.5rem;
+            border-radius: 6px;
+            font-size: 0.65rem;
             font-weight: 600;
             margin-left: 0.5rem;
-        }
-
-        .badge.new {
-            background: #f56565;
-            animation: pulse 2s infinite;
-        }
-
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.7; }
+            vertical-align: middle;
+            text-transform: uppercase;
         }
 
         footer {
             text-align: center;
             margin-top: 3rem;
-            color: white;
-            opacity: 0.8;
+            color: #64748b;
             font-size: 0.875rem;
         }
 
         footer a {
-            color: white;
+            color: #667eea;
+            text-decoration: none;
+        }
+
+        footer a:hover {
             text-decoration: underline;
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <header>
-            <h1>📅 Date Range Picker Web Component</h1>
-            <p class="subtitle">Interactive examples showcasing features and capabilities</p>
-            <span class="version-badge">v1.0.0-rc05</span>
+    <div class="page-container">
+        <header class="header-card">
+            <h1>Web DateRangePicker</h1>
+            <p class="subtitle">Lightweight date picker web component with excellent keyboard navigation</p>
+            <span class="version-badge">v1.9.6</span>
         </header>
 
-        <div class="cards">
-            <!-- Basic Examples -->
-            <a href="examples-basic.html" class="card">
-                <div class="card-icon">📦</div>
-                <h2 class="card-title">Basic Examples</h2>
-                <p class="card-description">
-                    Comprehensive demos showing all core features: single/range modes, formats, localization, multi-month, grid layouts, and more.
-                </p>
-                <ul class="card-features">
-                    <li>Single date & date range selection</li>
-                    <li>Multiple date formats (ISO, EU, US)</li>
-                    <li>Internationalization (en, de, fr, es)</li>
-                    <li>Multi-month & grid layouts</li>
-                    <li>Disabled dates & range handling modes</li>
-                    <li>Inline calendars & positioning</li>
-                    <li>Keyboard shortcuts & accessibility</li>
-                </ul>
-            </a>
-
-            <!-- Calendar Sizing -->
-            <a href="examples-sizes.html" class="card">
-                <div class="card-icon">📏</div>
-                <h2 class="card-title">
-                    Calendar Sizing
-                    <span class="badge new">NEW</span>
-                </h2>
-                <p class="card-description">
-                    Control calendar size with the unified density system. Scale fonts, spacing, and cells proportionally.
-                </p>
-                <ul class="card-features">
-                    <li>Unified density system (xs/sm/md/lg/xl)</li>
-                    <li>Independent font & spacing control</li>
-                    <li>Responsive size scaling</li>
-                    <li>Grid layout sizing examples</li>
-                    <li>Compact to touch-friendly sizes</li>
-                    <li>Semantic CSS variable naming</li>
-                </ul>
-            </a>
-
-            <!-- Theming Showcase -->
-            <a href="examples-theming.html" class="card">
-                <div class="card-icon">🎭</div>
-                <h2 class="card-title">
-                    Theming Showcase
-                    <span class="badge new">NEW</span>
-                </h2>
-                <p class="card-description">
-                    Learn how to customize appearance with CSS custom properties. See multiple themes in action.
-                </p>
-                <ul class="card-features">
-                    <li>Default theme showcase</li>
-                    <li>Green, purple, dark themes</li>
-                    <li>Custom sizing & spacing</li>
-                    <li>Range mode theming</li>
-                    <li>CSS variable override examples</li>
-                    <li>Shadow DOM theming patterns</li>
-                </ul>
-            </a>
-
-            <!-- Base Variables -->
-            <a href="examples-base-variables.html" class="card">
-                <div class="card-icon">🎨</div>
-                <h2 class="card-title">
-                    Base Variables
-                    <span class="badge new">NEW</span>
-                </h2>
-                <p class="card-description">
-                    Test theme-designer <code>--base-*</code> typography variables. Adjust fonts, sizes, weights, and line heights in real-time.
-                </p>
-                <ul class="card-features">
-                    <li>Google Fonts integration</li>
-                    <li>Font family customization</li>
-                    <li>Font size multipliers (2xs-2xl)</li>
-                    <li>Font weight control</li>
-                    <li>Line height adjustments</li>
-                    <li>Live CSS output display</li>
-                </ul>
-            </a>
-
-            <!-- Badges & Tooltips -->
-            <a href="examples-badges-tooltips.html" class="card">
-                <div class="card-icon">🏷️</div>
-                <h2 class="card-title">
-                    Badges & Tooltips
-                    <span class="badge new">NEW</span>
-                </h2>
-                <p class="card-description">
-                    Comprehensive guide to displaying badges and tooltips. Three methods from simple static arrays to advanced HTML tooltips.
-                </p>
-                <ul class="card-features">
-                    <li>Static special dates array</li>
-                    <li>Dynamic metadata callbacks</li>
-                    <li>HTML tooltip callbacks</li>
-                    <li>Badge styles (emoji, numbers, text)</li>
-                    <li>Pricing & availability examples</li>
-                    <li>Combined methods showcase</li>
-                </ul>
-            </a>
-
-            <!-- Custom Rendering -->
-            <a href="examples-custom-rendering.html" class="card">
-                <div class="card-icon">🎨</div>
-                <h2 class="card-title">
-                    Custom Rendering
-                </h2>
-                <p class="card-description">
-                    Advanced customization with slots and render callbacks. Create custom day cells with dynamic content.
-                </p>
-                <ul class="card-features">
-                    <li>Per-day slots (declarative HTML)</li>
-                    <li>renderDay callback (full replacement)</li>
-                    <li>renderDayContent callback (augmentation)</li>
-                    <li>Complete state data (disabled, selected, etc)</li>
-                    <li>Hotel booking & pricing examples</li>
-                    <li>Event indicators & styling</li>
-                </ul>
-            </a>
-
-            <!-- Events & Callbacks -->
-            <a href="examples-events.html" class="card">
-                <div class="card-icon">⚡</div>
-                <h2 class="card-title">
-                    Events & Callbacks
-                    <span class="badge new">NEW</span>
-                </h2>
-                <p class="card-description">
-                    Learn about the event system and beforeDateSelectCallback callback for validation and control of date selections.
-                </p>
-                <ul class="card-features">
-                    <li>date-select & change events</li>
-                    <li>beforeDateSelectCallback callback (blocking)</li>
-                    <li>Sync & async validation</li>
-                    <li>Accept, adjust, restore, clear actions</li>
-                    <li>Single & range mode examples</li>
-                    <li>API integration patterns</li>
-                </ul>
-            </a>
-
-            <!-- API Methods -->
-            <a href="examples-api-methods.html" class="card">
-                <div class="card-icon">🔧</div>
-                <h2 class="card-title">
-                    API Methods & Programmatic Control
-                    <span class="badge new">NEW</span>
-                </h2>
-                <p class="card-description">
-                    Complete guide to controlling the date picker programmatically using public API methods, properties, and events.
-                </p>
-                <ul class="card-features">
-                    <li>show(), hide(), toggle() methods</li>
-                    <li>getInputValue(), setInputValue()</li>
-                    <li>clearSelection() method</li>
-                    <li>Reactive properties (selectedDate, selectedRanges)</li>
-                    <li>Calendar state tracking (isOpen)</li>
-                    <li>Framework integration patterns</li>
-                </ul>
-            </a>
-
-            <!-- JavaScript Instantiation -->
-            <a href="examples-javascript-instantiation.html" class="card">
-                <div class="card-icon">🔨</div>
-                <h2 class="card-title">
-                    JavaScript Instantiation
-                    <span class="badge new">NEW</span>
-                </h2>
-                <p class="card-description">
-                    Create and configure date pickers programmatically using JavaScript. Perfect for dynamic applications and framework integration.
-                </p>
-                <ul class="card-features">
-                    <li>Direct DateRangePicker class usage</li>
-                    <li>Dynamic picker creation</li>
-                    <li>Attach to existing inputs</li>
-                    <li>Inline calendars without inputs</li>
-                    <li>Complete options reference</li>
-                    <li>Framework integration examples</li>
-                </ul>
-            </a>
-
-            <!-- Button Configuration & Multi-Range -->
-            <a href="examples-buttons.html" class="card">
-                <div class="card-icon">🎯</div>
-                <h2 class="card-title">
-                    Button Configuration & Multi-Range
-                    <span class="badge new">NEW</span>
-                </h2>
-                <p class="card-description">
-                    Control button visibility, create custom preset buttons, enable multi-range selection, and control calendar behavior.
-                </p>
-                <ul class="card-features">
-                    <li>Button visibility control (show/hide)</li>
-                    <li>Custom preset buttons (1 Week, 3 Weeks, etc.)</li>
-                    <li>Multi-range selection mode</li>
-                    <li>External button control (programmatic API)</li>
-                    <li>Auto-close behavior control</li>
-                    <li>Conditional button visibility</li>
-                </ul>
-            </a>
-
-            <!-- Logging & Debugging -->
-            <a href="examples-logging.html" class="card">
-                <div class="card-icon">🐛</div>
-                <h2 class="card-title">
-                    Logging & Debugging
-                </h2>
-                <p class="card-description">
-                    Explore the built-in logging system for development and troubleshooting with categorized debug output.
-                </p>
-                <ul class="card-features">
-                    <li>8 log categories (INIT, UI, SELECTION...)</li>
-                    <li>Real-time console output</li>
-                    <li>Timestamp precision logging</li>
-                    <li>Filter by category or operation</li>
-                    <li>Production vs development modes</li>
-                    <li>Programmatic log control</li>
-                </ul>
-            </a>
-        </div>
+        <div class="cards" id="cards"></div>
 
         <footer>
-            <p>
-                Created by <a href="https://github.com/keenmate" target="_blank">Keenmate</a> |
-                <a href="https://github.com/keenmate/web-daterangepicker" target="_blank">GitHub</a> |
-                <a href="API.md" target="_blank">API Documentation</a>
-            </p>
+            <p>Created by <a href="https://github.com/keenmate" target="_blank">KeenMate</a> | <a href="https://github.com/keenmate/web-daterangepicker" target="_blank">GitHub</a></p>
         </footer>
     </div>
+
+    <script>
+        // =====================================================
+        // Demo Page Registry
+        // Add new pages here - they'll appear automatically
+        // =====================================================
+        const pages = [
+            {
+                href: 'examples-basic.html',
+                icon: '📦',
+                title: 'Basic Examples',
+                description: 'Core features including single/range modes, date formats, localization, and multi-month layouts.'
+            },
+            {
+                href: 'examples-sizes.html',
+                icon: '📏',
+                title: 'Calendar Sizing',
+                description: 'Control calendar size with the unified density system for fonts, spacing, and cell dimensions.'
+            },
+            {
+                href: 'examples-theming.html',
+                icon: '🎭',
+                title: 'Theming',
+                description: 'Customize appearance with CSS custom properties and see multiple themes in action.'
+            },
+            {
+                href: 'examples-base-variables.html',
+                icon: '🎨',
+                title: 'Base Variables',
+                description: 'Theme-designer typography variables for fonts, sizes, weights, and line heights.'
+            },
+            {
+                href: 'examples-badges-tooltips.html',
+                icon: '🏷️',
+                title: 'Badges & Tooltips',
+                description: 'Display badges and tooltips using static arrays, dynamic callbacks, or HTML tooltips.'
+            },
+            {
+                href: 'examples-custom-rendering.html',
+                icon: '✨',
+                title: 'Custom Rendering',
+                description: 'Advanced customization with slots and render callbacks for dynamic day cell content.'
+            },
+            {
+                href: 'examples-events.html',
+                icon: '⚡',
+                title: 'Events & Callbacks',
+                description: 'Event system and beforeDateSelectCallback for validation and control of date selections.'
+            },
+            {
+                href: 'examples-api-methods.html',
+                icon: '🔧',
+                title: 'API Methods',
+                description: 'Control the date picker programmatically using public API methods and properties.'
+            },
+            {
+                href: 'examples-javascript-instantiation.html',
+                icon: '🔨',
+                title: 'JavaScript Instantiation',
+                description: 'Create and configure date pickers programmatically for dynamic applications.'
+            },
+            {
+                href: 'examples-buttons.html',
+                icon: '🎯',
+                title: 'Button Configuration',
+                description: 'Control button visibility, create custom presets, and enable multi-range selection.'
+            },
+            {
+                href: 'examples-logging.html',
+                icon: '🐛',
+                title: 'Logging & Debugging',
+                description: 'Built-in logging system with categorized debug output for development and troubleshooting.'
+            }
+        ]
+
+        // =====================================================
+        // Render cards from registry
+        // =====================================================
+        function renderCards() {
+            const container = document.getElementById('cards')
+            container.innerHTML = pages.map(page => `
+                <a href="${page.href}" class="card-link">
+                    <div class="card-icon">${page.icon}</div>
+                    <h2 class="card-title">
+                        ${page.title}${page.badge ? `<span class="badge">${page.badge}</span>` : ''}
+                    </h2>
+                    <p class="card-description">${page.description}</p>
+                </a>
+            `).join('')
+        }
+
+        renderCards()
+    </script>
 </body>
 </html>

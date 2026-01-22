@@ -64,17 +64,14 @@
   </style>
 </head>
 <body>
-  <div class="header-nav">
-    <a href="index.html" class="back-link">
-      <span>←</span>
-      <span>All Examples</span>
-    </a>
-  </div>
+  <div class="container">
+    <header>
+      <a href="index.html" class="back-link">← Back to Examples</a>
+      <h1>📦 Basic Examples</h1>
+      <p class="subtitle">Core features including single/range modes, date formats, localization, and multi-month layouts</p>
+    </header>
 
-  <h1 class="page-title">📅 Basic Examples</h1>
-  <p class="page-description">Comprehensive demos showing all features: single/range modes, formats, localization, multi-month layouts, and more.</p>
-
-  <div class="card">
+    <div class="card">
     <h2>Basic Examples</h2>
     <div class="grid">
       <div class="form-group">
@@ -531,7 +528,7 @@
           selection-mode="range"
           visible-months-count="2"
           disabled-weekdays="0,6"
-          range-disabled-handling="allow"
+          disabled-dates-handling="allow"
           placeholder="Select range"></web-daterangepicker>
         <small>Shows weekdays vs weekends breakdown</small>
       </div>
@@ -543,7 +540,7 @@
           selection-mode="range"
           visible-months-count="2"
           disabled-weekdays="0,6"
-          range-disabled-handling="split"
+          disabled-dates-handling="split"
           placeholder="Select range"></web-daterangepicker>
         <small>Shows count of separate periods (weekends excluded)</small>
       </div>
@@ -607,6 +604,17 @@
           positioning-mode="inline"></web-daterangepicker>
         <small>Shows holidays and events</small>
         <div id="inline-holidays-output" style="margin-top: 8px; font-size: 0.875rem; color: #666;"></div>
+      </div>
+
+      <div class="form-group">
+        <label>Inline with Smart Messages</label>
+        <web-daterangepicker
+          id="inline-messages"
+          selection-mode="range"
+          positioning-mode="inline"
+          visible-months-count="2"></web-daterangepicker>
+        <small>Select dates to see traffic alerts and pricing suggestions. Uses <code>custom-action</code> event for message buttons.</small>
+        <div id="inline-messages-output" style="margin-top: 8px; font-size: 0.875rem; color: #666;"></div>
       </div>
     </div>
 
@@ -844,8 +852,8 @@ picker.getInputValue();    // Get current value
 picker.setInputValue('2025-11-15'); // Set value
 
 // Properties
-picker.mode = 'range';
-picker.format = 'DD.MM.YYYY';
+picker.selectionMode = 'range';
+picker.dateFormatMask = 'DD.MM.YYYY';
 picker.value = '2025-11-15';
 
 // Events
@@ -859,17 +867,17 @@ picker.addEventListener('date-select', (e) => {
     <h2>Usage</h2>
     <div class="code">
 &lt;!-- HTML --&gt;
-&lt;date-range-picker
+&lt;web-daterangepicker
   selection-mode="range"
   date-format-mask="YYYY-MM-DD"
   visible-months-count="2"
   placeholder="Select dates"
-&gt;&lt;/date-range-picker&gt;
+&gt;&lt;/web-daterangepicker&gt;
 
 &lt;script type="module"&gt;
   import '@keenmate/web-daterangepicker';
 
-  const picker = document.querySelector('date-range-picker');
+  const picker = document.querySelector('web-daterangepicker');
   picker.addEventListener('date-select', (e) => {
     console.log('Date selected:', e.detail.formattedValue);
   });
@@ -1098,6 +1106,102 @@ picker.addEventListener('date-select', (e) => {
         });
       }
 
+      // Setup inline messages example
+      const inlineMessages = document.getElementById('inline-messages');
+      if (inlineMessages) {
+        // Helper to format date as YYYY-MM-DD (local timezone)
+        const toDateKey = (d) => {
+          const y = d.getFullYear();
+          const m = String(d.getMonth() + 1).padStart(2, '0');
+          const day = String(d.getDate()).padStart(2, '0');
+          return `${y}-${m}-${day}`;
+        };
+
+        const formatShort = (d) => d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+
+        // Show smart messages AFTER selection completes (via date-select event)
+        // Note: beforeDateSelectCallback's 'accept' action auto-hides messages,
+        // so we show messages in the event handler instead
+        inlineMessages.addEventListener('date-select', (e) => {
+          const output = document.getElementById('inline-messages-output');
+          if (!e.detail.dateRange) return;
+
+          const range = e.detail.dateRange;
+          const startDay = range.start.getDay();
+          const endDay = range.end.getDay();
+          const nights = Math.floor((range.end - range.start) / (1000 * 60 * 60 * 24));
+
+          // Update output
+          if (output) {
+            output.innerHTML = `
+              <strong>Selected:</strong> ${range.start.toLocaleDateString()} - ${range.end.toLocaleDateString()}<br>
+              <strong>Nights:</strong> ${nights}
+            `;
+          }
+
+          // Check if selection includes Friday or weekend
+          const includesWeekend = (startDay === 5 || startDay === 6 || startDay === 0 ||
+                                   endDay === 5 || endDay === 6 || endDay === 0 ||
+                                   nights >= 5);
+
+          // Only show message for weekend selections - hide for all others
+          if (includesWeekend) {
+            // Find next Monday from start
+            const suggestedStart = new Date(range.start);
+            const daysToMonday = (8 - suggestedStart.getDay()) % 7 || 7;
+            suggestedStart.setDate(suggestedStart.getDate() + daysToMonday);
+
+            const suggestedEnd = new Date(suggestedStart);
+            suggestedEnd.setDate(suggestedEnd.getDate() + Math.min(nights, 3));
+
+            inlineMessages.showMessage(`
+              <div style="background: #fef3c7; border: 1px solid #fcd34d; border-radius: 6px; padding: 12px;">
+                <div style="color: #92400e; font-weight: 600; margin-bottom: 8px;">
+                  📊 Weekend dates have higher demand
+                </div>
+                <div style="color: #78350f; font-size: 0.875rem; margin-bottom: 10px;">
+                  Consider Mon-Wed for 15-20% lower prices and less traffic.
+                </div>
+                <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                  <button data-action="custom"
+                          data-start-date="${toDateKey(suggestedStart)}"
+                          data-end-date="${toDateKey(suggestedEnd)}"
+                          data-reason="better-price"
+                          style="background: #dcfce7; border: 1px solid #86efac; color: #166534; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 0.8rem;">
+                    Try ${formatShort(suggestedStart)} - ${formatShort(suggestedEnd)}
+                  </button>
+                  <button data-action="close-message"
+                          style="background: #f3f4f6; border: 1px solid #d1d5db; color: #374151; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 0.8rem;">
+                    Keep my dates
+                  </button>
+                </div>
+              </div>
+            `);
+          } else {
+            // Hide message for weekday-only selections
+            inlineMessages.hideMessage();
+          }
+        });
+
+        // Handle custom-action event for suggested dates
+        inlineMessages.addEventListener('custom-action', (e) => {
+          const { startDate, endDate, reason } = e.detail;
+          const output = document.getElementById('inline-messages-output');
+
+          if (startDate && endDate) {
+            inlineMessages.selectedRanges = [{
+              start: new Date(startDate),
+              end: new Date(endDate)
+            }];
+            inlineMessages.hideMessage();
+
+            if (output) {
+              output.innerHTML = `<strong>Applied suggestion:</strong> ${reason === 'better-price' ? 'Better pricing dates' : 'Alternative dates'}`;
+            }
+          }
+        });
+      }
+
       const inlineUnifiedGrid = document.getElementById('inline-unified-grid');
       if (inlineUnifiedGrid) {
         inlineUnifiedGrid.addEventListener('date-select', (e) => {
@@ -1289,5 +1393,6 @@ picker.addEventListener('date-select', (e) => {
 
     /* Note: Badge positioning styles are now in the Shadow DOM (SCSS file) */
   </style>
+  </div>
 </body>
 </html>

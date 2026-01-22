@@ -4,101 +4,9 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Events & Callbacks - Date Range Picker</title>
-  <link rel="stylesheet" href="dist/style.css">
+  <link rel="stylesheet" href="examples-shared.css">
   <style>
-    body {
-      font-family: system-ui, -apple-system, sans-serif;
-      line-height: 1.6;
-      max-width: 1400px;
-      margin: 0 auto;
-      padding: 2rem;
-      background: #f9fafb;
-    }
-
-    .header-nav {
-      margin-bottom: 2rem;
-    }
-
-    .back-link {
-      display: inline-flex;
-      align-items: center;
-      gap: 0.5rem;
-      padding: 0.5rem 1rem;
-      background: white;
-      border: 1px solid #e5e7eb;
-      border-radius: 0.5rem;
-      text-decoration: none;
-      color: #374151;
-      font-weight: 500;
-      transition: all 0.2s;
-    }
-
-    .back-link:hover {
-      background: #f3f4f6;
-      border-color: #d1d5db;
-    }
-
-    .page-title {
-      font-size: 2.5rem;
-      font-weight: 700;
-      color: #111827;
-      margin: 2rem 0 0.5rem;
-    }
-
-    .page-description {
-      font-size: 1.125rem;
-      color: #6b7280;
-      margin-bottom: 2rem;
-    }
-
-    .card {
-      background: white;
-      border-radius: 0.5rem;
-      padding: 2rem;
-      margin-bottom: 2rem;
-      box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1);
-    }
-
-    h2 {
-      color: #111827;
-      font-size: 1.5rem;
-      margin-top: 0;
-      margin-bottom: 1rem;
-      border-bottom: 2px solid #e5e7eb;
-      padding-bottom: 0.5rem;
-    }
-
-    h3 {
-      color: #374151;
-      font-size: 1.25rem;
-      margin-top: 1.5rem;
-      margin-bottom: 0.75rem;
-    }
-
-    .grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
-      gap: 1.5rem;
-      margin: 1.5rem 0;
-    }
-
-    .form-group {
-      margin-bottom: 1.5rem;
-    }
-
-    label {
-      display: block;
-      margin-bottom: 0.5rem;
-      font-weight: 600;
-      color: #374151;
-    }
-
-    small {
-      display: block;
-      margin-top: 0.25rem;
-      color: #6b7280;
-      font-size: 0.875rem;
-    }
+    /* Page-specific styles only - base styles come from examples-shared.css */
 
     .event-log {
       background: #1f2937;
@@ -213,15 +121,12 @@
   </style>
 </head>
 <body>
-  <div class="header-nav">
-    <a href="index.html" class="back-link">
-      <span>←</span>
-      <span>All Examples</span>
-    </a>
-  </div>
-
-  <h1 class="page-title">⚡ Events & Callbacks</h1>
-  <p class="page-description">Learn about the event system and beforeDateSelectCallback callback for validation and control.</p>
+  <div class="container">
+    <header>
+      <a href="index.html" class="back-link">← Back to Examples</a>
+      <h1>⚡ Events & Callbacks</h1>
+      <p class="subtitle">Event system and beforeDateSelectCallback for validation and control of date selections</p>
+    </header>
 
   <!-- Events Overview -->
   <div class="card">
@@ -457,14 +362,14 @@ picker.beforeDateSelectCallback = async (date) => {
         </div>
       </div>
 
-      <!-- Example 6: Maximum Nights -->
+      <!-- Example 6: Maximum Nights (with showInvalidRange) -->
       <div class="form-group">
         <label>
           <span class="status-indicator status-blocked"></span>
-          Maximum 7 Nights
+          Maximum 7 Nights (showInvalidRange)
         </label>
         <web-daterangepicker id="range-max-nights" selection-mode="range" visible-months-count="2"></web-daterangepicker>
-        <small>Cannot exceed 7 nights</small>
+        <small>Cannot exceed 7 nights. Uses <code>showInvalidRange: true</code> to keep invalid range visible with error styling.</small>
         <div id="log-range-max" class="event-log" style="max-height: 150px;">
           <div style="color: #9ca3af;">Waiting for selection...</div>
         </div>
@@ -483,14 +388,14 @@ picker.beforeDateSelectCallback = async (date) => {
         </div>
       </div>
 
-      <!-- Example 8: Async Availability -->
+      <!-- Example 8: Async Availability with Custom Message -->
       <div class="form-group">
         <label>
           <span class="status-indicator status-allowed"></span>
-          Check Availability (Async)
+          Check Availability (Custom Message)
         </label>
         <web-daterangepicker id="range-async" selection-mode="range" visible-months-count="2"></web-daterangepicker>
-        <small>Simulates API availability check</small>
+        <small>Select more than 5 nights to see custom HTML error with alternatives. Uses <code>showMessage(html)</code> for full control.</small>
         <div id="log-range-async" class="event-log" style="max-height: 150px;">
           <div style="color: #9ca3af;">Waiting for selection...</div>
         </div>
@@ -546,7 +451,61 @@ picker.beforeDateSelectCallback = async (range) => {
   } else {
     return { action: 'restore', message: 'Dates not available' };
   }
-};</code></pre>
+};
+
+// Maximum nights with showInvalidRange
+// Keeps invalid range visible with red styling for better visual feedback
+// User controls the message display via picker.showMessage()
+picker.beforeDateSelectCallback = (range) => {
+  const nights = Math.floor((range.end - range.start) / (1000 * 60 * 60 * 24));
+  if (nights > 7) {
+    // Show message using the built-in styled alert
+    picker.showMessage('Maximum 7 nights allowed', 'error');
+    return { action: 'restore', showInvalidRange: true };
+  }
+  return { action: 'accept' };
+};
+
+// Custom HTML message with full control
+// Use data-action="custom" on buttons to fire custom-action event
+// Add data-start-date and data-end-date as data attributes
+picker.beforeDateSelectCallback = async (range) => {
+  const response = await fetch('/api/check', { method: 'POST', body: JSON.stringify(range) });
+  const data = await response.json();
+
+  if (!data.available) {
+    // Show fully custom HTML message
+    picker.showMessage(`
+      &lt;div style="background: #fef2f2; ..."&gt;
+        &lt;div style="color: #991b1b;"&gt;Dates not available&lt;/div&gt;
+        &lt;div style="margin-top: 8px;"&gt;
+          ${data.alternatives.map(alt => `
+            &lt;button data-action="custom"
+                    data-start-date="${alt.start}"
+                    data-end-date="${alt.end}"
+                    style="background: #dcfce7; ..."&gt;
+              ${alt.start} - ${alt.end}
+            &lt;/button&gt;
+          `).join('')}
+        &lt;/div&gt;
+      &lt;/div&gt;
+    `);
+    return { action: 'restore', showInvalidRange: true };
+  }
+  return { action: 'accept' };
+};
+
+// Handle custom-action event to apply selected dates
+picker.addEventListener('custom-action', (e) => {
+  const { startDate, endDate } = e.detail;
+  if (startDate && endDate) {
+    picker.selectedRanges = [{
+      start: new Date(startDate),
+      end: new Date(endDate)
+    }];
+    picker.hideMessage();
+  }
+});</code></pre>
   </div>
 
   <!-- beforeMonthChangedCallback Examples -->
@@ -880,7 +839,7 @@ picker.beforeMonthChangedCallback = async ({ year, month }) => {
         : { action: 'restore', message: 'Minimum 2 nights required' };
     };
 
-    // Example 6: Maximum Nights
+    // Example 6: Maximum Nights (with showInvalidRange)
     const rangeMaxNights = document.getElementById('range-max-nights');
     rangeMaxNights.beforeDateSelectCallback = (range) => {
       const nights = Math.floor((range.end - range.start) / (1000 * 60 * 60 * 24));
@@ -896,9 +855,12 @@ picker.beforeMonthChangedCallback = async ({ year, month }) => {
         isValid ? 'success' : 'error'
       );
 
-      return isValid
-        ? { action: 'accept' }
-        : { action: 'restore', message: 'Maximum 7 nights allowed' };
+      if (!isValid) {
+        // User controls when/how to show messages
+        rangeMaxNights.showMessage('Maximum 7 nights allowed', 'error');
+        return { action: 'restore', showInvalidRange: true };
+      }
+      return { action: 'accept' };
     };
 
     // Example 7: Adjust End Date to Sunday
@@ -939,7 +901,7 @@ picker.beforeMonthChangedCallback = async ({ year, month }) => {
       return { action: 'accept' };
     };
 
-    // Example 8: Async Availability Check
+    // Example 8: Async Availability Check (with custom HTML message)
     const rangeAsync = document.getElementById('range-async');
     rangeAsync.beforeDateSelectCallback = async (range) => {
       logEvent('log-range-async', 'Checking availability...', {
@@ -950,22 +912,88 @@ picker.beforeMonthChangedCallback = async ({ year, month }) => {
       // Simulate API call
       await new Promise(resolve => setTimeout(resolve, 800));
 
-      // Simulate: block if range crosses month boundary
-      const crossesMonth = range.start.getMonth() !== range.end.getMonth();
+      // Simulate: block if range is longer than 5 days
+      const nights = Math.floor((range.end - range.start) / (1000 * 60 * 60 * 24));
+      const isAvailable = nights <= 5;
 
       logEvent('log-range-async',
-        crossesMonth ? 'API: NOT AVAILABLE' : 'API: AVAILABLE',
+        isAvailable ? 'API: AVAILABLE' : 'API: NOT AVAILABLE',
         {
           start: range.start.toISOString().split('T')[0],
-          end: range.end.toISOString().split('T')[0]
+          end: range.end.toISOString().split('T')[0],
+          nights
         },
-        crossesMonth ? 'error' : 'success'
+        isAvailable ? 'success' : 'error'
       );
 
-      return crossesMonth
-        ? { action: 'restore', message: 'Cannot book across months' }
-        : { action: 'accept' };
+      if (!isAvailable) {
+        // Generate some fake "available" alternative ranges
+        const alt1Start = new Date(range.start);
+        const alt1End = new Date(range.start);
+        alt1End.setDate(alt1End.getDate() + 3);
+
+        const alt2Start = new Date(range.start);
+        alt2Start.setDate(alt2Start.getDate() + 7);
+        const alt2End = new Date(alt2Start);
+        alt2End.setDate(alt2End.getDate() + 4);
+
+        const formatDate = (d) => d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+
+        // Show custom HTML message with available alternatives
+        rangeAsync.showMessage(`
+          <div style="background: #fef2f2; border: 1px solid #fecaca; border-radius: 6px; padding: 12px;">
+            <div style="color: #991b1b; font-weight: 600; margin-bottom: 8px;">
+              ⚠️ Selected dates not available
+            </div>
+            <div style="color: #7f1d1d; font-size: 0.875rem; margin-bottom: 10px;">
+              Maximum 5 nights per booking. You requested ${nights} nights.
+            </div>
+            <div style="color: #374151; font-size: 0.875rem; font-weight: 500; margin-bottom: 6px;">
+              Available alternatives:
+            </div>
+            <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+              <button data-action="custom"
+                      data-start-date="${formatDateKey(alt1Start)}"
+                      data-end-date="${formatDateKey(alt1End)}"
+                      data-nights="3"
+                      style="background: #dcfce7; border: 1px solid #86efac; color: #166534; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 0.8rem;">
+                ${formatDate(alt1Start)} - ${formatDate(alt1End)} (3 nights)
+              </button>
+              <button data-action="custom"
+                      data-start-date="${formatDateKey(alt2Start)}"
+                      data-end-date="${formatDateKey(alt2End)}"
+                      data-nights="4"
+                      style="background: #dcfce7; border: 1px solid #86efac; color: #166534; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 0.8rem;">
+                ${formatDate(alt2Start)} - ${formatDate(alt2End)} (4 nights)
+              </button>
+            </div>
+          </div>
+        `);
+
+        return { action: 'restore', showInvalidRange: true };
+      }
+
+      return { action: 'accept' };
     };
+
+    // Handle custom-action event to apply selected dates
+    rangeAsync.addEventListener('custom-action', (e) => {
+      const { startDate, endDate, nights } = e.detail;
+
+      logEvent('log-range-async', 'CUSTOM-ACTION', {
+        startDate,
+        endDate,
+        nights
+      }, 'info');
+
+      if (startDate && endDate) {
+        rangeAsync.selectedRanges = [{
+          start: new Date(startDate),
+          end: new Date(endDate)
+        }];
+        rangeAsync.hideMessage();
+      }
+    });
 
     // =================================================================
     // beforeMonthChangedCallback Examples (Performance Optimization)

@@ -199,6 +199,21 @@
   border-style: dashed !important;
 }
 
+/* --------------------------------------
+   Invalid range states (showInvalidRange)
+   Used when beforeDateSelectCallback returns { action: 'restore', showInvalidRange: true }
+   -------------------------------------- */
+.drp-date-picker__day--invalid-range {
+  background-color: color-mix(in srgb, var(--drp-message-error-border) 20%, transparent);
+}
+
+.drp-date-picker__day--invalid-range-start,
+.drp-date-picker__day--invalid-range-end {
+  background-color: var(--drp-message-error-border);
+  color: white;
+  font-weight: var(--drp-font-weight-semibold);
+}
+
 /* ==============================================================================
    SPECIAL DATE HIGHLIGHTING (EXAMPLES)
    ==============================================================================

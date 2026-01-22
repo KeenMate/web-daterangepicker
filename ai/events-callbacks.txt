@@ -129,6 +129,129 @@ picker.addEventListener('date-select', (event) => {
   console.log('Ranges:', dateRanges.length);
 });
 
+CUSTOM-ACTION EVENT
+-------------------
+Fired when any button with data-action="custom" is clicked.
+Works for both action buttons and message buttons.
+
+Event detail contains all data-* attributes (except data-action) as camelCase keys.
+
+LISTENING TO CUSTOM-ACTION
+--------------------------
+picker.addEventListener('custom-action', (e) => {
+  console.log(e.detail);
+  // { startDate: '2026-01-14', endDate: '2026-01-17', ... }
+});
+
+USE IN MESSAGE BUTTONS
+----------------------
+Display alternative date options in messages:
+
+picker.showMessage(`
+  <button data-action="custom"
+          data-start-date="2026-01-14"
+          data-end-date="2026-01-17"
+          data-nights="3">
+    Jan 14 - Jan 17 (3 nights)
+  </button>
+`);
+
+picker.addEventListener('custom-action', (e) => {
+  const { startDate, endDate, nights } = e.detail;
+
+  if (startDate && endDate) {
+    picker.selectedRanges = [{
+      start: new Date(startDate),
+      end: new Date(endDate)
+    }];
+    picker.hideMessage();
+  }
+});
+
+USE IN ACTION BUTTONS
+---------------------
+Custom action buttons with data attributes:
+
+picker.actionButtons = [
+  {
+    action: 'custom',
+    text: 'Last 7 Days',
+    onClick: (picker) => {
+      // onClick still works for backward compatibility
+    }
+  }
+];
+
+// But prefer using the event for consistency:
+picker.addEventListener('custom-action', (e) => {
+  // Handle all custom actions in one place
+});
+
+DATA ATTRIBUTE CONVERSION
+--------------------------
+HTML data-* attributes are converted to camelCase keys:
+
+data-start-date    → startDate
+data-end-date      → endDate
+data-source        → source
+data-custom-value  → customValue
+
+EXAMPLE: AVAILABILITY ALTERNATIVES
+----------------------------------
+beforeDateSelectCallback: async (range) => {
+  const result = await checkAvailability(range);
+
+  if (!result.available) {
+    picker.showMessage(`
+      <div>Dates not available. Try these:</div>
+      ${result.alternatives.map(alt => `
+        <button data-action="custom"
+                data-start-date="${alt.start}"
+                data-end-date="${alt.end}"
+                data-source="availability">
+          ${alt.label}
+        </button>
+      `).join('')}
+    `);
+    return { action: 'restore', showInvalidRange: true };
+  }
+
+  return { action: 'accept' };
+};
+
+picker.addEventListener('custom-action', (e) => {
+  const { startDate, endDate, source } = e.detail;
+
+  if (source === 'availability' && startDate && endDate) {
+    picker.selectedRanges = [{
+      start: new Date(startDate),
+      end: new Date(endDate)
+    }];
+    picker.hideMessage();
+  }
+});
+
+EVENT BUBBLING
+--------------
+The custom-action event:
+- Bubbles through the DOM
+- Is composed (crosses Shadow DOM boundaries)
+- Can be captured on the web component or any parent element
+
+BACKWARD COMPATIBILITY
+----------------------
+The onClick callback on action buttons still works:
+
+{
+  action: 'custom',
+  text: 'My Button',
+  onClick: (picker) => {
+    // This still fires after the event
+  }
+}
+
+Event fires BEFORE onClick callback is invoked.
+
 BEFOREDATESELECT CALLBACK
 -------------------------
 CRITICAL: JavaScript API ONLY

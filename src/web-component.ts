@@ -45,7 +45,7 @@ export class WebDaterangepickerElement extends HTMLElement {
             'locale', 'display-format-mask', 'show-debug-info',
             'initial-date', 'rolling-year-range', 'rolling-month-range',
             'enable-transitions',
-            'auto-close', 'show-today-button', 'show-clear-button', 'show-apply-button',
+            'auto-close', 'close-on-scroll', 'show-today-button', 'show-clear-button', 'show-apply-button',
             'unified-navigation', 'unified-navigation-anchor-index', 'unified-header-interactive',
             'input-size'
         ];
@@ -268,6 +268,7 @@ export class WebDaterangepickerElement extends HTMLElement {
 
             // Action button configuration
             autoClose: (this.getAttribute('auto-close') as 'never' | 'selection' | 'apply') || undefined,
+            closeOnScroll: this.hasAttribute('close-on-scroll') ? this.getAttribute('close-on-scroll') !== 'false' : undefined,
             actionButtons: this._actionButtons,
             showTodayButton: this.hasAttribute('show-today-button') ? this.getAttribute('show-today-button') === 'true' : undefined,
             showClearButton: this.hasAttribute('show-clear-button') ? this.getAttribute('show-clear-button') === 'true' : undefined,
@@ -278,6 +279,16 @@ export class WebDaterangepickerElement extends HTMLElement {
         const inputElement = display === 'inline' ? null : this.inputElement;
         this.picker = new DateRangePicker(inputElement, options);
         // Calendar is automatically appended to shadow root via container option
+
+        // Forward custom-action events from picker to web component
+        this.picker.calendar.addEventListener('custom-action', (e: Event) => {
+            const customEvent = e as CustomEvent;
+            this.dispatchEvent(new CustomEvent('custom-action', {
+                detail: customEvent.detail,
+                bubbles: true,
+                composed: true
+            }));
+        });
 
         // Inject custom styles if callback provided
         if (this._customStylesCallback) {
@@ -436,6 +447,23 @@ export class WebDaterangepickerElement extends HTMLElement {
             return;
         }
         this.picker.clearSelection();
+    }
+
+    public showMessage(content: string, type?: 'error' | 'warning' | 'info' | 'success', autoHide?: number) {
+        if (!this.picker) {
+            console.warn('[web-daterangepicker] showMessage() called but picker not initialized yet');
+            return;
+        }
+        console.log('[web-component] showMessage() called with:', content, type);
+        this.picker.showMessage(content, type, autoHide);
+    }
+
+    public hideMessage() {
+        if (!this.picker) {
+            console.warn('[web-daterangepicker] hideMessage() called but picker not initialized yet');
+            return;
+        }
+        this.picker.hideMessage();
     }
 
     public getInputValue(): string {

@@ -457,6 +457,17 @@ export function renderDays(picker: any, monthIndex: number, date: Date) {
                         classes.push('drp-date-picker__day--in-range');
                     }
                 }
+
+                // Invalid range highlighting (showInvalidRange feature)
+                if (picker.invalidRangeStart && picker.invalidRangeEnd) {
+                    const isInvalidStart = picker.isSameDay(dayData.date, picker.invalidRangeStart);
+                    const isInvalidEnd = picker.isSameDay(dayData.date, picker.invalidRangeEnd);
+                    const isInInvalidRange = dayData.date > picker.invalidRangeStart && dayData.date < picker.invalidRangeEnd;
+
+                    if (isInvalidStart) classes.push('drp-date-picker__day--invalid-range-start');
+                    if (isInvalidEnd) classes.push('drp-date-picker__day--invalid-range-end');
+                    if (isInInvalidRange) classes.push('drp-date-picker__day--invalid-range');
+                }
             } else if (picker.options.selectionMode === 'multiple') {
                 // Check if this date is in any of the selectedRanges
                 for (const range of picker.selectedRanges) {

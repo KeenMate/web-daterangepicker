@@ -24,16 +24,19 @@
             border: 1px solid #ccc;
             border-radius: 4px;
             background: white;
+            color: #374151;
             cursor: pointer;
             font-size: 0.875rem;
         }
 
         .control-group button:hover {
             background: #f5f5f5;
+            color: #374151;
         }
 
         .control-group button:active {
             background: #e0e0e0;
+            color: #374151;
         }
 
         .output-display {
@@ -92,17 +95,12 @@
     </style>
 </head>
 <body>
-    <div class="header-nav">
-        <a href="index.html" class="back-link">
-            <span>←</span>
-            <span>All Examples</span>
-        </a>
-    </div>
-
-    <h1 class="page-title">🔧 API Methods & Programmatic Control</h1>
-    <p class="page-description">
-        Complete guide to controlling the date picker programmatically using public API methods, properties, and events.
-    </p>
+    <div class="container">
+        <header>
+            <a href="index.html" class="back-link">← Back to Examples</a>
+            <h1>🔧 API Methods</h1>
+            <p class="subtitle">Control the date picker programmatically using public API methods and properties</p>
+        </header>
 
         <!-- Section 1: Show/Hide/Toggle Methods -->
         <section class="card">
@@ -124,9 +122,9 @@
                     </web-daterangepicker>
 
                     <div class="control-group">
-                        <button id="btn-show">Show Calendar</button>
-                        <button id="btn-hide">Hide Calendar</button>
-                        <button id="btn-toggle">Toggle Calendar</button>
+                        <button id="btn-show" data-calendar-button>Show Calendar</button>
+                        <button id="btn-hide" data-calendar-button>Hide Calendar</button>
+                        <button id="btn-toggle" data-calendar-button>Toggle Calendar</button>
                     </div>
 
                     <div class="output-display" id="output-1">
@@ -154,7 +152,11 @@ picker.addEventListener('calendar-open', () => {
 
 picker.addEventListener('calendar-close', () => {
     console.log('Calendar closed');
-});</code></pre>
+});
+
+// Tip: Add data-calendar-button to external trigger buttons
+// to prevent "click outside" from closing the calendar
+// &lt;button data-calendar-button onclick="picker.toggle()"&gt;Toggle&lt;/button&gt;</code></pre>
                 </div>
 
                 <div class="method-signature">
@@ -388,15 +390,17 @@ rangePicker.selectedRanges = [];</code></pre>
             </div>
             <div class="card-content">
                 <div class="api-demo">
-                    <web-daterangepicker
-                        id="picker-5"
-                        selection-mode="single"
-                        placeholder="Click input or buttons">
-                    </web-daterangepicker>
+                    <div style="display: flex; gap: 1rem; align-items: flex-start;">
+                        <web-daterangepicker
+                            id="picker-5"
+                            selection-mode="single"
+                            placeholder="Click input or buttons">
+                        </web-daterangepicker>
 
-                    <div class="control-group">
-                        <button id="btn-check-state">Check State</button>
-                        <button id="btn-toggle-5">Toggle Calendar</button>
+                        <div class="control-group">
+                            <button id="btn-check-state" data-calendar-button>Check State</button>
+                            <button id="btn-toggle-5" data-calendar-button>Toggle Calendar</button>
+                        </div>
                     </div>
 
                     <div class="output-display" id="output-5">
@@ -482,16 +486,16 @@ if (picker) {
     console.log('Selected start:', picker.selectedStartDate);
     console.log('Selected end:', picker.selectedEndDate);
     console.log('Format info:', picker.formatInfo);
-    console.log('Months to show:', picker.monthsToShow);
 
     // Access calendar element
     const calendar = picker.calendar;
     console.log('Calendar element:', calendar);
 
-    // Access configuration
-    console.log('Mode:', picker.mode); // 'single' or 'range'
-    console.log('Auto-close:', picker.autoClose);
-    console.log('Show summary:', picker.showSummary);
+    // Access configuration (via options object)
+    console.log('Mode:', picker.options.selectionMode); // 'single' or 'range'
+    console.log('Months to show:', picker.options.visibleMonthsCount);
+    console.log('Auto-close:', picker.options.autoClose);
+    console.log('Show summary:', picker.options.showSummary);
 } else {
     console.warn('Picker not initialized yet');
 }</code></pre>
@@ -562,6 +566,11 @@ if (picker) {
                             <td><code>void</code></td>
                             <td>Clear selection and reset state</td>
                         </tr>
+                        <tr>
+                            <td><code>setMonthNames(names)</code></td>
+                            <td><code>void</code></td>
+                            <td>Set custom month names array</td>
+                        </tr>
                     </tbody>
                 </table>
 
@@ -577,6 +586,18 @@ if (picker) {
                     </thead>
                     <tbody>
                         <tr>
+                            <td><code>value</code></td>
+                            <td><code>string</code></td>
+                            <td>Read/Write</td>
+                            <td>Formatted input value (alias for get/setInputValue)</td>
+                        </tr>
+                        <tr>
+                            <td><code>disabled</code></td>
+                            <td><code>boolean</code></td>
+                            <td>Read/Write</td>
+                            <td>Disabled state of the picker</td>
+                        </tr>
+                        <tr>
                             <td><code>selectedDate</code></td>
                             <td><code>Date | null</code></td>
                             <td>Read/Write</td>
@@ -589,16 +610,58 @@ if (picker) {
                             <td>Selected ranges (range mode)</td>
                         </tr>
                         <tr>
+                            <td><code>selectedDates</code></td>
+                            <td><code>Date[]</code></td>
+                            <td>Read/Write</td>
+                            <td>Selected dates (multiple mode)</td>
+                        </tr>
+                        <tr>
                             <td><code>isOpen</code></td>
                             <td><code>boolean</code></td>
-                            <td>Read-only</td>
+                            <td>Read/Write</td>
                             <td>Calendar visibility state</td>
+                        </tr>
+                        <tr>
+                            <td><code>selectionMode</code></td>
+                            <td><code>'single' | 'range'</code></td>
+                            <td>Read/Write</td>
+                            <td>Selection mode</td>
+                        </tr>
+                        <tr>
+                            <td><code>dateFormatMask</code></td>
+                            <td><code>string</code></td>
+                            <td>Read/Write</td>
+                            <td>Date format mask (e.g., 'YYYY-MM-DD')</td>
+                        </tr>
+                        <tr>
+                            <td><code>minDate</code></td>
+                            <td><code>string | undefined</code></td>
+                            <td>Read/Write</td>
+                            <td>Minimum selectable date</td>
+                        </tr>
+                        <tr>
+                            <td><code>maxDate</code></td>
+                            <td><code>string | undefined</code></td>
+                            <td>Read/Write</td>
+                            <td>Maximum selectable date</td>
+                        </tr>
+                        <tr>
+                            <td><code>specialDates</code></td>
+                            <td><code>DecoratedDate[]</code></td>
+                            <td>Read/Write</td>
+                            <td>Array of dates with badges/tooltips</td>
+                        </tr>
+                        <tr>
+                            <td><code>disabledDates</code></td>
+                            <td><code>(Date | string)[]</code></td>
+                            <td>Read/Write</td>
+                            <td>Array of disabled dates</td>
                         </tr>
                         <tr>
                             <td><code>picker</code></td>
                             <td><code>DateRangePicker | null</code></td>
                             <td>Read-only</td>
-                            <td>Underlying picker instance</td>
+                            <td>Underlying picker instance (advanced)</td>
                         </tr>
                     </tbody>
                 </table>
@@ -619,6 +682,11 @@ if (picker) {
                             <td>Fired when date(s) selected</td>
                         </tr>
                         <tr>
+                            <td><code>change</code></td>
+                            <td><code>DateSelectDetail</code></td>
+                            <td>Alias for date-select (same detail)</td>
+                        </tr>
+                        <tr>
                             <td><code>calendar-open</code></td>
                             <td><code>void</code></td>
                             <td>Fired when calendar opens</td>
@@ -631,7 +699,7 @@ if (picker) {
                         <tr>
                             <td><code>input-change</code></td>
                             <td><code>string</code></td>
-                            <td>Fired when input value changes</td>
+                            <td>Fired when input value changes (typing)</td>
                         </tr>
                     </tbody>
                 </table>
@@ -987,9 +1055,9 @@ const manager = new DateRangeManager();</code></pre>
             if (instance) {
                 output6.innerHTML = `
                     <div>Picker instance found:</div>
-                    <div>• Mode: <strong>${instance.mode}</strong></div>
-                    <div>• Months to show: <strong>${instance.monthsToShow}</strong></div>
-                    <div>• Auto-close: <strong>${instance.autoClose}</strong></div>
+                    <div>• Mode: <strong>${instance.options.selectionMode}</strong></div>
+                    <div>• Months to show: <strong>${instance.options.visibleMonthsCount}</strong></div>
+                    <div>• Auto-close: <strong>${instance.options.autoClose}</strong></div>
                 `;
             } else {
                 output6.innerHTML = '<strong style="color: #dc3545;">Picker not initialized</strong>';

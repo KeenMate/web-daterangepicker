@@ -22,6 +22,7 @@ import * as Interaction from './date-picker-interaction';
 import * as UI from './date-picker-ui';
 import { resolveLocale, getLocaleStrings, getWeekdayNames, getMonthNames } from './date-picker-locales';
 import { drpLogger, navigationLogger, enableLogging, disableLogging } from './logger';
+import { createScrollEventManager, createClickEventManager, type ScrollEventManager, type ClickEventManager, type ScrollSubscription, type ClickSubscription } from './modules';
 // Import styles for static injection (only used when injectGlobalStyles is called)
 import styles from './css/main.css?inline';
 
@@ -57,13 +58,14 @@ class DateRangePicker {
     originalEndDate: Date | null;
     dragPreviewStart: Date | null;
     dragPreviewEnd: Date | null;
+    invalidRangeStart: Date | null;
+    invalidRangeEnd: Date | null;
     autoScrollInterval: number | null;
     navInterval?: number | null;
     calendar!: HTMLElement;
     containerElement: HTMLElement;
     onDragMoveBound?: (event: MouseEvent) => void;
     onDragEndBound?: (event: MouseEvent) => void;
-    clickOutsideHandler?: (event: MouseEvent) => void;
     private isFirstRender: boolean = true;
     private lockedPlacement?: string; // Store the initial placement to prevent jumping
     private calendarContentHeight?: number; // Store calendar height for rolling selector
@@ -90,10 +92,20 @@ class DateRangePicker {
     private tooltipArrow?: HTMLElement;
     private currentTooltipTarget?: HTMLElement;
 
+    // Message area
+    private messageElement?: HTMLElement;
+    private messageAutoHideTimeout?: number;
+
     // Action button tooltips
     actionButtonTooltips = new Map<string, HTMLDivElement>();
     actionButtonTooltipCleanups = new Map<string, () => void>();
     actionsContainer: HTMLElement | null = null;
+
+    // Event managers (Pub/Sub pattern)
+    scrollEvents: ScrollEventManager;
+    clickEvents: ClickEventManager;
+    private scrollSubscriptions: ScrollSubscription[] = [];
+    private clickSubscriptions: ClickSubscription[] = [];
 
     // Week start and date restrictions
     private weekStartDay: number = 0; // 0 = Sunday, 1 = Monday, etc.
@@ -161,6 +173,7 @@ class DateRangePicker {
             dayTooltipMember: options.dayTooltipMember,
             isDisabledMember: options.isDisabledMember,
             autoClose: options.autoClose || 'selection',
+            closeOnScroll: options.closeOnScroll !== undefined ? options.closeOnScroll : true,
             actionButtons: options.actionButtons,
             showTodayButton: options.showTodayButton !== undefined ? options.showTodayButton : true,
             showClearButton: options.showClearButton !== undefined ? options.showClearButton : true,
@@ -281,7 +294,13 @@ class DateRangePicker {
         this.originalEndDate = null;
         this.dragPreviewStart = null;
         this.dragPreviewEnd = null;
+        this.invalidRangeStart = null;
+        this.invalidRangeEnd = null;
         this.autoScrollInterval = null;
+
+        // Initialize event managers
+        this.scrollEvents = createScrollEventManager();
+        this.clickEvents = createClickEventManager();
 
         this.init();
     }
@@ -289,6 +308,13 @@ class DateRangePicker {
     init() {
         drpLogger.debug('Init called');
         this.createCalendar();
+
+        // Initialize event managers
+        this.scrollEvents.init();
+        this.clickEvents.init(this.calendar, this.input);
+
+        // Subscribe to events
+        this.setupEventSubscriptions();
 
         // Only attach input listeners if we have an input element
         if (this.input) {
@@ -310,16 +336,81 @@ class DateRangePicker {
 
             // Call beforeMonthChangedCallback for initial month load
             Navigation.handleInitialMonthLoad(this);
-
-            // Attach click outside handler for inline mode (closes rolling selectors when clicking outside)
-            if (this.clickOutsideHandler) {
-                document.addEventListener('click', this.clickOutsideHandler);
-            }
         }
         // Note: for floating mode, renderCalendar() is called on first show() instead of here
         // to avoid rendering days before the calendar is displayed
 
         drpLogger.debug('Init complete');
+    }
+
+    /**
+     * Set up event subscriptions using the pub/sub event managers
+     */
+    private setupEventSubscriptions() {
+        // Subscribe to window scroll - close calendar when scrolling the page (floating mode only)
+        const windowScrollSub = this.scrollEvents.subscribe('window', () => {
+            if (this.options.positioningMode === 'floating' && this.isOpen) {
+                // Check if scroll close is disabled globally
+                if (this.options.closeOnScroll === false) {
+                    return;
+                }
+
+                // Don't close if Apply button is required (user needs to explicitly apply/cancel)
+                if (this.requiresApplyButton()) {
+                    drpLogger.debug('Window scroll detected - NOT closing (Apply button required)');
+                    return;
+                }
+
+                // Don't close if a message is visible (user needs to see it)
+                if (this.messageElement?.classList.contains('drp-date-picker__message--visible')) {
+                    drpLogger.debug('Window scroll detected - NOT closing (message visible)');
+                    return;
+                }
+
+                drpLogger.debug('Window scroll detected - closing calendar');
+                this.hide();
+            }
+        });
+        this.scrollSubscriptions.push(windowScrollSub);
+
+        // Subscribe to outside clicks - close calendar or rolling selectors
+        const outsideClickSub = this.clickEvents.subscribe('outsideClick', (ctx) => {
+            drpLogger.debug('Outside click detected', ctx.target);
+
+            if (this.options.positioningMode === 'floating') {
+                // Floating mode: close entire calendar
+                this.hide();
+            } else {
+                // Inline/fixed/absolute mode: close only rolling selectors
+                let needsRender = false;
+
+                // Close any open individual selectors
+                for (let i = 0; i < this.showingRollingSelector.length; i++) {
+                    if (this.showingRollingSelector[i]) {
+                        this.showingRollingSelector[i] = false;
+                        needsRender = true;
+                    }
+                }
+
+                // Close unified selector if open
+                if (this.showingUnifiedRollingSelector) {
+                    this.showingUnifiedRollingSelector = false;
+                    needsRender = true;
+                }
+
+                // Re-render to apply closed state
+                if (needsRender) {
+                    this.renderCalendar();
+                }
+            }
+        });
+        this.clickSubscriptions.push(outsideClickSub);
+
+        // Subscribe to calendar clicks - track active state
+        const calendarClickSub = this.clickEvents.subscribe('calendarClick', () => {
+            this.isCalendarActive = true;
+        });
+        this.clickSubscriptions.push(calendarClickSub);
     }
 
     /**
@@ -850,6 +941,15 @@ class DateRangePicker {
 
         this.calendar.appendChild(monthsContainer);
 
+        // Add message area (for validation feedback, errors, etc.)
+        this.messageElement = document.createElement('div');
+        this.messageElement.className = 'drp-date-picker__message';
+        this.messageElement.innerHTML = `
+            <span class="drp-date-picker__message-text"></span>
+            <button class="drp-date-picker__message-close" data-action="close-message">&times;</button>
+        `;
+        this.calendar.appendChild(this.messageElement);
+
         // Add selection summary (for range mode)
         if (this.options.selectionMode === 'range') {
             const summary = document.createElement('div');
@@ -918,12 +1018,35 @@ class DateRangePicker {
         // Delegate all click events
         this.calendar.addEventListener('click', async (e) => {
             const target = e.target as HTMLElement;
+            console.log('[click handler] clicked:', target.tagName, target.className, 'data-action:', target.dataset.action);
             // Stop propagation to prevent "close on outside click" from firing
             e.stopPropagation();
 
             const action = target.dataset.action;
             const monthIndexAttr = target.dataset.monthIndex;
             const monthIndex = monthIndexAttr ? parseInt(monthIndexAttr) : 0;
+
+            // Check for custom action first (using closest to handle clicks on child elements)
+            const customActionBtn = target.closest('[data-action="custom"]') as HTMLElement | null;
+            if (customActionBtn) {
+                // Collect all data-* attributes (except data-action)
+                const dataAttributes: Record<string, string> = {};
+                for (const [key, value] of Object.entries(customActionBtn.dataset)) {
+                    if (key !== 'action') {
+                        dataAttributes[key] = value;
+                    }
+                }
+
+                // Fire custom-action event
+                this.fireCustomActionEvent(dataAttributes);
+
+                // Still call onClick callback if provided (for backward compatibility)
+                const customOnClick = (customActionBtn as any)._customOnClick;
+                if (customOnClick) {
+                    await Promise.resolve(customOnClick(this));
+                }
+                return;
+            }
 
             // Check if navigation button is disabled (respects rollingYearRange/rollingMonthRange boundaries)
             if (action === 'prev' || action === 'next' || action === 'unified-prev' || action === 'unified-next') {
@@ -942,13 +1065,7 @@ class DateRangePicker {
             else if (action === 'today') this.selectToday();
             else if (action === 'clear') this.clearSelection();
             else if (action === 'apply') this.apply();
-            else if (action === 'custom') {
-                // Handle custom button clicks
-                const customOnClick = (target as any)._customOnClick;
-                if (customOnClick) {
-                    await Promise.resolve(customOnClick(this));
-                }
-            }
+            else if (action === 'close-message') this.hideMessage();
             else if (target.closest('.drp-date-picker__day:not(.drp-date-picker__day--disabled)')) {
                 await this.selectDay(target.closest('.drp-date-picker__day') as HTMLElement);
             }
@@ -1049,22 +1166,12 @@ class DateRangePicker {
         }, true);
 
         // Track calendar focus for keyboard navigation (especially important for inline mode)
-        this.calendar.addEventListener('mousedown', (e) => {
-            this.isCalendarActive = true;
-            e.stopPropagation(); // Prevent document listener from immediately resetting active state
-        });
-
+        // Note: Calendar click tracking is also handled by clickEvents manager
         this.calendar.addEventListener('focusin', () => {
             this.isCalendarActive = true;
         });
 
-        // Deactivate when clicking outside calendar
-        // Use capture phase to ensure proper event ordering
-        document.addEventListener('mousedown', (e) => {
-            if (!this.calendar.contains(e.target as Node)) {
-                this.isCalendarActive = false;
-            }
-        }, true);
+        // Note: Outside click deactivation is now handled by the clickEvents manager
 
         // Keyboard navigation
         document.addEventListener('keydown', (e) => {
@@ -1390,48 +1497,7 @@ class DateRangePicker {
             }
         });
 
-        // Close on outside click (for all positioning modes)
-        this.clickOutsideHandler = (e: MouseEvent) => {
-            // Get the actual target (works with Shadow DOM)
-            const path = e.composedPath();
-            const actualTarget = path[0] as HTMLElement;
-
-            // Don't do anything if clicking the calendar, input, or calendar button
-            const clickedCalendar = path.includes(this.calendar);
-            const clickedInput = this.input && path.includes(this.input);
-            const isCalendarButton = actualTarget.closest?.('[data-calendar-button]');
-
-            if (!clickedCalendar && !clickedInput && !isCalendarButton) {
-                if (this.options.positioningMode === 'floating') {
-                    // Floating mode: close entire calendar (and rolling selectors with it)
-                    this.hide();
-                } else {
-                    // Inline/fixed/absolute mode: close only rolling selectors, keep calendar visible
-                    let needsRender = false;
-
-                    // Close any open individual selectors
-                    for (let i = 0; i < this.showingRollingSelector.length; i++) {
-                        if (this.showingRollingSelector[i]) {
-                            this.showingRollingSelector[i] = false;
-                            needsRender = true;
-                        }
-                    }
-
-                    // Close unified selector if open
-                    if (this.showingUnifiedRollingSelector) {
-                        this.showingUnifiedRollingSelector = false;
-                        needsRender = true;
-                    }
-
-                    // Re-render to apply closed state
-                    if (needsRender) {
-                        this.renderCalendar();
-                    }
-                }
-            }
-        };
-        // NOTE: The listener is added in show() with a delay to avoid catching the same click that triggered show()
-        // and removed in hide() to clean up properly
+        // Note: Outside click handling is now managed by the clickEvents manager (see setupEventSubscriptions)
     }
 
     // Helper methods
@@ -1529,6 +1595,13 @@ class DateRangePicker {
             end: new Date(r.end)
         }));
 
+        // Clear invalid range state (programmatic selection clears any previous invalid state)
+        this.invalidRangeStart = null;
+        this.invalidRangeEnd = null;
+
+        // Clear focus state (programmatic selection should clear keyboard focus)
+        this.focusedDayIndex = null;
+
         // For range mode: also set selectedStartDate/selectedEndDate
         if (this.options.selectionMode === 'range' && ranges.length > 0) {
             this.selectedStartDate = new Date(ranges[0].start);
@@ -1578,10 +1651,32 @@ class DateRangePicker {
         this.updateSummary();
     }
 
+    /**
+     * Fire a custom-action event with the provided data attributes
+     */
+    private fireCustomActionEvent(detail: Record<string, string>): void {
+        // Fire on calendar element (internal)
+        this.calendar.dispatchEvent(new CustomEvent('custom-action', {
+            detail,
+            bubbles: true,
+            composed: true  // Cross shadow DOM boundary
+        }));
+    }
+
     destroy() {
-        if (this.clickOutsideHandler) {
-            document.removeEventListener('click', this.clickOutsideHandler);
-        }
+        // Unsubscribe from all event subscriptions
+        this.scrollSubscriptions.forEach(sub => sub.unsubscribe());
+        this.scrollSubscriptions = [];
+        this.clickSubscriptions.forEach(sub => sub.unsubscribe());
+        this.clickSubscriptions = [];
+
+        // Destroy event managers
+        this.scrollEvents.destroy();
+        this.clickEvents.destroy();
+
+        // Destroy action button tooltips
+        this.destroyAllActionButtonTooltips();
+
         this.calendar.remove();
         if (this.tooltip) {
             this.tooltip.remove();
@@ -1595,6 +1690,8 @@ class DateRangePicker {
     position() { return UI.position(this); }
     showTooltip(element: HTMLElement, content: string) { return UI.showTooltip(this, element, content); }
     hideTooltip() { return UI.hideTooltip(this); }
+    showMessage(content: string, type?: 'error' | 'warning' | 'info' | 'success', autoHide?: number) { return UI.showMessage(this, content, type, autoHide); }
+    hideMessage() { return UI.hideMessage(this); }
 
     // Rendering methods - wrappers for pure functions
     renderCalendar() { return Rendering.renderCalendar(this); }

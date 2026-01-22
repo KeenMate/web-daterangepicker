@@ -4,153 +4,27 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Badges & Tooltips Examples - Date Range Picker</title>
+  <link rel="stylesheet" href="examples-shared.css">
   <style>
-    * {
-      box-sizing: border-box;
-    }
+    /* Page-specific styles only - base styles come from examples-shared.css */
 
-    body {
-      font-family: system-ui, -apple-system, sans-serif;
-      line-height: 1.6;
-      max-width: 1400px;
-      margin: 0 auto;
-      padding: 2rem;
-      background: #f9fafb;
-    }
-
-    h1, h2, h3 {
-      color: #111827;
-      margin-top: 2rem;
-    }
-
-    h1 {
-      border-bottom: 2px solid #e5e7eb;
-      padding-bottom: 1rem;
-    }
-
-    .header-nav {
-      display: flex;
-      align-items: center;
-      gap: 1rem;
-      margin-bottom: 1rem;
-    }
-
-    .back-link {
-      display: inline-flex;
-      align-items: center;
-      gap: 0.5rem;
-      color: #6366f1;
-      text-decoration: none;
-      font-weight: 500;
-      padding: 0.5rem 1rem;
-      border-radius: 0.375rem;
-      transition: background-color 150ms;
-    }
-
-    .back-link:hover {
-      background-color: #eef2ff;
-    }
-
-    .page-title {
-      margin: 0 0 0.5rem 0;
-      color: #111827;
-    }
-
-    .page-description {
-      color: #6b7280;
-      margin-top: 0.5rem;
-      margin-bottom: 2rem;
-      font-size: 1.125rem;
-    }
-
-    .card {
-      background: white;
-      border-radius: 0.5rem;
-      padding: 1.5rem;
-      margin-bottom: 2rem;
-      box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1);
-    }
-
-    .card h2 {
-      margin-top: 0;
-      margin-bottom: 1rem;
-    }
-
-    .card p {
-      color: #6b7280;
-      margin-bottom: 1.5rem;
-    }
-
-    .grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-      gap: 1.5rem;
-      margin: 1rem 0;
-    }
-
-    .form-group {
-      margin-bottom: 1rem;
-    }
-
-    label {
-      display: block;
-      font-weight: 600;
-      margin-bottom: 0.5rem;
-      color: #374151;
-    }
-
-    small {
+    /* Method/function note styling */
+    .method-note {
       display: block;
       margin-top: 0.5rem;
-      color: #6b7280;
-      font-size: 0.875rem;
-    }
-
-    code {
-      background: #f3f4f6;
-      padding: 0.125rem 0.375rem;
+      padding: 0.375rem 0.5rem;
+      background: #f0f9ff;
+      border-left: 3px solid #0ea5e9;
       border-radius: 0.25rem;
-      font-family: 'Courier New', monospace;
-      font-size: 0.875em;
-      color: #dc2626;
+      font-size: 0.75rem;
+      color: #0369a1;
     }
 
-    pre {
-      background: #1f2937;
-      color: #f9fafb;
-      padding: 1rem;
-      border-radius: 0.375rem;
-      overflow-x: auto;
-      margin: 1rem 0;
-    }
-
-    pre code {
-      background: none;
-      color: inherit;
-      padding: 0;
-    }
-
-    .info-box {
-      background: #dbeafe;
-      border: 1px solid #3b82f6;
-      border-radius: 0.375rem;
-      padding: 1rem;
-      margin: 1rem 0;
-      color: #1e40af;
-    }
-
-    .info-box strong {
-      display: block;
-      margin-bottom: 0.5rem;
-    }
-
-    .warning-box {
-      background: #fef3c7;
-      border: 1px solid #f59e0b;
-      border-radius: 0.375rem;
-      padding: 1rem;
-      margin: 1rem 0;
-      color: #92400e;
+    .method-note code {
+      background: #e0f2fe;
+      padding: 0.125rem 0.25rem;
+      border-radius: 0.125rem;
+      font-weight: 600;
     }
 
     .comparison-table {
@@ -178,16 +52,15 @@
   </style>
 </head>
 <body>
-  <div class="header-nav">
-    <a href="index.html" class="back-link">
-      <span>←</span>
-      <span>All Examples</span>
-    </a>
-  </div>
+  <div class="container">
+    <header>
+      <a href="index.html" class="back-link">← Back to Examples</a>
+      <h1>🏷️ Badges & Tooltips</h1>
+      <p class="subtitle">Display badges and tooltips using static arrays, dynamic callbacks, or HTML tooltips</p>
+    </header>
 
-  <h1 class="page-title">🏷️ Badges & Tooltips</h1>
-  <p class="page-description">
-    Comprehensive guide to displaying badges, tooltips, and special date indicators using the date range picker component.
+    <p class="description">
+      Comprehensive guide to displaying badges, tooltips, and special date indicators using the date range picker component.
   </p>
 
   <!-- Overview Section -->
@@ -281,30 +154,34 @@ picker.specialDates = [
     <div class="grid">
       <!-- Method 1: Static specialDates Array -->
       <div class="form-group">
-        <label>1. Static Data (specialDates Array)</label>
+        <label>1. Static Data</label>
         <web-daterangepicker id="method-static" visible-months-count="1" placeholder="Select date"></web-daterangepicker>
         <small><strong>Best for:</strong> Known dates defined at initialization (holidays, events)</small>
+        <span class="method-note">Uses: <code>specialDates</code> array property</span>
       </div>
 
       <!-- Method 2: Dynamic Callback -->
       <div class="form-group">
-        <label>2. Dynamic Calculation (getDateMetadataCallback)</label>
+        <label>2. Dynamic Calculation</label>
         <web-daterangepicker id="method-dynamic" visible-months-count="1" placeholder="Select date"></web-daterangepicker>
         <small><strong>Best for:</strong> Computed values based on date properties (pricing, availability)</small>
+        <span class="method-note">Uses: <code>getDateMetadataCallback</code></span>
       </div>
 
       <!-- Method 3: Member Mapping -->
       <div class="form-group">
-        <label>3. Custom Data Structure (Member Mapping)</label>
+        <label>3. Custom Data Structure</label>
         <web-daterangepicker id="method-mapping" visible-months-count="1" placeholder="Select date"></web-daterangepicker>
         <small><strong>Best for:</strong> Integrating existing data without reshaping (legacy systems, APIs)</small>
+        <span class="method-note">Uses: <code>badgeMemberMapping</code> with custom data</span>
       </div>
 
       <!-- Method 4: HTML Tooltips -->
       <div class="form-group">
-        <label>4. Rich Tooltips (badgeTooltipCallback)</label>
+        <label>4. Rich Tooltips</label>
         <web-daterangepicker id="method-tooltips" visible-months-count="1" placeholder="Select date"></web-daterangepicker>
         <small><strong>Best for:</strong> Complex tooltip content with HTML formatting</small>
+        <span class="method-note">Uses: <code>badgeTooltipCallback</code></span>
       </div>
     </div>
 
