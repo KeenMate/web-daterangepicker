@@ -303,12 +303,12 @@
     <div class="grid">
       <div class="form-group">
         <label>Single Date with Value</label>
-        <web-daterangepicker value="2025-11-15" placeholder="YYYY-MM-DD"></web-daterangepicker>
+        <web-daterangepicker id="prefilled-single" placeholder="YYYY-MM-DD"></web-daterangepicker>
       </div>
 
       <div class="form-group">
         <label>Date Range with Value</label>
-        <web-daterangepicker selection-mode="range" value="2025-11-01 to 2025-11-30" placeholder="Start - End"></web-daterangepicker>
+        <web-daterangepicker id="prefilled-range" selection-mode="range" placeholder="Start - End"></web-daterangepicker>
       </div>
     </div>
   </div>
@@ -318,7 +318,7 @@
     <div class="grid">
       <div class="form-group">
         <label>Disabled Picker</label>
-        <web-daterangepicker disabled value="2025-11-15" placeholder="YYYY-MM-DD"></web-daterangepicker>
+        <web-daterangepicker id="prefilled-disabled" disabled placeholder="YYYY-MM-DD"></web-daterangepicker>
       </div>
     </div>
   </div>
@@ -357,12 +357,8 @@
 
       <div class="form-group">
         <label>Date Range Limits</label>
-        <web-daterangepicker
-          min-date="2025-11-01"
-          max-date="2025-11-30"
-          placeholder="YYYY-MM-DD">
-        </web-daterangepicker>
-        <small>Only November 2025 is selectable</small>
+        <web-daterangepicker id="range-limits-demo" placeholder="YYYY-MM-DD"></web-daterangepicker>
+        <small>Only the current month is selectable</small>
       </div>
 
       <div class="form-group">
@@ -378,14 +374,13 @@
     <p>Configure which years and months appear in the rolling selector, and automatically disable unavailable options based on minDate/maxDate.</p>
     <div class="grid">
       <div class="form-group">
-        <label>Limited to 2025 Only</label>
+        <label>Limited to Current Year Only</label>
         <web-daterangepicker
+          id="year-limit-demo"
           selection-mode="single"
-          min-date="2025-01-01"
-          max-date="2025-12-31"
           placeholder="YYYY-MM-DD">
         </web-daterangepicker>
-        <small>Click month/year to open rolling selector - only 2025 is enabled (other years disabled)</small>
+        <small>Click month/year to open rolling selector - only the current year is enabled (other years disabled)</small>
       </div>
 
       <div class="form-group">
@@ -410,17 +405,15 @@
       </div>
 
       <div class="form-group">
-        <label>Q4 Business Planning (Oct-Dec 2024)</label>
+        <label>Q4 Business Planning (Oct-Dec, current year)</label>
         <web-daterangepicker
+          id="q4-demo"
           selection-mode="range"
-          rolling-year-range="2024"
           rolling-month-range="10-12"
-          min-date="2024-10-01"
-          max-date="2024-12-31"
           visible-months-count="2"
           placeholder="Select dates">
         </web-daterangepicker>
-        <small>Only year 2024, only Oct/Nov/Dec visible and enabled</small>
+        <small>Only the current year, only Oct/Nov/Dec visible and enabled</small>
       </div>
 
       <div class="form-group">
@@ -888,8 +881,41 @@ picker.addEventListener('date-select', (e) => {
   <script type="module" src="/src/index.ts"></script>
 
   <script>
+    // Date helpers — keep example data anchored to today so the demos never go stale.
+    const _today = new Date(); _today.setHours(0, 0, 0, 0);
+    const dayOffset = (days) => {
+      const d = new Date(_today); d.setDate(d.getDate() + days);
+      return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+    };
+    const monthFirstISO = () => {
+      const d = new Date(_today.getFullYear(), _today.getMonth(), 1);
+      return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-01`;
+    };
+    const monthLastISO = () => {
+      const d = new Date(_today.getFullYear(), _today.getMonth() + 1, 0);
+      return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+    };
+    const yearFirstISO = () => `${_today.getFullYear()}-01-01`;
+    const yearLastISO = () => `${_today.getFullYear()}-12-31`;
+
     // Wait for web components to be defined
     customElements.whenDefined('web-daterangepicker').then(() => {
+      // Apply dynamic dates to the demos that previously had hardcoded values
+      const setIfPresent = (id, attrs) => {
+        const el = document.getElementById(id);
+        if (!el) return;
+        for (const [k, v] of Object.entries(attrs)) el.setAttribute(k, v);
+      };
+      setIfPresent('prefilled-single',   { value: dayOffset(0) });
+      setIfPresent('prefilled-range',    { value: `${dayOffset(0)} to ${dayOffset(14)}` });
+      setIfPresent('prefilled-disabled', { value: dayOffset(0) });
+      setIfPresent('range-limits-demo',  { 'min-date': monthFirstISO(), 'max-date': monthLastISO() });
+      setIfPresent('year-limit-demo',    { 'min-date': yearFirstISO(),  'max-date': yearLastISO() });
+      setIfPresent('q4-demo',            {
+        'rolling-year-range': String(_today.getFullYear()),
+        'min-date': `${_today.getFullYear()}-10-01`,
+        'max-date': `${_today.getFullYear()}-12-31`,
+      });
       // Add event listeners to demo the events
       document.querySelectorAll('web-daterangepicker').forEach(picker => {
         picker.addEventListener('date-select', (e) => {
@@ -914,14 +940,14 @@ picker.addEventListener('date-select', (e) => {
         }
       }
 
-      // Setup disabled dates demo
+      // Setup disabled dates demo — anchor to today so disabled dates are visible
       const disabledDatesDemo = document.getElementById('disabled-dates-demo');
       if (disabledDatesDemo) {
         disabledDatesDemo.disabledDates = [
-          '2025-12-25', // Christmas
-          '2025-01-01', // New Year
-          '2025-11-28', // Thanksgiving 2025
-          '2025-07-04'  // Independence Day
+          dayOffset(-3),
+          dayOffset(2),
+          dayOffset(7),
+          dayOffset(14)
         ];
       }
 
@@ -1090,12 +1116,12 @@ picker.addEventListener('date-select', (e) => {
 
       const inlineHolidays = document.getElementById('inline-holidays');
       if (inlineHolidays) {
-        // Add some holidays
+        // Add some holidays around today
         inlineHolidays.specialDates = [
-          { date: '2025-12-25', class: 'holiday', label: '🎄', tooltip: 'Christmas Day' },
-          { date: '2025-12-24', class: 'holiday', label: '🎅', tooltip: 'Christmas Eve' },
-          { date: '2025-01-01', class: 'holiday', label: '🎉', tooltip: 'New Year\'s Day' },
-          { date: '2025-11-28', class: 'holiday', label: '🦃', tooltip: 'Thanksgiving' }
+          { date: dayOffset(-2), class: 'holiday', label: '🎂', tooltip: 'Birthday' },
+          { date: dayOffset(0),  class: 'holiday', label: '⭐', tooltip: 'Today' },
+          { date: dayOffset(5),  class: 'holiday', label: '🎉', tooltip: 'Celebration' },
+          { date: dayOffset(12), class: 'holiday', label: '🎤', tooltip: 'Karaoke Night' }
         ];
 
         inlineHolidays.addEventListener('date-select', (e) => {

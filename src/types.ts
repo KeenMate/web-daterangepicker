@@ -240,8 +240,23 @@ export interface DatePickerOptions {
 
   // Custom rendering
   customStylesCallback?: () => string; // Return CSS string to inject into Shadow DOM for use with renderDayCallback classes
-  renderDayCallback?: (data: DayRenderData) => HTMLElement | string | null; // Full replacement - return element/HTML to completely replace day cell content
-  renderDayContentCallback?: (data: DayRenderData) => HTMLElement | string | null; // Augmentation - return element/HTML to add to default day cell
+
+  /**
+   * Full replacement — return element or HTML string to completely replace day cell content.
+   *
+   * SECURITY: When returning a string, the value is spliced into innerHTML without escaping.
+   * Callers are responsible for sanitizing any user-controlled data interpolated into the
+   * returned string. Prefer returning an HTMLElement when content depends on untrusted input.
+   */
+  renderDayCallback?: (data: DayRenderData) => HTMLElement | string | null;
+
+  /**
+   * Augmentation — return element or HTML string to add to default day cell.
+   *
+   * SECURITY: Same caveat as renderDayCallback — string return values are appended to
+   * innerHTML unescaped. Sanitize untrusted data or return an HTMLElement.
+   */
+  renderDayContentCallback?: (data: DayRenderData) => HTMLElement | string | null;
 
   // Tooltips (HTML support)
   badgeTooltipCallback?: (data: DayRenderData) => string | null; // Return HTML string for badge hover tooltip (overrides DateInfo.badgeTooltip)
@@ -277,8 +292,13 @@ export interface DatePickerOptions {
   customStrings?: Partial<LocaleStrings>; // Override any UI strings
   monthNames?: string[]; // Custom month names (12 strings). If not provided, uses locale-based names. Examples: ['01', '02', ..., '12'] or ['Jan', 'Feb', ..., 'Dec']
 
-  // Custom summary formatting
-  formatSummaryCallback?: (data: SummaryCallbackData) => string; // Custom function to format the summary display (receives all selection data, returns HTML string)
+  /**
+   * Custom function to format the summary display (receives all selection data, returns HTML string).
+   *
+   * SECURITY: Return value is spliced into innerHTML without escaping. Callers are responsible
+   * for sanitizing any user-controlled data in the returned string.
+   */
+  formatSummaryCallback?: (data: SummaryCallbackData) => string;
 
   /**
    * Callback to customize unified header range display text
@@ -297,6 +317,8 @@ export interface DatePickerOptions {
    *   return `${monthNames[firstMonth.getMonth()]} - ${monthNames[lastMonth.getMonth()]} ${lastMonth.getFullYear()}`;
    *   // Returns: "Jan - Sep 2025"
    * }
+   *
+   * SECURITY: Return value is spliced into innerHTML unescaped. Sanitize untrusted data.
    */
   getUnifiedHeaderCallback?: (data: {
     firstMonth: Date;

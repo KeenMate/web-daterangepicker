@@ -22,6 +22,7 @@ import * as Interaction from './date-picker-interaction';
 import * as UI from './date-picker-ui';
 import { resolveLocale, getLocaleStrings, getWeekdayNames, getMonthNames } from './date-picker-locales';
 import { drpLogger, navigationLogger, enableLogging, disableLogging } from './logger';
+import { Tooltip } from './tooltip';
 import { createScrollEventManager, createClickEventManager, type ScrollEventManager, type ClickEventManager, type ScrollSubscription, type ClickSubscription } from './modules';
 // Import styles for static injection (only used when injectGlobalStyles is called)
 import styles from './css/main.css?inline';
@@ -67,10 +68,12 @@ class DateRangePicker {
     onDragMoveBound?: (event: MouseEvent) => void;
     onDragEndBound?: (event: MouseEvent) => void;
     private isFirstRender: boolean = true;
-    private lockedPlacement?: string; // Store the initial placement to prevent jumping
     private calendarContentHeight?: number; // Store calendar height for rolling selector
     private calendarContentWidth?: number; // Store calendar width for rolling selector
-    private isCalendarActive: boolean = false; // Track if this calendar is actively focused (for inline mode)
+    isCalendarActive: boolean = false; // Track if this calendar is the keyboard-active one
+    private readonly onAnotherPickerActivated = (e: Event) => {
+        if ((e as CustomEvent).detail !== this) this.isCalendarActive = false;
+    };
 
     // Async validation state
     private isValidating: boolean = false;
@@ -97,8 +100,7 @@ class DateRangePicker {
     private messageAutoHideTimeout?: number;
 
     // Action button tooltips
-    actionButtonTooltips = new Map<string, HTMLDivElement>();
-    actionButtonTooltipCleanups = new Map<string, () => void>();
+    private actionButtonTooltipInstances: Tooltip[] = [];
     actionsContainer: HTMLElement | null = null;
 
     // Event managers (Pub/Sub pattern)
@@ -316,6 +318,11 @@ class DateRangePicker {
         // Subscribe to events
         this.setupEventSubscriptions();
 
+        // Listen for sibling pickers becoming active so this one can deactivate.
+        // (The keydown listener lives on document, so without this, every picker
+        // on the page would respond to arrow keys at once.)
+        document.addEventListener(DateRangePicker.ACTIVE_EVENT, this.onAnotherPickerActivated);
+
         // Only attach input listeners if we have an input element
         if (this.input) {
             this.attachInputListeners();
@@ -331,7 +338,9 @@ class DateRangePicker {
         if (this.options.positioningMode === 'inline') {
             this.renderCalendar();
             this.calendar.classList.add('drp-date-picker--visible', 'drp-date-picker--inline');
-            this.isCalendarActive = true; // Make inline calendar keyboard-accessible immediately
+            // Don't auto-activate on init — multiple inline pickers on a page would
+            // otherwise all be keyboard-active at once. The user clicking or focusing
+            // any picker calls setCalendarActive() and deactivates the others.
             this.isFirstRender = false;
 
             // Call beforeMonthChangedCallback for initial month load
@@ -406,49 +415,109 @@ class DateRangePicker {
         });
         this.clickSubscriptions.push(outsideClickSub);
 
-        // Subscribe to calendar clicks - track active state
+        // Subscribe to calendar clicks - track active state (and deactivate sibling pickers)
         const calendarClickSub = this.clickEvents.subscribe('calendarClick', () => {
-            this.isCalendarActive = true;
+            this.setCalendarActive();
         });
         this.clickSubscriptions.push(calendarClickSub);
     }
 
     /**
      * Initialize and normalize date restrictions
+     *
+     * Rebuilds `normalizedMinDate`, `normalizedMaxDate`, `normalizedDisabledDates`,
+     * and `normalizedSpecialDates` from the current `this.options`. Safe to call
+     * repeatedly — clears prior normalized state first so removed entries vanish.
      */
     initializeDateRestrictions() {
-        // Parse min/max dates
-        if (this.options.minDate) {
-            this.normalizedMinDate = Validation.normalizeDate(this.options.minDate);
-        }
-        if (this.options.maxDate) {
-            this.normalizedMaxDate = Validation.normalizeDate(this.options.maxDate);
-        }
+        this.normalizedMinDate = this.options.minDate ? Validation.normalizeDate(this.options.minDate) : undefined;
+        this.normalizedMaxDate = this.options.maxDate ? Validation.normalizeDate(this.options.maxDate) : undefined;
 
-        // Parse disabled dates array
+        this.normalizedDisabledDates.clear();
         if (this.options.disabledDates && this.options.disabledDates.length > 0) {
             this.options.disabledDates.forEach(dateInput => {
                 const date = Validation.normalizeDate(dateInput);
                 if (date) {
-                    const key = Validation.formatDateKey(date);
-                    this.normalizedDisabledDates.add(key);
+                    this.normalizedDisabledDates.add(Validation.formatDateKey(date));
                 }
             });
         }
 
-        // Parse special dates array
+        this.normalizedSpecialDates.clear();
         if (this.options.specialDates && this.options.specialDates.length > 0) {
             const dateMember = this.options.dateMember || 'date';
             this.options.specialDates.forEach(specialDate => {
                 const date = Validation.normalizeDate(specialDate[dateMember]);
                 if (date) {
-                    const key = Validation.formatDateKey(date);
-                    this.normalizedSpecialDates.set(key, specialDate);
+                    this.normalizedSpecialDates.set(Validation.formatDateKey(date), specialDate);
                 } else {
-                    console.warn('[Special Dates] Failed to normalize date:', specialDate[dateMember]);
+                    drpLogger.warn('[Special Dates] Failed to normalize date:', specialDate[dateMember]);
                 }
             });
         }
+    }
+
+    /**
+     * Apply a partial options update in place.
+     *
+     * Refreshes derived state (locale strings, format info, normalized date sets,
+     * etc.) for any options that were changed, then re-renders the calendar.
+     * Selection / focus / scroll / drag state survives.
+     *
+     * Returns `true` when the update was fully applied. Returns `false` for
+     * genuinely structural changes (column count, positioning mode, layout —
+     * things that change the DOM topology) so the caller can fall back to a
+     * full destroy + reinit.
+     */
+    updateOptions(partial: Partial<DatePickerOptions>): boolean {
+        const STRUCTURAL_KEYS: (keyof DatePickerOptions)[] = [
+            'positioningMode',
+            'selectionMode',
+            'visibleMonthsCount',
+            'monthLayout',
+            'gridRows',
+            'gridColumns',
+            'unifiedNavigation',
+            'unifiedNavigationAnchorIndex',
+            'calendarOpenTrigger',
+        ];
+        const has = (k: keyof DatePickerOptions) => Object.prototype.hasOwnProperty.call(partial, k);
+        const changed = (k: keyof DatePickerOptions) => has(k) && (partial as any)[k] !== (this.options as any)[k];
+
+        // Bail out for structural changes — caller (web component) does a full rebuild.
+        if (STRUCTURAL_KEYS.some(changed)) {
+            return false;
+        }
+
+        // Merge partial into options (only keys present on partial — preserves untouched ones).
+        for (const key of Object.keys(partial) as (keyof DatePickerOptions)[]) {
+            (this.options as any)[key] = (partial as any)[key];
+        }
+
+        // Refresh derived state where touched.
+        if (has('weekStartDay')) {
+            this.weekStartDay = Validation.detectWeekStartDay(this.options.weekStartDay);
+        }
+        if (has('locale') || has('customStrings') || has('monthNames')) {
+            this.locale = resolveLocale(this.options.locale);
+            this.localeStrings = getLocaleStrings(this.locale, this.options.customStrings);
+            this.weekdayNames = getWeekdayNames(this.locale);
+            this.monthNames = this.options.monthNames || getMonthNames(this.locale);
+        }
+        if (has('dateFormatMask')) {
+            this.formatInfo = this.parseFormat(this.options.dateFormatMask);
+        }
+        if (has('minDate') || has('maxDate') || has('disabledDates') || has('specialDates') || has('dateMember')) {
+            this.initializeDateRestrictions();
+        }
+        if (has('showDebugInfo')) {
+            if (this.options.showDebugInfo) enableLogging(); else disableLogging();
+        }
+
+        // Re-render is the universal post-step. Calendar DOM structure is unchanged,
+        // so this just updates content/classes/inline styles.
+        this.renderCalendar();
+        return true;
     }
 
     /**
@@ -584,118 +653,39 @@ class DateRangePicker {
     }
 
     /**
-     * Attach Floating UI tooltips to action buttons
+     * Attach Floating UI tooltips to action buttons.
+     * Each tooltip is a self-contained Tooltip instance owning its element,
+     * hover delays, and autoUpdate cleanup. `destroyAllActionButtonTooltips`
+     * disposes them all.
      */
     private attachActionButtonTooltips(): void {
         if (!this.actionsContainer) return;
 
-        const actionButtons = this.actionsContainer.querySelectorAll('.drp-date-picker__action');
+        const buttons: ActionButton[] = this.options.actionButtons || this.getDefaultButtons();
+        const container = this.options.container || document.body;
+        const renderedButtons = this.actionsContainer.querySelectorAll('.drp-date-picker__button');
 
-        actionButtons.forEach((button: Element) => {
+        renderedButtons.forEach((button: Element, index: number) => {
             const buttonElement = button as HTMLElement;
             const action = buttonElement.dataset.action;
             if (!action) return;
 
-            // Find the action button config to get tooltip
-            const buttons: ActionButton[] = this.options.actionButtons || this.getDefaultButtons();
             const actionConfig = buttons.find(btn => btn.action === action);
-
             if (!actionConfig) return;
 
-            // Get tooltip from callback or static property (PRIORITY SYSTEM)
-            let tooltipText: string | undefined;
-            if (actionConfig.getTooltipCallback) {
-                tooltipText = actionConfig.getTooltipCallback(this);
-            } else {
-                tooltipText = actionConfig.tooltip;
-            }
-
+            const tooltipText = actionConfig.getTooltipCallback
+                ? actionConfig.getTooltipCallback(this)
+                : actionConfig.tooltip;
             if (!tooltipText) return;
 
-            // Create unique ID for this button
-            const uniqueId = `action-${action}-${Date.now()}-${Math.random()}`;
-            this.createActionButtonTooltip(buttonElement, tooltipText, uniqueId);
+            buttonElement.dataset.tooltipId = `action-${index}`;
+            this.actionButtonTooltipInstances.push(new Tooltip(buttonElement, tooltipText, { container }));
         });
     }
 
-    /**
-     * Create a Floating UI tooltip for an action button
-     */
-    private createActionButtonTooltip(button: HTMLElement, tooltipText: string, uniqueId: string): void {
-        const tooltip = document.createElement('div');
-        tooltip.className = 'drp-date-picker__tooltip'; // Reuse existing tooltip styling
-        tooltip.textContent = tooltipText;
-
-        const container = this.options.container || document.body;
-        container.appendChild(tooltip);
-
-        this.actionButtonTooltips.set(uniqueId, tooltip);
-
-        // Setup hover handlers with delay
-        let showTimeout: number;
-        let hideTimeout: number;
-
-        const showTooltip = () => {
-            clearTimeout(hideTimeout);
-            showTimeout = window.setTimeout(() => {
-                tooltip.classList.add('drp-date-picker__tooltip--visible');
-                this.positionActionButtonTooltip(button, tooltip, uniqueId);
-            }, 300);
-        };
-
-        const hideTooltip = () => {
-            clearTimeout(showTimeout);
-            hideTimeout = window.setTimeout(() => {
-                tooltip.classList.remove('drp-date-picker__tooltip--visible');
-                const cleanup = this.actionButtonTooltipCleanups.get(uniqueId);
-                if (cleanup) {
-                    cleanup();
-                    this.actionButtonTooltipCleanups.delete(uniqueId);
-                }
-            }, 100);
-        };
-
-        button.addEventListener('mouseenter', showTooltip);
-        button.addEventListener('mouseleave', hideTooltip);
-    }
-
-    /**
-     * Position action button tooltip using Floating UI
-     */
-    private async positionActionButtonTooltip(button: HTMLElement, tooltip: HTMLElement, uniqueId: string): Promise<void> {
-        const { computePosition, flip, shift, offset, autoUpdate } = await import('@floating-ui/dom');
-
-        const cleanup = autoUpdate(button, tooltip, () => {
-            computePosition(button, tooltip, {
-                placement: 'top',
-                strategy: 'fixed',
-                middleware: [
-                    offset(8),
-                    flip(),
-                    shift({ padding: 8 })
-                ]
-            }).then(({ x, y }: { x: number, y: number }) => {
-                Object.assign(tooltip.style, {
-                    left: `${x}px`,
-                    top: `${y}px`
-                });
-            });
-        });
-
-        this.actionButtonTooltipCleanups.set(uniqueId, cleanup);
-    }
-
-    /**
-     * Destroy all action button tooltips
-     */
     private destroyAllActionButtonTooltips(): void {
-        // Clean up all tooltip positioning
-        this.actionButtonTooltipCleanups.forEach(cleanup => cleanup());
-        this.actionButtonTooltipCleanups.clear();
-
-        // Remove all tooltip elements
-        this.actionButtonTooltips.forEach(tooltip => tooltip.remove());
-        this.actionButtonTooltips.clear();
+        this.actionButtonTooltipInstances.forEach(t => t.destroy());
+        this.actionButtonTooltipInstances = [];
     }
 
     private parseMonthRange(range: string): { min: number, max: number } {
@@ -992,10 +982,19 @@ class DateRangePicker {
         const triggerMode = this.options.calendarOpenTrigger || 'focus'; // default to 'focus' for backward compatibility
 
         if (triggerMode === 'focus') {
-            // Open on focus only (not on click)
+            // Open on focus
             this.input.addEventListener('focus', () => {
                 drpLogger.debug('Input focused - opening calendar');
                 this.show();
+            });
+            // Also re-open on click when the input is already focused but the
+            // calendar got closed (e.g., by scroll). The focus event won't fire
+            // again because focus didn't change.
+            this.input.addEventListener('mousedown', () => {
+                if (!this.calendar.classList.contains('drp-date-picker--visible')) {
+                    drpLogger.debug('Input clicked while focused but calendar closed - reopening');
+                    this.show();
+                }
             });
         } else if (triggerMode === 'typing') {
             // Open when user starts typing
@@ -1018,7 +1017,6 @@ class DateRangePicker {
         // Delegate all click events
         this.calendar.addEventListener('click', async (e) => {
             const target = e.target as HTMLElement;
-            console.log('[click handler] clicked:', target.tagName, target.className, 'data-action:', target.dataset.action);
             // Stop propagation to prevent "close on outside click" from firing
             e.stopPropagation();
 
@@ -1168,7 +1166,7 @@ class DateRangePicker {
         // Track calendar focus for keyboard navigation (especially important for inline mode)
         // Note: Calendar click tracking is also handled by clickEvents manager
         this.calendar.addEventListener('focusin', () => {
-            this.isCalendarActive = true;
+            this.setCalendarActive();
         });
 
         // Note: Outside click deactivation is now handled by the clickEvents manager
@@ -1663,6 +1661,19 @@ class DateRangePicker {
         }));
     }
 
+    /**
+     * Mark this picker as the keyboard-active one. Broadcasts to other pickers
+     * on the page so they deactivate — only one picker responds to arrow keys
+     * at a time, even though the keydown listener lives on `document`.
+     */
+    setCalendarActive() {
+        if (this.isCalendarActive) return; // already active, don't re-broadcast
+        this.isCalendarActive = true;
+        document.dispatchEvent(new CustomEvent(DateRangePicker.ACTIVE_EVENT, { detail: this }));
+    }
+
+    static readonly ACTIVE_EVENT = 'drp-picker-activated';
+
     destroy() {
         // Unsubscribe from all event subscriptions
         this.scrollSubscriptions.forEach(sub => sub.unsubscribe());
@@ -1673,6 +1684,9 @@ class DateRangePicker {
         // Destroy event managers
         this.scrollEvents.destroy();
         this.clickEvents.destroy();
+
+        // Stop listening for cross-picker activation broadcasts
+        document.removeEventListener(DateRangePicker.ACTIVE_EVENT, this.onAnotherPickerActivated);
 
         // Destroy action button tooltips
         this.destroyAllActionButtonTooltips();

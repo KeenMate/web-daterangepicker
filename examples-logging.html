@@ -295,7 +295,6 @@
       id="drag-debug"
       selection-mode="range"
       visible-months-count="2"
-      value="2025-11-10 to 2025-11-20"
       show-debug-info
       placeholder="Select and drag">
     </web-daterangepicker>
@@ -395,10 +394,20 @@ Example:
 &lt;/script&gt;</div>
   </div>
 
-  <script type="module" src="dist/date-range-picker.js"></script>
+  <script type="module" src="/src/index.ts"></script>
 
   <script>
     document.addEventListener('DOMContentLoaded', () => {
+      // Set the drag-debug picker's pre-fill value relative to today.
+      const dragDebug = document.getElementById('drag-debug');
+      if (dragDebug) {
+        const _today = new Date(); _today.setHours(0, 0, 0, 0);
+        const off = (n) => {
+          const d = new Date(_today); d.setDate(d.getDate() + n);
+          return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+        };
+        dragDebug.setAttribute('value', `${off(-5)} to ${off(5)}`);
+      }
       console.log('🐛 Debug & Logging Examples Loaded');
       console.log('');
       console.log('📋 Instructions:');

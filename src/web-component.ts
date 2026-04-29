@@ -2,6 +2,124 @@ import { DateRangePicker } from './date-picker';
 import type { DatePickerOptions, DateRange, DecoratedDate, DateInfo, DayRenderData, BeforeSelectResult, ActionButton } from './types';
 import styles from './css/main.css?inline';
 
+// =============================================================================
+// Attribute parsers — small reusable functions that turn a raw attribute value
+// (from getAttribute / hasAttribute) into a typed option value.
+// =============================================================================
+
+type AttrReader = {
+    getAttribute(name: string): string | null;
+    hasAttribute(name: string): boolean;
+};
+
+type AttrParser = (el: AttrReader, attr: string) => unknown;
+
+const parseStringOrUndefined: AttrParser = (el, attr) => el.getAttribute(attr) || undefined;
+const parseStringOrEmpty: AttrParser = (el, attr) => el.getAttribute(attr) || '';
+const parsePositiveIntOrUndefined: AttrParser = (el, attr) => {
+    const n = parseInt(el.getAttribute(attr) || '0');
+    return Number.isFinite(n) && n > 0 ? n : undefined;
+};
+const parseIntOrUndefined: AttrParser = (el, attr) => {
+    const raw = el.getAttribute(attr);
+    if (raw == null) return undefined;
+    const n = parseInt(raw);
+    return Number.isFinite(n) ? n : undefined;
+};
+const parseBoolPresence: AttrParser = (el, attr) => el.hasAttribute(attr);
+/** Tri-state boolean: missing → undefined, present with "true"/"false" → typed boolean. */
+const parseTriStateBool: AttrParser = (el, attr) =>
+    el.hasAttribute(attr) ? el.getAttribute(attr) === 'true' : undefined;
+/** "close-on-scroll" semantics: presence flips on, but explicit "false" wins. */
+const parseTriStateBoolDefaultTrue: AttrParser = (el, attr) =>
+    el.hasAttribute(attr) ? el.getAttribute(attr) !== 'false' : undefined;
+const parseEnum = <T extends string>(values: readonly T[]): AttrParser =>
+    (el, attr) => {
+        const raw = el.getAttribute(attr) as T | null;
+        return raw && values.includes(raw) ? raw : undefined;
+    };
+const parseStringWithDefault = (defaultValue: string): AttrParser =>
+    (el, attr) => el.getAttribute(attr) || defaultValue;
+const parseDisabledWeekdays: AttrParser = (el, attr) => {
+    const raw = el.getAttribute(attr);
+    if (!raw) return undefined;
+    const parsed = raw.split(',').map(d => parseInt(d.trim())).filter(d => !isNaN(d) && d >= 0 && d <= 6);
+    return parsed.length ? parsed : undefined;
+};
+const parseWeekStartDay: AttrParser = (el, attr) => {
+    const raw = el.getAttribute(attr);
+    if (!raw) return undefined;
+    if (raw === 'auto') return 'auto';
+    const day = parseInt(raw);
+    return !isNaN(day) && day >= 0 && day <= 6 ? day : undefined;
+};
+
+// =============================================================================
+// ATTRIBUTE_TABLE — single source of truth driving observedAttributes,
+// initial parse, and live updates via attributeChangedCallback.
+// =============================================================================
+
+interface AttributeEntry {
+    attr: string;
+    key: keyof DatePickerOptions;
+    parser: AttrParser;
+}
+
+const SELECTION_MODES = ['single', 'range', 'multiple'] as const;
+const TRIGGERS = ['focus', 'typing', 'manual'] as const;
+const MONTH_LAYOUTS = ['horizontal', 'grid'] as const;
+const POSITIONING_MODES = ['inline', 'floating'] as const;
+const DISABLED_HANDLING = ['allow', 'prevent', 'block', 'split', 'individual'] as const;
+const AUTO_CLOSE = ['never', 'selection', 'apply'] as const;
+
+const ATTRIBUTE_TABLE: AttributeEntry[] = [
+    { attr: 'selection-mode',                  key: 'selectionMode',                  parser: parseEnum(SELECTION_MODES) },
+    { attr: 'date-format-mask',                key: 'dateFormatMask',                 parser: parseStringWithDefault('YYYY-MM-DD') },
+    { attr: 'visible-months-count',            key: 'visibleMonthsCount',             parser: parsePositiveIntOrUndefined },
+    { attr: 'calendar-open-trigger',           key: 'calendarOpenTrigger',            parser: parseEnum(TRIGGERS) },
+    { attr: 'month-layout',                    key: 'monthLayout',                    parser: parseEnum(MONTH_LAYOUTS) },
+    { attr: 'grid-rows',                       key: 'gridRows',                       parser: parsePositiveIntOrUndefined },
+    { attr: 'grid-columns',                    key: 'gridColumns',                    parser: parsePositiveIntOrUndefined },
+    { attr: 'unified-navigation',              key: 'unifiedNavigation',              parser: parseBoolPresence },
+    { attr: 'unified-navigation-anchor-index', key: 'unifiedNavigationAnchorIndex',   parser: parseIntOrUndefined },
+    { attr: 'unified-header-interactive',      key: 'unifiedHeaderInteractive',       parser: parseBoolPresence },
+    { attr: 'calendar-placement',              key: 'calendarPlacement',              parser: parseStringOrUndefined },
+    { attr: 'positioning-mode',                key: 'positioningMode',                parser: parseEnum(POSITIONING_MODES) },
+    { attr: 'week-start-day',                  key: 'weekStartDay',                   parser: parseWeekStartDay },
+    { attr: 'min-date',                        key: 'minDate',                        parser: parseStringOrUndefined },
+    { attr: 'max-date',                        key: 'maxDate',                        parser: parseStringOrUndefined },
+    { attr: 'initial-date',                    key: 'initialDate',                    parser: parseStringOrUndefined },
+    { attr: 'disabled-weekdays',               key: 'disabledWeekdays',               parser: parseDisabledWeekdays },
+    { attr: 'disabled-dates-handling',         key: 'disabledDatesHandling',          parser: parseEnum(DISABLED_HANDLING) },
+    { attr: 'highlight-disabled-in-range',     key: 'highlightDisabledInRange',       parser: parseTriStateBool },
+    { attr: 'locale',                          key: 'locale',                         parser: parseStringWithDefault('auto') },
+    { attr: 'display-format-mask',             key: 'displayFormatMask',              parser: parseStringOrUndefined },
+    { attr: 'show-debug-info',                 key: 'showDebugInfo',                  parser: parseBoolPresence },
+    { attr: 'rolling-year-range',              key: 'rollingYearRange',               parser: parseStringOrUndefined },
+    { attr: 'rolling-month-range',             key: 'rollingMonthRange',              parser: parseStringOrUndefined },
+    { attr: 'auto-close',                      key: 'autoClose',                      parser: parseEnum(AUTO_CLOSE) },
+    { attr: 'close-on-scroll',                 key: 'closeOnScroll',                  parser: parseTriStateBoolDefaultTrue },
+    { attr: 'show-today-button',               key: 'showTodayButton',                parser: parseTriStateBool },
+    { attr: 'show-clear-button',               key: 'showClearButton',                parser: parseTriStateBool },
+    { attr: 'show-apply-button',               key: 'showApplyButton',                parser: parseTriStateBool },
+];
+
+/** Attributes that don't affect the picker itself — handled by surgical `attributeChangedCallback` paths. */
+const NON_PICKER_ATTRIBUTES = ['value', 'placeholder', 'disabled', 'enable-transitions', 'input-size'] as const;
+
+/** Read all picker-affecting attributes from `el` into a partial DatePickerOptions. */
+function parseAttributesFromTable(el: AttrReader): Partial<DatePickerOptions> {
+    const result: Partial<DatePickerOptions> = {};
+    for (const entry of ATTRIBUTE_TABLE) {
+        const value = entry.parser(el, entry.attr);
+        if (value !== undefined) {
+            (result as any)[entry.key] = value;
+        }
+    }
+    return result;
+}
+
+
 export class WebDaterangepickerElement extends HTMLElement {
     private picker?: DateRangePicker;
     private inputElement?: HTMLInputElement;
@@ -39,15 +157,8 @@ export class WebDaterangepickerElement extends HTMLElement {
 
     static get observedAttributes() {
         return [
-            'selection-mode', 'date-format-mask', 'visible-months-count', 'calendar-open-trigger', 'value', 'disabled', 'placeholder',
-            'week-start-day', 'min-date', 'max-date', 'disabled-weekdays', 'disabled-dates-handling',
-            'highlight-disabled-in-range', 'positioning-mode', 'month-layout', 'grid-rows', 'grid-columns', 'calendar-placement',
-            'locale', 'display-format-mask', 'show-debug-info',
-            'initial-date', 'rolling-year-range', 'rolling-month-range',
-            'enable-transitions',
-            'auto-close', 'close-on-scroll', 'show-today-button', 'show-clear-button', 'show-apply-button',
-            'unified-navigation', 'unified-navigation-anchor-index', 'unified-header-interactive',
-            'input-size'
+            ...ATTRIBUTE_TABLE.map(e => e.attr),
+            ...NON_PICKER_ATTRIBUTES,
         ];
     }
 
@@ -101,42 +212,35 @@ export class WebDaterangepickerElement extends HTMLElement {
     attributeChangedCallback(name: string, oldValue: string | null, newValue: string | null) {
         if (oldValue === newValue) return;
 
-        // Handle transition attribute without re-initializing picker
-        if (name === 'enable-transitions') {
-            this.applyTransitionStyles();
-            return;
-        }
-
-        // Handle input-size attribute without re-initializing picker
-        if (name === 'input-size') {
-            this.applyInputSizeStyles();
-            return;
-        }
-
-        // Re-initialize picker if it exists and attributes changed
-        if (this.picker && name !== 'value' && name !== 'placeholder') {
-            this.picker.destroy();
-            this.initializePicker();
-        }
-
-        // Handle value changes
+        // Surgical UI updates that don't go through the picker.
+        if (name === 'enable-transitions') return this.applyTransitionStyles();
+        if (name === 'input-size') return this.applyInputSizeStyles();
         if (name === 'value' && this.inputElement && newValue !== null) {
             this.inputElement.value = newValue;
+            return;
         }
-
-        // Handle placeholder changes
         if (name === 'placeholder' && this.inputElement && newValue !== null) {
             this.inputElement.placeholder = newValue;
+            return;
+        }
+        if (name === 'disabled' && this.inputElement) {
+            this.inputElement.disabled = newValue !== null;
+            return;
         }
 
-        // Handle disabled state
-        if (name === 'disabled' && this.inputElement) {
-            if (newValue !== null) {
-                this.inputElement.disabled = true;
-            } else {
-                this.inputElement.disabled = false;
-            }
+        if (!this.picker) return;
+
+        // Picker-affecting attribute: parse via the table and try a surgical update.
+        // Falls back to full reinit only for genuinely structural changes.
+        const entry = ATTRIBUTE_TABLE.find(e => e.attr === name);
+        if (entry) {
+            const value = entry.parser(this, entry.attr);
+            const applied = this.picker.updateOptions({ [entry.key]: value } as Partial<DatePickerOptions>);
+            if (applied) return;
         }
+
+        this.picker.destroy();
+        this.initializePicker();
     }
 
     private render() {
@@ -182,60 +286,24 @@ export class WebDaterangepickerElement extends HTMLElement {
         // For floating mode, require input element
         if (display === 'floating' && !this.inputElement) return;
 
-        // Parse disabled-weekdays attribute (comma-separated numbers)
-        let disabledWeekdays: number[] | undefined;
-        const disabledWeekdaysAttr = this.getAttribute('disabled-weekdays');
-        if (disabledWeekdaysAttr) {
-            disabledWeekdays = disabledWeekdaysAttr.split(',').map(d => parseInt(d.trim())).filter(d => !isNaN(d) && d >= 0 && d <= 6);
-        }
-
-        // Parse week-start-day attribute
-        let weekStartDay: 'auto' | 0 | 1 | 2 | 3 | 4 | 5 | 6 | undefined;
-        const weekStartAttr = this.getAttribute('week-start-day');
-        if (weekStartAttr) {
-            if (weekStartAttr === 'auto') {
-                weekStartDay = 'auto';
-            } else {
-                const day = parseInt(weekStartAttr);
-                if (!isNaN(day) && day >= 0 && day <= 6) {
-                    weekStartDay = day as 0 | 1 | 2 | 3 | 4 | 5 | 6;
-                }
-            }
-        }
-
+        // Build options from attributes (table-driven) + complex/data properties (held on element).
         const options: DatePickerOptions = {
-            selectionMode: (this.getAttribute('selection-mode') as 'single' | 'range') || 'single',
-            dateFormatMask: this.getAttribute('date-format-mask') || 'YYYY-MM-DD',
-            visibleMonthsCount: parseInt(this.getAttribute('visible-months-count') || '0') || undefined,
+            ...parseAttributesFromTable(this),
+
+            // Defaults that aren't attribute-derived or that always need a value
+            selectionMode: (this.getAttribute('selection-mode') as 'single' | 'range' | 'multiple') || 'single',
             calendarOpenTrigger: (this.getAttribute('calendar-open-trigger') as 'focus' | 'typing' | 'manual') || 'focus',
-            onSelect: (date) => this.handleDateSelect(date),
-            container: this.shadow as unknown as HTMLElement, // Append calendar to shadow root
             positioningMode: display as 'inline' | 'floating',
 
-            // Layout options
-            monthLayout: (this.getAttribute('month-layout') as 'horizontal' | 'grid') || undefined,
-            gridRows: parseInt(this.getAttribute('grid-rows') || '0') || undefined,
-            gridColumns: parseInt(this.getAttribute('grid-columns') || '0') || undefined,
-            unifiedNavigation: this.hasAttribute('unified-navigation'),
-            unifiedNavigationAnchorIndex: parseInt(this.getAttribute('unified-navigation-anchor-index') || '0') || undefined,
-            unifiedHeaderInteractive: this.hasAttribute('unified-header-interactive'),
+            onSelect: (date) => this.handleDateSelect(date),
+            container: this.shadow as unknown as HTMLElement, // Append calendar to shadow root
 
-            // Positioning
-            calendarPlacement: this.getAttribute('calendar-placement') || undefined,
-
-            // New options
-            weekStartDay: weekStartDay,
-            minDate: this.getAttribute('min-date') || undefined,
-            maxDate: this.getAttribute('max-date') || undefined,
-            initialDate: this.getAttribute('initial-date') || undefined,
-            disabledWeekdays: disabledWeekdays,
+            // Complex data — held on the element, not attributes
             disabledDates: this._disabledDates,
             specialDates: this._specialDates,
             getDateMetadataCallback: this._getDateMetadataCallback,
             badgeTooltipCallback: this._badgeTooltipCallback,
             dayTooltipCallback: this._dayTooltipCallback,
-
-            // Member mapping properties
             dateMember: this._dateMember,
             badgeTextMember: this._badgeTextMember,
             badgeClassMember: this._badgeClassMember,
@@ -243,36 +311,15 @@ export class WebDaterangepickerElement extends HTMLElement {
             badgeTooltipMember: this._badgeTooltipMember,
             dayTooltipMember: this._dayTooltipMember,
             isDisabledMember: this._isDisabledMember,
-
-            disabledDatesHandling: (this.getAttribute('disabled-dates-handling') as 'allow' | 'prevent' | 'block' | 'split' | 'individual') || undefined,
-            highlightDisabledInRange: this.hasAttribute('highlight-disabled-in-range') ? this.getAttribute('highlight-disabled-in-range') === 'true' : undefined,
-            locale: this.getAttribute('locale') || 'auto',
-            displayFormatMask: this.getAttribute('display-format-mask') || undefined,
-            showDebugInfo: this.hasAttribute('show-debug-info'),
-
-            // Rolling selector configuration
-            rollingYearRange: this.getAttribute('rolling-year-range') || undefined,
-            rollingMonthRange: this.getAttribute('rolling-month-range') || undefined,
-
-            // Custom rendering
             customStylesCallback: this._customStylesCallback,
             renderDayCallback: this._renderDayCallback,
             renderDayContentCallback: this._renderDayContentCallback,
-
-            // Callbacks
             beforeDateSelectCallback: this._beforeDateSelectCallback,
             beforeMonthChangedCallback: this._beforeMonthChangedCallback,
             formatSummaryCallback: this._formatSummaryCallback,
             getUnifiedHeaderCallback: this._getUnifiedHeaderCallback,
             getMonthHeaderCallback: this._getMonthHeaderCallback,
-
-            // Action button configuration
-            autoClose: (this.getAttribute('auto-close') as 'never' | 'selection' | 'apply') || undefined,
-            closeOnScroll: this.hasAttribute('close-on-scroll') ? this.getAttribute('close-on-scroll') !== 'false' : undefined,
             actionButtons: this._actionButtons,
-            showTodayButton: this.hasAttribute('show-today-button') ? this.getAttribute('show-today-button') === 'true' : undefined,
-            showClearButton: this.hasAttribute('show-clear-button') ? this.getAttribute('show-clear-button') === 'true' : undefined,
-            showApplyButton: this.hasAttribute('show-apply-button') ? this.getAttribute('show-apply-button') === 'true' : undefined
         };
 
         // For inline mode, pass null as input element
@@ -307,8 +354,23 @@ export class WebDaterangepickerElement extends HTMLElement {
     }
 
     /**
-     * Schedule a deferred re-initialization of the picker
-     * This allows multiple property assignments to complete before re-init
+     * Apply a single-key option change in place. Falls back to a deferred full
+     * reinit only for genuinely structural changes (visibleMonthsCount,
+     * positioningMode, etc. — caught by `updateOptions` returning false).
+     *
+     * The microtask defer batches consecutive sets of multiple unrelated keys
+     * into one rebuild when a structural change does occur.
+     */
+    private applyOptionUpdate<K extends keyof DatePickerOptions>(key: K, value: DatePickerOptions[K]): void {
+        if (!this.picker) return;
+        const applied = this.picker.updateOptions({ [key]: value } as Partial<DatePickerOptions>);
+        if (!applied) this.scheduleReinit();
+    }
+
+    /**
+     * Schedule a deferred re-initialization of the picker.
+     * Used as the fallback when a structural change makes a surgical update
+     * impossible. Microtask-batched so back-to-back assignments rebuild once.
      */
     private scheduleReinit() {
         if (this._pendingReinit) {
@@ -454,7 +516,6 @@ export class WebDaterangepickerElement extends HTMLElement {
             console.warn('[web-daterangepicker] showMessage() called but picker not initialized yet');
             return;
         }
-        console.log('[web-component] showMessage() called with:', content, type);
         this.picker.showMessage(content, type, autoHide);
     }
 
@@ -608,10 +669,7 @@ export class WebDaterangepickerElement extends HTMLElement {
 
     set specialDates(value: DecoratedDate[] | undefined) {
         this._specialDates = value;
-        if (this.picker) {
-            this.picker.destroy();
-            this.initializePicker();
-        }
+        this.applyOptionUpdate('specialDates', value);
     }
 
     get disabledDates(): (Date | string)[] | undefined {
@@ -620,10 +678,7 @@ export class WebDaterangepickerElement extends HTMLElement {
 
     set disabledDates(value: (Date | string)[] | undefined) {
         this._disabledDates = value;
-        if (this.picker) {
-            this.picker.destroy();
-            this.initializePicker();
-        }
+        this.applyOptionUpdate('disabledDates', value);
     }
 
 
@@ -634,7 +689,7 @@ export class WebDaterangepickerElement extends HTMLElement {
 
     set getDateMetadataCallback(value: ((date: Date) => DateInfo | null) | undefined) {
         this._getDateMetadataCallback = value;
-        this.scheduleReinit();
+        this.applyOptionUpdate('getDateMetadataCallback', value);
     }
 
     get badgeTooltipCallback(): ((data: DayRenderData) => string | null) | undefined {
@@ -643,7 +698,7 @@ export class WebDaterangepickerElement extends HTMLElement {
 
     set badgeTooltipCallback(value: ((data: DayRenderData) => string | null) | undefined) {
         this._badgeTooltipCallback = value;
-        this.scheduleReinit();
+        this.applyOptionUpdate('badgeTooltipCallback', value);
     }
 
     get dayTooltipCallback(): ((data: DayRenderData) => string | null) | undefined {
@@ -652,7 +707,7 @@ export class WebDaterangepickerElement extends HTMLElement {
 
     set dayTooltipCallback(value: ((data: DayRenderData) => string | null) | undefined) {
         this._dayTooltipCallback = value;
-        this.scheduleReinit();
+        this.applyOptionUpdate('dayTooltipCallback', value);
     }
 
     // Custom rendering properties
@@ -662,6 +717,8 @@ export class WebDaterangepickerElement extends HTMLElement {
 
     set customStylesCallback(value: (() => string) | undefined) {
         this._customStylesCallback = value;
+        // Custom styles inject a <style> tag into shadow DOM during initializePicker —
+        // partial update can't replicate that, so always reinit.
         this.scheduleReinit();
     }
 
@@ -671,7 +728,7 @@ export class WebDaterangepickerElement extends HTMLElement {
 
     set renderDayCallback(value: ((data: DayRenderData) => HTMLElement | string | null) | undefined) {
         this._renderDayCallback = value;
-        this.scheduleReinit();
+        this.applyOptionUpdate('renderDayCallback', value);
     }
 
     get renderDayContentCallback(): ((data: DayRenderData) => HTMLElement | string | null) | undefined {
@@ -680,7 +737,7 @@ export class WebDaterangepickerElement extends HTMLElement {
 
     set renderDayContentCallback(value: ((data: DayRenderData) => HTMLElement | string | null) | undefined) {
         this._renderDayContentCallback = value;
-        this.scheduleReinit();
+        this.applyOptionUpdate('renderDayContentCallback', value);
     }
 
     get beforeDateSelectCallback() {
@@ -689,7 +746,7 @@ export class WebDaterangepickerElement extends HTMLElement {
 
     set beforeDateSelectCallback(value: ((selection: Date | DateRange) => Promise<BeforeSelectResult> | BeforeSelectResult) | undefined) {
         this._beforeDateSelectCallback = value;
-        this.scheduleReinit();
+        this.applyOptionUpdate('beforeDateSelectCallback', value);
     }
 
     get beforeMonthChangedCallback() {
@@ -698,7 +755,7 @@ export class WebDaterangepickerElement extends HTMLElement {
 
     set beforeMonthChangedCallback(value: ((context: any) => Promise<any> | any) | undefined) {
         this._beforeMonthChangedCallback = value;
-        this.scheduleReinit();
+        this.applyOptionUpdate('beforeMonthChangedCallback', value);
     }
 
     get formatSummaryCallback(): ((data: any) => string) | undefined {
@@ -707,7 +764,7 @@ export class WebDaterangepickerElement extends HTMLElement {
 
     set formatSummaryCallback(value: ((data: any) => string) | undefined) {
         this._formatSummaryCallback = value;
-        this.scheduleReinit();
+        this.applyOptionUpdate('formatSummaryCallback', value);
     }
 
     get getUnifiedHeaderCallback(): ((data: { firstMonth: Date; lastMonth: Date; anchorMonth: Date; monthNames: string[] }) => string) | undefined {
@@ -716,7 +773,7 @@ export class WebDaterangepickerElement extends HTMLElement {
 
     set getUnifiedHeaderCallback(value: ((data: { firstMonth: Date; lastMonth: Date; anchorMonth: Date; monthNames: string[] }) => string) | undefined) {
         this._getUnifiedHeaderCallback = value;
-        this.scheduleReinit();
+        this.applyOptionUpdate('getUnifiedHeaderCallback', value);
     }
 
     get getMonthHeaderCallback(): ((data: { month: Date; monthIndex: number; monthName: string; year: number }) => string) | undefined {
@@ -725,7 +782,7 @@ export class WebDaterangepickerElement extends HTMLElement {
 
     set getMonthHeaderCallback(value: ((data: { month: Date; monthIndex: number; monthName: string; year: number }) => string) | undefined) {
         this._getMonthHeaderCallback = value;
-        this.scheduleReinit();
+        this.applyOptionUpdate('getMonthHeaderCallback', value);
     }
 
     // Member mapping getters/setters
@@ -735,10 +792,7 @@ export class WebDaterangepickerElement extends HTMLElement {
 
     set dateMember(value: string | undefined) {
         this._dateMember = value;
-        if (this.picker) {
-            this.picker.destroy();
-            this.initializePicker();
-        }
+        this.applyOptionUpdate('dateMember', value);
     }
 
     get badgeTextMember(): string | undefined {
@@ -747,10 +801,7 @@ export class WebDaterangepickerElement extends HTMLElement {
 
     set badgeTextMember(value: string | undefined) {
         this._badgeTextMember = value;
-        if (this.picker) {
-            this.picker.destroy();
-            this.initializePicker();
-        }
+        this.applyOptionUpdate('badgeTextMember', value);
     }
 
     get badgeClassMember(): string | undefined {
@@ -759,10 +810,7 @@ export class WebDaterangepickerElement extends HTMLElement {
 
     set badgeClassMember(value: string | undefined) {
         this._badgeClassMember = value;
-        if (this.picker) {
-            this.picker.destroy();
-            this.initializePicker();
-        }
+        this.applyOptionUpdate('badgeClassMember', value);
     }
 
     get dayClassMember(): string | undefined {
@@ -771,10 +819,7 @@ export class WebDaterangepickerElement extends HTMLElement {
 
     set dayClassMember(value: string | undefined) {
         this._dayClassMember = value;
-        if (this.picker) {
-            this.picker.destroy();
-            this.initializePicker();
-        }
+        this.applyOptionUpdate('dayClassMember', value);
     }
 
     get badgeTooltipMember(): string | undefined {
@@ -783,10 +828,7 @@ export class WebDaterangepickerElement extends HTMLElement {
 
     set badgeTooltipMember(value: string | undefined) {
         this._badgeTooltipMember = value;
-        if (this.picker) {
-            this.picker.destroy();
-            this.initializePicker();
-        }
+        this.applyOptionUpdate('badgeTooltipMember', value);
     }
 
     get dayTooltipMember(): string | undefined {
@@ -795,10 +837,7 @@ export class WebDaterangepickerElement extends HTMLElement {
 
     set dayTooltipMember(value: string | undefined) {
         this._dayTooltipMember = value;
-        if (this.picker) {
-            this.picker.destroy();
-            this.initializePicker();
-        }
+        this.applyOptionUpdate('dayTooltipMember', value);
     }
 
     get isDisabledMember(): string | undefined {
@@ -807,10 +846,7 @@ export class WebDaterangepickerElement extends HTMLElement {
 
     set isDisabledMember(value: string | undefined) {
         this._isDisabledMember = value;
-        if (this.picker) {
-            this.picker.destroy();
-            this.initializePicker();
-        }
+        this.applyOptionUpdate('isDisabledMember', value);
     }
 
     // Action button configuration
@@ -820,10 +856,7 @@ export class WebDaterangepickerElement extends HTMLElement {
 
     set actionButtons(value: ActionButton[] | undefined) {
         this._actionButtons = value;
-        if (this.picker) {
-            this.picker.destroy();
-            this.initializePicker();
-        }
+        this.applyOptionUpdate('actionButtons', value);
     }
 
     // Reactive selection properties (forward to picker)

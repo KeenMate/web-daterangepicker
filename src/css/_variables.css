@@ -205,7 +205,7 @@
 
   --drp-nav-text-color: var(--drp-text-primary);
   --drp-nav-border-color: var(--drp-border-color);
-  --drp-nav-border: var(--drp-border);
+  --drp-nav-border: var(--drp-border-width-base) solid var(--drp-nav-border-color);
   --drp-nav-bg-hover: var(--drp-primary-bg);
   --drp-nav-bg-active: var(--drp-primary-bg-hover);
   --drp-nav-border-hover: var(--drp-accent-color);
@@ -217,7 +217,7 @@
   /* Rolling Selector */
   --drp-rolling-bg: var(--drp-primary-bg);
   --drp-rolling-border-color: var(--drp-border-color);
-  --drp-rolling-border: var(--drp-border);
+  --drp-rolling-border: var(--drp-border-width-base) solid var(--drp-rolling-border-color);
   --drp-rolling-scrollbar-width: 6px;
   --drp-rolling-scrollbar-thumb: var(--drp-border-color);
   --drp-rolling-scrollbar-thumb-hover: var(--drp-accent-color);
@@ -245,12 +245,15 @@
   --drp-day-selected-bg: var(--drp-accent-color);
   --drp-day-selected-color: var(--drp-text-color-on-accent);
   --drp-day-selected-bg-hover: var(--drp-accent-color-hover);
+  --drp-day-selected-color-hover: var(--drp-day-selected-color);
   --drp-day-focused-outline: var(--drp-accent-color);
   --drp-day-disabled-color: var(--drp-text-secondary);
   --drp-day-disabled-bg: var(--base-disabled-bg, transparent);
   --drp-day-other-month-color: var(--drp-text-secondary);
   --drp-day-range-bg: var(--drp-accent-color);
+  --drp-day-range-bg-hover: var(--drp-accent-color-hover);
   --drp-day-range-color: var(--drp-text-color-on-accent);
+  --drp-day-range-color-hover: var(--drp-day-range-color);
 
   /* Day Cell Dimensions & Borders */
   --drp-day-border-width: 2px;
@@ -264,6 +267,10 @@
   --drp-day-in-range-hover-bg-opacity: 0.25;
   --drp-day-drag-preview-bg-opacity: 0.30;
   --drp-day-drag-preview-edge-bg-opacity: 0.60;
+
+  /* Invalid Range (showInvalidRange callback) */
+  --drp-day-invalid-range-bg: var(--drp-message-error-border);
+  --drp-day-invalid-range-color: var(--drp-text-color-on-accent);
 
   /* Day Disabled Pattern */
   --drp-day-disabled-pattern-opacity: 0.1;
@@ -288,11 +295,11 @@
      ========================================================================== */
   --drp-summary-text-color: var(--drp-text-secondary);
   --drp-summary-border-color: var(--drp-border-color);
-  --drp-summary-border: var(--drp-border);
+  --drp-summary-border: var(--drp-border-width-base) solid var(--drp-summary-border-color);
   --drp-summary-count-color: var(--drp-accent-color);
 
   --drp-button-border-color: var(--drp-border-color);
-  --drp-button-border: var(--drp-border);
+  --drp-button-border: var(--drp-border-width-base) solid var(--drp-button-border-color);
   --drp-button-bg: transparent;
   --drp-button-bg-hover: var(--drp-primary-bg);
   --drp-button-color: var(--drp-text-primary);

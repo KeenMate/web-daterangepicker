@@ -5,6 +5,112 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Documentation — Working with Dates Across Timezones
+
+- Added a prominent **⚠️ Working with Dates Across Timezones** section to `README.md` (above Advanced Features). Covers: how the picker represents dates (local-midnight `Date` objects, no UTC anywhere), the `toISOString()` trap and why it shifts dates by ±1 day, the `toLocalISO()` helper pattern for picker callbacks, a server/client transmission table, the `new Date("YYYY-MM-DD")` UTC-midnight gotcha, and a quick checklist. Includes worked examples for the Russia → LA round-trip case.
+- Fixed three buggy `toISOString()` snippets in the existing README docs (`getDateMetadataCallback`, `beforeDateSelectCallback` server fetch, `beforeMonthChangedCallback` server fetch) — they were teaching users the same UTC-shift bug we just fixed in the example pages. Each snippet now uses `toLocalISO()` with a comment pointing back to the timezone section.
+
+### Fixed (examples — UTC vs local date in `getDateMetadataCallback` lookups)
+
+- **Badges in `examples-badges-tooltips.html` rendered one day late in any timezone east of UTC** (e.g., CEST). The lookup keys were built from local date components via `dayOffset()`, but `getDateMetadataCallback` used `date.toISOString().split('T')[0]` to derive the key — which converts to UTC. For a user in UTC+2, local **April 30 00:00** is UTC **April 29 22:00**, so the metadata callback queried `"2026-04-29"` and missed; meanwhile querying May 1 returned April 30's value. The icon ended up on May 1 while the tooltip (which uses `data.dateString`, already local) correctly fired on April 30. Most visible in *Method 3: Advanced HTML Tooltips → Event Details Tooltips*.
+
+  **Fix:** added a `toLocalISO(date)` helper to the example scripts and replaced **every** `toISOString().split('T')[0]` callsite — both in live code (~30 callsites across `examples-events.html`, `examples-badges-tooltips.html`, `examples-custom-rendering.html`) and in the documentation `<pre><code>` blocks (5 more) so the docs don't keep teaching the bug. The picker core itself was unaffected; only example code that did its own `Date → string` formatting was wrong.
+
+### Examples — anchored to today (won't go stale next year)
+
+- All example data that was previously hardcoded to 2025/2024 dates is now built relative to today via `dayOffset(N)` / `monthFirstISO()` / `yearFirstISO()` helpers in each `<script>` block:
+  - `examples-badges-tooltips.html` — 8 date arrays/maps (specialDates × 4, bookedRanges, bookingInfo, eventInfo, priceData)
+  - `examples-basic.html` — `disabledDatesDemo`, `inlineHolidays`, plus 6 HTML pickers (`prefilled-single`, `prefilled-range`, `prefilled-disabled`, `range-limits-demo`, `year-limit-demo`, `q4-demo`) — values + min-date + max-date set via JS at load time
+  - `examples-custom-rendering.html` — `prices`, `events`, `cloudyDates`, `bookingData`; all 6 demo pickers' `min-date`/`max-date` constrained to the current month via JS
+  - `examples-api-methods.html` — `btn-set-single` and `btn-set-range` button handlers
+  - `examples-logging.html` — `drag-debug` picker's pre-filled value
+- Labels updated where they referenced specific years ("Only November 2025" → "Only the current month"; "Limited to 2025 Only" → "Limited to Current Year Only"; "Q4 Business Planning (Oct-Dec 2024)" → "Oct-Dec, current year") so the demo descriptions stay truthful.
+- `examples-javascript-instantiation.html` — fixed two stale `src/scss/main.scss` imports that referenced a path which never existed in the TS rewrite. Now imports `src/css/main.css`.
+
+### Fixed (pre-existing — calendar opens off-screen below input)
+
+- **Calendar opened below the input even when the input had no room below it (e.g., the 2×3 grid layout near the bottom of the viewport).** Floating UI's `flip()` should have flipped the calendar above, but didn't. Two issues combined:
+  1. The author cached the resolved placement (`lockedPlacement`) after the first `computePosition` and removed `flip()` from the middleware on subsequent calls — to prevent "jitter" during `autoUpdate`. But if the first compute happened before the calendar's layout flushed (height ≈ 0), `flip()` wrongly concluded the calendar fit below, locked there, and the cache stuck for the rest of the session.
+  2. No `size` middleware, so even when flipping worked, a calendar taller than the viewport (the 2×3 grid is ~900 px) would extend off-screen in either direction.
+
+  **Fix:** dropped the placement cache — `flip({ padding: 8 })` runs on every `position()` call now, so the calendar repositions correctly across the lifecycle. Added Floating UI's `size` middleware to cap the calendar's `max-height` to the available viewport space and turn on internal scrolling when it doesn't fit. The `lockedPlacement` field on the picker class is removed.
+
+  Pre-existing — the cache predates this refactor. Bundle: +1.4 kB UMD (the `size` middleware import).
+
+### Fixed (pre-existing — input click after auto-close)
+
+- **Clicking the input after scroll-close did nothing** until the user clicked elsewhere first. With `calendarOpenTrigger: 'focus'` (the default), `show()` was wired only to the `focus` event. After `closeOnScroll` closed the calendar, the input still had focus, so clicking it again fired no focus event and the calendar stayed closed. **Fix:** added a `mousedown` listener that re-opens the calendar if it's closed and the input is already focused. Pre-existing — predates this refactor.
+
+### Fixed (pre-existing — keyboard navigation scope)
+
+- **Arrow keys fired on every picker on the page simultaneously**, causing focused-day indicators to jump in lockstep across multiple inline pickers and (where the page had room) the page to scroll. Pre-existing since commit `2c57170a` (Nov 6, 2025). The keydown listener lives on `document` and every inline picker set `isCalendarActive = true` at init, so the per-picker `if (!this.isCalendarActive) return` guard was always false for all of them at once.
+
+  **Fix:** new `picker.setCalendarActive()` method broadcasts a `drp-picker-activated` custom event when a picker becomes active. Other pickers listen for it and set their own `isCalendarActive = false`. Inline pickers no longer auto-activate at init — clicking, focusing, or programmatically `show()`-ing a picker activates it and deactivates the others.
+
+  Behavior change: on a page with multiple inline pickers, the user now needs to click any cell or button in a picker once before arrow keys take effect. (Previously arrow keys "worked" but operated on every picker at once, which wasn't useful.) Floating-mode pickers are unaffected — they activate on `show()`.
+
+### Added (Phase 4 — public API)
+
+- **`picker.updateOptions(partial)`** on `DateRangePicker`. Merges a partial `DatePickerOptions` into the live picker, refreshes derived state (locale strings, format info, normalized min/max/disabled/special date sets), and re-renders — **without** destroying selection, focus, scroll, or drag state. Returns `true` when fully applied. Returns `false` for genuinely structural changes (`positioningMode`, `selectionMode`, `visibleMonthsCount`, `monthLayout`, `gridRows`, `gridColumns`, `unifiedNavigation`, `unifiedNavigationAnchorIndex`, `calendarOpenTrigger`) so callers can fall back to a full reinit.
+- **`Tooltip` class** exported from `src/tooltip.ts` — self-contained Floating-UI tooltip with hover-delay lifecycle, autoUpdate cleanup, and `destroy()`. Replaces the inline action-button tooltip code that previously lived in `date-picker.ts`.
+
+### Behavior changes (no public API breaks)
+
+- **Attribute changes no longer destroy the picker** for non-structural attributes. Toggling `min-date`, `max-date`, `locale`, `display-format-mask`, `disabled-dates-handling`, `show-today-button`, `show-clear-button`, `show-apply-button`, `auto-close`, `close-on-scroll`, `rolling-year-range`, `rolling-month-range`, `highlight-disabled-in-range`, `show-debug-info`, `disabled-weekdays`, `week-start-day`, `initial-date`, or `calendar-placement` now goes through `updateOptions` and preserves selection state. Reactive frameworks toggling these attributes per render no longer wipe the user's selection on every cycle.
+- **Callback-property assignment routes through `updateOptions`** — setting `getDateMetadataCallback`, `badgeTooltipCallback`, `dayTooltipCallback`, `renderDayCallback`, `renderDayContentCallback`, `beforeDateSelectCallback`, `beforeMonthChangedCallback`, `formatSummaryCallback`, `getUnifiedHeaderCallback`, or `getMonthHeaderCallback` no longer rebuilds the picker. (`customStylesCallback` continues to require a full reinit because it injects a `<style>` tag into shadow DOM.)
+- **Complex-data setters route through `updateOptions`** — `specialDates`, `disabledDates`, `actionButtons`, and the seven member-mapping properties (`dateMember`, `badgeTextMember`, `badgeClassMember`, `dayClassMember`, `badgeTooltipMember`, `dayTooltipMember`, `isDisabledMember`) update in place. Previously each triggered an immediate destroy + reinit on every assignment.
+- **`initializeDateRestrictions` is now idempotent** — clears `normalizedDisabledDates` / `normalizedSpecialDates` before rebuilding, so removing entries via `updateOptions` actually removes them. Also recomputes `normalizedMinDate` / `normalizedMaxDate` (rather than leaving stale values when those options are cleared).
+
+### Internal (Phase 4)
+
+- Single `ATTRIBUTE_TABLE` in `web-component.ts` is now the source of truth for all 29 picker-affecting attributes. Each entry maps `{ attr, key, parser }`. Drives `observedAttributes`, the initial parse in `initializePicker`, and live updates in `attributeChangedCallback`. Replaces the previous hand-coded ~70-line attribute → option block plus the parallel hand-listed `observedAttributes` array.
+- Reusable attribute parsers extracted: `parseStringOrUndefined`, `parsePositiveIntOrUndefined`, `parseBoolPresence`, `parseTriStateBool`, `parseTriStateBoolDefaultTrue`, `parseEnum`, `parseDisabledWeekdays`, `parseWeekStartDay`. Adding a new attribute is now one table entry.
+
+### Refactor (Phase 3 — Tooltip class)
+
+- Three methods (`createActionButtonTooltip`, `positionActionButtonTooltip`, `destroyAllActionButtonTooltips`) plus their two state maps in `date-picker.ts` collapse into a single `Tooltip[]` field and a per-button `new Tooltip(target, text, { container })`. Each Tooltip instance owns its DOM element, hover-delay timers, and Floating UI autoUpdate cleanup; `destroy()` releases everything. Same pattern as multiselect 1.9.0's tooltip consolidation.
+
+### Refactor (Phase 2 — internal dedup, behavior-preserving)
+
+- **`moveFocusToDate(picker, target)`** — extracted the duplicated 40-line "walk monthDates → find column → query day cell → toggle `--focused` class" loop in `selectDay`. Single helper replaces the single-mode-adjusted-date and range-end-date blocks.
+- **`changeMonth(picker, monthIndex, offset)`** — `prevMonth` and `nextMonth` (mirror images) collapsed into one async function. Public `prevMonth`/`nextMonth` exports kept as thin arrow-function wrappers for source compatibility. Collision-with-neighbour propagation uses the same `offset` direction.
+- **Rolling-selector list rendering** — four near-identical render blocks (years/months × per-column/unified) collapsed into `renderRollingItems` + `renderRollingLists`. Both `renderRollingSelector` and `renderUnifiedRollingSelector` now build a small data array and delegate to the shared renderer; HTML output is byte-for-byte identical.
+- **`commitInputValue(picker, value)`** — five sites (selectDay single/range/multiple, selectToday, drag-end) gated on `if (picker.input && !picker.requiresApplyButton())` are now a one-liner. `commitInputValue` is exported and reused from `date-picker-interaction.ts` so the gate lives in one place.
+- **`formatInputValue(picker)`** — `apply()`'s mode-dispatch input formatting (range / single / multiple) extracted to a pure helper.
+- **`commitSelection(picker)`** — three sites of `picker.renderCalendar(); picker.updateSummary();` go through one hook. Single seat for adding debounced events / bulk-op callbacks later.
+
+Net: TS line count across the four affected files dropped by 73 lines (3256 → 3183, −2.2%) after factoring in ~52 lines of new helpers. UMD bundle: 173.72 kB → 172.02 kB (−1.7 kB). No behavior changes, no public API changes.
+
+### Refactor (Phase 2 — CSS)
+
+- **Per-component `*-border-color` hooks now actually do something** — `--drp-nav-border`, `--drp-rolling-border`, `--drp-summary-border`, `--drp-button-border` were defaulting to `var(--drp-border)` directly, ignoring their per-section `*-border-color` siblings. Rebuilt each shorthand from `var(--drp-border-width-base) solid var(--drp-{section}-border-color)` so overriding (e.g.) `--drp-nav-border-color: red;` actually changes the nav border. Defaults unchanged — the per-section `*-border-color` defaults to `--drp-border-color`. Same fix pattern as multiselect 1.9.0 §6.6.
+- **Hardcoded `white` replaced** — `.drp-date-picker__day--invalid-range-start/end` had a hardcoded `color: white` bypassing theming. Added `--drp-day-invalid-range-bg` and `--drp-day-invalid-range-color` (defaulting to `--drp-message-error-border` and `--drp-text-color-on-accent` respectively); rule now references the variables. Theme designers can now adjust the invalid-range text/background.
+
+### Fixed
+
+- **Action-button tooltips never attached** — `attachActionButtonTooltips` queried `.drp-date-picker__action`, but rendered buttons use `.drp-date-picker__button`. The selector matched nothing, so tooltips on Today/Clear/Apply/custom buttons silently never appeared. Same flavor as the multiselect 1.9.0 selector bug.
+- **Action-button tooltip ID churn** — tooltip IDs used `Date.now()-Math.random()`, regenerated on every render. Switched to a stable per-slot ID (`action-{index}`) stamped onto `data-tooltip-id`. Removes a class of race conditions where an in-flight `hideTooltip` timeout would try to clean up an ID the new render had already replaced.
+- **`disabled` attribute triggered full picker rebuild** — `attributeChangedCallback` was missing `disabled` from its surgical-update exclusion list, so toggling `disabled` tore down the calendar and rebuilt it before applying the trivial input-state change. Selection state was lost on every toggle. Added to the exclusion list; the surgical handler immediately below already does the right thing.
+
+### Changed
+
+- **Removed seven `console.log` calls** from production hot paths (drag-end, click handler, `showMessage`, web-component `showMessage`). One genuinely useful `messageElement is null` diagnostic was converted to `uiLogger.warn` so it routes through `loglevel` and respects the configured log level.
+- **Removed a `setTimeout` + `getComputedStyle` block in `show()`** that forced layout flush on every calendar open purely to log computed styles. The result was never used by anything but the log call.
+- **Documented the HTML-trusted callback contract** — `renderDayCallback`, `renderDayContentCallback`, `formatSummaryCallback`, and `getUnifiedHeaderCallback` splice their string return values directly into `innerHTML`. Added `SECURITY:` JSDoc notes recommending callers sanitize untrusted data or return an `HTMLElement` instead.
+- **Locked in `||` semantics in `validateRangeAsync`** — partial adjustment (`adjustedStart` set without `adjustedEnd`, or vice versa) is intentional; consumers fall back per-field. Added a comment so the intent isn't lost in future refactors.
+- **`CLAUDE.md`** — rewrote the Architecture section to describe the actual TypeScript module split (`-rendering`, `-navigation`, `-interaction`, `-selection`, `-ui`, `-validation`, `-locales`). Removed stale references to `src/js/`, `src/scss/`, the `[data-date-picker]` auto-init, and the `Sass` build tool.
+
+### Added
+
+- **Selection Hover Text Color Variables**: New CSS variables for full color control on hover states of selected/range days
+  - `--drp-day-selected-color-hover` — text color when hovering over a selected day (defaults to `--drp-day-selected-color`)
+  - `--drp-day-range-color-hover` — text color when hovering over range start/end days (defaults to `--drp-day-range-color`)
+  - Enables full color inversion on hover (e.g., black bg + white text → white bg + black text)
+  - Backwards compatible — defaults match non-hover values so existing themes are unaffected
+  - Updated `examples-theming.html` to demonstrate full black↔white inversion on selection hover
+
 ## [1.10.1] - 2026-01-22 - PUBLISHED
 
 ### Fixed

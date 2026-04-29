@@ -908,6 +908,13 @@ const manager = new DateRangeManager();</code></pre>
         // Wait for custom element to be defined
         await customElements.whenDefined('web-daterangepicker');
 
+        // Date helpers — keep example data anchored to today so the demos never go stale.
+        const _today = new Date(); _today.setHours(0, 0, 0, 0);
+        const dayOffset = (days) => {
+            const d = new Date(_today); d.setDate(d.getDate() + days);
+            return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+        };
+
         // Section 1: Show/Hide/Toggle
         const picker1 = document.getElementById('picker-1');
         const output1 = document.getElementById('output-1');
@@ -946,8 +953,9 @@ const manager = new DateRangeManager();</code></pre>
         });
 
         document.getElementById('btn-set-single').addEventListener('click', () => {
-            picker2a.setInputValue('2025-03-15');
-            output2.innerHTML = 'Set single value to: <strong>2025-03-15</strong>';
+            const value = dayOffset(7);
+            picker2a.setInputValue(value);
+            output2.innerHTML = `Set single value to: <strong>${value}</strong>`;
         });
 
         document.getElementById('btn-get-range').addEventListener('click', () => {
@@ -956,8 +964,11 @@ const manager = new DateRangeManager();</code></pre>
         });
 
         document.getElementById('btn-set-range').addEventListener('click', () => {
-            picker2b.setInputValue('01/01/2025 - 01/31/2025');
-            output2.innerHTML = 'Set range value to: <strong>01/01/2025 - 01/31/2025</strong>';
+            // picker2b uses MM/DD/YYYY format
+            const toUS = (iso) => { const [y, m, d] = iso.split('-'); return `${m}/${d}/${y}`; };
+            const value = `${toUS(dayOffset(0))} - ${toUS(dayOffset(14))}`;
+            picker2b.setInputValue(value);
+            output2.innerHTML = `Set range value to: <strong>${value}</strong>`;
         });
 
         // Section 3: Clear Selection

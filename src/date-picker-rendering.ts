@@ -639,6 +639,57 @@ function processRenderCallbacks(picker: any, monthIndex: number, daysContainer: 
     });
 }
 
+/**
+ * Build the HTML for one rolling-selector list (years OR months).
+ * `valueAttr` is the data-attribute name (`data-year` or `data-month`),
+ * `extraAttrs` is the per-context suffix (`data-month-index="X"` or `data-unified="true"`).
+ */
+function renderRollingItems(opts: {
+    items: { value: number; label: string | number; enabled: boolean }[];
+    currentValue: number;
+    valueAttr: string;
+    extraAttrs: string;
+}): string {
+    let html = '';
+    for (const item of opts.items) {
+        const selected = item.value === opts.currentValue ? 'drp-date-picker__rolling-item--selected' : '';
+        const disabled = !item.enabled ? 'drp-date-picker__rolling-item--disabled' : '';
+        html += `<div class="drp-date-picker__rolling-item ${selected} ${disabled}" ${opts.valueAttr}="${item.value}" ${opts.extraAttrs}><span class="drp-date-picker__rolling-item-text">${item.label}</span></div>`;
+    }
+    return html;
+}
+
+function renderRollingLists(picker: any, container: Element | null | undefined, opts: {
+    yearRange: { min: number; max: number };
+    monthRange: { min: number; max: number };
+    currentYear: number;
+    currentMonth: number;
+    extraAttrs: string;
+}) {
+    if (!container) return;
+    const years = [];
+    for (let year = opts.yearRange.min; year <= opts.yearRange.max; year++) {
+        years.push({ value: year, label: year, enabled: hasEnabledDaysInYear(picker, year) });
+    }
+    const months = [];
+    for (let m = opts.monthRange.min - 1; m <= opts.monthRange.max - 1; m++) {
+        months.push({ value: m, label: picker.monthNames[m], enabled: hasEnabledDaysInMonth(picker, opts.currentYear, m) });
+    }
+
+    const yearsContainer = container.querySelector('[data-list="years"]');
+    if (yearsContainer) {
+        yearsContainer.innerHTML = renderRollingItems({
+            items: years, currentValue: opts.currentYear, valueAttr: 'data-year', extraAttrs: opts.extraAttrs
+        });
+    }
+    const monthsContainer = container.querySelector('[data-list="months"]');
+    if (monthsContainer) {
+        monthsContainer.innerHTML = renderRollingItems({
+            items: months, currentValue: opts.currentMonth, valueAttr: 'data-month', extraAttrs: opts.extraAttrs
+        });
+    }
+}
+
 export function renderRollingSelector(picker: any, monthIndex: number) {
     const monthContainer = picker.calendar.querySelector(`.drp-date-picker__month[data-month-index="${monthIndex}"]`);
     if (!monthContainer) return;
@@ -646,48 +697,14 @@ export function renderRollingSelector(picker: any, monthIndex: number) {
     const selector = monthContainer.querySelector('.drp-date-picker__rolling-selector');
     selector?.classList.add('drp-date-picker__rolling-selector--visible');
 
-    // Get picker month's date
     const date = picker.monthDates[monthIndex];
-    const currentYear = date.getFullYear();
-    const currentMonth = date.getMonth();
-
-    // Parse configuration ranges
-    const yearRange = parseYearRange(picker.options.rollingYearRange, currentYear, picker);
-    const monthRange = parseMonthRange(picker.options.rollingMonthRange);
-
-    // Render years
-    const yearsContainer = selector?.querySelector('[data-list="years"]');
-    let yearsHtml = '';
-    for (let year = yearRange.min; year <= yearRange.max; year++) {
-        const selected = year === currentYear ? 'drp-date-picker__rolling-item--selected' : '';
-
-        // Check if year has any enabled days and mark as disabled if not
-        const hasEnabledDays = hasEnabledDaysInYear(picker, year);
-        const disabled = !hasEnabledDays ? 'drp-date-picker__rolling-item--disabled' : '';
-
-        yearsHtml += `<div class="drp-date-picker__rolling-item ${selected} ${disabled}" data-year="${year}" data-month-index="${monthIndex}"><span class="drp-date-picker__rolling-item-text">${year}</span></div>`;
-    }
-    if (yearsContainer) {
-        yearsContainer.innerHTML = yearsHtml;
-    }
-
-    // Render months
-    const monthsContainer = selector?.querySelector('[data-list="months"]');
-    if (monthsContainer) {
-        let monthsHtml = '';
-        // Only render months within the configured range
-        for (let monthIndex0Based = monthRange.min - 1; monthIndex0Based <= monthRange.max - 1; monthIndex0Based++) {
-            const name = picker.monthNames[monthIndex0Based];
-            const selected = monthIndex0Based === currentMonth ? 'drp-date-picker__rolling-item--selected' : '';
-
-            // Check if month has any enabled days and mark as disabled if not
-            const hasEnabledDays = hasEnabledDaysInMonth(picker, currentYear, monthIndex0Based);
-            const disabled = !hasEnabledDays ? 'drp-date-picker__rolling-item--disabled' : '';
-
-            monthsHtml += `<div class="drp-date-picker__rolling-item ${selected} ${disabled}" data-month="${monthIndex0Based}" data-month-index="${monthIndex}"><span class="drp-date-picker__rolling-item-text">${name}</span></div>`;
-        }
-        monthsContainer.innerHTML = monthsHtml;
-    }
+    renderRollingLists(picker, selector, {
+        yearRange: parseYearRange(picker.options.rollingYearRange, date.getFullYear(), picker),
+        monthRange: parseMonthRange(picker.options.rollingMonthRange),
+        currentYear: date.getFullYear(),
+        currentMonth: date.getMonth(),
+        extraAttrs: `data-month-index="${monthIndex}"`,
+    });
 }
 
 export function renderUnifiedRollingSelector(picker: any) {
@@ -695,49 +712,15 @@ export function renderUnifiedRollingSelector(picker: any) {
 
     picker.unifiedRollingSelector.classList.add('drp-date-picker__unified-rolling-selector--visible');
 
-    // Use anchor month for rolling selector reference
     const anchorIndex = picker.options.unifiedNavigationAnchorIndex ?? 0;
     const date = picker.monthDates[anchorIndex];
-    const currentYear = date.getFullYear();
-    const currentMonth = date.getMonth();
-
-    // Get effective ranges (centralized calculation ensures consistency with validation)
-    const yearRange = picker.getEffectiveYearRange();
-    const monthRange = picker.getEffectiveMonthRange();
-
-    // Render years
-    const yearsContainer = picker.unifiedRollingSelector.querySelector('[data-list="years"]');
-    let yearsHtml = '';
-    for (let year = yearRange.min; year <= yearRange.max; year++) {
-        const selected = year === currentYear ? 'drp-date-picker__rolling-item--selected' : '';
-
-        // Check if year has any enabled days and mark as disabled if not
-        const hasEnabledDays = hasEnabledDaysInYear(picker, year);
-        const disabled = !hasEnabledDays ? 'drp-date-picker__rolling-item--disabled' : '';
-
-        yearsHtml += `<div class="drp-date-picker__rolling-item ${selected} ${disabled}" data-year="${year}" data-unified="true"><span class="drp-date-picker__rolling-item-text">${year}</span></div>`;
-    }
-    if (yearsContainer) {
-        yearsContainer.innerHTML = yearsHtml;
-    }
-
-    // Render months
-    const monthsContainer = picker.unifiedRollingSelector.querySelector('[data-list="months"]');
-    if (monthsContainer) {
-        let monthsHtml = '';
-        // Only render months within the configured range
-        for (let monthIndex0Based = monthRange.min - 1; monthIndex0Based <= monthRange.max - 1; monthIndex0Based++) {
-            const name = picker.monthNames[monthIndex0Based];
-            const selected = monthIndex0Based === currentMonth ? 'drp-date-picker__rolling-item--selected' : '';
-
-            // Check if month has any enabled days and mark as disabled if not
-            const hasEnabledDays = hasEnabledDaysInMonth(picker, currentYear, monthIndex0Based);
-            const disabled = !hasEnabledDays ? 'drp-date-picker__rolling-item--disabled' : '';
-
-            monthsHtml += `<div class="drp-date-picker__rolling-item ${selected} ${disabled}" data-month="${monthIndex0Based}" data-unified="true"><span class="drp-date-picker__rolling-item-text">${name}</span></div>`;
-        }
-        monthsContainer.innerHTML = monthsHtml;
-    }
+    renderRollingLists(picker, picker.unifiedRollingSelector, {
+        yearRange: picker.getEffectiveYearRange(),
+        monthRange: picker.getEffectiveMonthRange(),
+        currentYear: date.getFullYear(),
+        currentMonth: date.getMonth(),
+        extraAttrs: 'data-unified="true"',
+    });
 }
 
 export function updateSummary(picker: any) {

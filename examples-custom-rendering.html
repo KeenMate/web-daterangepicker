@@ -66,7 +66,7 @@
 
     <div class="form-group">
       <label>Date Picker with Special Events</label>
-      <web-daterangepicker id="slots-example" date-format-mask="YYYY-MM-DD" min-date="2025-01-01" max-date="2025-01-31">
+      <web-daterangepicker id="slots-example" date-format-mask="YYYY-MM-DD">
         <!-- Meeting on Jan 15 -->
         <div slot="day-2025-01-15" class="custom-day-content">
           <strong>15</strong>
@@ -110,7 +110,7 @@
 
     <div class="form-group">
       <label>Hotel Booking with Prices</label>
-      <web-daterangepicker id="callback-full" selection-mode="range" date-format-mask="YYYY-MM-DD" min-date="2025-02-01" max-date="2025-02-28"></web-daterangepicker>
+      <web-daterangepicker id="callback-full" selection-mode="range" date-format-mask="YYYY-MM-DD"></web-daterangepicker>
     </div>
 
     <pre><code>const picker = document.getElementById('callback-full');
@@ -154,7 +154,7 @@ picker.renderDayCallback = (data) => {
 
     <div class="form-group">
       <label>Calendar with Event Indicators</label>
-      <web-daterangepicker id="callback-augment" date-format-mask="YYYY-MM-DD" min-date="2025-03-01" max-date="2025-03-31"></web-daterangepicker>
+      <web-daterangepicker id="callback-augment" date-format-mask="YYYY-MM-DD"></web-daterangepicker>
     </div>
 
     <pre><code>const picker = document.getElementById('callback-augment');
@@ -202,7 +202,7 @@ picker.renderDayContentCallback = (data) => {
 
     <div class="form-group">
       <label>Traffic Intensity by Day of Week</label>
-      <web-daterangepicker id="callback-weekends" date-format-mask="YYYY-MM-DD" min-date="2025-04-01" max-date="2025-04-30"></web-daterangepicker>
+      <web-daterangepicker id="callback-weekends" date-format-mask="YYYY-MM-DD"></web-daterangepicker>
     </div>
 
     <pre><code>const picker = document.getElementById('callback-weekends');
@@ -244,7 +244,7 @@ picker.getDateMetadataCallback = (date) => {
 
     <div class="form-group">
       <label>General Pattern + Special Dates</label>
-      <web-daterangepicker id="callback-mixed" date-format-mask="YYYY-MM-DD" min-date="2025-05-01" max-date="2025-05-31">
+      <web-daterangepicker id="callback-mixed" date-format-mask="YYYY-MM-DD">
         <!-- Slot for specific holiday -->
         <div slot="day-2025-05-25" class="custom-day-content">
           <span class="emoji-day">🎖️</span>
@@ -279,7 +279,7 @@ picker.renderDayContentCallback = (data) => {
 
     <div class="form-group">
       <label>Vacation Rental Booking</label>
-      <web-daterangepicker id="booking-system" selection-mode="range" date-format-mask="YYYY-MM-DD" min-date="2025-06-01" max-date="2025-06-30"></web-daterangepicker>
+      <web-daterangepicker id="booking-system" selection-mode="range" date-format-mask="YYYY-MM-DD"></web-daterangepicker>
     </div>
 
     <div id="booking-info" style="margin-top: 1rem; padding: 1rem; background: #f3f4f6; border-radius: 0.5rem; display: none;">
@@ -298,9 +298,14 @@ const bookingData = {
   '2025-06-22': { available: false, price: 0, booked: true }
 };
 
+// Use local-date formatter — date.toISOString() returns UTC, which would
+// shift the lookup key by one day in any timezone east of UTC.
+const toLocalISO = (d) =>
+  `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+
 // Disable booked dates
 picker.getDateMetadataCallback = (date) => {
-  const dateStr = date.toISOString().split('T')[0];
+  const dateStr = toLocalISO(date);
   const info = bookingData[dateStr];
   if (info && info.booked) {
     return { isDisabled: true };
@@ -349,7 +354,7 @@ picker.addEventListener('date-select', (event) =&gt; {
 
     const current = new Date(start);
     while (current &lt;= end) {
-      const dateStr = current.toISOString().split('T')[0];
+      const dateStr = toLocalISO(current);
       const dayInfo = bookingData[dateStr];
       if (dayInfo &amp;&amp; dayInfo.available) {
         totalPrice += dayInfo.price;
@@ -367,16 +372,42 @@ picker.addEventListener('date-select', (event) =&gt; {
     // Wait for web component to be defined
     await customElements.whenDefined('web-daterangepicker');
 
+    // Date helpers — keep example data anchored to today so the demos never go stale.
+    const _today = new Date(); _today.setHours(0, 0, 0, 0);
+    const toLocalISO = (d) =>
+      `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+    const dayOffset = (days) => {
+      const d = new Date(_today); d.setDate(d.getDate() + days);
+      return toLocalISO(d);
+    };
+    const monthFirstISO = () => {
+      const d = new Date(_today.getFullYear(), _today.getMonth(), 1);
+      return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-01`;
+    };
+    const monthLastISO = () => {
+      const d = new Date(_today.getFullYear(), _today.getMonth() + 1, 0);
+      return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+    };
+
+    // Constrain each demo picker to the current month so the demos never go stale.
+    for (const id of ['slots-example', 'callback-full', 'callback-augment', 'callback-weekends', 'callback-mixed', 'booking-system']) {
+      const el = document.getElementById(id);
+      if (el) {
+        el.setAttribute('min-date', monthFirstISO());
+        el.setAttribute('max-date', monthLastISO());
+      }
+    }
+
     // Example 2: Hotel pricing callback
     const callbackFull = document.getElementById('callback-full');
     if (callbackFull) {
       const prices = {
-        '2025-02-14': 299,
-        '2025-02-15': 199,
-        '2025-02-16': 179,
-        '2025-02-21': 149,
-        '2025-02-22': 149,
-        '2025-02-28': 169
+        [dayOffset(0)]:  299,
+        [dayOffset(1)]:  199,
+        [dayOffset(2)]:  179,
+        [dayOffset(7)]:  149,
+        [dayOffset(8)]:  149,
+        [dayOffset(14)]: 169
       };
 
       callbackFull.renderDayCallback = (data) => {
@@ -417,10 +448,10 @@ picker.addEventListener('date-select', (event) =&gt; {
       `;
 
       const events = {
-        '2025-03-05': true,
-        '2025-03-12': true,
-        '2025-03-19': true,
-        '2025-03-26': true
+        [dayOffset(-7)]:  true,
+        [dayOffset(0)]:   true,
+        [dayOffset(7)]:   true,
+        [dayOffset(14)]:  true
       };
 
       callbackAugment.renderDayContentCallback = (data) => {
@@ -467,8 +498,8 @@ picker.addEventListener('date-select', (event) =&gt; {
     // Example 5: Mixed slots and callbacks
     const callbackMixed = document.getElementById('callback-mixed');
     if (callbackMixed) {
-      // Define some cloudy dates
-      const cloudyDates = ['2025-05-03', '2025-05-04', '2025-05-10', '2025-05-17', '2025-05-18'];
+      // Define some cloudy weekend dates around today
+      const cloudyDates = [dayOffset(-12), dayOffset(-11), dayOffset(-5), dayOffset(2), dayOffset(3)];
 
       callbackMixed.renderDayContentCallback = (data) => {
         if (data.isWeekend) {
@@ -486,19 +517,19 @@ picker.addEventListener('date-select', (event) =&gt; {
     const bookingSystem = document.getElementById('booking-system');
     if (bookingSystem) {
       const bookingData = {
-        '2025-06-07': { available: true, price: 180, booked: false },
-        '2025-06-08': { available: true, price: 180, booked: false },
-        '2025-06-14': { available: true, price: 220, booked: false },
-        '2025-06-15': { available: true, price: 220, booked: false },
-        '2025-06-21': { available: false, price: 0, booked: true },
-        '2025-06-22': { available: false, price: 0, booked: true },
-        '2025-06-28': { available: true, price: 190, booked: false },
-        '2025-06-29': { available: true, price: 190, booked: false }
+        [dayOffset(2)]:  { available: true,  price: 180, booked: false },
+        [dayOffset(3)]:  { available: true,  price: 180, booked: false },
+        [dayOffset(9)]:  { available: true,  price: 220, booked: false },
+        [dayOffset(10)]: { available: true,  price: 220, booked: false },
+        [dayOffset(16)]: { available: false, price: 0,   booked: true  },
+        [dayOffset(17)]: { available: false, price: 0,   booked: true  },
+        [dayOffset(23)]: { available: true,  price: 190, booked: false },
+        [dayOffset(24)]: { available: true,  price: 190, booked: false }
       };
 
       // Disable booked dates
       bookingSystem.getDateMetadataCallback = (date) => {
-        const dateStr = date.toISOString().split('T')[0];
+        const dateStr = toLocalISO(date);
         const info = bookingData[dateStr];
 
         if (info && info.booked) {
@@ -555,7 +586,7 @@ picker.addEventListener('date-select', (event) =&gt; {
           // Calculate total
           const current = new Date(start);
           while (current <= end) {
-            const dateStr = current.toISOString().split('T')[0];
+            const dateStr = toLocalISO(current);
             const dayInfo = bookingData[dateStr];
             if (dayInfo && dayInfo.available) {
               totalPrice += dayInfo.price;

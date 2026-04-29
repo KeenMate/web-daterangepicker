@@ -5,7 +5,7 @@
  * and input masking.
  */
 
-import { validateRangeAsync } from './date-picker-selection';
+import { validateRangeAsync, commitInputValue } from './date-picker-selection';
 import { hideMessage } from './date-picker-ui';
 import { dragLogger, interactionLogger } from './logger';
 import log from './logger';
@@ -278,7 +278,6 @@ export async function onDragEnd(picker: any, event: MouseEvent) {
     if (!picker.isDragging) return;
 
     dragLogger.debug('Ended dragging, finalizing selection');
-    console.log('[onDragEnd] Started - dragPreviewStart:', picker.dragPreviewStart, 'dragPreviewEnd:', picker.dragPreviewEnd);
 
     // Track whether validation succeeded (for auto-close decision)
     let validationSucceeded = false;
@@ -296,10 +295,8 @@ export async function onDragEnd(picker: any, event: MouseEvent) {
 
         // Validate the range (local + async)
         dragLogger.debug('onDragEnd - calling validateRangeAsync with:', startDate, endDate);
-        console.log('[onDragEnd] Calling validateRangeAsync with:', startDate, endDate);
         const validation = await validateRangeAsync(picker, startDate, endDate);
         dragLogger.debug('onDragEnd - validation result:', validation);
-        console.log('[onDragEnd] Validation result:', validation);
 
         if (!validation.isValid) {
             // Validation failed - restore previous state or clear
@@ -333,12 +330,7 @@ export async function onDragEnd(picker: any, event: MouseEvent) {
                 hideMessage(picker);
             }
 
-            if (picker.input) {
-                // Only update input immediately if Apply button is NOT required
-                if (!picker.requiresApplyButton()) {
-                    picker.input.value = `${picker.formatDate(picker.selectedStartDate)} - ${picker.formatDate(picker.selectedEndDate)}`;
-                }
-            }
+            commitInputValue(picker, `${picker.formatDate(picker.selectedStartDate)} - ${picker.formatDate(picker.selectedEndDate)}`);
 
             // Defer onSelect callback if Apply button is required
             const selection = { start: picker.selectedStartDate, end: picker.selectedEndDate };

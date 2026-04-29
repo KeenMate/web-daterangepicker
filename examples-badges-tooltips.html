@@ -300,8 +300,13 @@ const priceData = {
   '2025-11-23': 280
 };
 
+// Use local-date formatter — date.toISOString() returns UTC, which would
+// shift the lookup key by one day in any timezone east of UTC.
+const toLocalISO = (d) =>
+  `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+
 picker.getDateMetadataCallback = (date) => {
-  const dateStr = date.toISOString().split('T')[0];
+  const dateStr = toLocalISO(date);
   const price = priceData[dateStr];
 
   if (price) {
@@ -365,8 +370,13 @@ const bookingInfo = {
 };
 
 // Set up basic badges via getDateMetadataCallback
+// Use local-date formatter — date.toISOString() returns UTC, which would
+// shift the lookup key by one day in any timezone east of UTC.
+const toLocalISO = (d) =>
+  `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+
 picker.getDateMetadataCallback = (date) => {
-  const dateStr = date.toISOString().split('T')[0];
+  const dateStr = toLocalISO(date);
   const info = bookingInfo[dateStr];
 
   if (info) {
@@ -430,8 +440,13 @@ picker.specialDates = [
 
 // 2. Dynamic pricing via getDateMetadataCallback
 const priceData = { /* ... */ };
+// Use local-date formatter — date.toISOString() returns UTC, which would
+// shift the lookup key by one day in any timezone east of UTC.
+const toLocalISO = (d) =>
+  `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+
 picker.getDateMetadataCallback = (date) => {
-  const dateStr = date.toISOString().split('T')[0];
+  const dateStr = toLocalISO(date);
   const price = priceData[dateStr];
 
   if (price) {
@@ -522,6 +537,18 @@ picker.dayTooltipCallback = (data) => {
     await customElements.whenDefined('web-daterangepicker');
 
     // ========================================
+    // Date helpers — keep example data anchored to today so the demos never go stale.
+    // ========================================
+    const _today = new Date(); _today.setHours(0, 0, 0, 0);
+    const toLocalISO = (d) =>
+      `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+    const dayOffset = (days) => {
+      const d = new Date(_today); d.setDate(d.getDate() + days);
+      return toLocalISO(d);
+    };
+    const dateAt = (days) => { const d = new Date(_today); d.setDate(d.getDate() + days); return d; };
+
+    // ========================================
     // Method 1: Static Special Dates Examples
     // ========================================
 
@@ -548,15 +575,15 @@ picker.dayTooltipCallback = (data) => {
       };
 
       holidaysDemo.specialDates = [
-        { date: '2025-12-25', badgeClass: 'holiday', badgeText: '🎄', badgeTooltip: 'Christmas Day' },
-        { date: '2025-12-24', badgeClass: 'holiday', badgeText: '🎅', badgeTooltip: 'Christmas Eve' },
-        { date: '2025-01-01', badgeClass: 'holiday', badgeText: '🎉', badgeTooltip: 'New Year\'s Day' },
-        { date: '2025-07-04', badgeClass: 'holiday', badgeText: '🎆', badgeTooltip: 'Independence Day' },
-        { date: '2025-10-31', badgeClass: 'event', badgeText: '🎃', badgeTooltip: 'Halloween' },
-        { date: '2025-02-14', badgeClass: 'event', badgeText: '❤️', badgeTooltip: 'Valentine\'s Day' },
-        { date: '2025-03-17', badgeClass: 'event', badgeText: '☘️', badgeTooltip: 'St. Patrick\'s Day' },
-        { date: '2025-11-28', badgeClass: 'holiday', badgeText: '🦃', badgeTooltip: 'Thanksgiving' },
-        { date: '2025-12-31', badgeClass: 'event', badgeText: '🥳', badgeTooltip: 'New Year\'s Eve' }
+        { date: dayOffset(-14), badgeClass: 'event',   badgeText: '🎂', badgeTooltip: 'Birthday' },
+        { date: dayOffset(-10), badgeClass: 'holiday', badgeText: '🎵', badgeTooltip: 'Concert' },
+        { date: dayOffset(-5),  badgeClass: 'event',   badgeText: '🥳', badgeTooltip: 'Party' },
+        { date: dayOffset(-2),  badgeClass: 'holiday', badgeText: '🎉', badgeTooltip: 'Celebration' },
+        { date: dayOffset(0),   badgeClass: 'holiday', badgeText: '⭐', badgeTooltip: 'Today' },
+        { date: dayOffset(3),   badgeClass: 'event',   badgeText: '☕', badgeTooltip: 'Coffee Meeting' },
+        { date: dayOffset(7),   badgeClass: 'event',   badgeText: '🎤', badgeTooltip: 'Karaoke Night' },
+        { date: dayOffset(12),  badgeClass: 'holiday', badgeText: '🍕', badgeTooltip: 'Pizza Night' },
+        { date: dayOffset(18),  badgeClass: 'event',   badgeText: '🎬', badgeTooltip: 'Movie Night' }
       ];
     }
 
@@ -575,11 +602,11 @@ picker.dayTooltipCallback = (data) => {
         `;
       };
 
-      // Simulate already booked date ranges
+      // Simulate already booked date ranges (anchored to today so demo stays evergreen)
       const bookedRanges = [
-        { start: new Date(2025, 10, 10), end: new Date(2025, 10, 17) }, // Nov 10-17
-        { start: new Date(2025, 10, 24), end: new Date(2025, 10, 30) }, // Nov 24-30
-        { start: new Date(2025, 11, 20), end: new Date(2025, 11, 27) }  // Dec 20-27
+        { start: dateAt(-18), end: dateAt(-12) },
+        { start: dateAt(-4),  end: dateAt(2)   },
+        { start: dateAt(15),  end: dateAt(22)  }
       ];
 
       cottageDemo.getDateMetadataCallback = (date) => {
@@ -616,10 +643,10 @@ picker.dayTooltipCallback = (data) => {
     const methodStatic = document.getElementById('method-static');
     if (methodStatic) {
       methodStatic.specialDates = [
-        { date: '2025-12-25', badgeText: '🎄', badgeTooltip: 'Christmas' },
-        { date: '2025-12-31', badgeText: '🥳', badgeTooltip: 'New Year Eve' },
-        { date: '2025-07-04', badgeText: '🎆', badgeTooltip: 'Independence Day' },
-        { date: '2025-01-01', badgeText: '🎊', badgeTooltip: 'New Year Day' }
+        { date: dayOffset(-3), badgeText: '🎂', badgeTooltip: 'Birthday' },
+        { date: dayOffset(2),  badgeText: '🥳', badgeTooltip: 'Party' },
+        { date: dayOffset(9),  badgeText: '🎤', badgeTooltip: 'Karaoke' },
+        { date: dayOffset(15), badgeText: '🎬', badgeTooltip: 'Movie Night' }
       ];
     }
 
@@ -697,11 +724,11 @@ picker.dayTooltipCallback = (data) => {
 
       // Data from external system with different property names
       const eventsData = [
-        { id: 1, eventDate: '2025-12-25', icon: '🎄', label: 'Christmas', category: 'holiday', unavailable: true },
-        { id: 2, eventDate: '2025-12-31', icon: '🥳', label: 'New Year Eve', category: 'holiday', unavailable: true },
-        { id: 3, eventDate: '2025-11-15', icon: '📅', label: 'Team Meeting', category: 'event' },
-        { id: 4, eventDate: '2025-11-20', icon: '🏖️', label: 'Company Retreat', category: 'event', unavailable: true },
-        { id: 5, eventDate: '2025-11-22', icon: '🎂', label: 'Birthday Party', category: 'event' }
+        { id: 1, eventDate: dayOffset(-3),  icon: '🎄', label: 'Office Party',    category: 'holiday', unavailable: true },
+        { id: 2, eventDate: dayOffset(0),   icon: '🥳', label: 'Today',           category: 'holiday', unavailable: true },
+        { id: 3, eventDate: dayOffset(4),   icon: '📅', label: 'Team Meeting',    category: 'event' },
+        { id: 4, eventDate: dayOffset(9),   icon: '🏖️', label: 'Company Retreat', category: 'event',   unavailable: true },
+        { id: 5, eventDate: dayOffset(14),  icon: '🎂', label: 'Birthday Party',  category: 'event' }
       ];
 
       // Map custom property names to picker properties
@@ -736,42 +763,31 @@ picker.dayTooltipCallback = (data) => {
         `;
       };
 
-      // Get current date to ensure badges are visible
-      const today = new Date();
-      const currentMonth = today.getMonth();
-      const currentYear = today.getFullYear();
-
       console.log('[Method 4] Setting specialDates...');
-      // Set badges for dates in current and next month
+      // Set badges around today so the demo is always visible.
+      const meetingDate = dayOffset(2);
+      const partyDate = dayOffset(7);
+      const reviewDate = dayOffset(12);
+      const holidayA = dayOffset(18);
+      const holidayB = dayOffset(24);
       methodTooltips.specialDates = [
-        { date: new Date(currentYear, currentMonth, 15), badgeText: '📅', badgeClass: 'event', badgeTooltip: 'Team Meeting' },
-        { date: new Date(currentYear, currentMonth, 20), badgeText: '🎉', badgeClass: 'event', badgeTooltip: 'Company Party' },
-        { date: new Date(currentYear, currentMonth, 25), badgeText: '💼', badgeClass: 'event', badgeTooltip: 'Q4 Review' },
-        { date: '2025-12-25', badgeText: '🎄', badgeClass: 'holiday', badgeTooltip: 'Christmas' },
-        { date: '2025-12-31', badgeText: '🥳', badgeClass: 'holiday', badgeTooltip: 'New Year Eve' }
+        { date: meetingDate, badgeText: '📅', badgeClass: 'event',   badgeTooltip: 'Team Meeting' },
+        { date: partyDate,   badgeText: '🎉', badgeClass: 'event',   badgeTooltip: 'Company Party' },
+        { date: reviewDate,  badgeText: '💼', badgeClass: 'event',   badgeTooltip: 'Q4 Review' },
+        { date: holidayA,    badgeText: '🎄', badgeClass: 'holiday', badgeTooltip: 'Office Closed' },
+        { date: holidayB,    badgeText: '🥳', badgeClass: 'holiday', badgeTooltip: 'Office Closed' }
       ];
       console.log('[Method 4] specialDates set. Setting badgeTooltipCallback...');
 
-      // Add rich HTML tooltips
-      methodTooltips.badgeTooltipCallback = (data) => {
-        const tooltips = {
-          '2025-12-25': '<strong>Christmas Day</strong><br>🎁 Gift exchange at 3pm<br>🍽️ Family dinner at 6pm',
-          '2025-12-31': '<strong>New Year\'s Eve</strong><br>🎉 Party starts 9pm<br>🎆 Fireworks at midnight'
-        };
-
-        // Dynamic tooltips for current month dates
-        if (data.dayNumber === 15) {
-          return '<strong>Team Meeting</strong><br>⏰ 2:00 PM - 3:30 PM<br>📍 Conference Room A<br>👥 All hands required';
-        }
-        if (data.dayNumber === 20) {
-          return '<strong>Company Party</strong><br>🎊 Annual celebration<br>⏰ 7:00 PM onwards<br>📍 Main Hall';
-        }
-        if (data.dayNumber === 25) {
-          return '<strong>Q4 Review</strong><br>📊 Quarterly results<br>⏰ 10:00 AM - 12:00 PM<br>💻 Virtual meeting';
-        }
-
-        return tooltips[data.dateString] || `<strong>${data.dateString}</strong>`;
+      // Add rich HTML tooltips, keyed by the same date strings used above.
+      const richTooltips = {
+        [meetingDate]: '<strong>Team Meeting</strong><br>⏰ 2:00 PM - 3:30 PM<br>📍 Conference Room A<br>👥 All hands required',
+        [partyDate]:   '<strong>Company Party</strong><br>🎊 Annual celebration<br>⏰ 7:00 PM onwards<br>📍 Main Hall',
+        [reviewDate]:  '<strong>Q4 Review</strong><br>📊 Quarterly results<br>⏰ 10:00 AM - 12:00 PM<br>💻 Virtual meeting',
+        [holidayA]:    '<strong>Office Closed</strong><br>🎁 Holiday party at 3pm<br>🍽️ Catered lunch',
+        [holidayB]:    '<strong>Office Closed</strong><br>🎉 End-of-year celebration<br>🎆 Fireworks at midnight'
       };
+      methodTooltips.badgeTooltipCallback = (data) => richTooltips[data.dateString] || `<strong>${data.dateString}</strong>`;
       console.log('[Method 4] badgeTooltipCallback set. Setup complete.');
     }
 
@@ -802,13 +818,13 @@ picker.dayTooltipCallback = (data) => {
 
       // Custom data structure with non-standard property names
       const myHolidays = [
-        { id: 1, displayDate: '2025-12-25', icon: '🎄', description: 'Christmas - Office Closed', style: 'holiday', disabled: true },
-        { id: 2, displayDate: '2025-12-31', icon: '🥳', description: 'New Year Eve - Office Closed', style: 'holiday', disabled: true },
-        { id: 3, displayDate: '2025-07-04', icon: '🎆', description: 'Independence Day', style: 'event', disabled: true },
-        { id: 4, displayDate: '2025-01-01', icon: '🎊', description: 'New Year Day - Office Closed', style: 'holiday', disabled: true },
-        { id: 5, displayDate: '2025-02-14', icon: '💝', description: 'Valentine\'s Day', style: 'event', disabled: false },
-        { id: 6, displayDate: '2025-11-27', icon: '🦃', description: 'Thanksgiving - Office Closed', style: 'holiday', disabled: true },
-        { id: 7, displayDate: '2025-11-28', icon: '🛍️', description: 'Black Friday', style: 'event', disabled: false }
+        { id: 1, displayDate: dayOffset(-7),  icon: '🎄', description: 'Office Closed',     style: 'holiday', disabled: true },
+        { id: 2, displayDate: dayOffset(-3),  icon: '🥳', description: 'Team Party',        style: 'holiday', disabled: true },
+        { id: 3, displayDate: dayOffset(2),   icon: '🎆', description: 'Launch Day',        style: 'event',   disabled: true },
+        { id: 4, displayDate: dayOffset(5),   icon: '🎊', description: 'Office Closed',     style: 'holiday', disabled: true },
+        { id: 5, displayDate: dayOffset(8),   icon: '💝', description: 'Anniversary',       style: 'event',   disabled: false },
+        { id: 6, displayDate: dayOffset(13),  icon: '🦃', description: 'Office Closed',     style: 'holiday', disabled: true },
+        { id: 7, displayDate: dayOffset(16),  icon: '🛍️', description: 'Sale Day',          style: 'event',   disabled: false }
       ];
 
       // Map custom properties to picker properties
@@ -937,17 +953,17 @@ picker.dayTooltipCallback = (data) => {
     const htmlTooltipsBooking = document.getElementById('html-tooltips-booking');
     if (htmlTooltipsBooking) {
       const bookingInfo = {
-        '2025-11-15': { price: 180, available: 5, rating: 4.5 },
-        '2025-11-16': { price: 200, available: 2, rating: 4.8 },
-        '2025-11-22': { price: 250, available: 1, rating: 4.9 },
-        '2025-11-23': { price: 280, available: 3, rating: 4.7 },
-        '2025-12-24': { price: 350, available: 1, rating: 5.0 },
-        '2025-12-25': { price: 400, available: 0, rating: 5.0 }
+        [dayOffset(2)]:  { price: 180, available: 5, rating: 4.5 },
+        [dayOffset(3)]:  { price: 200, available: 2, rating: 4.8 },
+        [dayOffset(9)]:  { price: 250, available: 1, rating: 4.9 },
+        [dayOffset(10)]: { price: 280, available: 3, rating: 4.7 },
+        [dayOffset(16)]: { price: 350, available: 1, rating: 5.0 },
+        [dayOffset(17)]: { price: 400, available: 0, rating: 5.0 }
       };
 
       // Set up badges
       htmlTooltipsBooking.getDateMetadataCallback = (date) => {
-        const dateStr = date.toISOString().split('T')[0];
+        const dateStr = toLocalISO(date);
         const info = bookingInfo[dateStr];
 
         if (info) {
@@ -987,19 +1003,19 @@ picker.dayTooltipCallback = (data) => {
     const htmlTooltipsEvents = document.getElementById('html-tooltips-events');
     if (htmlTooltipsEvents) {
       const eventInfo = {
-        '2025-11-15': {
+        [dayOffset(2)]: {
           title: 'Product Launch',
           time: '10:00 AM - 2:00 PM',
           location: 'Main Hall',
           attendees: 150
         },
-        '2025-11-22': {
+        [dayOffset(9)]: {
           title: 'Team Building Workshop',
           time: '9:00 AM - 5:00 PM',
           location: 'Conference Room A',
           attendees: 45
         },
-        '2025-12-25': {
+        [dayOffset(18)]: {
           title: 'Holiday Party',
           time: '6:00 PM - 11:00 PM',
           location: 'Grand Ballroom',
@@ -1008,7 +1024,7 @@ picker.dayTooltipCallback = (data) => {
       };
 
       htmlTooltipsEvents.getDateMetadataCallback = (date) => {
-        const dateStr = date.toISOString().split('T')[0];
+        const dateStr = toLocalISO(date);
         const event = eventInfo[dateStr];
 
         if (event) {
@@ -1076,25 +1092,25 @@ picker.dayTooltipCallback = (data) => {
 
       // 1. Static holidays
       combinedExample.specialDates = [
-        { date: '2025-12-25', badgeClass: 'holiday', badgeText: '🎄', badgeTooltip: 'Christmas Day - Hotel Closed' },
-        { date: '2025-12-31', badgeClass: 'holiday', badgeText: '🥳', badgeTooltip: 'New Year\'s Eve Special' }
+        { date: dayOffset(20), badgeClass: 'holiday', badgeText: '🎄', badgeTooltip: 'Hotel Closed' },
+        { date: dayOffset(26), badgeClass: 'holiday', badgeText: '🥳', badgeTooltip: 'Anniversary Special' }
       ];
 
-      // 2. Dynamic pricing
+      // 2. Dynamic pricing — anchored to today
       const priceData = {
-        '2025-11-15': 180,
-        '2025-11-16': 200,
-        '2025-11-22': 250,
-        '2025-11-23': 280,
-        '2025-12-20': 300,
-        '2025-12-21': 320,
-        '2025-12-22': 340,
-        '2025-12-23': 360,
-        '2025-12-24': 400
+        [dayOffset(2)]:  180,
+        [dayOffset(3)]:  200,
+        [dayOffset(9)]:  250,
+        [dayOffset(10)]: 280,
+        [dayOffset(15)]: 300,
+        [dayOffset(16)]: 320,
+        [dayOffset(17)]: 340,
+        [dayOffset(18)]: 360,
+        [dayOffset(19)]: 400
       };
 
       combinedExample.getDateMetadataCallback = (date) => {
-        const dateStr = date.toISOString().split('T')[0];
+        const dateStr = toLocalISO(date);
         const price = priceData[dateStr];
 
         if (price) {

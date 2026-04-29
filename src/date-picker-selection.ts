@@ -94,6 +94,81 @@ async function callBeforeSelectCallback(
 }
 
 /**
+ * Re-render calendar + summary after a selection change.
+ * Single hook so debounced events / bulk-op callbacks can be added later.
+ */
+function commitSelection(picker: any) {
+    picker.renderCalendar();
+    picker.updateSummary();
+}
+
+/**
+ * Write to the input field, but only if there's an input AND we're not waiting
+ * on Apply (in which case the value is shown after the user clicks Apply).
+ */
+export function commitInputValue(picker: any, value: string) {
+    if (picker.input && !picker.requiresApplyButton()) {
+        picker.input.value = value;
+    }
+}
+
+/**
+ * Walk the rendered month columns, find the one containing `target`, and move
+ * keyboard focus (active column index + focused day index + DOM `--focused` class)
+ * to that day. Used after a selection commit to keep the focus indicator in sync.
+ */
+function moveFocusToDate(picker: any, target: Date): void {
+    for (let colIndex = 0; colIndex < picker.monthDates.length; colIndex++) {
+        const monthDate = picker.monthDates[colIndex];
+        if (target.getFullYear() !== monthDate.getFullYear() || target.getMonth() !== monthDate.getMonth()) {
+            continue;
+        }
+        picker.activeMonthIndex = colIndex;
+
+        const daysContainer = picker.calendar.querySelector(
+            `.drp-date-picker__days[data-month-index="${colIndex}"]`
+        );
+        if (!daysContainer) return;
+
+        const days = daysContainer.querySelectorAll(
+            '.drp-date-picker__day:not(.drp-date-picker__day--other-month)'
+        );
+        const dayIndex = Array.from(days).findIndex((day: Element) => {
+            const dateAttr = (day as HTMLElement).dataset.date;
+            if (!dateAttr) return false;
+            const [year, month, dayNum] = dateAttr.split('-').map(Number);
+            const dayDate = new Date(year, month - 1, dayNum);
+            return picker.isSameDay(dayDate, target);
+        });
+        if (dayIndex === -1) return;
+
+        picker.focusedDayIndex = dayIndex;
+        days.forEach((day: Element) => day.classList.remove('drp-date-picker__day--focused'));
+        (days[dayIndex] as HTMLElement | undefined)?.classList.add('drp-date-picker__day--focused');
+        return;
+    }
+}
+
+/**
+ * Format the current selection for display in the input field.
+ * Returns null for selection states that have no canonical input representation.
+ */
+function formatInputValue(picker: any): string | null {
+    const mode = picker.options.selectionMode;
+    if (mode === 'range' && picker.selectedStartDate && picker.selectedEndDate) {
+        return `${picker.formatDate(picker.selectedStartDate)} - ${picker.formatDate(picker.selectedEndDate)}`;
+    }
+    if (mode === 'single' && picker.selectedDate) {
+        return picker.formatDate(picker.selectedDate);
+    }
+    if (mode === 'multiple') {
+        const count = picker.selectedDates.length + picker.selectedRanges.length;
+        return count > 0 ? `${count} selection(s)` : '';
+    }
+    return null;
+}
+
+/**
  * Validate range selection with async callback
  * Runs local validation first, then async callback if provided
  */
@@ -144,6 +219,9 @@ export async function validateRangeAsync(
         }
         return { isValid: false, message: callbackResult.message };
     }
+    // Partial adjustment is intentional: a callback may adjust only one side of the range.
+    // Consumers fall back per-field (`validation.adjustedStart || originalStart`), so leaving
+    // one side undefined means "keep the original value for this side."
     if (callbackResult.adjustedStart || callbackResult.adjustedEnd) {
         return {
             isValid: true,
@@ -209,12 +287,7 @@ export async function selectDay(picker: any, dayElement: HTMLElement) {
         }
 
         picker.selectedDate = finalDate;
-        if (picker.input) {
-            // Only update input immediately if Apply button is NOT required
-            if (!picker.requiresApplyButton()) {
-                picker.input.value = picker.formatDate(finalDate);
-            }
-        }
+        commitInputValue(picker, picker.formatDate(finalDate));
 
         // Defer onSelect callback if Apply button is required
         if (picker.requiresApplyButton()) {
@@ -248,12 +321,8 @@ export async function selectDay(picker: any, dayElement: HTMLElement) {
         }
 
         // Update input to show count (only if Apply button is NOT required)
-        if (picker.input) {
-            if (!picker.requiresApplyButton()) {
-                const count = picker.selectedDates.length + picker.selectedRanges.length;
-                picker.input.value = count > 0 ? `${count} selection(s)` : '';
-            }
-        }
+        const count = picker.selectedDates.length + picker.selectedRanges.length;
+        commitInputValue(picker, count > 0 ? `${count} selection(s)` : '');
 
         // Multiple mode always defers events (inherently requires Apply button)
         // Store pending selection for onSelect callback
@@ -272,11 +341,7 @@ export async function selectDay(picker: any, dayElement: HTMLElement) {
             picker.selectedStartDate = date;
             picker.selectedEndDate = null;
             // Show first date in input immediately (only if Apply button is NOT required)
-            if (picker.input) {
-                if (!picker.requiresApplyButton()) {
-                    picker.input.value = `${picker.formatDate(picker.selectedStartDate)} - ...`;
-                }
-            }
+            commitInputValue(picker, `${picker.formatDate(picker.selectedStartDate)} - ...`);
         } else {
             // Complete range - determine start/end order
             let startDate = picker.selectedStartDate;
@@ -308,8 +373,7 @@ export async function selectDay(picker: any, dayElement: HTMLElement) {
                 }
 
                 // Range was already cleared if action was 'clear'
-                picker.renderCalendar();
-                picker.updateSummary();
+                commitSelection(picker);
                 return;
             }
 
@@ -326,12 +390,7 @@ export async function selectDay(picker: any, dayElement: HTMLElement) {
                 hideMessage(picker);
             }
 
-            if (picker.input) {
-                // Only update input immediately if Apply button is NOT required
-                if (!picker.requiresApplyButton()) {
-                    picker.input.value = `${picker.formatDate(picker.selectedStartDate)} - ${picker.formatDate(picker.selectedEndDate)}`;
-                }
-            }
+            commitInputValue(picker, `${picker.formatDate(picker.selectedStartDate)} - ${picker.formatDate(picker.selectedEndDate)}`);
 
             // Defer onSelect callback if Apply button is required
             const selection = { start: picker.selectedStartDate, end: picker.selectedEndDate };
@@ -348,97 +407,23 @@ export async function selectDay(picker: any, dayElement: HTMLElement) {
         }
     }
 
-    picker.renderCalendar();
-    picker.updateSummary();
+    commitSelection(picker);
 
-    // Update focus to the adjusted date after rendering (for single mode)
-    // This ensures the focus indicator appears on the adjusted date, not the originally clicked date
+    // Keep the focus indicator on the date the picker actually committed to:
+    // - single mode: the (possibly callback-adjusted) date
+    // - range mode: the end of the completed range
     if (singleModeAdjustedDate) {
-        for (let colIndex = 0; colIndex < picker.monthDates.length; colIndex++) {
-            const monthDate = picker.monthDates[colIndex];
-            if (singleModeAdjustedDate.getFullYear() === monthDate.getFullYear() &&
-                singleModeAdjustedDate.getMonth() === monthDate.getMonth()) {
-                // Found the column containing the adjusted date
-                picker.activeMonthIndex = colIndex;
-
-                // Find the day index within this column
-                const daysContainer = picker.calendar.querySelector(
-                    `.drp-date-picker__days[data-month-index="${colIndex}"]`
-                );
-                if (daysContainer) {
-                    const days = daysContainer.querySelectorAll(
-                        '.drp-date-picker__day:not(.drp-date-picker__day--other-month)'
-                    );
-                    const adjustedDayIndex = Array.from(days).findIndex((day: Element) => {
-                        const dateAttr = (day as HTMLElement).dataset.date;
-                        if (!dateAttr) return false;
-                        const [year, month, dayNum] = dateAttr.split('-').map(Number);
-                        const dayDate = new Date(year, month - 1, dayNum);
-                        return picker.isSameDay(dayDate, singleModeAdjustedDate!);
-                    });
-                    if (adjustedDayIndex !== -1) {
-                        picker.focusedDayIndex = adjustedDayIndex;
-                        // Re-apply the focused class to the correct day
-                        days.forEach((day: Element) =>
-                            day.classList.remove('drp-date-picker__day--focused')
-                        );
-                        if (days[adjustedDayIndex]) {
-                            (days[adjustedDayIndex] as HTMLElement).classList.add(
-                                'drp-date-picker__day--focused'
-                            );
-                        }
-                    }
-                }
-                break;
-            }
-        }
+        moveFocusToDate(picker, singleModeAdjustedDate);
     }
-
-    // Update focus to the end date after rendering (for range mode)
-    // This ensures the focus indicator appears on the end of the completed range
     if (picker.options.selectionMode === 'range' && picker.selectedEndDate) {
-        const finalEndDate = picker.selectedEndDate;
-        for (let colIndex = 0; colIndex < picker.monthDates.length; colIndex++) {
-            const monthDate = picker.monthDates[colIndex];
-            if (finalEndDate.getFullYear() === monthDate.getFullYear() && finalEndDate.getMonth() === monthDate.getMonth()) {
-                // Found the column containing the end date
-                picker.activeMonthIndex = colIndex;
-
-                // Find the day index within this column
-                const daysContainer = picker.calendar.querySelector(`.drp-date-picker__days[data-month-index="${colIndex}"]`);
-                if (daysContainer) {
-                    const days = daysContainer.querySelectorAll('.drp-date-picker__day:not(.drp-date-picker__day--other-month)');
-                    const endDayIndex = Array.from(days).findIndex((day: Element) => {
-                        const dateAttr = (day as HTMLElement).dataset.date;
-                        if (!dateAttr) return false;
-                        const [year, month, dayNum] = dateAttr.split('-').map(Number);
-                        const dayDate = new Date(year, month - 1, dayNum); // month is 1-based in data-date, but Date constructor expects 0-based
-                        return picker.isSameDay(dayDate, finalEndDate);
-                    });
-                    if (endDayIndex !== -1) {
-                        picker.focusedDayIndex = endDayIndex;
-                        // Re-apply the focused class to the correct day
-                        days.forEach((day: Element) => day.classList.remove('drp-date-picker__day--focused'));
-                        if (days[endDayIndex]) {
-                            (days[endDayIndex] as HTMLElement).classList.add('drp-date-picker__day--focused');
-                        }
-                    }
-                }
-                break;
-            }
-        }
+        moveFocusToDate(picker, picker.selectedEndDate);
     }
 }
 
 export function selectToday(picker: any) {
     picker.monthDates[picker.activeMonthIndex] = new Date();
     picker.selectedDate = new Date();
-    if (picker.input) {
-        // Only update input immediately if Apply button is NOT required
-        if (!picker.requiresApplyButton()) {
-            picker.input.value = picker.formatDate(picker.selectedDate);
-        }
-    }
+    commitInputValue(picker, picker.formatDate(picker.selectedDate));
 
     // Defer onSelect callback if Apply button is required
     if (picker.requiresApplyButton()) {
@@ -480,21 +465,15 @@ export function clearSelection(picker: any) {
     if (picker.input) {
         picker.input.value = '';
     }
-    picker.renderCalendar();
-    picker.updateSummary();
+    commitSelection(picker);
 }
 
 export function apply(picker: any) {
-    // Always update input if dates are selected (handles custom buttons, programmatic setting)
+    // Always update input if dates are selected (handles custom buttons, programmatic setting).
+    // Bypasses the requiresApplyButton gate — this is the Apply action itself.
     if (picker.input) {
-        if (picker.options.selectionMode === 'range' && picker.selectedStartDate && picker.selectedEndDate) {
-            picker.input.value = `${picker.formatDate(picker.selectedStartDate)} - ${picker.formatDate(picker.selectedEndDate)}`;
-        } else if (picker.options.selectionMode === 'single' && picker.selectedDate) {
-            picker.input.value = picker.formatDate(picker.selectedDate);
-        } else if (picker.options.selectionMode === 'multiple') {
-            const count = picker.selectedDates.length + picker.selectedRanges.length;
-            picker.input.value = count > 0 ? `${count} selection(s)` : '';
-        }
+        const formatted = formatInputValue(picker);
+        if (formatted !== null) picker.input.value = formatted;
     }
 
     // Fire deferred callback if there was a pending selection

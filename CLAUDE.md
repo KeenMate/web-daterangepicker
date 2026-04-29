@@ -10,93 +10,87 @@ This is a web component project extracted from the pure-admin design system. The
 
 ## Architecture
 
-### Source Files
+### Source Layout
 
-**src/js/date-picker.js** (1711 lines)
-- Main date picker implementation as a vanilla JavaScript class `PureDatePicker`
-- Self-contained IIFE module that exports to `window.PureDatePicker`
-- Auto-initializes on DOM load for elements with `[data-date-picker]` attribute
-- Depends on Floating UI (`@floating-ui/dom`) for positioning
+The codebase is TypeScript, organized as a core class plus extracted operation modules. CSS is plain CSS custom properties with the `--drp-*` prefix; no SCSS, no preprocessor.
 
-**src/scss/_date-picker.scss** (476 lines)
-- Complete SCSS styling for the date picker component
-- Uses BEM naming convention (`.pa-date-picker__*`)
-- References SCSS variables from pure-admin (e.g., `$spacing-md`, `$accent-color`, `$border-radius`)
-- These variables will need to be defined or replaced when creating standalone component
+**Core**
+- `src/date-picker.ts` — `DateRangePicker` class (~1800 lines). Constructor, options resolution, calendar/DOM creation, locale init, action-button rendering, action-button tooltip lifecycle, day metadata lookup. Holds the state.
+- `src/web-component.ts` — `WebDaterangepickerElement` custom element (~870 lines). Wraps the core class in a Shadow DOM. ~35 getter/setter pairs for attributes and complex-data properties; `attributeChangedCallback` routes most attribute changes through `destroy() + initializePicker()`.
+- `src/index.ts` — public-API entry; exports the web component, the core class, and types.
+- `src/types.ts` — shared types and the `DatePickerOptions` interface.
+- `src/logger.ts` — `loglevel`-based namespaced loggers (`drpLogger`, `uiLogger`, `dragLogger`, `selectionLogger`, etc.).
 
-**src/date-picker.mustache**
-- HTML demo/documentation file showing various usage patterns
-- Not part of the component itself, but useful reference for features and examples
+**Operation modules** (functions taking `picker` as first arg, modifying its state):
+- `src/date-picker-rendering.ts` — `renderCalendar`, `renderRollingSelector`, day-cell decoration, summary rendering, custom-render callbacks.
+- `src/date-picker-navigation.ts` — month navigation (`prevMonth`, `nextMonth`), unified navigation, collision detection between adjacent columns in multi-month mode, rolling-selector navigation.
+- `src/date-picker-interaction.ts` — drag-to-adjust handlers (`onDragStart`, `onDragMove`, `onDragEnd`), input-mask parsing (`applyMask`, `applyRangeMask`), keyboard navigation.
+- `src/date-picker-selection.ts` — `selectDay`, `selectToday`, `clearSelection`, `apply`, range validation (`validateRangeAsync`).
+- `src/date-picker-ui.ts` — `show`/`hide`/`position`/`showMessage`/`hideMessage`. Floating UI integration for the calendar popover.
+- `src/date-picker-validation.ts` — pure date helpers (`normalizeDate`, `isDateDisabled`, `formatDateKey`, `detectWeekStartDay`).
+- `src/date-picker-locales.ts` — locale strings, weekday/month names, locale resolution.
+- `src/modules/click-events/` and `src/modules/scroll-events/` — small managers that own their own event subscriptions and clean up on destroy.
 
-### Key Components
-
-**PureDatePicker Class** (src/js/date-picker.js)
-- **Initialization** (lines 32-107): Constructor sets up options, parses date format, initializes month views
-- **Calendar Rendering** (lines 431-593): Renders calendar grid, handles rolling selector toggle
-- **Navigation** (lines 669-711): Month/year navigation with collision detection for multi-month mode
-- **Date Selection** (lines 713-768): Handles single date and range selection logic
-- **Keyboard Navigation** (lines 216-378): Comprehensive keyboard shortcuts (arrows, Enter, Esc, Tab, PageUp/Down, Home/End, 't' for today)
-- **Input Masking** (lines 1169-1420): Auto-formats dates as user types, supports multiple formats (YYYY-MM-DD, DD.MM.YYYY, MM/DD/YYYY, etc.)
-- **Drag-to-Adjust** (lines 819-1043): Allows dragging range start/end dates to adjust selection in range mode
-- **Rolling Selector** (lines 562-624): Innovative scrollable year/month picker (lines 573-592 render years ±50 from current)
+**CSS** (`src/css/`)
+- `main.css` — partial imports.
+- `_variables.css` — all `--drp-*` custom properties (376 lines, the theming surface).
+- `_base.css`, `_calendar-grid.css`, `_header-navigation.css`, `_summary-actions.css`, `_badges.css`, `_loading.css`, `_message.css`, `_tooltips.css`, `_modifiers.css` — feature partials.
 
 ### Component Features
 
-- **Two modes**: Single date (`mode: 'single'`) or date range (`mode: 'range'`)
-- **Multi-month display**: Show 1-3+ months side by side (`monthsToShow` option)
-- **Input masking**: Configurable date formats with auto-separator insertion
-- **Trigger modes**: Auto-open on focus (`calendarTrigger: 'auto'`) or button-only (`calendarTrigger: 'button'`)
-- **Range features**: Day/night count summary, drag-to-adjust dates, Apply button
-- **Collision prevention**: In multi-month mode, prevents month columns from showing duplicate months (lines 627-667)
-- **Progressive input parsing**: Calendar updates as user types valid date segments (lines 1619-1652)
+- **Selection modes**: single, range, multiple
+- **Multi-month display**: 1-N months side-by-side (`visibleMonthsCount` option)
+- **Layouts**: horizontal row or grid (`monthLayout: 'horizontal' | 'grid'` with `gridRows`/`gridColumns`)
+- **Unified navigation** for grid layouts: anchor-month index drives the whole grid
+- **Input masking**: progressive auto-formatting as the user types, configurable date format
+- **Trigger modes**: auto-open on focus, on typing, or manual (`calendarOpenTrigger`)
+- **Range features**: day/night count summary, drag-to-adjust dates, Apply button
+- **Collision prevention**: multi-month columns can't show duplicate months
+- **Progressive input parsing**: calendar tracks the input as the user types valid date segments
+- **Rolling selector**: scrollable year/month list inside the header
+- **Disabled-dates handling**: `allow` / `prevent` / `block` / `split` / `individual` strategies for ranges that span disabled dates
+- **Custom rendering** via callbacks: `renderDayCallback`, `renderDayContentCallback`, `getMonthHeaderCallback`, `getUnifiedHeaderCallback`, `formatSummaryCallback` — see security note in `src/types.ts`
+- **Tooltips** on day cells, badges, and action buttons (via Floating UI)
+- **Locale support**: bundled English plus user-overridable strings; auto-detects from browser
 
 ### Important Implementation Details
 
-**Month Column Management** (Multi-Month Mode)
-- Each month column has independent navigation via `monthDates` array (line 56)
-- `activeMonthIndex` tracks which column has keyboard focus (line 80)
-- Tab key switches between columns (lines 251-280)
-- Collision detection ensures adjacent columns don't show same month (lines 627-667)
+**Month columns (multi-month mode)**
+- `monthDates: Date[]` — one entry per visible month column; navigation can move them independently
+- `activeMonthIndex` — which column has keyboard focus
+- `focusedDayIndex` — which day within the active column is focused
+- `showingRollingSelector: boolean[]` — rolling-selector open state per column
+- Tab cycles between columns; collision detection prevents two adjacent columns from showing the same month
 
-**Date Format Parsing** (lines 1423-1453)
-- `parseFormat()` creates structure with separator and part positions
-- Supports YYYY/YY for year, MM/M for month, DD/D for day
-- `formatInfo` object stores parsed structure used throughout component
+**Date format parsing** (`parseFormat` in core class)
+- Supports `YYYY`/`YY`, `MM`/`M`, `DD`/`D` with arbitrary separators
+- Result is cached on `formatInfo` and used by both rendering and the input mask
 
-**Keyboard Navigation** (lines 216-430+)
-- Arrow keys: Up/Down (week), Left/Right (day)
-- Ctrl+Left/Right: Previous/next month
-- Home: First day of current month
-- End: Last day of current month
-- Ctrl+Home: Jan 1 of current year (repeat for previous year)
-- Ctrl+End: Dec 31 of current year (repeat for next year)
-- PageUp/PageDown: Previous/next month
-- 't' key: Jump to today
-- Enter: Select focused day
-- Escape: Close calendar
-- Tab: Switch month columns in multi-month mode
+**Keyboard navigation**
+- Arrows: Up/Down (week), Left/Right (day)
+- Ctrl+Left/Right or PageUp/PageDown: previous/next month
+- Home / End: first/last day of current month
+- Ctrl+Home / Ctrl+End: jump to start/end of year (repeat to step year-by-year)
+- `t`: jump to today
+- Enter: select focused day; Escape: close; Tab: switch column
 
-**Floating UI Integration** (lines 418-429)
-- Uses `computePosition()` with flip and shift middleware
-- Default placement: `bottom-start`
-- Repositions on show to handle viewport constraints
+**Floating UI integration** (`src/date-picker-ui.ts`)
+- Calendar popover and action-button tooltips both use `computePosition` + `autoUpdate`
+- Default placement: `bottom-start`; flips and shifts on viewport overflow
 
 ## Development Guidelines
 
-### Converting to Web Component
-
-When implementing this as a proper web component:
-1. The SCSS variables need to be resolved - either define them or use CSS custom properties
-2. Consider how to bundle Floating UI dependency
-3. The global event listeners (lines 216, 381) need to be scoped to component instance
-4. The mustache file provides good test cases for various configurations
-
 ### Adding New Features
 
-- Date validation logic is minimal (noted as "UI/UX demo" in comments)
-- Min/max date constraints not implemented
-- Disabled dates feature not implemented
-- These are intentional omissions mentioned in comments as planned for "Svelte version"
+- Min/max dates, disabled dates, disabled weekdays, and rolling year/month ranges are implemented; the constraint pipeline lives in `Validation.isDateDisabled` plus `getEffectiveYearRange` / `getEffectiveMonthRange` on the core class
+- For new options that should be reactive at runtime, both `observedAttributes` (in `web-component.ts`) and the parsing block in `initializePicker` need updating — these two lists must agree, and currently a hand-coded mapping exists between them
+- Most attribute changes today trigger a full picker rebuild via `destroy() + initializePicker()` — selection state is lost. A surgical `updateOptions(partial)` API is the architectural fix; until it lands, treat any new option that changes at runtime carefully
+
+### Adding New CSS Variables
+
+- Declare in `src/css/_variables.css` with the `--drp-` prefix
+- Reference from a partial via `var(--drp-x, fallback)` — every theming hook should default to a sensible value so the component works unstyled
+- Don't declare a hook you don't wire — declared-but-unread variables are dead theming surface
 
 ### State Management
 
@@ -139,7 +133,6 @@ The component uses a consistent 5-level size scale (xs, sm, md, lg, xl) across a
 ### Build Tools
 - **Vite** - Fast build tool and dev server with HMR
 - **TypeScript** - Type-safe development
-- **Sass** - CSS preprocessing
 - **Makefile** - Build automation for Unix/Mac/WSL
 - **make.bat** - Build automation for Windows
 

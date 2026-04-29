@@ -5,7 +5,7 @@
  * and tooltips.
  */
 
-import { computePosition, flip, shift, offset, arrow, autoUpdate } from '@floating-ui/dom';
+import { computePosition, flip, shift, offset, arrow, autoUpdate, size } from '@floating-ui/dom';
 import { uiLogger } from './logger';
 import { handleInitialMonthLoad } from './date-picker-navigation';
 import { updateCalendarFromInput } from './date-picker-interaction';
@@ -40,7 +40,7 @@ export function show(picker: any) {
     }
 
     picker.calendar.classList.add('drp-date-picker--visible');
-    picker.isCalendarActive = true; // Make calendar active when shown
+    picker.setCalendarActive(); // Make calendar active and deactivate other pickers
     uiLogger.debug('show() - calendar classes:', picker.calendar.className);
     position(picker);
 
@@ -50,11 +50,6 @@ export function show(picker: any) {
     });
 
     // Note: Outside click handling is now managed by the clickEvents manager
-
-    setTimeout(() => {
-        const computedStyle = window.getComputedStyle(picker.calendar);
-        uiLogger.debug('show() - computed styles - display:', computedStyle.display, 'position:', computedStyle.position, 'left:', computedStyle.left, 'top:', computedStyle.top, 'z-index:', computedStyle.zIndex);
-    }, 100);
 }
 
 export function hide(picker: any) {
@@ -105,9 +100,9 @@ export function hide(picker: any) {
         picker.renderCalendar();
     }
 
-    // Reset locked placement so it can recalculate on next open
-    // (in case user scrolled or viewport changed)
-    picker.lockedPlacement = undefined;
+    // Clear the size-middleware constraints so the next open starts fresh.
+    picker.calendar.style.maxHeight = '';
+    picker.calendar.style.overflowY = '';
 }
 
 export function toggle(picker: any) {
@@ -119,33 +114,39 @@ export function toggle(picker: any) {
 }
 
 export async function position(picker: any) {
-    uiLogger.debug('position() - locked placement:', picker.lockedPlacement);
-
     if (!picker.input) {
         return;
     }
 
-    // Use locked placement if already set, otherwise allow flip on first positioning
-    const middleware = picker.lockedPlacement
-        ? [offset(8), shift({ padding: 8 })] // No flip - use locked placement
-        : [offset(8), flip(), shift({ padding: 8 })]; // Allow flip on first show
-
+    // Always allow flip on every reposition. Previously the resolved placement was
+    // cached after the first compute to prevent "jitter" during autoUpdate, but
+    // the cache had a worse failure mode: if the first computePosition read the
+    // calendar before its layout flushed (height = 0), flip wrongly concluded it
+    // fit below, locked there, and the calendar opened off-screen for the rest of
+    // the session. Rely on Floating UI's own scroll-debouncing inside autoUpdate.
     const result = await computePosition(picker.input, picker.calendar, {
-        placement: (picker.lockedPlacement || picker.options.calendarPlacement) as any,
-        middleware
+        placement: (picker.options.calendarPlacement || 'bottom-start') as any,
+        middleware: [
+            offset(8),
+            flip({ padding: 8 }),
+            shift({ padding: 8 }),
+            // Cap calendar height to whatever the viewport allows on the chosen side.
+            // Without this, a tall calendar (e.g., 2×3 grid layout) would extend past
+            // the viewport edge instead of becoming scrollable.
+            size({
+                padding: 8,
+                apply({ availableHeight, elements }) {
+                    elements.floating.style.maxHeight = `${Math.max(0, availableHeight)}px`;
+                    elements.floating.style.overflowY = 'auto';
+                },
+            }),
+        ],
     });
 
-    uiLogger.debug('position() - FloatingUI computed - x:', result.x, 'y:', result.y, 'placement:', result.placement);
-
-    // Lock the placement after first positioning to prevent jumping
-    if (!picker.lockedPlacement) {
-        picker.lockedPlacement = result.placement;
-        uiLogger.debug('position() - locked placement to:', picker.lockedPlacement);
-    }
+    uiLogger.debug('position() - x:', result.x, 'y:', result.y, 'placement:', result.placement);
 
     picker.calendar.style.left = `${result.x}px`;
     picker.calendar.style.top = `${result.y}px`;
-    uiLogger.debug('position() - applied styles to calendar');
 }
 
 /**
@@ -244,10 +245,8 @@ export function showMessage(
     type?: 'error' | 'warning' | 'info' | 'success',
     autoHide?: number
 ): void {
-    console.log('[showMessage] content:', content, 'type:', type);
-
     if (!picker.messageElement) {
-        console.log('[showMessage] ERROR: messageElement is null/undefined!');
+        uiLogger.warn('showMessage() - messageElement is null/undefined');
         return;
     }
 

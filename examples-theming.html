@@ -109,6 +109,27 @@
       --drp-border-radius: 0.25rem;
     }
 
+    /* Custom selection hover states — full color inversion */
+    web-daterangepicker.theme-selection-hover {
+      --drp-day-range-bg: #111827;
+      --drp-day-range-color: #ffffff;
+      --drp-day-range-bg-hover: #ffffff;
+      --drp-day-range-color-hover: #111827;
+      --drp-day-selected-bg: #111827;
+      --drp-day-selected-color: #ffffff;
+      --drp-day-selected-bg-hover: #ffffff;
+      --drp-day-selected-color-hover: #111827;
+    }
+
+    web-daterangepicker.theme-selection-contrast {
+      --drp-day-range-bg: #dc2626;
+      --drp-day-range-bg-hover: #fca5a5;
+      --drp-day-range-color: #ffffff;
+      --drp-day-selected-bg: #dc2626;
+      --drp-day-selected-bg-hover: #fca5a5;
+      --drp-day-selected-color: #ffffff;
+    }
+
     /* Pastel yellow/orange theme */
     web-daterangepicker.theme-pastel {
       --drp-dropdown-bg: #fef3c7;
@@ -272,7 +293,64 @@ web-daterangepicker.theme-green {
   </div>
 
   <div class="test-section">
-    <h2>✅ Test 6: Pastel Theme (Custom Background)</h2>
+    <h2>✅ Test 6: Selection Hover States</h2>
+    <p>Override hover colors for selected days and range start/end independently from the generic day hover</p>
+
+    <label>Black selection with gray hover (range):</label>
+    <web-daterangepicker
+      class="theme-selection-hover"
+      selection-mode="range"
+      visible-months-count="2"
+      placeholder="Select a range and hover over start/end">
+    </web-daterangepicker>
+
+    <label style="margin-top: 1rem;">Black selection with gray hover (single):</label>
+    <web-daterangepicker
+      class="theme-selection-hover"
+      selection-mode="single"
+      placeholder="Select a date and hover over it">
+    </web-daterangepicker>
+
+    <label style="margin-top: 1rem;">Red selection with light-red hover (range):</label>
+    <web-daterangepicker
+      class="theme-selection-contrast"
+      selection-mode="range"
+      visible-months-count="2"
+      placeholder="Select a range and hover over start/end">
+    </web-daterangepicker>
+
+    <div class="success">
+      ✓ Hover over the range start/end days - they should change to the hover color, NOT the generic day hover
+    </div>
+    <div class="code-block">/* Full color inversion on hover */
+web-daterangepicker.theme-selection-hover {
+  /* Range start/end: black bg + white text */
+  --drp-day-range-bg: #111827;
+  --drp-day-range-color: #ffffff;
+  /* Hover: white bg + black text (full inversion) */
+  --drp-day-range-bg-hover: #ffffff;
+  --drp-day-range-color-hover: #111827;
+
+  /* Single selected: same treatment */
+  --drp-day-selected-bg: #111827;
+  --drp-day-selected-color: #ffffff;
+  --drp-day-selected-bg-hover: #ffffff;
+  --drp-day-selected-color-hover: #111827;
+}
+
+/* Available selection state variables:
+   --drp-day-selected-bg            Selected day background
+   --drp-day-selected-color         Selected day text color
+   --drp-day-selected-bg-hover      Selected day hover background
+   --drp-day-selected-color-hover   Selected day hover text color
+   --drp-day-range-bg               Range start/end background
+   --drp-day-range-color            Range start/end text color
+   --drp-day-range-bg-hover         Range start/end hover background
+   --drp-day-range-color-hover      Range start/end hover text color */</div>
+  </div>
+
+  <div class="test-section">
+    <h2>✅ Test 7: Pastel Theme (Custom Background)</h2>
     <p>Completely custom color scheme</p>
     <label>Pastel theme:</label>
     <web-daterangepicker

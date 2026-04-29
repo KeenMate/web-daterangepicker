@@ -487,85 +487,58 @@ export function isSameOrAfterMonth(date1: Date, date2: Date): boolean {
     return false;
 }
 
-export async function prevMonth(picker: any, monthIndex: number) {
-    // Update only the specific month
+/**
+ * Step a single month column by `offset` (+1 = next, -1 = previous).
+ * Handles enabled-month boundary check, beforeMonthChangedCallback,
+ * and collision propagation against the appropriate neighbour column.
+ */
+async function changeMonth(picker: any, monthIndex: number, offset: -1 | 1): Promise<void> {
     const idx = !isNaN(monthIndex) ? monthIndex : picker.activeMonthIndex;
-    // Hide rolling selector if it's open for this month
+    const dir = offset > 0 ? 'nextMonth' : 'prevMonth';
+
     if (picker.showingRollingSelector[idx]) {
         picker.showingRollingSelector[idx] = false;
     }
 
     const oldDate = picker.monthDates[idx];
-    const newDate = new Date(oldDate.getFullYear(), oldDate.getMonth() - 1, 1);
+    const newDate = new Date(oldDate.getFullYear(), oldDate.getMonth() + offset, 1);
 
-    // Check if target month is within boundaries (has any enabled days)
     if (!hasEnabledDaysInMonth(picker, newDate.getFullYear(), newDate.getMonth())) {
-        navigationLogger.debug(`prevMonth() Col${idx} - navigation blocked: target month has no enabled days`);
-        return; // Navigation blocked
+        navigationLogger.debug(`${dir}() Col${idx} - navigation blocked: target month has no enabled days`);
+        return;
     }
 
-    // Call beforeMonthChangedCallback
     const shouldProceed = await handleBeforeMonthChange(picker, newDate.getFullYear(), newDate.getMonth(), idx);
     if (!shouldProceed) {
-        navigationLogger.debug(`prevMonth() Col${idx} - navigation blocked by callback`);
-        return; // Navigation blocked
+        navigationLogger.debug(`${dir}() Col${idx} - navigation blocked by callback`);
+        return;
     }
 
     picker.monthDates[idx] = newDate;
-    navigationLogger.debug(`prevMonth() Col${idx} - changed from ${oldDate.getFullYear()}-${oldDate.getMonth()+1} to ${newDate.getFullYear()}-${newDate.getMonth()+1}`);
+    navigationLogger.debug(`${dir}() Col${idx} - changed from ${oldDate.getFullYear()}-${oldDate.getMonth()+1} to ${newDate.getFullYear()}-${newDate.getMonth()+1}`);
 
-    // If moving backward causes overlap with previous column, shift previous columns back
-    if (idx > 0) {
-        const prevDate = picker.monthDates[idx - 1];
-        if (isSameOrAfterMonth(prevDate, newDate)) {
-            navigationLogger.debug(`prevMonth() Col${idx} - collision detected with Col${idx-1}, shifting previous columns back`);
-            // Recursively move previous column back
-            await prevMonth(picker, idx - 1);
+    // Collision propagation: if the moved column overlaps its same-direction neighbour,
+    // recursively shift that neighbour the same direction.
+    const neighbourIdx = idx + offset;
+    const neighbourInBounds = offset > 0
+        ? neighbourIdx < picker.monthDates.length
+        : neighbourIdx >= 0;
+    if (neighbourInBounds) {
+        const neighbourDate = picker.monthDates[neighbourIdx];
+        const collides = offset > 0
+            ? isSameOrAfterMonth(newDate, neighbourDate)       // moved forward into next
+            : isSameOrAfterMonth(neighbourDate, newDate);      // moved back into prev
+        if (collides) {
+            navigationLogger.debug(`${dir}() Col${idx} - collision detected with Col${neighbourIdx}, shifting`);
+            await changeMonth(picker, neighbourIdx, offset);
         }
     }
 
     picker.renderCalendar();
 }
 
-export async function nextMonth(picker: any, monthIndex: number) {
-    // Update only the specific month
-    const idx = !isNaN(monthIndex) ? monthIndex : picker.activeMonthIndex;
-    // Hide rolling selector if it's open for this month
-    if (picker.showingRollingSelector[idx]) {
-        picker.showingRollingSelector[idx] = false;
-    }
-
-    const oldDate = picker.monthDates[idx];
-    const newDate = new Date(oldDate.getFullYear(), oldDate.getMonth() + 1, 1);
-
-    // Check if target month is within boundaries (has any enabled days)
-    if (!hasEnabledDaysInMonth(picker, newDate.getFullYear(), newDate.getMonth())) {
-        navigationLogger.debug(`nextMonth() Col${idx} - navigation blocked: target month has no enabled days`);
-        return; // Navigation blocked
-    }
-
-    // Call beforeMonthChangedCallback
-    const shouldProceed = await handleBeforeMonthChange(picker, newDate.getFullYear(), newDate.getMonth(), idx);
-    if (!shouldProceed) {
-        navigationLogger.debug(`nextMonth() Col${idx} - navigation blocked by callback`);
-        return; // Navigation blocked
-    }
-
-    picker.monthDates[idx] = newDate;
-    navigationLogger.debug(`nextMonth() Col${idx} - changed from ${oldDate.getFullYear()}-${oldDate.getMonth()+1} to ${newDate.getFullYear()}-${newDate.getMonth()+1}`);
-
-    // If moving forward causes overlap with next column, shift next columns forward
-    if (idx < picker.monthDates.length - 1) {
-        const nextDate = picker.monthDates[idx + 1];
-        if (isSameOrAfterMonth(newDate, nextDate)) {
-            navigationLogger.debug(`nextMonth() Col${idx} - collision detected with Col${idx+1}, shifting next columns forward`);
-            // Recursively move next column forward
-            await nextMonth(picker, idx + 1);
-        }
-    }
-
-    picker.renderCalendar();
-}
+export const prevMonth = (picker: any, monthIndex: number) => changeMonth(picker, monthIndex, -1);
+export const nextMonth = (picker: any, monthIndex: number) => changeMonth(picker, monthIndex, +1);
 
 /**
  * Find next enabled day index starting from given index, moving in direction

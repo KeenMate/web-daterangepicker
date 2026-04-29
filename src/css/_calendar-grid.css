@@ -79,8 +79,9 @@
   font-weight: var(--drp-font-weight-semibold);
 }
 
-.drp-date-picker__day--selected:hover {
+.drp-date-picker__day--selected:hover:not(.drp-date-picker__day--disabled):not(.drp-date-picker__day--other-month) {
   background-color: var(--drp-day-selected-bg-hover);
+  color: var(--drp-day-selected-color-hover);
 }
 
 /* --------------------------------------
@@ -159,6 +160,12 @@
   user-select: none;
 }
 
+.drp-date-picker__day--range-start:hover:not(.drp-date-picker__day--disabled):not(.drp-date-picker__day--other-month),
+.drp-date-picker__day--range-end:hover:not(.drp-date-picker__day--disabled):not(.drp-date-picker__day--other-month) {
+  background-color: var(--drp-day-range-bg-hover);
+  color: var(--drp-day-range-color-hover);
+}
+
 .drp-date-picker__day--range-start:active,
 .drp-date-picker__day--range-end:active {
   cursor: grabbing;
@@ -168,7 +175,7 @@
   background-color: color-mix(in srgb, var(--drp-day-range-bg) calc(var(--drp-day-in-range-bg-opacity) * 100%), transparent);
 }
 
-.drp-date-picker__day--in-range:hover {
+.drp-date-picker__day--in-range:hover:not(.drp-date-picker__day--disabled):not(.drp-date-picker__day--other-month) {
   background-color: color-mix(in srgb, var(--drp-day-range-bg) calc(var(--drp-day-in-range-hover-bg-opacity) * 100%), transparent);
 }
 
@@ -209,8 +216,8 @@
 
 .drp-date-picker__day--invalid-range-start,
 .drp-date-picker__day--invalid-range-end {
-  background-color: var(--drp-message-error-border);
-  color: white;
+  background-color: var(--drp-day-invalid-range-bg);
+  color: var(--drp-day-invalid-range-color);
   font-weight: var(--drp-font-weight-semibold);
 }
 

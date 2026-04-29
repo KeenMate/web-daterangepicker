@@ -675,6 +675,12 @@ picker.beforeMonthChangedCallback = async ({ year, month }) => {
       customElements.define('web-daterangepicker', WebDaterangepickerElement);
     }
 
+    // Format a Date as YYYY-MM-DD in LOCAL time. Using Date.prototype.toISOString
+    // would return UTC, which shifts the result by ±1 day in non-UTC timezones —
+    // breaking lookups (badges land on the wrong day) and confusing log output.
+    const toLocalISO = (d) =>
+      `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+
     // Helper to log events
     function logEvent(logId, eventName, data, status = 'info') {
       const log = document.getElementById(logId);
@@ -733,7 +739,7 @@ picker.beforeMonthChangedCallback = async ({ year, month }) => {
 
       logEvent('log-single-weekends',
         isWeekend ? 'BLOCKED' : 'ALLOWED',
-        { date: date.toISOString().split('T')[0], day: dayName },
+        { date: toLocalISO(date), day: dayName },
         isWeekend ? 'error' : 'success'
       );
 
@@ -751,7 +757,7 @@ picker.beforeMonthChangedCallback = async ({ year, month }) => {
 
       logEvent('log-single-past',
         isPast ? 'BLOCKED (past date)' : 'ALLOWED',
-        { date: date.toISOString().split('T')[0] },
+        { date: toLocalISO(date) },
         isPast ? 'error' : 'success'
       );
 
@@ -780,8 +786,8 @@ picker.beforeMonthChangedCallback = async ({ year, month }) => {
       logEvent('log-single-adjust',
         adjusted ? 'ADJUSTED' : 'ACCEPTED',
         {
-          original: date.toISOString().split('T')[0],
-          adjusted: adjusted ? adjusted.toISOString().split('T')[0] : null,
+          original: toLocalISO(date),
+          adjusted: adjusted ? toLocalISO(adjusted) : null,
           message
         },
         adjusted ? 'warning' : 'success'
@@ -795,7 +801,7 @@ picker.beforeMonthChangedCallback = async ({ year, month }) => {
     // Example 4: Async API Validation
     const singleAsync = document.getElementById('single-async');
     singleAsync.beforeDateSelectCallback = async (date) => {
-      logEvent('log-single-async', 'Validating...', { date: date.toISOString().split('T')[0] }, 'info');
+      logEvent('log-single-async', 'Validating...', { date: toLocalISO(date) }, 'info');
 
       // Simulate API call
       await new Promise(resolve => setTimeout(resolve, 500));
@@ -805,7 +811,7 @@ picker.beforeMonthChangedCallback = async ({ year, month }) => {
 
       logEvent('log-single-async',
         isBlocked ? 'API: BLOCKED' : 'API: ALLOWED',
-        { date: date.toISOString().split('T')[0] },
+        { date: toLocalISO(date) },
         isBlocked ? 'error' : 'success'
       );
 
@@ -827,8 +833,8 @@ picker.beforeMonthChangedCallback = async ({ year, month }) => {
       logEvent('log-range-min',
         isValid ? 'ALLOWED' : 'BLOCKED (min 2 nights)',
         {
-          start: range.start.toISOString().split('T')[0],
-          end: range.end.toISOString().split('T')[0],
+          start: toLocalISO(range.start),
+          end: toLocalISO(range.end),
           nights
         },
         isValid ? 'success' : 'error'
@@ -848,8 +854,8 @@ picker.beforeMonthChangedCallback = async ({ year, month }) => {
       logEvent('log-range-max',
         isValid ? 'ALLOWED' : 'BLOCKED (max 7 nights)',
         {
-          start: range.start.toISOString().split('T')[0],
-          end: range.end.toISOString().split('T')[0],
+          start: toLocalISO(range.start),
+          end: toLocalISO(range.end),
           nights
         },
         isValid ? 'success' : 'error'
@@ -875,9 +881,9 @@ picker.beforeMonthChangedCallback = async ({ year, month }) => {
 
         logEvent('log-range-adjust', 'ADJUSTED to Sunday',
           {
-            start: range.start.toISOString().split('T')[0],
-            originalEnd: range.end.toISOString().split('T')[0],
-            adjustedEnd: adjusted.toISOString().split('T')[0]
+            start: toLocalISO(range.start),
+            originalEnd: toLocalISO(range.end),
+            adjustedEnd: toLocalISO(adjusted)
           },
           'warning'
         );
@@ -892,8 +898,8 @@ picker.beforeMonthChangedCallback = async ({ year, month }) => {
 
       logEvent('log-range-adjust', 'ACCEPTED (already Sunday)',
         {
-          start: range.start.toISOString().split('T')[0],
-          end: range.end.toISOString().split('T')[0]
+          start: toLocalISO(range.start),
+          end: toLocalISO(range.end)
         },
         'success'
       );
@@ -905,8 +911,8 @@ picker.beforeMonthChangedCallback = async ({ year, month }) => {
     const rangeAsync = document.getElementById('range-async');
     rangeAsync.beforeDateSelectCallback = async (range) => {
       logEvent('log-range-async', 'Checking availability...', {
-        start: range.start.toISOString().split('T')[0],
-        end: range.end.toISOString().split('T')[0]
+        start: toLocalISO(range.start),
+        end: toLocalISO(range.end)
       }, 'info');
 
       // Simulate API call
@@ -919,8 +925,8 @@ picker.beforeMonthChangedCallback = async ({ year, month }) => {
       logEvent('log-range-async',
         isAvailable ? 'API: AVAILABLE' : 'API: NOT AVAILABLE',
         {
-          start: range.start.toISOString().split('T')[0],
-          end: range.end.toISOString().split('T')[0],
+          start: toLocalISO(range.start),
+          end: toLocalISO(range.end),
           nights
         },
         isAvailable ? 'success' : 'error'
@@ -1021,11 +1027,11 @@ picker.beforeMonthChangedCallback = async ({ year, month }) => {
       const monthName = new Date(year, month, 1).toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
 
       logEvent('log-month-bulk', `📅 Loading ${monthName}...`, {
-        range: `${firstVisibleDate.toISOString().split('T')[0]} to ${lastVisibleDate.toISOString().split('T')[0]}`
+        range: `${toLocalISO(firstVisibleDate)} to ${toLocalISO(lastVisibleDate)}`
       }, 'info');
 
       console.log(`[beforeMonthChangedCallback] Loading ${monthName}`);
-      console.log(`  Visible range: ${firstVisibleDate.toISOString().split('T')[0]} to ${lastVisibleDate.toISOString().split('T')[0]}`);
+      console.log(`  Visible range: ${toLocalISO(firstVisibleDate)} to ${toLocalISO(lastVisibleDate)}`);
 
       // Simulate API call to fetch availability for entire month
       await new Promise(resolve => setTimeout(resolve, 600));
@@ -1035,7 +1041,7 @@ picker.beforeMonthChangedCallback = async ({ year, month }) => {
       let currentDate = new Date(firstVisibleDate);
 
       while (currentDate <= lastVisibleDate) {
-        const dateKey = currentDate.toISOString().split('T')[0];
+        const dateKey = toLocalISO(currentDate);
 
         // Example logic: weekends are more expensive
         const isWeekend = currentDate.getDay() === 0 || currentDate.getDay() === 6;
@@ -1141,12 +1147,12 @@ picker.beforeMonthChangedCallback = async ({ year, month }) => {
       const anchorMonthName = new Date(year, month, 1).toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
 
       logEvent('log-unified-grid', `📅 Loading unified grid (anchor: ${anchorMonthName})...`, {
-        range: `${firstVisibleDate.toISOString().split('T')[0]} to ${lastVisibleDate.toISOString().split('T')[0]}`,
+        range: `${toLocalISO(firstVisibleDate)} to ${toLocalISO(lastVisibleDate)}`,
         anchorIndex: monthIndex
       }, 'info');
 
       console.log(`[Unified Grid] Anchor: ${anchorMonthName} (index ${monthIndex})`);
-      console.log(`  Full range: ${firstVisibleDate.toISOString().split('T')[0]} to ${lastVisibleDate.toISOString().split('T')[0]}`);
+      console.log(`  Full range: ${toLocalISO(firstVisibleDate)} to ${toLocalISO(lastVisibleDate)}`);
 
       // Check if navigation should be blocked (±3 months from today)
       const today = new Date();
@@ -1176,7 +1182,7 @@ picker.beforeMonthChangedCallback = async ({ year, month }) => {
       let currentDate = new Date(firstVisibleDate);
 
       while (currentDate <= lastVisibleDate) {
-        const dateKey = currentDate.toISOString().split('T')[0];
+        const dateKey = toLocalISO(currentDate);
         const isWeekend = currentDate.getDay() === 0 || currentDate.getDay() === 6;
         const basePrice = isWeekend ? 280 : 180;
         const price = basePrice + Math.floor(Math.random() * 70);
@@ -1352,7 +1358,7 @@ picker.beforeMonthChangedCallback = async ({ year, month }) => {
 
       const currentDate = new Date(firstVisibleDate);
       while (currentDate <= lastVisibleDate) {
-        const dateKey = currentDate.toISOString().split('T')[0];
+        const dateKey = toLocalISO(currentDate);
         const rooms = Math.floor(Math.random() * 20);
         totalRooms += rooms;
 

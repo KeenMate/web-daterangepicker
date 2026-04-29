@@ -193,6 +193,79 @@ picker.disabled = true;
 - **Tab / Shift+Tab** - Switch between month columns (multi-month mode)
 - **T** - Jump to today
 
+## ⚠️ Working with Dates Across Timezones
+
+This is a **calendar-date picker** — it represents days, not moments in time. Skipping this section will eventually cost you a one-day-shift bug, so please read it.
+
+### How the picker represents dates
+
+When the user clicks April 30, the picker stores `new Date(year, month - 1, day)` — that's **local midnight** on the picked day. The same is true for `selectedDate`, `selectedStartDate`, `selectedEndDate`, and the Date passed to every callback. There's no UTC anywhere in the picker's internal lookup paths.
+
+### The trap: `Date.prototype.toISOString()`
+
+`toISOString()` returns the date in **UTC**. For any user not in UTC, that string represents a different *calendar* day than the one they see:
+
+```js
+// User in Moscow (UTC+3) picks April 30.
+// selectedDate is `new Date(2026, 3, 30)` = April 30 00:00 MSK = April 29 21:00 UTC.
+
+selectedDate.toISOString().split('T')[0]  // → "2026-04-29"  ❌ wrong day
+selectedDate.getDate()                     // → 30           ✅ what the user clicked
+```
+
+This is what broke the example demos in earlier versions: lookup keys built from `dayOffset()` (local) didn't match keys derived from `toISOString()` (UTC). Badges rendered one day late, tooltips on the right day. Same bug strikes any user who tries `date.toISOString()` to key into a `Map<string, DateInfo>`.
+
+### The rule
+
+**Format dates from local components, never from `toISOString()`:**
+
+```js
+const toLocalISO = (d) =>
+  `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+
+picker.getDateMetadataCallback = (date) => {
+  const dateStr = toLocalISO(date);    // ✅ matches what the user sees
+  // …lookup, return DateInfo…
+};
+```
+
+### Sending dates to a server / between users
+
+`Date` objects can't survive transport — they get serialized. The serialization format determines whether the date stays on the right calendar day across timezones:
+
+| What you send | Russian user picks Apr 30 → LA user receives | Verdict |
+|---|---|---|
+| `event.detail.formattedValue` (`"2026-04-30"`) | `"2026-04-30"` → set on LA picker → April 30 | ✅ |
+| `JSON.stringify(detail)` (Date → ISO string) | `"2026-04-29T21:00:00.000Z"` → April 29 in LA | ❌ |
+| `selectedDate.toISOString()` | `"2026-04-29T21:00:00.000Z"` → April 29 in LA | ❌ |
+| `toLocalISO(selectedDate)` (`"2026-04-30"`) | `"2026-04-30"` | ✅ |
+
+**Recommendation:** transmit calendar dates as `YYYY-MM-DD` **strings**, never as ISO timestamps or raw `Date`/JSON-serialized payloads.
+
+### Receiving a date string
+
+`new Date("2026-04-30")` parses as **UTC midnight** — surprising for non-UTC users (in LA it'd be April 29). Build local Dates from the string parts:
+
+```js
+// ❌ Don't do this
+const d = new Date("2026-04-30");                    // UTC midnight, surprising in non-UTC
+
+// ✅ Do this
+const [y, m, day] = "2026-04-30".split("-").map(Number);
+const localDate = new Date(y, m - 1, day);           // April 30 local — what the user picked
+
+// Or, if you just need to set the picker:
+picker.setInputValue("2026-04-30");                  // picker handles parsing internally
+picker.value = "2026-04-30";                         // attribute setter
+```
+
+### Quick checklist
+
+- [ ] Picker callbacks: format Dates with `toLocalISO()`, not `toISOString()`
+- [ ] Outgoing dates (server, URL, localStorage): send `YYYY-MM-DD` strings
+- [ ] Incoming dates: prefer `picker.setInputValue("YYYY-MM-DD")` over manual `new Date(...)` parsing
+- [ ] Map/dictionary keys for date lookups: build keys with `toLocalISO()` and lookup the same way
+
 ## Advanced Features
 
 ### Week Start Day
@@ -281,8 +354,13 @@ picker.specialDates = [
 For complete control, use the `getDateMetadataCallback`:
 
 ```javascript
+// Local-date formatter — see "Working with Dates Across Timezones" above.
+// Don't use date.toISOString() here; it shifts by one day in non-UTC timezones.
+const toLocalISO = (d) =>
+  `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+
 picker.getDateMetadataCallback = (date) => {
-  const dateStr = date.toISOString().split('T')[0];
+  const dateStr = toLocalISO(date);
 
   // Check if it's a peak season date
   if (isPeakSeason(date)) {
@@ -340,12 +418,14 @@ const picker = document.querySelector('web-daterangepicker');
 picker.beforeDateSelectCallback = async (selection) => {
   // selection is Date (single mode) or { start: Date, end: Date } (range mode)
 
-  // Example: Check availability via API
+  // Example: Check availability via API.
+  // Send YYYY-MM-DD strings, not toISOString() — the picker is a calendar-date
+  // picker, and ISO timestamps shift by ±1 day across timezones.
   const response = await fetch('/api/check-availability', {
     method: 'POST',
     body: JSON.stringify({
-      start: selection.start.toISOString(),
-      end: selection.end.toISOString()
+      start: toLocalISO(selection.start),
+      end: toLocalISO(selection.end)
     })
   });
   const { available, message } = await response.json();
@@ -416,12 +496,14 @@ const picker = document.querySelector('web-daterangepicker');
 picker.beforeMonthChangedCallback = async (context) => {
   // context: { year, month, monthIndex, firstVisibleDate, lastVisibleDate }
 
-  // Fetch availability for all visible dates in one call
+  // Fetch availability for all visible dates in one call.
+  // Use toLocalISO (see "Working with Dates Across Timezones") so the
+  // server receives the calendar dates the user actually sees.
   const response = await fetch('/api/availability', {
     method: 'POST',
     body: JSON.stringify({
-      start: context.firstVisibleDate.toISOString(),
-      end: context.lastVisibleDate.toISOString()
+      start: toLocalISO(context.firstVisibleDate),
+      end: toLocalISO(context.lastVisibleDate)
     })
   });
   const data = await response.json();
