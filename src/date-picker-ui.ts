@@ -19,6 +19,13 @@ export function show(picker: any) {
         return;
     }
 
+    // Already visible — skip. Without this guard, repeated show() calls (e.g., focus
+    // fires after mousedown on the same click) overwrite originalInputValue with the
+    // already-pending value and leak the autoUpdate cleanup function.
+    if (picker.calendar.classList.contains('drp-date-picker--visible')) {
+        return;
+    }
+
     uiLogger.debug('show() - adding visible class');
 
     // Store original input value if Apply button is required (for restore on close without Apply)

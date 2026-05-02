@@ -984,19 +984,24 @@ class DateRangePicker {
         const triggerMode = this.options.calendarOpenTrigger || 'focus'; // default to 'focus' for backward compatibility
 
         if (triggerMode === 'focus') {
-            // Open on focus
+            // Open on focus (initial focus from tab-in or first click)
             this.input.addEventListener('focus', () => {
                 drpLogger.debug('Input focused - opening calendar');
                 this.show();
             });
-            // Also re-open on click when the input is already focused but the
-            // calendar got closed (e.g., by scroll). The focus event won't fire
-            // again because focus didn't change.
+            // Also re-open when the input is clicked while already focused but the
+            // calendar got closed (e.g., by scroll, Escape, outside-click). The focus
+            // event won't fire if focus didn't change. Both mousedown and click are
+            // wired up because some pointer/touch sequences and accessibility tools
+            // skip one or the other; show() is now idempotent so doubled calls are
+            // harmless.
             this.input.addEventListener('mousedown', () => {
-                if (!this.calendar.classList.contains('drp-date-picker--visible')) {
-                    drpLogger.debug('Input clicked while focused but calendar closed - reopening');
-                    this.show();
-                }
+                drpLogger.debug('Input mousedown - ensuring calendar open');
+                this.show();
+            });
+            this.input.addEventListener('click', () => {
+                drpLogger.debug('Input click - ensuring calendar open');
+                this.show();
             });
         } else if (triggerMode === 'typing') {
             // Open when user starts typing
