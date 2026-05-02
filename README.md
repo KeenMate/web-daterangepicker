@@ -143,8 +143,11 @@ See the [JavaScript Instantiation Examples](examples-javascript-instantiation.ht
 | `disabled-dates-handling` | `'allow' \| 'prevent' \| 'block' \| 'split' \| 'individual'` | `'allow'` | How to handle range selections over disabled dates (see [Range Selection Modes](#range-selection-modes)) |
 | `highlight-disabled-in-range` | `boolean` | `true` | Whether to visually highlight disabled dates within a selected range. Set to `false` to only highlight enabled dates. |
 | `auto-close` | `'never' \| 'selection' \| 'apply'` | `'selection'` | When to close calendar (selection = after picking, apply = after Apply button, never = manual) |
-| `positioning-mode` | `'inline' \| 'floating'` | `'floating'` | Calendar positioning (inline = embedded, floating = popup) |
-| `input-size` | `'xs' \| 'sm' \| 'md' \| 'lg' \| 'xl'` | `'md'` | Input field size (floating mode only) |
+| `positioning-mode` | `'inline' \| 'floating' \| 'modal'` | `'floating'` | Calendar positioning (inline = embedded, floating = popup anchored to input, modal = centered overlay with backdrop) |
+| `mobile-modal-breakpoint` | CSS length (e.g., `"640px"`, `"40em"`) | — | When configured mode is `floating`, auto-switch to `modal` below this viewport width. |
+| `mobile-modal-min-height` | CSS length | — | Same idea but for viewport height — modal engages when viewport height is below the threshold. ORs with `mobile-modal-breakpoint`. |
+| `show-summary` | `boolean` | `true` | Show range-mode days/nights summary block. Set to `false` to omit entirely (no empty-div jump). |
+| `input-size` | `'xs' \| 'sm' \| 'md' \| 'lg' \| 'xl'` | `'md'` | Input field size (floating/modal modes only) |
 | `enable-transitions` | `boolean` | `false` | Enable CSS transitions/animations |
 
 ## Properties

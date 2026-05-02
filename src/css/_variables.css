@@ -127,7 +127,30 @@
      Z-INDEX LAYERS
      ========================================================================== */
   --drp-z-index-dropdown: 9500;
+  --drp-z-index-modal-backdrop: 9700;
+  --drp-z-index-modal: 9800;
   --drp-z-index-tooltip: 9999;
+
+  /* Modal mode (positioning-mode="modal") */
+  --drp-modal-gap: 16px;                              /* gap between calendar and viewport edges */
+  --drp-modal-backdrop-bg: rgba(0, 0, 0, 0.45);       /* scrim color */
+  --drp-modal-transition: 150ms ease-out;             /* fade-in/out timing for backdrop + calendar */
+
+  /* Modal widths per breakpoint. Aligned with the same 480/768/1200 viewport
+     breakpoints already used in `_base.css` (grid columns) and in the
+     Responsive Sizing demo (`--drp-rem` scaling). Override any of these to
+     retheme; see `_modal.css` for the breakpoint @media rules.
+     Note: media queries can't read CSS variables in CSS, so the breakpoints
+     themselves are hardcoded — to shift them, edit `_modal.css` directly.
+     Tiers:
+       xs: viewport ≤ 480px           (small phones)
+       sm: 481px ≤ viewport ≤ 768px   (large phones / small tablets)
+       md: 769px ≤ viewport ≤ 1200px  (tablets / small desktops)
+       lg: viewport ≥ 1201px          (desktops) */
+  --drp-modal-width-xs: calc(100vw - 2 * var(--drp-modal-gap));   /* fill the viewport minus gap */
+  --drp-modal-width-sm: calc(100vw - 2 * var(--drp-modal-gap));   /* same — small screens want the room */
+  --drp-modal-width-md: 900px;                                    /* desktop-ish: 2 columns comfortably, grid wraps to 2-col */
+  --drp-modal-width-lg: 1100px;                                   /* wide desktop: 3 month columns, 2×3 grid renders as configured */
 
   /* ==========================================================================
      LAYOUT & DIMENSIONS

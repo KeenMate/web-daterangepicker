@@ -160,7 +160,7 @@ export interface DatePickerOptions {
   calendarOpenTrigger?: 'focus' | 'typing' | 'manual';
   onSelect?: (date: Date | DateRange | DateRange[] | Date[]) => void;
   container?: HTMLElement; // Where to append the calendar (default: document.body)
-  positioningMode?: 'inline' | 'floating'; // Display mode: 'inline' = static block, 'floating' = popup (default: 'floating')
+  positioningMode?: 'inline' | 'floating' | 'modal'; // Display mode: 'inline' = static block, 'floating' = popup anchored to input, 'modal' = centered overlay with backdrop (default: 'floating')
 
   /**
    * Controls when the calendar auto-closes (floating mode only)

@@ -320,8 +320,12 @@ export function renderDays(picker: any, monthIndex: number, date: Date) {
         });
     }
 
-    // Next month days
-    const totalCells = Math.ceil((firstDay + daysInMonth) / 7) * 7;
+    // Next month days — always render 6 weeks (42 cells) so every month has
+    // identical height. Without this, 5-week months (like October 2026) leave
+    // empty space at the bottom when laid out next to 6-week months in a grid
+    // (rows equalize to the tallest item), creating a visible "gap" between
+    // the day grid and the next element.
+    const totalCells = 42;
     const remainingCells = totalCells - (firstDay + daysInMonth);
     for (let day = 1; day <= remainingCells; day++) {
         const dayDate = new Date(nextYear, nextMonth, day);

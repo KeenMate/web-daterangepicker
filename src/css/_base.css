@@ -138,6 +138,49 @@
   user-select: none;
 }
 
+/* Non-inline pickers (floating + modal) use a flex column layout so that
+   the months area is the only scrollable region — header, summary, and
+   action bar stay anchored at the top/bottom regardless of how tall the
+   multi-month content is. Without this, when the calendar is taller than
+   its constrained height (modal max-height, or Floating UI's size
+   middleware in floating mode), the action buttons scroll out of view.
+   `min-height: 0` on the months area is required so it can shrink below
+   its intrinsic content size — flex defaults to `min-height: auto` which
+   prevents shrinking and breaks the inner scroll. */
+.drp-date-picker:not(.drp-date-picker--inline) {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.drp-date-picker:not(.drp-date-picker--inline) > .drp-date-picker__months,
+.drp-date-picker:not(.drp-date-picker--inline) > .drp-date-picker__months--grid {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+}
+
+.drp-date-picker:not(.drp-date-picker--inline) > .drp-date-picker__unified-header,
+.drp-date-picker:not(.drp-date-picker--inline) > .drp-date-picker__summary,
+.drp-date-picker:not(.drp-date-picker--inline) > .drp-date-picker__actions {
+  flex-shrink: 0;
+}
+
+/* Per-month headers (month name + prev/next nav, or static text in unified
+   mode) stick to the top of the scrolling months area so they stay visible
+   as the user scrolls through days. For multi-month layouts in a single row,
+   all headers stick simultaneously and look like a continuous header bar.
+   For grid layouts, each row's headers stick when that row is being scrolled
+   through, then unstick once the row is fully past. */
+.drp-date-picker:not(.drp-date-picker--inline) .drp-date-picker__month .drp-date-picker__header {
+  position: sticky;
+  top: 0;
+  background: var(--drp-dropdown-bg);
+  /* Above day cells (z-index: auto = 0) so the days scroll behind the header
+     instead of bleeding through it. */
+  z-index: 2;
+}
+
 /* Hide by default */
 .drp-date-picker:not(.drp-date-picker--visible) {
   display: none;

@@ -408,8 +408,9 @@ export async function onDragEnd(picker: any, event: MouseEvent) {
         }
     }
 
-    // Auto-close after drag if appropriate (but NOT if validation failed - user needs to see error and retry)
-    if (picker.options.positioningMode === 'floating' && picker.shouldAutoClose() && validationSucceeded) {
+    // Auto-close after drag if appropriate (but NOT if validation failed - user needs to see error and retry).
+    // Applies to floating and modal — inline mode never closes.
+    if (picker.options.positioningMode !== 'inline' && picker.shouldAutoClose() && validationSucceeded) {
         picker.hide();
     }
 }
@@ -809,21 +810,19 @@ export function parseAndUpdateSingleDate(picker: any, value: string, dateType: s
         } else if (picker.options.selectionMode === 'range') {
             // For start date or first date typed, update first month
             if (dateType === 'start' || !picker.selectedStartDate) {
-                picker.displayMonths = [
-                    { month: newMonth, year: newYear }
-                ];
-                if (picker.options.visibleMonthsCount > 1) {
-                    const nextMonth = new Date(newYear, newMonth + 1, 1);
-                    picker.displayMonths.push({
-                        month: nextMonth.getMonth(),
-                        year: nextMonth.getFullYear()
-                    });
-                }
-
+                // Build displayMonths and monthDates for ALL configured slots.
+                // Previously this only pushed 1–2 entries into displayMonths and
+                // then iterated visibleMonthsCount times, which crashed on
+                // 3+ month layouts (e.g. 2×3 grid → 6) with
+                // `Cannot read properties of undefined (reading 'year')`.
+                picker.displayMonths = [];
                 picker.monthDates = [];
                 for (let i = 0; i < picker.options.visibleMonthsCount; i++) {
-                    const monthData = picker.displayMonths[i];
-                    const date = new Date(monthData.year, monthData.month, 1);
+                    const date = new Date(newYear, newMonth + i, 1);
+                    picker.displayMonths.push({
+                        month: date.getMonth(),
+                        year: date.getFullYear(),
+                    });
                     picker.monthDates.push(date);
                 }
             }

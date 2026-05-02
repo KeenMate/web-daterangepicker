@@ -1,0 +1,191 @@
+/* ==============================================================================
+   DATE RANGE PICKER - MODAL MODE
+   ==============================================================================
+   Activated when the host element has `positioning-mode="modal"`.
+   Calendar centers in the viewport with a backdrop scrim — useful on small
+   screens where multi-month horizontal layouts overflow. */
+
+/* Modal-mode calendar — overrides the absolute popover positioning. */
+.drp-date-picker--modal {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  max-width: calc(100vw - 2 * var(--drp-modal-gap));
+  max-height: calc(100vh - 2 * var(--drp-modal-gap));
+  /* width: auto so the calendar sizes to its content (multi-month grid),
+     capped by max-width. On narrow viewports, the @media block below forces
+     a generous explicit width so the modal doesn't collapse to its intrinsic
+     min-content (which looks tiny — see --drp-modal-narrow-width). */
+  width: auto;
+  /* Flex-column scroll layout (header pinned top, months scroll, actions
+     pinned bottom) is shared with floating mode and lives in `_base.css`
+     under `.drp-date-picker:not(.drp-date-picker--inline)`. */
+  z-index: var(--drp-z-index-modal);
+  /* Make this a query container so the inner multi-month layout can collapse
+     to a single vertical column when the modal itself is narrower than the
+     side-by-side configuration would need. */
+  container-type: inline-size;
+  container-name: drp-modal;
+}
+
+
+/* Make the grid layout work inside an auto-sized modal.
+   The base CSS sets `width: 100%` on `.drp-date-picker__months--grid`. When
+   the parent modal is `width: auto` (or `max-content` / `fit-content`), that
+   100% has nothing to resolve against — and the grid's own `minmax(0, 1fr)`
+   columns let it collapse to 0. Result: the modal's max-content evaluates to
+   ~0 and the modal snaps to its `min-width: 280px` floor regardless of how
+   many columns you configured.
+
+   Two overrides fix this for modal mode:
+   1. `width: auto` so the grid sizes to its own content rather than fighting
+      the parent's auto width.
+   2. `minmax(var(--drp-month-min-width), 1fr)` so each column has a real
+      pixel floor — items can't squeeze below the configured month min-width,
+      which forces the grid (and therefore the modal) to expand to fit them.
+
+   The narrow-tier `@container` rule below uses `!important` to override
+   these back to single-column behavior on small viewports. */
+.drp-date-picker--modal .drp-date-picker__months--grid {
+  width: auto;
+  grid-template-columns: repeat(var(--drp-grid-columns, 3), minmax(var(--drp-month-min-width, 280px), 1fr));
+}
+
+/* Per-breakpoint modal width.
+   Without an explicit width, `width: auto` collapses the modal to whatever
+   min-content width the day grid needs — much narrower than viewport on
+   phones, which looks awkward and wastes space. We pin the width per
+   breakpoint via CSS variables (which can be overridden by the consumer),
+   while the breakpoints themselves are hardcoded since media queries can't
+   read CSS variables.
+
+   Aligned with the 480 / 768 / 1200 breakpoints already used by `_base.css`
+   (grid columns) and the Responsive Sizing demo (`--drp-rem` scaling).
+   See `_variables.css` for the default widths and a description of each
+   tier. */
+
+/* xs — small phones (≤ 480px) */
+@media (max-width: 480px) {
+  .drp-date-picker--modal {
+    width: var(--drp-modal-width-xs);
+  }
+}
+
+/* sm — large phones / small tablets (481–768px) */
+@media (min-width: 481px) and (max-width: 768px) {
+  .drp-date-picker--modal {
+    width: var(--drp-modal-width-sm);
+  }
+}
+
+/* md — tablets / small desktops (769–1200px) */
+@media (min-width: 769px) and (max-width: 1200px) {
+  .drp-date-picker--modal {
+    width: var(--drp-modal-width-md);
+  }
+}
+
+/* lg — desktops (≥ 1201px) */
+@media (min-width: 1201px) {
+  .drp-date-picker--modal {
+    width: var(--drp-modal-width-lg);
+  }
+}
+
+/* Progressive responsive layout — different behavior for flex vs grid:
+   - Flex layout (`.drp-date-picker__months` without `--grid`): the visible
+     month count is reduced to what fits in a single row at each tier;
+     hidden columns still update in lockstep via collision-resolve.
+   - Grid layout (`.drp-date-picker__months--grid`): all configured months
+     stay visible — we just reduce the column count so they wrap into more
+     rows. Hiding wouldn't make sense for grids since the user explicitly
+     configured a 2×3 / 3×2 / etc. layout.
+   - Both layouts collapse to a single visible month at ≤ 600px (phone
+     viewports), since stacking 6 months vertically is too tall.
+
+   Thresholds are roughly N × `--drp-month-min-width` (280px default) + gaps.
+   Container queries can't read CSS variables, so adjust here if your
+   `--drp-month-min-width` differs significantly. */
+
+/* ≤ 600px → single visible month for BOTH layouts (phone screens) */
+@container drp-modal (max-width: 600px) {
+  .drp-date-picker--modal .drp-date-picker__month {
+    min-width: 0;
+    width: 100%;
+  }
+  .drp-date-picker--modal .drp-date-picker__month:nth-child(n+2) {
+    display: none;
+  }
+  .drp-date-picker--modal .drp-date-picker__months--grid {
+    grid-template-columns: minmax(0, 1fr) !important;
+    grid-template-rows: auto !important;
+  }
+}
+
+/* 601–900px → 2 columns (flex hides extras, grid wraps into more rows) */
+@container drp-modal (min-width: 601px) and (max-width: 900px) {
+  /* Flex layout: hide months beyond column 2 so we don't horizontal-overflow.
+     `:not(--grid)` scoping is what keeps the rule from also hiding items in
+     grid layouts (where we want all 6 of a 2×3 to remain visible, just
+     re-flowed into more rows). */
+  .drp-date-picker--modal .drp-date-picker__months:not(.drp-date-picker__months--grid) > .drp-date-picker__month:nth-child(n+3) {
+    display: none;
+  }
+  /* Grid layout: cap columns at 2 so 6 items become 3 rows of 2 (etc). */
+  .drp-date-picker--modal .drp-date-picker__months--grid {
+    grid-template-columns: repeat(2, minmax(var(--drp-month-min-width, 280px), 1fr)) !important;
+    grid-template-rows: auto !important;
+  }
+}
+
+/* 901–1200px → 3 columns (flex hides extras, grid uses configured cols up to 3) */
+@container drp-modal (min-width: 901px) and (max-width: 1200px) {
+  .drp-date-picker--modal .drp-date-picker__months:not(.drp-date-picker__months--grid) > .drp-date-picker__month:nth-child(n+4) {
+    display: none;
+  }
+  /* Grid layout: respect configured grid-columns (capped at 3 for safety in
+     case configured is higher; users configuring >3 columns probably want
+     them at >1200px tier anyway). */
+  .drp-date-picker--modal .drp-date-picker__months--grid {
+    grid-template-columns: repeat(min(var(--drp-grid-columns, 3), 3), minmax(var(--drp-month-min-width, 280px), 1fr)) !important;
+    grid-template-rows: auto !important;
+  }
+}
+
+/* > 1200px → respect configured layout (no override needed; the base
+   `.drp-date-picker--modal .drp-date-picker__months--grid` rule above
+   handles N × `minmax(--drp-month-min-width, 1fr)`) */
+
+/* Note: the unified-navigation header stays visible — its prev/next buttons
+   are the only way to navigate when per-month headers are static (unified
+   mode). Its range display ("May 2026 - October 2026") will look slightly
+   off when only some of the configured months are visible, but navigation
+   works. */
+
+/* Backdrop scrim — full-viewport, click-to-dismiss. */
+.drp-date-picker__backdrop {
+  position: fixed;
+  inset: 0;
+  background: var(--drp-modal-backdrop-bg);
+  z-index: var(--drp-z-index-modal-backdrop);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--drp-modal-transition);
+}
+
+.drp-date-picker__backdrop--visible {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* Optional fade-in for the calendar itself when transitions are enabled.
+   When .drp-transitions-enabled is set on the calendar, modal mode also
+   fades the calendar in/out alongside the backdrop. */
+.drp-date-picker--modal.drp-transitions-enabled {
+  transition: opacity var(--drp-modal-transition);
+}
+
+.drp-date-picker--modal.drp-transitions-enabled:not(.drp-date-picker--visible) {
+  opacity: 0;
+}

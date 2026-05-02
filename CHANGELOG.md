@@ -7,17 +7,68 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-### Added
+### Added — Modal positioning mode
 
-- **`showSummary` option (web component attribute: `show-summary`)** — boolean flag to omit the range-mode selection summary block entirely. Default `true` (current behavior). Set to `false` (or `show-summary="false"`) when you want a clean range picker without the days/nights count line — previously the only workaround was `formatSummaryCallback = () => ''`, which still rendered an empty `<div>` with margin and border-top, causing a small layout jump. Structural option (toggling at runtime triggers a rebuild, since the `<div>` needs to be added/removed from DOM). Added a 4th cell to `examples-buttons.html` section 1 ("Button & Summary Visibility Control") demonstrating the attribute.
+- **`positioning-mode="modal"`** — new third value for `positioningMode` alongside `floating` and `inline`. Renders the calendar as a centered overlay with a semi-transparent backdrop scrim instead of anchoring to the input. Solves the small-screen overflow problem: multi-month horizontal layouts that horizontally scrolled off-screen in floating mode now fit. Closes via backdrop click, Escape, Apply (range mode), or `autoClose='selection'`. Body scroll is locked while open (reference-counted so multiple modal pickers don't fight over `document.body.style.overflow`). The input is `blur()`-ed when the modal opens (suppresses the mobile soft keyboard) and re-focused on close. Demo in `examples-buttons.html` section 1b.
 
-### Fixed (input click after scroll-close — robustness)
+- **Per-tier modal width** (CSS variables, aligned with the `_base.css` 480 / 768 / 1200 breakpoint set):
+  - `--drp-modal-width-xs` (≤ 480px) — fills viewport minus gap (~95vw)
+  - `--drp-modal-width-sm` (481–768px) — fills viewport minus gap
+  - `--drp-modal-width-md` (769–1200px) — `900px` (room for 2-month layouts)
+  - `--drp-modal-width-lg` (≥ 1201px) — `1100px` (room for 3-month layouts and 2×3 grids as configured)
 
-- **Click on the input after scroll-close still didn't always reopen the calendar.** v1.11.0 added a `mousedown` listener to handle the "input still focused, calendar got closed" case (since `focus` doesn't re-fire when focus didn't change), but in some pointer/touch sequences and accessibility scenarios `mousedown` alone wasn't enough. Two-part fix: (1) added an early-return guard at the top of `show()` so repeated calls during the same open are no-ops (this also stops the silent `cleanupAutoUpdate` leak that occurred when `focus` and `mousedown` both fired on the same click and each re-registered Floating UI's `autoUpdate`); (2) wired both `mousedown` *and* `click` on the input — and removed the inline visibility-check guard, since `show()` is now idempotent. Three handlers (`focus` + `mousedown` + `click`) all calling `show()` is fine because the new `show()` guard makes doubled calls cheap no-ops.
+  Plus shared hooks: `--drp-modal-gap` (16px default), `--drp-modal-backdrop-bg`, `--drp-modal-transition`, `--drp-z-index-modal`, `--drp-z-index-modal-backdrop`. Override per-instance via the host element to retheme.
 
-### Fixed (examples — code blocks rendered as plain text)
+- **Responsive inner-content tiers (container-query driven)** — the modal scales not just its outer width but how many months it shows side-by-side, based on the modal's *actual* width rather than the viewport:
+
+  | Modal width | Behavior |
+  |-------------|----------|
+  | ≤ 600px | 1 visible month — sibling columns hidden via `display: none`. Hidden columns still update in lockstep through the existing collision-resolve logic, so range selection across more months still works; the user navigates time linearly with prev/next. |
+  | 601–900px | 2 columns. Flex-layout pickers hide months 3+; grid-layout pickers keep all configured months visible and just wrap into more rows. |
+  | 901–1200px | 3 columns, same flex/grid distinction. |
+  | > 1200px | Configured layout as-is. |
+
+  All driven by `@container drp-modal (...)` rules in `_modal.css` — no JS state changes, no rebuild on resize.
+
+- **Auto-engage modal at small viewports** — two new web component attributes that flip `positioning-mode` from the configured value to `modal` and back as the viewport crosses thresholds:
+  - `mobile-modal-breakpoint="640px"` — viewport width threshold
+  - `mobile-modal-min-height="500px"` — viewport height threshold
+
+  Either attribute alone works; both together OR. Implemented with `matchMedia` listeners; only auto-engages when the configured mode is `floating` (pickers explicitly set to `inline` or `modal` are left alone). Uses the existing reactive `positioning-mode` rebuild path, so selection survives the transition (input value persists across rebuild and is re-parsed). Demo in `examples-buttons.html` section 1b.
+
+### Added — Other features
+
+- **`showSummary` option (web component attribute: `show-summary`)** — boolean flag to omit the range-mode selection summary block entirely. Default `true` (current behavior). Set to `false` (or `show-summary="false"`) when you want a clean range picker without the days/nights count line — previously the only workaround was `formatSummaryCallback = () => ''`, which still rendered an empty `<div>` with margin and border-top, causing a small layout jump. Structural option (toggling at runtime triggers a rebuild, since the `<div>` needs to be added/removed from DOM). Demo in `examples-buttons.html` section 1.
+
+### Changed — Layout architecture
+
+- **Flex-column scroll layout for floating + modal pickers** (lives in `_base.css` under `.drp-date-picker:not(.drp-date-picker--inline)`). Previously the entire picker was one big `overflow: auto` block; tall content (multi-month grids, 6-row months, etc.) caused the action bar to scroll out of view in floating mode and made days bleed visually behind the action bar in modal mode. Now:
+  - Calendar is `display: flex; flex-direction: column; overflow: hidden`
+  - Months area is the only scrollable region (`overflow-y: auto; flex: 1; min-height: 0`)
+  - Header / unified-header / summary / action bar all `flex-shrink: 0` — pinned at top/bottom
+  - The Floating UI `size` middleware no longer forces inline `overflow-y: auto` on the calendar; `_base.css` handles it via the flex layout
+
+  Side benefit: the action bar (`Today` / `Clear` / `Apply`) is always visible regardless of how tall the multi-month content is.
+
+- **Sticky per-month headers** — the per-month header (month name + prev/next, or static label in unified mode) is now `position: sticky; top: 0` within the scrolling months area. Single-row multi-month layouts get a continuous header strip; grid layouts stack-stick on each row as it scrolls past.
+
+- **Always render 6 weeks per month** — the day grid now always renders exactly 42 cells (6 weeks × 7 days), regardless of whether the month fits in 5 or 6 weeks. Previously, 5-week months left empty space at the bottom when laid out next to 6-week months in a grid (rows equalize to the tallest item), creating visible gaps. This is also the standard convention in most date pickers (Google, Apple, Bootstrap datepicker) — clicking through months no longer makes the calendar jump in size. Side effect: single-month inline pickers now show one extra row of dimmed `--other-month` days; if that's unwelcome, scope the change to non-inline pickers only (revert at `date-picker-rendering.ts` line 327 — change `42` back to the previous `Math.ceil(...)` formula but only when `positioningMode !== 'inline'`).
+
+### Fixed
+
+- **Input on a non-focused window required two clicks to open the picker.** When the browser window had lost focus, the first click on the input was consumed by the OS/browser solely to refocus the window — the synthesized `mousedown` and `click` events were suppressed and never reached our listeners. Pointer events sit at a lower level and survive that suppression. Added a `pointerdown` listener on the input alongside the existing `focus` / `mousedown` / `click` handlers. `show()` is idempotent so doubled firings on the normal-click path are harmless.
+
+- **Range mode crashed on `show()` with a partial-range input value when `visible-months-count >= 3`.** `Cannot read properties of undefined (reading 'year')` at `parseAndUpdateSingleDate`. The function built `displayMonths` with at most 2 entries but then iterated `visibleMonthsCount` times — for the 2×3 grid (6 months) or any 3+-month range picker, indices 2+ were `undefined`. **Fix:** build `displayMonths` and `monthDates` with all `visibleMonthsCount` slots upfront, mirroring how single-mode does it. Pre-existing bug; not introduced by the modal work.
+
+- **Click on the input after scroll-close still didn't always reopen the calendar.** v1.11.0 added a `mousedown` listener to handle the "input still focused, calendar got closed" case (since `focus` doesn't re-fire when focus didn't change), but in some pointer/touch sequences and accessibility scenarios `mousedown` alone wasn't enough. Added an early-return guard at the top of `show()` so repeated calls during the same open are no-ops (also stops the silent `cleanupAutoUpdate` leak that occurred when `focus` and `mousedown` both fired on the same click and each re-registered Floating UI's `autoUpdate`); wired both `mousedown` *and* `click` on the input. Three handlers (`focus` + `mousedown` + `click` + later `pointerdown`) all calling `show()` is fine because the `show()` guard makes doubled calls cheap no-ops.
+
+- **Floating UI grid-layout collapse** — `.drp-date-picker__months--grid` had `width: 100%` + `grid-template-columns: repeat(N, minmax(0, 1fr))` from `_base.css`. Inside an auto-sized parent (modal `width: max-content`, or anything with intrinsic sizing), the `minmax(0, ...)` columns let the grid collapse to 0, which made the modal snap back to its `min-width: 280px` floor — looking like a single-month picker at any viewport. **Fix in modal mode:** override grid to `width: auto` + `grid-template-columns: repeat(N, minmax(var(--drp-month-min-width), 1fr))` so columns honor the per-month floor and the grid actually expands.
+
+### Fixed — Examples
 
 - **Code-block styling regression introduced in v1.10.1** — `examples-shared.css` was refactored to scope the dark-background / `white-space: pre` / monospace rules to `.code-block pre` only, and the syntax-highlight span colors (`.keyword`, `.string`, `.comment`, `.function`, `.property`) were dropped entirely. Pages that put `<code>` directly inside `.code-block` (without a `<pre>` wrapper) — `examples-buttons.html` is the most affected, with 14 of 15 code blocks shaped that way — lost all formatting and rendered as flowing plain text. Restored the box styling on `.code-block` itself so it works for both shapes, reset the inner `<pre>` to a transparent zero-margin pass-through to avoid double-padding on pages that do wrap, and re-added the syntax-highlight span colors (scoped to `.code-block` to avoid clashing with anyone else's `.string` / `.function` / etc.). No HTML changes needed; one CSS edit fixes every affected page.
+
+- **`examples-custom-rendering.html` "Hotel Booking with Prices" demo** rendered prices inline next to day numbers instead of stacked below them. The styles for `.custom-day-content` and `.price-tag` lived in the page's `<style>` block, but the picker renders inside Shadow DOM which is style-isolated — page-level CSS doesn't penetrate. **Fix:** added a `customStylesCallback` on the affected picker that injects those styles into the shadow root.
 
 ## [1.11.0] - 2026-05-01 - PUBLISHED
 

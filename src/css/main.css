@@ -12,6 +12,7 @@
    ├── _tooltips.css           - Floating UI tooltips
    ├── _loading.css            - Loading overlay and spinner for async validation
    ├── _message.css            - Message area for validation feedback
+   ├── _modal.css              - Modal positioning mode (centered overlay + backdrop)
    ├── _modifiers.css          - Transitions, inline mode
    └── main.css                - This file (imports all partials)
 
@@ -28,4 +29,5 @@
 @import './_tooltips.css';
 @import './_loading.css';
 @import './_message.css';
+@import './_modal.css';
 @import './_modifiers.css';

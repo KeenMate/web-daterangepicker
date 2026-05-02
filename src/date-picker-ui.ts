@@ -13,6 +13,41 @@ import { updateCalendarFromInput } from './date-picker-interaction';
 // Cleanup function for autoUpdate
 let cleanupAutoUpdate: (() => void) | null = null;
 
+// Tracks the prior body overflow value so multiple modal pickers don't fight
+// over restoring it. We only set the body to hidden when the count goes 0→1
+// and only restore when it goes back to 0.
+let modalLockCount = 0;
+let modalPriorBodyOverflow: string | null = null;
+
+function lockBodyScroll() {
+    if (modalLockCount === 0) {
+        modalPriorBodyOverflow = document.body.style.overflow;
+        document.body.style.overflow = 'hidden';
+    }
+    modalLockCount++;
+}
+
+function unlockBodyScroll() {
+    modalLockCount = Math.max(0, modalLockCount - 1);
+    if (modalLockCount === 0) {
+        document.body.style.overflow = modalPriorBodyOverflow ?? '';
+        modalPriorBodyOverflow = null;
+    }
+}
+
+function ensureModalBackdrop(picker: any): HTMLElement {
+    if (picker.modalBackdrop) return picker.modalBackdrop;
+    const backdrop = document.createElement('div');
+    backdrop.className = 'drp-date-picker__backdrop';
+    backdrop.addEventListener('click', () => {
+        uiLogger.debug('Backdrop clicked - closing modal');
+        hide(picker);
+    });
+    picker.containerElement.appendChild(backdrop);
+    picker.modalBackdrop = backdrop;
+    return backdrop;
+}
+
 export function show(picker: any) {
     // Skip for inline mode (always visible)
     if (picker.options.positioningMode === 'inline') {
@@ -46,15 +81,71 @@ export function show(picker: any) {
         handleInitialMonthLoad(picker);
     }
 
+    const isModal = picker.options.positioningMode === 'modal';
+
+    if (isModal) {
+        // Modal mode: backdrop, body scroll lock, blur input to suppress mobile keyboard.
+        ensureModalBackdrop(picker).classList.add('drp-date-picker__backdrop--visible');
+        lockBodyScroll();
+        // Remember if input was focused so we can restore on close.
+        if (picker.input && document.activeElement === picker.input) {
+            picker.modalRestoreFocus = true;
+            picker.input.blur();
+        } else {
+            picker.modalRestoreFocus = false;
+        }
+        picker.calendar.classList.add('drp-date-picker--modal');
+    }
+
     picker.calendar.classList.add('drp-date-picker--visible');
     picker.setCalendarActive(); // Make calendar active and deactivate other pickers
     uiLogger.debug('show() - calendar classes:', picker.calendar.className);
-    position(picker);
 
-    // Start auto-updating position on scroll, resize, etc.
-    cleanupAutoUpdate = autoUpdate(picker.input, picker.calendar, () => {
+    if (!isModal) {
+        // Floating mode: anchor positioning + auto-reposition on scroll/resize.
         position(picker);
-    });
+        cleanupAutoUpdate = autoUpdate(picker.input, picker.calendar, () => {
+            position(picker);
+        });
+    } else {
+        // Modal mode is centered purely via CSS — no Floating UI involvement.
+        // Log actual dimensions so we can diagnose width-collapse issues.
+        // Defer to next frame so layout has flushed.
+        requestAnimationFrame(() => {
+            const cal = picker.calendar as HTMLElement;
+            const cs = getComputedStyle(cal);
+            const rect = cal.getBoundingClientRect();
+            const monthsContainer = cal.querySelector('.drp-date-picker__months, .drp-date-picker__months--grid') as HTMLElement | null;
+            const monthsRect = monthsContainer?.getBoundingClientRect();
+            const months = cal.querySelectorAll('.drp-date-picker__month');
+            const visibleMonths = Array.from(months).filter(m => getComputedStyle(m as Element).display !== 'none');
+            // Use raw console.warn so this is visible without needing to call enableLogging().
+            // Remove this block once the modal width issue is diagnosed.
+            console.warn('[drp modal-debug] show() — modal sizing report', {
+                viewport: `${window.innerWidth}×${window.innerHeight}`,
+                modalCssWidth: cs.width,
+                modalCssMaxWidth: cs.maxWidth,
+                modalCssMinWidth: cs.minWidth,
+                modalRectWidth: rect.width,
+                modalRectHeight: rect.height,
+                monthsContainerClass: monthsContainer?.className,
+                monthsContainerWidth: monthsRect?.width,
+                monthsContainerCssWidth: monthsContainer ? getComputedStyle(monthsContainer).width : null,
+                totalMonthEls: months.length,
+                visibleMonthEls: visibleMonths.length,
+                firstMonthCssMinWidth: months[0] ? getComputedStyle(months[0] as Element).minWidth : null,
+                firstMonthRectWidth: months[0] ? (months[0] as HTMLElement).getBoundingClientRect().width : null,
+                containerQueryActive: cal.matches(':is(.drp-date-picker--modal)') &&
+                    rect.width <= 600,
+                mediaQueryTier:
+                    window.matchMedia('(max-width: 480px)').matches ? 'xs' :
+                    window.matchMedia('(min-width: 481px) and (max-width: 640px)').matches ? 'sm' :
+                    window.matchMedia('(min-width: 641px) and (max-width: 768px)').matches ? 'md' :
+                    window.matchMedia('(min-width: 769px) and (max-width: 1024px)').matches ? 'lg' :
+                    window.matchMedia('(min-width: 1025px)').matches ? 'xl' : '?',
+            });
+        });
+    }
 
     // Note: Outside click handling is now managed by the clickEvents manager
 }
@@ -68,10 +159,26 @@ export function hide(picker: any) {
         return;
     }
 
-    // Stop auto-updating position
+    const isModal = picker.options.positioningMode === 'modal';
+
+    // Stop auto-updating position (floating mode only — modal never registers it)
     if (cleanupAutoUpdate) {
         cleanupAutoUpdate();
         cleanupAutoUpdate = null;
+    }
+
+    if (isModal) {
+        if (picker.modalBackdrop) {
+            picker.modalBackdrop.classList.remove('drp-date-picker__backdrop--visible');
+        }
+        unlockBodyScroll();
+        picker.calendar.classList.remove('drp-date-picker--modal');
+        // Restore focus to the input if it was focused before opening — the user
+        // is back in the input flow and may want to type or Tab away.
+        if (picker.modalRestoreFocus && picker.input) {
+            picker.input.focus();
+        }
+        picker.modalRestoreFocus = false;
     }
 
     // Note: Outside click handling is now managed by the clickEvents manager
@@ -125,6 +232,11 @@ export async function position(picker: any) {
         return;
     }
 
+    // Modal mode is centered via CSS — Floating UI shouldn't touch its position.
+    if (picker.options.positioningMode === 'modal') {
+        return;
+    }
+
     // Always allow flip on every reposition. Previously the resolved placement was
     // cached after the first compute to prevent "jitter" during autoUpdate, but
     // the cache had a worse failure mode: if the first computePosition read the
@@ -138,13 +250,13 @@ export async function position(picker: any) {
             flip({ padding: 8 }),
             shift({ padding: 8 }),
             // Cap calendar height to whatever the viewport allows on the chosen side.
-            // Without this, a tall calendar (e.g., 2×3 grid layout) would extend past
-            // the viewport edge instead of becoming scrollable.
+            // Scrolling is handled by the inner months container via the flex-column
+            // layout in `_base.css` — the calendar itself uses `overflow: hidden` so
+            // header and action bar stay pinned while the months area scrolls.
             size({
                 padding: 8,
                 apply({ availableHeight, elements }) {
                     elements.floating.style.maxHeight = `${Math.max(0, availableHeight)}px`;
-                    elements.floating.style.overflowY = 'auto';
                 },
             }),
         ],

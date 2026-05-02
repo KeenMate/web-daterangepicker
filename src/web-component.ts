@@ -68,7 +68,7 @@ interface AttributeEntry {
 const SELECTION_MODES = ['single', 'range', 'multiple'] as const;
 const TRIGGERS = ['focus', 'typing', 'manual'] as const;
 const MONTH_LAYOUTS = ['horizontal', 'grid'] as const;
-const POSITIONING_MODES = ['inline', 'floating'] as const;
+const POSITIONING_MODES = ['inline', 'floating', 'modal'] as const;
 const DISABLED_HANDLING = ['allow', 'prevent', 'block', 'split', 'individual'] as const;
 const AUTO_CLOSE = ['never', 'selection', 'apply'] as const;
 
@@ -106,7 +106,7 @@ const ATTRIBUTE_TABLE: AttributeEntry[] = [
 ];
 
 /** Attributes that don't affect the picker itself — handled by surgical `attributeChangedCallback` paths. */
-const NON_PICKER_ATTRIBUTES = ['value', 'placeholder', 'disabled', 'enable-transitions', 'input-size'] as const;
+const NON_PICKER_ATTRIBUTES = ['value', 'placeholder', 'disabled', 'enable-transitions', 'input-size', 'mobile-modal-breakpoint', 'mobile-modal-min-height'] as const;
 
 /** Read all picker-affecting attributes from `el` into a partial DatePickerOptions. */
 function parseAttributesFromTable(el: AttrReader): Partial<DatePickerOptions> {
@@ -156,6 +156,14 @@ export class WebDaterangepickerElement extends HTMLElement {
     // Deferred re-initialization flag
     private _pendingReinit = false;
 
+    // Auto-engage state: matchMedia listeners that flip positioning-mode between
+    // the user-configured value and 'modal' as the viewport crosses any threshold.
+    // Set up via the `mobile-modal-breakpoint` (width) and `mobile-modal-min-height`
+    // (height) attributes — modal engages if ANY listener matches.
+    private _mobileModalMqls: MediaQueryList[] = [];
+    private _mobileModalListener: ((e: MediaQueryListEvent) => void) | null = null;
+    private _configuredPositioningMode: string | null = null;
+
     static get observedAttributes() {
         return [
             ...ATTRIBUTE_TABLE.map(e => e.attr),
@@ -202,12 +210,78 @@ export class WebDaterangepickerElement extends HTMLElement {
     connectedCallback() {
         this.render();
         this.initializePicker();
+        this.setupMobileModalListener();
     }
 
     disconnectedCallback() {
+        this.teardownMobileModalListener();
         if (this.picker) {
             this.picker.destroy();
         }
+    }
+
+    /**
+     * Set up matchMedia listeners that auto-switch positioning-mode to 'modal'
+     * when ANY configured viewport threshold matches, and back to the configured
+     * mode when none do.
+     *
+     * Activated by:
+     *   `mobile-modal-breakpoint`  — viewport width below this engages modal
+     *                                (e.g., "640px" → `(max-width: 640px)`).
+     *   `mobile-modal-min-height`  — viewport height below this engages modal
+     *                                (e.g., "500px" → `(max-height: 500px)`).
+     *
+     * Either attribute alone works; both together OR their results.
+     * Only auto-switches when the configured mode is 'floating' — pickers with
+     * `inline` or already-`modal` configurations are left alone.
+     */
+    private setupMobileModalListener() {
+        this.teardownMobileModalListener();
+
+        const widthRaw = this.getAttribute('mobile-modal-breakpoint');
+        const heightRaw = this.getAttribute('mobile-modal-min-height');
+        if (!widthRaw && !heightRaw) return;
+
+        const configured = this.getAttribute('positioning-mode') || 'floating';
+        // Only auto-engage when starting from 'floating'. Inline never makes
+        // sense to flip to modal; modal is already modal.
+        if (configured !== 'floating') return;
+        this._configuredPositioningMode = configured;
+
+        // Accept "640", "640px", "40em", etc. Default to px when bare number.
+        const normalize = (raw: string) => (/^\d+$/.test(raw) ? `${raw}px` : raw);
+
+        const queries: string[] = [];
+        if (widthRaw) queries.push(`(max-width: ${normalize(widthRaw)})`);
+        if (heightRaw) queries.push(`(max-height: ${normalize(heightRaw)})`);
+
+        this._mobileModalMqls = queries.map(q => window.matchMedia(q));
+
+        const apply = () => {
+            const anyMatch = this._mobileModalMqls.some(mql => mql.matches);
+            const target = anyMatch ? 'modal' : (this._configuredPositioningMode || 'floating');
+            if (this.getAttribute('positioning-mode') !== target) {
+                this.setAttribute('positioning-mode', target);
+            }
+        };
+
+        // Apply current state immediately, then listen for changes on all MQLs.
+        apply();
+        this._mobileModalListener = () => apply();
+        this._mobileModalMqls.forEach(mql => {
+            mql.addEventListener('change', this._mobileModalListener!);
+        });
+    }
+
+    private teardownMobileModalListener() {
+        if (this._mobileModalListener) {
+            this._mobileModalMqls.forEach(mql => {
+                mql.removeEventListener('change', this._mobileModalListener!);
+            });
+        }
+        this._mobileModalMqls = [];
+        this._mobileModalListener = null;
+        this._configuredPositioningMode = null;
     }
 
     attributeChangedCallback(name: string, oldValue: string | null, newValue: string | null) {
@@ -216,6 +290,12 @@ export class WebDaterangepickerElement extends HTMLElement {
         // Surgical UI updates that don't go through the picker.
         if (name === 'enable-transitions') return this.applyTransitionStyles();
         if (name === 'input-size') return this.applyInputSizeStyles();
+        if (name === 'mobile-modal-breakpoint' || name === 'mobile-modal-min-height') {
+            // Re-establish the matchMedia listeners with the new threshold(s).
+            // Only meaningful after connectedCallback (no picker before then).
+            if (this.picker) this.setupMobileModalListener();
+            return;
+        }
         if (name === 'value' && this.inputElement && newValue !== null) {
             this.inputElement.value = newValue;
             return;
@@ -252,8 +332,8 @@ export class WebDaterangepickerElement extends HTMLElement {
 
         const display = this.getAttribute('positioning-mode') || 'floating';
 
-        // Only create input for floating mode
-        if (display === 'floating') {
+        // Only create input for floating/modal modes (modal also anchors to an input click)
+        if (display === 'floating' || display === 'modal') {
             this.inputElement = document.createElement('input');
             this.inputElement.type = 'text';
             this.inputElement.classList.add('drp-input', 'drp-date-picker-input');
@@ -284,8 +364,8 @@ export class WebDaterangepickerElement extends HTMLElement {
     private initializePicker() {
         const display = this.getAttribute('positioning-mode') || 'floating';
 
-        // For floating mode, require input element
-        if (display === 'floating' && !this.inputElement) return;
+        // For floating/modal modes, require input element
+        if ((display === 'floating' || display === 'modal') && !this.inputElement) return;
 
         // Build options from attributes (table-driven) + complex/data properties (held on element).
         const options: DatePickerOptions = {
@@ -294,7 +374,7 @@ export class WebDaterangepickerElement extends HTMLElement {
             // Defaults that aren't attribute-derived or that always need a value
             selectionMode: (this.getAttribute('selection-mode') as 'single' | 'range' | 'multiple') || 'single',
             calendarOpenTrigger: (this.getAttribute('calendar-open-trigger') as 'focus' | 'typing' | 'manual') || 'focus',
-            positioningMode: display as 'inline' | 'floating',
+            positioningMode: display as 'inline' | 'floating' | 'modal',
 
             onSelect: (date) => this.handleDateSelect(date),
             container: this.shadow as unknown as HTMLElement, // Append calendar to shadow root

@@ -27,6 +27,7 @@ import { createScrollEventManager, createClickEventManager, type ScrollEventMana
 // Import styles for static injection (only used when injectGlobalStyles is called)
 import styles from './css/main.css?inline';
 
+
 class DateRangePicker {
     // Static flag to track if styles have been injected
     private static stylesInjected: boolean = false;
@@ -386,6 +387,12 @@ class DateRangePicker {
         // Subscribe to outside clicks - close calendar or rolling selectors
         const outsideClickSub = this.clickEvents.subscribe('outsideClick', (ctx) => {
             drpLogger.debug('Outside click detected', ctx.target);
+
+            // Modal mode handles "outside click" via the backdrop element directly,
+            // not via the document outside-click stream. Ignore here.
+            if (this.options.positioningMode === 'modal') {
+                return;
+            }
 
             if (this.options.positioningMode === 'floating') {
                 // Floating mode: close entire calendar
@@ -995,6 +1002,16 @@ class DateRangePicker {
             // wired up because some pointer/touch sequences and accessibility tools
             // skip one or the other; show() is now idempotent so doubled calls are
             // harmless.
+            // Pointerdown is the modern unified pointer event. It fires even when
+            // mousedown/click are suppressed (e.g., the first click after a window
+            // regains focus — the browser uses that click to activate the window
+            // and swallows the synthesized mouse events, but pointerdown still
+            // dispatches). This is the most reliable trigger for "user pressed
+            // the input".
+            this.input.addEventListener('pointerdown', () => {
+                drpLogger.debug('Input pointerdown - ensuring calendar open');
+                this.show();
+            });
             this.input.addEventListener('mousedown', () => {
                 drpLogger.debug('Input mousedown - ensuring calendar open');
                 this.show();
@@ -1003,6 +1020,7 @@ class DateRangePicker {
                 drpLogger.debug('Input click - ensuring calendar open');
                 this.show();
             });
+            // Diagnose: log when the input loses focus and when window focus changes.
         } else if (triggerMode === 'typing') {
             // Open when user starts typing
             this.input.addEventListener('input', (e) => {
@@ -1572,11 +1590,11 @@ class DateRangePicker {
     }
 
     /**
-     * Set calendar open state (floating mode only)
+     * Set calendar open state (floating/modal modes only)
      */
     set isOpen(value: boolean) {
-        if (this.options.positioningMode !== 'floating') {
-            console.warn('isOpen property only works in floating mode');
+        if (this.options.positioningMode === 'inline') {
+            console.warn('isOpen property does not apply to inline mode');
             return;
         }
         if (value) {
@@ -1701,6 +1719,10 @@ class DateRangePicker {
         this.calendar.remove();
         if (this.tooltip) {
             this.tooltip.remove();
+        }
+        if ((this as any).modalBackdrop) {
+            (this as any).modalBackdrop.remove();
+            (this as any).modalBackdrop = null;
         }
     }
 

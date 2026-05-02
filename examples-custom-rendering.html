@@ -410,6 +410,26 @@ picker.addEventListener('date-select', (event) =&gt; {
         [dayOffset(14)]: 169
       };
 
+      // Page-level <style> doesn't penetrate the picker's Shadow DOM, so
+      // inject the .custom-day-content + .price-tag styles via this callback
+      // (which the component runs inside the shadow root).
+      callbackFull.customStylesCallback = () => `
+        .custom-day-content {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          gap: 2px;
+        }
+        .price-tag {
+          font-size: 10px;
+          font-weight: 600;
+          color: #059669;
+          background: #d1fae5;
+          padding: 1px 4px;
+          border-radius: 3px;
+        }
+      `;
+
       callbackFull.renderDayCallback = (data) => {
         const price = prices[data.dateString];
 

@@ -297,7 +297,7 @@ export async function selectDay(picker: any, dayElement: HTMLElement) {
         }
 
         // Auto-close handling
-        if (picker.options.positioningMode === 'floating' && picker.shouldAutoClose()) {
+        if (picker.options.positioningMode !== 'inline' && picker.shouldAutoClose()) {
             picker.hide();
         }
     } else if (picker.options.selectionMode === 'multiple') {
@@ -435,7 +435,7 @@ export function selectToday(picker: any) {
     picker.renderCalendar();
 
     // Auto-close if appropriate
-    if (picker.options.positioningMode === 'floating' && picker.shouldAutoClose()) {
+    if (picker.options.positioningMode !== 'inline' && picker.shouldAutoClose()) {
         picker.hide();
     }
 }
@@ -492,8 +492,8 @@ export function apply(picker: any) {
         picker.committedDate = picker.selectedDate;
     }
 
-    // Always close on Apply (inline mode never closes)
-    if (picker.options.positioningMode === 'floating') {
+    // Always close on Apply (inline mode never closes; floating and modal both close)
+    if (picker.options.positioningMode !== 'inline') {
         picker.hide();
     }
 }
