@@ -286,6 +286,9 @@ export interface DatePickerOptions {
   /** Show Apply button (default: true for range/multiple modes, false for single mode) */
   showApplyButton?: boolean;
 
+  /** Show selection summary (range mode only — days/nights count). Default: true. Set to false to omit the summary block entirely. */
+  showSummary?: boolean;
+
   // Internationalization
   locale?: string | 'auto'; // Locale for UI strings and date formatting ('auto' = detect from browser, 'en', 'de', 'fr', 'es', etc.)
   displayFormatMask?: string; // Localized format mask for display (e.g., 'dd/mm/aaaa' in Spanish). If not provided, uses dateFormatMask.

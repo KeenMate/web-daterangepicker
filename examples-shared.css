@@ -157,17 +157,37 @@ pre {
 .code-block {
     margin: 1.5rem 0;
     position: relative;
-}
-
-.code-block pre {
     background: #2d3748;
     color: #e2e8f0;
     padding: 1.5rem;
     border-radius: 8px;
     overflow-x: auto;
+    font-family: 'Courier New', Consolas, Monaco, monospace;
     font-size: 0.875rem;
     line-height: 1.6;
 }
+
+/* Some example pages wrap code in <pre>, others put <code> directly under .code-block.
+   Box styling lives on .code-block (works for both); reset margins on the inner <pre>. */
+.code-block pre {
+    margin: 0;
+    background: transparent;
+    padding: 0;
+    overflow-x: visible;
+}
+
+/* Preserve whitespace for bare <code> directly under .code-block (no <pre> wrapper). */
+.code-block > code {
+    white-space: pre;
+    display: block;
+}
+
+/* Syntax highlighting classes used inside code blocks */
+.code-block .keyword { color: #c678dd; }
+.code-block .string { color: #98c379; }
+.code-block .comment { color: #5c6370; font-style: italic; }
+.code-block .function { color: #61afef; }
+.code-block .property { color: #d19a66; }
 
 /* Code block copy button */
 .code-block .copy-button {

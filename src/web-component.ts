@@ -102,6 +102,7 @@ const ATTRIBUTE_TABLE: AttributeEntry[] = [
     { attr: 'show-today-button',               key: 'showTodayButton',                parser: parseTriStateBool },
     { attr: 'show-clear-button',               key: 'showClearButton',                parser: parseTriStateBool },
     { attr: 'show-apply-button',               key: 'showApplyButton',                parser: parseTriStateBool },
+    { attr: 'show-summary',                    key: 'showSummary',                    parser: parseTriStateBool },
 ];
 
 /** Attributes that don't affect the picker itself — handled by surgical `attributeChangedCallback` paths. */

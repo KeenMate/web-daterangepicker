@@ -179,7 +179,8 @@ class DateRangePicker {
             actionButtons: options.actionButtons,
             showTodayButton: options.showTodayButton !== undefined ? options.showTodayButton : true,
             showClearButton: options.showClearButton !== undefined ? options.showClearButton : true,
-            showApplyButton: options.showApplyButton !== undefined ? options.showApplyButton : (options.selectionMode === 'range' || options.selectionMode === 'multiple')
+            showApplyButton: options.showApplyButton !== undefined ? options.showApplyButton : (options.selectionMode === 'range' || options.selectionMode === 'multiple'),
+            showSummary: options.showSummary !== undefined ? options.showSummary : true
         };
 
         // Enable/disable logging based on showDebugInfo option
@@ -480,6 +481,7 @@ class DateRangePicker {
             'unifiedNavigation',
             'unifiedNavigationAnchorIndex',
             'calendarOpenTrigger',
+            'showSummary',
         ];
         const has = (k: keyof DatePickerOptions) => Object.prototype.hasOwnProperty.call(partial, k);
         const changed = (k: keyof DatePickerOptions) => has(k) && (partial as any)[k] !== (this.options as any)[k];
@@ -941,7 +943,7 @@ class DateRangePicker {
         this.calendar.appendChild(this.messageElement);
 
         // Add selection summary (for range mode)
-        if (this.options.selectionMode === 'range') {
+        if (this.options.selectionMode === 'range' && this.options.showSummary !== false) {
             const summary = document.createElement('div');
             summary.className = 'drp-date-picker__summary drp-date-picker__summary--hidden';
             this.calendar.appendChild(summary);

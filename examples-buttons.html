@@ -44,10 +44,10 @@
       <p class="subtitle">Control button visibility, create custom presets, and enable multi-range selection</p>
     </header>
 
-  <!-- 1. Button Visibility Control -->
+  <!-- 1. Button & Summary Visibility Control -->
   <div class="card">
-    <h2>1. Button Visibility Control</h2>
-    <p>Use attributes to show/hide built-in buttons (Today, Clear, Apply).</p>
+    <h2>1. Button & Summary Visibility Control</h2>
+    <p>Use attributes to show/hide built-in buttons (Today, Clear, Apply) and the range-mode days/nights summary.</p>
 
     <div class="grid">
       <div class="form-group">
@@ -81,6 +81,15 @@
           show-clear-button="false">
         </web-daterangepicker>
       </div>
+
+      <div class="form-group">
+        <label>No Summary (Range Mode)</label>
+        <small>show-summary="false" — hides the days/nights count line entirely (no empty-div jump)</small>
+        <web-daterangepicker
+          selection-mode="range"
+          show-summary="false">
+        </web-daterangepicker>
+      </div>
     </div>
 
     <div class="code-block"><code><span class="comment">// HTML attributes control built-in button visibility</span>
@@ -88,7 +97,12 @@
   <span class="property">show-today-button</span>=<span class="string">"false"</span>
   <span class="property">show-clear-button</span>=<span class="string">"false"</span>
   <span class="property">show-apply-button</span>=<span class="string">"false"</span><span class="keyword">&gt;</span>
-<span class="keyword">&lt;/web-daterangepicker&gt;</span></code></div>
+<span class="keyword">&lt;/web-daterangepicker&gt;</span>
+
+<span class="comment">// Range mode: hide the days/nights summary block entirely</span>
+<span class="keyword">&lt;web-daterangepicker</span>
+  <span class="property">selection-mode</span>=<span class="string">"range"</span>
+  <span class="property">show-summary</span>=<span class="string">"false"</span><span class="keyword">&gt;&lt;/web-daterangepicker&gt;</span></code></div>
   </div>
 
   <!-- 2. Auto-Close Control -->

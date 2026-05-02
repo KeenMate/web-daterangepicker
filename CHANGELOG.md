@@ -5,6 +5,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+
+- **`showSummary` option (web component attribute: `show-summary`)** — boolean flag to omit the range-mode selection summary block entirely. Default `true` (current behavior). Set to `false` (or `show-summary="false"`) when you want a clean range picker without the days/nights count line — previously the only workaround was `formatSummaryCallback = () => ''`, which still rendered an empty `<div>` with margin and border-top, causing a small layout jump. Structural option (toggling at runtime triggers a rebuild, since the `<div>` needs to be added/removed from DOM). Added a 4th cell to `examples-buttons.html` section 1 ("Button & Summary Visibility Control") demonstrating the attribute.
+
+### Fixed (examples — code blocks rendered as plain text)
+
+- **Code-block styling regression introduced in v1.10.1** — `examples-shared.css` was refactored to scope the dark-background / `white-space: pre` / monospace rules to `.code-block pre` only, and the syntax-highlight span colors (`.keyword`, `.string`, `.comment`, `.function`, `.property`) were dropped entirely. Pages that put `<code>` directly inside `.code-block` (without a `<pre>` wrapper) — `examples-buttons.html` is the most affected, with 14 of 15 code blocks shaped that way — lost all formatting and rendered as flowing plain text. Restored the box styling on `.code-block` itself so it works for both shapes, reset the inner `<pre>` to a transparent zero-margin pass-through to avoid double-padding on pages that do wrap, and re-added the syntax-highlight span colors (scoped to `.code-block` to avoid clashing with anyone else's `.string` / `.function` / etc.). No HTML changes needed; one CSS edit fixes every affected page.
+
 ## [1.11.0] - 2026-05-01 - PUBLISHED
 
 ### Documentation — Working with Dates Across Timezones
