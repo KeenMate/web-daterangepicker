@@ -311,14 +311,15 @@ console.log(`${enabled.length} enabled days in January`);
 
 ### Custom Events
 
-The web component dispatches two identical events (for convenience):
+The web component dispatches the following events:
 
 | Event Name | Bubbles | Composed | Description |
 |------------|---------|----------|-------------|
 | `date-select` | ✓ | ✓ | Fired when a date or range is selected |
 | `change` | ✓ | ✓ | Fired when a date or range is selected (alias of `date-select`) |
+| `custom-action` | ✓ | ✓ | Fired when the user clicks an action button declared with `action: 'custom'` (see [Custom Action Buttons](#custom-action-buttons) below). |
 
-Both events have the same `detail` structure.
+`date-select` and `change` have the same `detail` structure. `custom-action` has its own — see below.
 
 ### Event Detail Properties
 
@@ -373,6 +374,64 @@ picker.addEventListener('date-select', (e) => {
   dates.forEach(date => console.log(date.toLocaleDateString()));
 });
 ```
+
+### Custom Action Buttons
+
+The picker's built-in action bar (Today / Clear / Apply) can be replaced with custom buttons via the `actionButtons` option. Buttons with `action: 'custom'` fire a `custom-action` event when clicked, and any `data-*` attributes you attach become the event's `detail` payload.
+
+```javascript
+const picker = document.querySelector('web-daterangepicker');
+
+picker.actionButtons = [
+  {
+    action: 'custom',
+    text: 'Apply with note',
+    cssClass: 'btn-primary',
+    // Any extra fields beyond the well-known ones get serialized as data-* attributes:
+    'data-source': 'apply-button',
+    'data-note': 'user clicked apply'
+  },
+  { action: 'clear', text: 'Clear' }
+];
+
+// Fired when the custom button is clicked:
+picker.addEventListener('custom-action', (e) => {
+  console.log(e.detail);
+  // → { source: 'apply-button', note: 'user clicked apply' }
+});
+```
+
+**Detail shape**: `Record<string, string>` — a flat object of every `data-*` attribute on the clicked button (with `data-` prefix stripped, kebab-case → camelCase per the standard `dataset` API). `data-action` itself is excluded.
+
+Common pattern — using a `beforeDateSelectCallback` to inject a custom HTML message with `data-action="custom"` buttons, then handling the click via this event:
+
+```javascript
+picker.beforeDateSelectCallback = async (range) => {
+  const response = await fetch('/api/check', { method: 'POST', body: JSON.stringify(range) });
+  const data = await response.json();
+
+  if (data.requiresConfirmation) {
+    picker.showMessage(`
+      <p>${data.message}</p>
+      <button data-action="custom"
+              data-start-date="${range.start.toISOString()}"
+              data-end-date="${range.end.toISOString()}">
+        Confirm
+      </button>
+    `);
+    return { allow: false }; // don't apply yet — wait for the custom-action click
+  }
+
+  return { allow: true };
+};
+
+picker.addEventListener('custom-action', (e) => {
+  const { startDate, endDate } = e.detail;
+  // ... apply the range now that the user confirmed
+});
+```
+
+A live demo lives in `examples-events.html` ("Messages with Custom Actions").
 
 ---
 
