@@ -1,0 +1,112 @@
+import { test, expect, Page, Locator } from '@playwright/test';
+
+/**
+ * inline and modal positioning modes (floating mode lives in the other
+ * positioning specs).
+ *
+ * Fixture: test/positioning-modes.html
+ */
+
+const PAGE = '/test/positioning-modes.html';
+
+function pickerById(page: Page, id: string) {
+    return page.locator(`#${id}`);
+}
+
+function calendarOf(p: Locator) {
+    return p.locator('.drp-date-picker');
+}
+
+function dayByDate(p: Locator, isoDate: string) {
+    return p.locator(`.drp-date-picker__day[data-date="${isoDate}"]`);
+}
+
+test.beforeEach(async ({ page }) => {
+    await page.goto(PAGE);
+});
+
+// =============================================================================
+// inline mode
+// =============================================================================
+
+test.describe('inline mode', () => {
+    test('calendar is visible immediately on page load (no input click needed)', async ({ page }) => {
+        const p = pickerById(page, 'inline');
+        await expect(calendarOf(p)).toBeVisible();
+    });
+
+    test('inline mode does not render the input element', async ({ page }) => {
+        const p = pickerById(page, 'inline');
+        await expect(p.locator('input')).toHaveCount(0);
+    });
+
+    test('calendar root carries the --inline modifier class', async ({ page }) => {
+        const p = pickerById(page, 'inline');
+        await expect(calendarOf(p)).toHaveClass(/drp-date-picker--inline/);
+    });
+
+    test('selecting a day in inline mode still updates internal state (single mode)', async ({ page }) => {
+        const p = pickerById(page, 'inline');
+
+        await dayByDate(p, '2026-06-20').click();
+        await expect(dayByDate(p, '2026-06-20')).toHaveClass(/drp-date-picker__day--selected/);
+    });
+});
+
+// =============================================================================
+// modal mode
+// =============================================================================
+
+test.describe('modal mode', () => {
+    test('clicking the input opens a modal calendar with --modal class', async ({ page }) => {
+        const p = pickerById(page, 'modal');
+
+        await p.locator('input').click();
+        await expect(calendarOf(p)).toBeVisible();
+        await expect(calendarOf(p)).toHaveClass(/drp-date-picker--modal/);
+    });
+
+    test('modal renders a backdrop element when open', async ({ page }) => {
+        const p = pickerById(page, 'modal');
+
+        await p.locator('input').click();
+        await expect(p.locator('.drp-date-picker__backdrop')).toBeVisible();
+    });
+
+    test('clicking the backdrop closes the modal', async ({ page }) => {
+        const p = pickerById(page, 'modal');
+
+        await p.locator('input').click();
+        const backdrop = p.locator('.drp-date-picker__backdrop');
+        await expect(backdrop).toBeVisible();
+
+        // Backdrop is behind the calendar; click on it directly (not via the
+        // calendar) by targeting the top-left corner.
+        await backdrop.click({ position: { x: 5, y: 5 } });
+        await expect(calendarOf(p)).toBeHidden();
+    });
+
+    test('body scroll is locked while modal is open, restored on close', async ({ page }) => {
+        const p = pickerById(page, 'modal');
+
+        const before = await page.evaluate(() => document.body.style.overflow);
+
+        await p.locator('input').click();
+        const duringOpen = await page.evaluate(() => document.body.style.overflow);
+        expect(duringOpen).toBe('hidden');
+
+        // Close via backdrop.
+        await p.locator('.drp-date-picker__backdrop').click({ position: { x: 5, y: 5 } });
+        await expect(calendarOf(p)).toBeHidden();
+        const afterClose = await page.evaluate(() => document.body.style.overflow);
+        expect(afterClose).toBe(before);
+    });
+
+    test('calendar uses position: fixed (centered via CSS, not Floating UI)', async ({ page }) => {
+        const p = pickerById(page, 'modal');
+
+        await p.locator('input').click();
+        const position = await calendarOf(p).evaluate(el => getComputedStyle(el).position);
+        expect(position).toBe('fixed');
+    });
+});

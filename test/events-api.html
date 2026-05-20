@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Test — events &amp; programmatic API</title>
+    <link rel="stylesheet" href="test-fixtures.css">
+    <style>
+        web-daterangepicker { display: block; max-width: 320px; }
+    </style>
+</head>
+<body>
+    <h1>events &amp; programmatic API</h1>
+    <p>Targeted by <code>e2e/events-api.spec.ts</code>. Specs wire their own
+       event listeners through <code>page.evaluate</code>, so no HTML-side
+       state panels are needed.</p>
+
+    <div class="fixture">
+        <div class="fixture-label">basic picker for event + setter + updateOptions tests</div>
+        <web-daterangepicker id="basic" selection-mode="single"
+            initial-date="2026-06-15"></web-daterangepicker>
+    </div>
+
+    <div class="fixture">
+        <div class="fixture-label">picker with a custom action button (configured after upgrade)</div>
+        <web-daterangepicker id="custom" selection-mode="single"
+            initial-date="2026-06-15"></web-daterangepicker>
+        <script type="module">
+            // Wait for the custom element to be defined AND upgraded so the
+            // accessor (not an own-property shadow) receives our value; then
+            // updateOptions triggers a button re-render.
+            await customElements.whenDefined('web-daterangepicker');
+            const p = document.getElementById('custom');
+            p.actionButtons = [
+                { action: 'today', text: 'Today' },
+                { action: 'custom', text: 'Reset', onClick: () => {} }
+            ];
+        </script>
+    </div>
+
+    <div class="fixture">
+        <div class="fixture-label">range picker for updateOptions selection-preservation test</div>
+        <web-daterangepicker id="updateopts" selection-mode="range"
+            initial-date="2026-06-15"></web-daterangepicker>
+    </div>
+
+    <script type="module" src="/src/index.ts"></script>
+</body>
+</html>

@@ -36,10 +36,10 @@ When a row is marked `✓`/`△`, the **Spec** column points at the file under
 | `floating`: anchor stable when calendar content grows         | ✓      | `anchor-stability.spec.ts`   | `anchor-stability.html`   |
 | `floating`: closes on viewport resize                         | ✓      | `anchor-stability.spec.ts`   | `anchor-stability.html`   |
 | `floating`: `close-on-scroll` (default true / false)          | ✗      |      |         |
-| `inline` mode: renders in-place, never hidden                 | ✗      |      |         |
-| `modal` mode: centered overlay + backdrop                     | ✗      |      |         |
-| `modal` mode: backdrop click closes                           | ✗      |      |         |
-| `modal` mode: body scroll locked while open                   | ✗      |      |         |
+| `inline` mode: renders in-place, never hidden                 | ✓      | `positioning-modes.spec.ts`  | `positioning-modes.html`  |
+| `modal` mode: centered overlay + backdrop                     | ✓      | `positioning-modes.spec.ts`  | `positioning-modes.html`  |
+| `modal` mode: backdrop click closes                           | ✓      | `positioning-modes.spec.ts`  | `positioning-modes.html`  |
+| `modal` mode: body scroll locked while open                   | ✓      | `positioning-modes.spec.ts`  | `positioning-modes.html`  |
 | `modal` mode: input blurred to suppress mobile keyboard       | ✗      |      |         |
 | `modal` mode: container-query inner layout tiers              | ✗      |      |         |
 | `mobile-modal-breakpoint` auto-engages modal at small widths  | ✗      |      |         |
@@ -89,8 +89,8 @@ When a row is marked `✓`/`△`, the **Spec** column points at the file under
 
 | Feature                                                       | Status | Spec | Fixture |
 | ------------------------------------------------------------- | :----: | ---- | ------- |
-| Input mask: progressive auto-format as user types             | ✗      |      |         |
-| Custom `date-format-mask` (YYYY-MM-DD, DD.MM.YYYY, etc.)      | ✗      |      |         |
+| Input mask: progressive auto-format as user types             | ✓      | `input-behavior.spec.ts`     | `input-behavior.html`     |
+| Custom `date-format-mask` (YYYY-MM-DD, DD.MM.YYYY, etc.)      | ✓      | `input-behavior.spec.ts`     | `input-behavior.html`     |
 | Progressive parsing: calendar follows valid typed segments    | ✗      |      |         |
 | `input-size` variants (xs, sm, md, lg, xl)                    | ✗      |      |         |
 | `displayFormatMask` differs from `dateFormatMask`             | ✗      |      |         |
@@ -99,107 +99,108 @@ When a row is marked `✓`/`△`, the **Spec** column points at the file under
 
 | Feature                                                       | Status | Spec | Fixture |
 | ------------------------------------------------------------- | :----: | ---- | ------- |
-| `min-date` / `max-date` disable out-of-range days             | ✗      |      |         |
-| `disabled-weekdays` (Sat/Sun, etc.)                           | ✗      |      |         |
+| `min-date` / `max-date` disable out-of-range days             | ✓      | `date-restrictions.spec.ts`  | `date-restrictions.html`  |
+| `disabled-weekdays` (Sat/Sun, etc.)                           | ✓      | `date-restrictions.spec.ts`  | `date-restrictions.html`  |
 | `disabledDates` (specific dates)                              | ✗      |      |         |
-| `initial-date` controls opening month                         | ✗      |      |         |
-| `rolling-year-range` / `rolling-month-range`                  | ✗      |      |         |
+| `initial-date` controls opening month                         | ✓      | `date-restrictions.spec.ts`  | `date-restrictions.html`  |
+| `rolling-year-range` / `rolling-month-range`                  | △      | `date-restrictions.spec.ts`  | `date-restrictions.html`  |
 | Rolling selector disables out-of-range entries                | ✗      |      |         |
 
 ## 8. Range over disabled dates (`disabledDatesHandling`)
 
 | Feature                                                       | Status | Spec | Fixture |
 | ------------------------------------------------------------- | :----: | ---- | ------- |
-| `'allow'`: range crosses disabled days                        | ✗      |      |         |
-| `'prevent'`: blocks selection crossing disabled               | ✗      |      |         |
-| `'block'`: snaps to last enabled before disabled gap          | ✗      |      |         |
+| `'allow'`: range crosses disabled days                        | ✓      | `disabled-handling.spec.ts`  | `disabled-handling.html`  |
+| `'prevent'`: blocks selection crossing disabled               | ✓      | `disabled-handling.spec.ts`  | `disabled-handling.html`  |
+| `'block'`: snaps to last enabled before disabled gap          | ✓      | `disabled-handling.spec.ts`  | `disabled-handling.html`  |
 | `'split'`: yields multiple ranges in event detail             | ✗      |      |         |
 | `'individual'`: yields flat enabled-dates array               | ✗      |      |         |
-| `highlight-disabled-in-range` toggles styling                 | ✗      |      |         |
+| `highlight-disabled-in-range` toggles styling                 | ✓      | `disabled-handling.spec.ts`  | `disabled-handling.html`  |
 
 ## 9. Action buttons & summary
 
 | Feature                                                       | Status | Spec | Fixture |
 | ------------------------------------------------------------- | :----: | ---- | ------- |
-| Today button jumps + selects today                            | ✗      |      |         |
-| Clear button clears selection + input                         | ✗      |      |         |
-| Apply commits pending selection, closes picker                | ✗      |      |         |
-| `show-today-button` / `show-clear-button` / `show-apply-button` | ✗    |      |         |
-| Custom `actionButtons` array (incl. `custom-action` event)    | ✗      |      |         |
-| Action-button tooltip on hover                                | ✗      |      |         |
-| `show-summary="false"` omits summary block entirely           | ✗      |      |         |
+| Today button jumps + selects today                            | ✓      | `action-buttons.spec.ts`     | `action-buttons.html`     |
+| Clear button clears selection + input                         | ✓      | `action-buttons.spec.ts`     | `action-buttons.html`     |
+| Apply commits pending selection, closes picker                | ✓      | `selection-modes.spec.ts`    | `selection-modes.html`    |
+| `show-today-button` / `show-clear-button` / `show-apply-button` | ✓    | `action-buttons.spec.ts`     | `action-buttons.html`     |
+| Custom `actionButtons` array (incl. `custom-action` event)    | ✓      | `events-api.spec.ts`         | `events-api.html`         |
+| Action-button tooltip on hover                                | ✓      | `tooltips.spec.ts`           | `tooltips.html`           |
+| `show-summary="false"` omits summary block entirely           | ✓      | `action-buttons.spec.ts`     | `action-buttons.html`     |
 | Actions `border-top` only when summary is visible             | ✓      | `summary-actions.spec.ts`    | `summary-actions.html`    |
 | Visible summary has `margin-top` (gap from months)            | ✓      | `summary-actions.spec.ts`    | `summary-actions.html`    |
-| Range summary text reflects selected days/nights              | ✗      |      |         |
-| `formatSummaryCallback` overrides summary HTML                | ✗      |      |         |
+| Range summary text reflects selected days/nights              | △      | `selection-modes.spec.ts`    | `selection-modes.html`    |
+| `formatSummaryCallback` overrides summary HTML                | ✓      | `action-buttons.spec.ts`     | `action-buttons.html`     |
 
 ## 10. Custom rendering / callbacks
 
 | Feature                                                       | Status | Spec | Fixture |
 | ------------------------------------------------------------- | :----: | ---- | ------- |
 | `renderDayCallback` (full replacement)                        | ✗      |      |         |
-| `renderDayContentCallback` (augmentation)                     | ✗      |      |         |
-| `getMonthHeaderCallback` overrides per-month header           | ✗      |      |         |
+| `renderDayContentCallback` (augmentation)                     | ✓      | `callbacks.spec.ts`          | `callbacks.html`          |
+| `getMonthHeaderCallback` overrides per-month header           | ✓      | `callbacks.spec.ts`          | `callbacks.html`          |
 | `getUnifiedHeaderCallback` overrides unified-mode header text | ✗      |      |         |
 | `customStylesCallback` injects styles into Shadow DOM         | ✗      |      |         |
-| `beforeDateSelectCallback`: accept / adjust / restore / clear | ✗      |      |         |
-| `beforeMonthChangedCallback`: bulk metadata, block            | ✗      |      |         |
+| `beforeDateSelectCallback`: accept / adjust / restore / clear | △      | `callbacks.spec.ts`          | `callbacks.html`          |
+| `beforeMonthChangedCallback`: bulk metadata, block            | △      | `callbacks.spec.ts`          | `callbacks.html`          |
 | `specialDates` + `*Member` property mapping                   | ✗      |      |         |
-| `getDateMetadataCallback` per-date                            | ✗      |      |         |
+| `getDateMetadataCallback` per-date                            | ✓      | `callbacks.spec.ts`          | `callbacks.html`          |
 
 ## 11. Tooltips
 
 | Feature                                                       | Status | Spec | Fixture |
 | ------------------------------------------------------------- | :----: | ---- | ------- |
-| Day-cell tooltip on hover                                     | ✗      |      |         |
+| Day-cell tooltip on hover                                     | ✓      | `tooltips.spec.ts`           | `tooltips.html`           |
 | Badge tooltip                                                 | ✗      |      |         |
-| Action-button tooltip                                         | ✗      |      |         |
-| Tooltips escape `overflow:auto` ancestor (position: fixed)    | ✗      |      |         |
+| Action-button tooltip                                         | ✓      | `tooltips.spec.ts`           | `tooltips.html`           |
+| Tooltips escape `overflow:auto` ancestor (position: fixed)    | ✓      | `tooltips.spec.ts`           | `tooltips.html`           |
 
 ## 12. Locale & i18n
 
 | Feature                                                       | Status | Spec | Fixture |
 | ------------------------------------------------------------- | :----: | ---- | ------- |
 | `locale="auto"` detects from browser                          | ✗      |      |         |
-| Explicit `locale="de"` / `"fr"` / etc.                        | ✗      |      |         |
-| `customStrings` overrides individual UI strings               | ✗      |      |         |
-| `monthNames` override                                         | ✗      |      |         |
+| Explicit `locale="de"` / `"fr"` / etc.                        | ✓      | `locale.spec.ts`             | `locale.html`             |
+| `customStrings` overrides individual UI strings               | ✓      | `locale.spec.ts`             | `locale.html`             |
+| `monthNames` override                                         | ✓      | `locale.spec.ts`             | `locale.html`             |
 | `week-start-day="auto"` follows locale                        | ✗      |      |         |
-| Explicit `week-start-day` integer                             | ✗      |      |         |
+| Explicit `week-start-day` integer                             | ✓      | `locale.spec.ts`             | `locale.html`             |
 
 ## 13. Events & API
 
 | Feature                                                       | Status | Spec | Fixture |
 | ------------------------------------------------------------- | :----: | ---- | ------- |
-| `change` event with full detail                               | ✗      |      |         |
-| `apply` event                                                 | ✗      |      |         |
-| `cancel` event                                                | ✗      |      |         |
-| `custom-action` event (per v1.12.0 docs)                      | ✗      |      |         |
+| `change` event with full detail                               | ✓      | `events-api.spec.ts`         | `events-api.html`         |
+| `apply` event                                                 | n/a    | _picker dispatches `change` on apply; no separate event_ |         |
+| `cancel` event                                                | n/a    | _no event; pending selection restores prior input value_ |         |
+| `custom-action` event (per v1.12.0 docs)                      | ✓      | `events-api.spec.ts`         | `events-api.html`         |
 | `selectedDate` / `selectedRanges` / `selectedDates` setters   | ✗      |      |         |
-| `isOpen` setter opens/closes programmatically                 | ✗      |      |         |
-| `updateOptions(partial)` survives without losing selection    | ✗      |      |         |
+| `isOpen` setter opens/closes programmatically                 | ✓      | `events-api.spec.ts`, `triggers.spec.ts` | `events-api.html`, `triggers.html` |
+| `updateOptions(partial)` survives without losing selection    | ✓      | `events-api.spec.ts`         | `events-api.html`         |
 | `showMessage` / `hideMessage`                                 | ✗      |      |         |
-| `value` setter populates input + selection                    | ✗      |      |         |
-| `disabled` setter disables input + suppresses open            | ✗      |      |         |
+| `value` setter populates input + selection                    | △      | `events-api.spec.ts`         | `events-api.html`         |
+| `disabled` setter disables input + suppresses open            | △      | `events-api.spec.ts`         | `events-api.html`         |
 
 ## 14. Visual states
 
 | Feature                                                       | Status | Spec | Fixture |
 | ------------------------------------------------------------- | :----: | ---- | ------- |
-| Selected day class                                            | ✗      |      |         |
-| Range start / middle / end classes                            | ✗      |      |         |
-| Today highlight                                               | ✗      |      |         |
-| Disabled day styling                                          | ✗      |      |         |
-| Hover preview during range selection                          | ✗      |      |         |
+| Selected day class                                            | ✓      | `selection-modes.spec.ts`    | `selection-modes.html`    |
+| Range start / middle / end classes                            | ✓      | `visual-states.spec.ts`      | `visual-states.html`      |
+| Today highlight                                               | ✓      | `visual-states.spec.ts`      | `visual-states.html`      |
+| Disabled day styling                                          | ✓      | `date-restrictions.spec.ts`  | `date-restrictions.html`  |
+| Hover preview during range selection                          | n/a    | _picker has no hover-preview class; mid-pick uses `:hover` only_ |         |
 | Drag-preview classes during drag-adjust                       | ✗      |      |         |
-| Keyboard-focused day class                                    | ✗      |      |         |
-| Weekend styling                                               | ✗      |      |         |
-| Adjacent-month (faded) days                                   | ✗      |      |         |
+| Keyboard-focused day class                                    | ✓      | `keyboard-navigation.spec.ts`| `keyboard-navigation.html`|
+| Weekend styling                                               | n/a    | _picker emits no `--weekend` class; weekend cells are unstyled by default_ |         |
+| Adjacent-month (faded) days                                   | ✓      | `visual-states.spec.ts`      | `visual-states.html`      |
 | Invalid-range error styling (`showInvalidRange`)              | ✗      |      |         |
 
 ## 15. Sizing & theming
 
 | Feature                                                       | Status | Spec | Fixture |
 | ------------------------------------------------------------- | :----: | ---- | ------- |
-| `spacing` / `font-size` / `cell-size` scale variants          | ✗      |      |         |
-| CSS-variable overrides flow through                           | ✗      |      |         |
+| `input-size` variants (xs, sm, md, lg, xl)                    | ✓      | `sizing-theming.spec.ts`     | `sizing-theming.html`     |
+| `spacing` / `font-size` / `cell-size` scale variants          | n/a    | _attributes documented in CLAUDE.md but not implemented (see FINDINGS.md #11)_ |         |
+| CSS-variable overrides flow through                           | ✓      | `sizing-theming.spec.ts`     | `sizing-theming.html`     |

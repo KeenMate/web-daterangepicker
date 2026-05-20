@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Test — callbacks &amp; custom rendering</title>
+    <link rel="stylesheet" href="test-fixtures.css">
+    <style>
+        web-daterangepicker { display: block; max-width: 320px; }
+    </style>
+</head>
+<body>
+    <h1>callbacks &amp; custom rendering</h1>
+    <p>Targeted by <code>e2e/callbacks.spec.ts</code>.</p>
+
+    <div class="fixture">
+        <div class="fixture-label">renderDayContentCallback — appends a "·" mark to day 15</div>
+        <web-daterangepicker id="content" selection-mode="single"
+            initial-date="2026-06-15"></web-daterangepicker>
+    </div>
+
+    <div class="fixture">
+        <div class="fixture-label">getMonthHeaderCallback — wraps header with "❄ Month YYYY ❄"</div>
+        <web-daterangepicker id="header" selection-mode="single"
+            initial-date="2026-06-15"></web-daterangepicker>
+    </div>
+
+    <div class="fixture">
+        <div class="fixture-label">beforeDateSelectCallback — rejects 2026-06-13 with action: 'restore'</div>
+        <web-daterangepicker id="before-select" selection-mode="single"
+            initial-date="2026-06-15"></web-daterangepicker>
+    </div>
+
+    <div class="fixture">
+        <div class="fixture-label">beforeMonthChangedCallback — blocks navigation to August 2026</div>
+        <web-daterangepicker id="before-month" selection-mode="single"
+            initial-date="2026-06-15"></web-daterangepicker>
+    </div>
+
+    <div class="fixture">
+        <div class="fixture-label">getDateMetadataCallback — disables 2026-06-17 dynamically</div>
+        <web-daterangepicker id="metadata" selection-mode="single"
+            initial-date="2026-06-15"></web-daterangepicker>
+    </div>
+
+    <script type="module">
+        await customElements.whenDefined('web-daterangepicker');
+
+        document.getElementById('content').renderDayContentCallback = ({ dayNumber }) => {
+            return dayNumber === 15 ? '<span data-testid="mark">·</span>' : null;
+        };
+
+        document.getElementById('header').getMonthHeaderCallback = ({ monthName, year }) => {
+            return `❄ ${monthName} ${year} ❄`;
+        };
+
+        document.getElementById('before-select').beforeDateSelectCallback = (date) => {
+            if (date instanceof Date && date.getDate() === 13) {
+                return { action: 'restore', message: 'Unlucky day' };
+            }
+            return { action: 'accept' };
+        };
+
+        document.getElementById('before-month').beforeMonthChangedCallback = ({ month }) => {
+            // Block August (month index 7) navigation.
+            return month === 7 ? { action: 'block' } : { action: 'accept' };
+        };
+
+        document.getElementById('metadata').getDateMetadataCallback = (date) => {
+            // Disable Jun 17 specifically.
+            if (date.getFullYear() === 2026 && date.getMonth() === 5 && date.getDate() === 17) {
+                return { isDisabled: true };
+            }
+            return null;
+        };
+    </script>
+    <script type="module" src="/src/index.ts"></script>
+</body>
+</html>

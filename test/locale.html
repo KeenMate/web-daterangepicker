@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Test — locale &amp; i18n</title>
+    <link rel="stylesheet" href="test-fixtures.css">
+    <style>
+        web-daterangepicker { display: block; max-width: 320px; }
+    </style>
+</head>
+<body>
+    <h1>locale &amp; i18n</h1>
+    <p>Targeted by <code>e2e/locale.spec.ts</code>.</p>
+
+    <div class="fixture">
+        <div class="fixture-label">explicit locale="de" — German month + weekday names</div>
+        <web-daterangepicker id="de" selection-mode="single"
+            initial-date="2026-06-15" locale="de"></web-daterangepicker>
+    </div>
+
+    <div class="fixture">
+        <div class="fixture-label">customStrings overrides only the Today button label</div>
+        <web-daterangepicker id="custom-strings" selection-mode="single"
+            initial-date="2026-06-15"></web-daterangepicker>
+    </div>
+
+    <div class="fixture">
+        <div class="fixture-label">monthNames override — uses numeric labels</div>
+        <web-daterangepicker id="numeric-months" selection-mode="single"
+            initial-date="2026-06-15"></web-daterangepicker>
+    </div>
+
+    <div class="fixture">
+        <div class="fixture-label">week-start-day="0" — Sunday is first weekday column</div>
+        <web-daterangepicker id="sunday" selection-mode="single"
+            initial-date="2026-06-15" week-start-day="0"></web-daterangepicker>
+    </div>
+
+    <div class="fixture">
+        <div class="fixture-label">week-start-day="1" — Monday is first weekday column</div>
+        <web-daterangepicker id="monday" selection-mode="single"
+            initial-date="2026-06-15" week-start-day="1"></web-daterangepicker>
+    </div>
+
+    <script type="module">
+        await customElements.whenDefined('web-daterangepicker');
+
+        // No public setter for customStrings — go through the picker's
+        // updateOptions API so derived state (localeStrings) is recomputed
+        // and the buttons re-render.
+        {
+            const el = document.getElementById('custom-strings');
+            el.picker.updateOptions({ customStrings: { today: 'Jump' } });
+        }
+
+        // monthNames has a dedicated setMonthNames() public method.
+        document.getElementById('numeric-months').setMonthNames([
+            '01','02','03','04','05','06','07','08','09','10','11','12'
+        ]);
+    </script>
+    <script type="module" src="/src/index.ts"></script>
+</body>
+</html>

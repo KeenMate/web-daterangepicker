@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Test — disabledDatesHandling strategies</title>
+    <link rel="stylesheet" href="test-fixtures.css">
+    <style>
+        web-daterangepicker { display: block; max-width: 320px; }
+    </style>
+</head>
+<body>
+    <h1>disabledDatesHandling strategies</h1>
+    <p>Targeted by <code>e2e/disabled-handling.spec.ts</code>. All pickers
+       share initial-date 2026-06-15 and have 2026-06-12 + 2026-06-13
+       configured as disabled dates (the "weekend gap" the user must pick
+       around / through).</p>
+
+    <div class="fixture">
+        <div class="fixture-label">'allow' (default) — range spans over disabled days</div>
+        <web-daterangepicker id="allow" selection-mode="range"
+            initial-date="2026-06-15"
+            disabled-dates-handling="allow"></web-daterangepicker>
+    </div>
+
+    <div class="fixture">
+        <div class="fixture-label">'prevent' — selection crossing a disabled date is rejected</div>
+        <web-daterangepicker id="prevent" selection-mode="range"
+            initial-date="2026-06-15"
+            disabled-dates-handling="prevent"></web-daterangepicker>
+    </div>
+
+    <div class="fixture">
+        <div class="fixture-label">'block' — range snaps to last enabled day before the gap</div>
+        <web-daterangepicker id="block" selection-mode="range"
+            initial-date="2026-06-15"
+            disabled-dates-handling="block"></web-daterangepicker>
+    </div>
+
+    <div class="fixture">
+        <div class="fixture-label">highlight-disabled-in-range="false" — disabled days inside a range are not highlighted</div>
+        <web-daterangepicker id="no-highlight" selection-mode="range"
+            initial-date="2026-06-15"
+            disabled-dates-handling="allow"
+            highlight-disabled-in-range="false"></web-daterangepicker>
+    </div>
+
+    <script type="module">
+        await customElements.whenDefined('web-daterangepicker');
+        // Inject disabledDates on each picker — there's no HTML attribute for it.
+        const disabledDates = ['2026-06-12', '2026-06-13'];
+        for (const id of ['allow', 'prevent', 'block', 'no-highlight']) {
+            const p = document.getElementById(id);
+            p.disabledDates = disabledDates;
+        }
+    </script>
+    <script type="module" src="/src/index.ts"></script>
+</body>
+</html>

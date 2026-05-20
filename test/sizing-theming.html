@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Test — sizing &amp; CSS-variable theming</title>
+    <link rel="stylesheet" href="test-fixtures.css">
+    <style>
+        web-daterangepicker { display: block; max-width: 320px; margin-bottom: 12px; }
+        /* Override CSS variable on one picker to verify it propagates. */
+        #themed {
+            --drp-day-bg-selected: rgb(11, 22, 33);
+        }
+    </style>
+</head>
+<body>
+    <h1>sizing &amp; CSS-variable theming</h1>
+    <p>Targeted by <code>e2e/sizing-theming.spec.ts</code>.</p>
+
+    <div class="fixture">
+        <div class="fixture-label">input-size variants</div>
+        <web-daterangepicker id="size-xs" selection-mode="single" input-size="xs"></web-daterangepicker>
+        <web-daterangepicker id="size-md" selection-mode="single" input-size="md"></web-daterangepicker>
+        <web-daterangepicker id="size-xl" selection-mode="single" input-size="xl"></web-daterangepicker>
+    </div>
+
+    <div class="fixture">
+        <div class="fixture-label">CSS variable override propagates into the shadow DOM</div>
+        <web-daterangepicker id="themed" selection-mode="single"
+            initial-date="2026-06-15"></web-daterangepicker>
+    </div>
+
+    <script type="module" src="/src/index.ts"></script>
+</body>
+</html>

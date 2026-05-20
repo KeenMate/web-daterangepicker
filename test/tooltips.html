@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Test — tooltips</title>
+    <link rel="stylesheet" href="test-fixtures.css">
+    <style>
+        web-daterangepicker { display: block; max-width: 320px; }
+        .clip {
+            height: 200px;
+            overflow-y: auto;
+            border: 1px solid #ef4444;
+            padding: 12px;
+        }
+        .spacer { height: 600px; }
+    </style>
+</head>
+<body>
+    <h1>tooltips</h1>
+    <p>Targeted by <code>e2e/tooltips.spec.ts</code>.</p>
+
+    <div class="fixture">
+        <div class="fixture-label">day-cell tooltip via dayTooltipCallback</div>
+        <web-daterangepicker id="day-tip" selection-mode="single"
+            initial-date="2026-06-15"></web-daterangepicker>
+    </div>
+
+    <div class="fixture">
+        <div class="fixture-label">action-button tooltip via custom actionButtons[].tooltip</div>
+        <web-daterangepicker id="action-tip" selection-mode="single"
+            initial-date="2026-06-15"></web-daterangepicker>
+    </div>
+
+    <div class="fixture">
+        <div class="fixture-label">picker inside overflow:auto — day tooltip must escape the clip box</div>
+        <div class="clip" id="clip">
+            <web-daterangepicker id="tip-overflow" selection-mode="single"
+                initial-date="2026-06-15"></web-daterangepicker>
+            <div class="spacer"></div>
+        </div>
+    </div>
+
+    <script type="module">
+        await customElements.whenDefined('web-daterangepicker');
+
+        document.getElementById('day-tip').dayTooltipCallback = ({ dayNumber }) =>
+            dayNumber === 15 ? 'Special day 15' : null;
+
+        document.getElementById('action-tip').actionButtons = [
+            { action: 'today', text: 'Today', tooltip: 'Jump to today' },
+            { action: 'clear', text: 'Clear' }
+        ];
+
+        document.getElementById('tip-overflow').dayTooltipCallback = ({ dayNumber }) =>
+            dayNumber === 28 ? 'Bottom-edge tooltip' : null;
+    </script>
+    <script type="module" src="/src/index.ts"></script>
+</body>
+</html>

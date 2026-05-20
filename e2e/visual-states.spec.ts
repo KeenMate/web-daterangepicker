@@ -1,0 +1,115 @@
+import { test, expect, Page, Locator } from '@playwright/test';
+
+/**
+ * Class modifiers on day cells: today / other-month / range positions.
+ * Selected and disabled classes already get coverage in selection-modes
+ * and date-restrictions, respectively.
+ *
+ * Fixture: test/visual-states.html
+ */
+
+const PAGE = '/test/visual-states.html';
+
+function pickerById(page: Page, id: string) {
+    return page.locator(`#${id}`);
+}
+
+function calendarOf(p: Locator) {
+    return p.locator('.drp-date-picker');
+}
+
+function dayByDate(p: Locator, isoDate: string) {
+    return p.locator(`.drp-date-picker__day[data-date="${isoDate}"]`);
+}
+
+async function open(page: Page, id: string) {
+    const p = pickerById(page, id);
+    await p.locator('input').click();
+    await expect(calendarOf(p)).toBeVisible();
+    return p;
+}
+
+test.beforeEach(async ({ page }) => {
+    await page.goto(PAGE);
+});
+
+// =============================================================================
+// today
+// =============================================================================
+
+test('today (2026-05-20) gets the --today class even when calendar opens on a different month', async ({ page }) => {
+    const p = await open(page, 'single');
+
+    // Navigate to May 2026 so today is visible.
+    await p.locator('.drp-date-picker__nav--prev[data-month-index="0"]').click();
+    await expect(dayByDate(p, '2026-05-20')).toHaveClass(/drp-date-picker__day--today/);
+});
+
+// =============================================================================
+// other-month (leading / trailing greyed cells)
+// =============================================================================
+
+test('June 2026 grid renders trailing July days with --other-month', async ({ page }) => {
+    const p = await open(page, 'single');
+
+    // June 2026 ends on Tuesday June 30. The grid keeps 6 weeks (modal default
+    // doesn't apply here — but the picker still renders leading/trailing days
+    // from adjacent months in the visible grid). July 1 should appear in the
+    // June grid as an other-month cell.
+    await expect(dayByDate(p, '2026-07-01')).toHaveClass(/drp-date-picker__day--other-month/);
+});
+
+test('June 2026 grid renders leading May days with --other-month', async ({ page }) => {
+    const p = await open(page, 'single');
+
+    // June 1 2026 is a Monday with default weekStartDay=auto (usually Monday
+    // in en-US). If weekStart is Sunday, May 31 (Sun) is the leading cell.
+    // Either way at least one May day should be present with other-month.
+    const leadingMayDay = p.locator('.drp-date-picker__day[data-date^="2026-05"].drp-date-picker__day--other-month');
+    await expect(leadingMayDay.first()).toBeVisible();
+});
+
+// =============================================================================
+// range visual state
+// =============================================================================
+
+test.describe('range visual classes', () => {
+    test('committed range applies --range-start, --range-end, and --in-range correctly', async ({ page }) => {
+        const p = await open(page, 'range');
+
+        await dayByDate(p, '2026-06-10').click();
+        await dayByDate(p, '2026-06-15').click();
+
+        // Reopen to verify post-commit class state on next render.
+        await p.locator('input').click();
+        await expect(dayByDate(p, '2026-06-10')).toHaveClass(/drp-date-picker__day--range-start/);
+        await expect(dayByDate(p, '2026-06-15')).toHaveClass(/drp-date-picker__day--range-end/);
+        // Middle days
+        await expect(dayByDate(p, '2026-06-11')).toHaveClass(/drp-date-picker__day--in-range/);
+        await expect(dayByDate(p, '2026-06-14')).toHaveClass(/drp-date-picker__day--in-range/);
+    });
+
+    test('range endpoints are NOT also tagged with the generic --in-range class', async ({ page }) => {
+        const p = await open(page, 'range');
+
+        await dayByDate(p, '2026-06-10').click();
+        await dayByDate(p, '2026-06-15').click();
+        await p.locator('input').click();
+
+        await expect(dayByDate(p, '2026-06-10')).not.toHaveClass(/drp-date-picker__day--in-range/);
+        await expect(dayByDate(p, '2026-06-15')).not.toHaveClass(/drp-date-picker__day--in-range/);
+    });
+
+    test('a day outside the range carries none of the range classes', async ({ page }) => {
+        const p = await open(page, 'range');
+
+        await dayByDate(p, '2026-06-10').click();
+        await dayByDate(p, '2026-06-15').click();
+        await p.locator('input').click();
+
+        const outsideDay = dayByDate(p, '2026-06-20');
+        await expect(outsideDay).not.toHaveClass(/drp-date-picker__day--range-start/);
+        await expect(outsideDay).not.toHaveClass(/drp-date-picker__day--range-end/);
+        await expect(outsideDay).not.toHaveClass(/drp-date-picker__day--in-range/);
+    });
+});

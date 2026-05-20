@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Test — input mask &amp; format</title>
+    <link rel="stylesheet" href="test-fixtures.css">
+    <style>
+        web-daterangepicker { display: block; max-width: 320px; }
+    </style>
+</head>
+<body>
+    <h1>input mask &amp; format</h1>
+    <p>Targeted by <code>e2e/input-behavior.spec.ts</code>.</p>
+
+    <div class="fixture">
+        <div class="fixture-label">default YYYY-MM-DD format, manual trigger so typing doesn't open</div>
+        <web-daterangepicker id="iso" selection-mode="single"
+            calendar-open-trigger="manual"></web-daterangepicker>
+    </div>
+
+    <div class="fixture">
+        <div class="fixture-label">custom DD.MM.YYYY format</div>
+        <web-daterangepicker id="eu" selection-mode="single"
+            date-format-mask="DD.MM.YYYY"
+            calendar-open-trigger="manual"></web-daterangepicker>
+    </div>
+
+    <div class="fixture">
+        <div class="fixture-label">range mode — start and end separated by " - "</div>
+        <web-daterangepicker id="range" selection-mode="range"
+            calendar-open-trigger="manual"></web-daterangepicker>
+    </div>
+
+    <script type="module" src="/src/index.ts"></script>
+</body>
+</html>

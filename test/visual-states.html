@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Test — visual day states</title>
+    <link rel="stylesheet" href="test-fixtures.css">
+    <style>
+        web-daterangepicker { display: block; max-width: 320px; }
+    </style>
+</head>
+<body>
+    <h1>visual day states</h1>
+    <p>Targeted by <code>e2e/visual-states.spec.ts</code>. initial-date is set
+       to 2026-06-15 so days have predictable weekday positions.</p>
+
+    <div class="fixture">
+        <div class="fixture-label">single picker — today / weekend / other-month classes</div>
+        <web-daterangepicker id="single" selection-mode="single"
+            initial-date="2026-06-15"></web-daterangepicker>
+    </div>
+
+    <div class="fixture">
+        <div class="fixture-label">range picker — for hover-preview + range middle classes</div>
+        <web-daterangepicker id="range" selection-mode="range"
+            initial-date="2026-06-15"></web-daterangepicker>
+    </div>
+
+    <script type="module" src="/src/index.ts"></script>
+</body>
+</html>

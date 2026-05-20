@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Test — date restrictions</title>
+    <link rel="stylesheet" href="test-fixtures.css">
+    <style>
+        web-daterangepicker { display: block; max-width: 320px; }
+    </style>
+</head>
+<body>
+    <h1>date restrictions</h1>
+    <p>Targeted by <code>e2e/date-restrictions.spec.ts</code>. initial-date
+       pins the visible month; each picker layers a different restriction
+       on top.</p>
+
+    <div class="fixture">
+        <div class="fixture-label">min-date 2026-06-10, max-date 2026-06-20</div>
+        <web-daterangepicker id="minmax" selection-mode="single"
+            initial-date="2026-06-15"
+            min-date="2026-06-10" max-date="2026-06-20"></web-daterangepicker>
+    </div>
+
+    <div class="fixture">
+        <div class="fixture-label">disabled-weekdays="0,6" (Sat + Sun disabled)</div>
+        <web-daterangepicker id="weekdays" selection-mode="single"
+            initial-date="2026-06-15"
+            disabled-weekdays="0,6"></web-daterangepicker>
+    </div>
+
+    <div class="fixture">
+        <div class="fixture-label">initial-date controls the opening month</div>
+        <web-daterangepicker id="initial" selection-mode="single"
+            initial-date="2027-03-01"></web-daterangepicker>
+    </div>
+
+    <div class="fixture">
+        <div class="fixture-label">rolling-year-range="2025-2027" — only 3 years in rolling selector</div>
+        <web-daterangepicker id="rolling" selection-mode="single"
+            initial-date="2026-06-15"
+            rolling-year-range="2025-2027"></web-daterangepicker>
+    </div>
+
+    <script type="module" src="/src/index.ts"></script>
+</body>
+</html>

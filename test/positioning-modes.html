@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Test — inline &amp; modal positioning</title>
+    <link rel="stylesheet" href="test-fixtures.css">
+    <style>
+        web-daterangepicker { display: block; max-width: 320px; }
+        #inline { max-width: 700px; }
+    </style>
+</head>
+<body>
+    <h1>inline &amp; modal positioning</h1>
+    <p>Targeted by <code>e2e/positioning-modes.spec.ts</code>.</p>
+
+    <div class="fixture">
+        <div class="fixture-label">inline mode — picker renders in-place, no input, always visible</div>
+        <web-daterangepicker id="inline" selection-mode="single"
+            initial-date="2026-06-15" positioning-mode="inline"></web-daterangepicker>
+    </div>
+
+    <div class="fixture">
+        <div class="fixture-label">modal mode — opens centered with backdrop</div>
+        <web-daterangepicker id="modal" selection-mode="single"
+            initial-date="2026-06-15" positioning-mode="modal"></web-daterangepicker>
+    </div>
+
+    <script type="module" src="/src/index.ts"></script>
+</body>
+</html>

@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Test — action buttons &amp; summary</title>
+    <link rel="stylesheet" href="test-fixtures.css">
+    <style>
+        web-daterangepicker { display: block; max-width: 320px; }
+    </style>
+</head>
+<body>
+    <h1>action buttons &amp; summary</h1>
+    <p>Targeted by <code>e2e/action-buttons.spec.ts</code>.</p>
+
+    <div class="fixture">
+        <div class="fixture-label">default single mode — Today + Clear buttons</div>
+        <web-daterangepicker id="default" selection-mode="single"
+            initial-date="2026-06-15"></web-daterangepicker>
+    </div>
+
+    <div class="fixture">
+        <div class="fixture-label">show-today-button="false" — only Clear visible</div>
+        <web-daterangepicker id="no-today" selection-mode="single"
+            initial-date="2026-06-15" show-today-button="false"></web-daterangepicker>
+    </div>
+
+    <div class="fixture">
+        <div class="fixture-label">show-clear-button="false" + show-today-button="false" — actions container hidden</div>
+        <web-daterangepicker id="no-actions" selection-mode="single"
+            initial-date="2026-06-15"
+            show-today-button="false" show-clear-button="false"></web-daterangepicker>
+    </div>
+
+    <div class="fixture">
+        <div class="fixture-label">range mode show-summary="false" — no summary block</div>
+        <web-daterangepicker id="no-summary" selection-mode="range"
+            initial-date="2026-06-15" show-summary="false"></web-daterangepicker>
+    </div>
+
+    <div class="fixture">
+        <div class="fixture-label">range mode with custom formatSummaryCallback</div>
+        <web-daterangepicker id="custom-summary" selection-mode="range"
+            initial-date="2026-06-15"></web-daterangepicker>
+        <script type="module">
+            await customElements.whenDefined('web-daterangepicker');
+            const p = document.getElementById('custom-summary');
+            p.formatSummaryCallback = ({ days }) => `CUSTOM: ${days}d`;
+        </script>
+    </div>
+
+    <script type="module" src="/src/index.ts"></script>
+</body>
+</html>
