@@ -138,3 +138,45 @@ test('highlight-disabled-in-range="false": disabled days inside a range stay un-
     await expect(dayByDate(p, '2026-06-12')).toHaveClass(/drp-date-picker__day--disabled/);
     await expect(dayByDate(p, '2026-06-12')).not.toHaveClass(/drp-date-picker__day--in-range/);
 });
+
+// =============================================================================
+// 'split'
+// =============================================================================
+
+test('split: change.detail.dateRanges yields two sub-ranges around the disabled gap', async ({ page }) => {
+    const p = await open(page, 'split');
+
+    await dayByDate(p, '2026-06-10').click();
+    await dayByDate(p, '2026-06-15').click();
+
+    const detail = await getLastChange(p);
+    expect(detail.dateRanges?.length).toBe(2);
+    // First sub-range: 10..11 (before the 12/13 gap).
+    // Second sub-range: 14..15 (after the gap).
+});
+
+test('split: change.detail.formattedValue lists both sub-ranges (the picker\'s input itself shows the original range only)', async ({ page }) => {
+    const p = await open(page, 'split');
+
+    await dayByDate(p, '2026-06-10').click();
+    await dayByDate(p, '2026-06-15').click();
+
+    const detail = await getLastChange(p);
+    expect(detail.formattedValue).toContain('2026-06-10 - 2026-06-11');
+    expect(detail.formattedValue).toContain('2026-06-14 - 2026-06-15');
+});
+
+// =============================================================================
+// 'individual'
+// =============================================================================
+
+test('individual: change.detail.dates is a flat list of enabled dates inside the range', async ({ page }) => {
+    const p = await open(page, 'individual');
+
+    await dayByDate(p, '2026-06-10').click();
+    await dayByDate(p, '2026-06-15').click();
+
+    const detail = await getLastChange(p);
+    // 10, 11, 14, 15 — four enabled dates, 12+13 excluded.
+    expect(detail.dates?.length).toBe(4);
+});

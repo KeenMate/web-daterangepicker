@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Test — API extras: setters, messages, displayFormatMask</title>
+    <link rel="stylesheet" href="test-fixtures.css">
+    <style>
+        web-daterangepicker { display: block; max-width: 320px; }
+    </style>
+</head>
+<body>
+    <h1>API extras</h1>
+    <p>Targeted by <code>e2e/api-extras.spec.ts</code>.</p>
+
+    <div class="fixture">
+        <div class="fixture-label">selectedDate setter (single mode)</div>
+        <web-daterangepicker id="single-setter" selection-mode="single"
+            initial-date="2026-06-15"></web-daterangepicker>
+    </div>
+
+    <div class="fixture">
+        <div class="fixture-label">selectedRanges setter (range mode)</div>
+        <web-daterangepicker id="range-setter" selection-mode="range"
+            initial-date="2026-06-15"></web-daterangepicker>
+    </div>
+
+    <div class="fixture">
+        <div class="fixture-label">showMessage / hideMessage</div>
+        <web-daterangepicker id="messages" selection-mode="single"
+            initial-date="2026-06-15"></web-daterangepicker>
+    </div>
+
+    <div class="fixture">
+        <div class="fixture-label">displayFormatMask different from dateFormatMask — display uses dd/mm/yyyy</div>
+        <web-daterangepicker id="display-mask" selection-mode="single"
+            initial-date="2026-06-15"
+            date-format-mask="YYYY-MM-DD"
+            display-format-mask="DD/MM/YYYY"></web-daterangepicker>
+    </div>
+
+    <script type="module" src="/src/index.ts"></script>
+</body>
+</html>

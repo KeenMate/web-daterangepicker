@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Test — misc features (badge tooltip, invalid range, mobile modal, unified-header click)</title>
+    <link rel="stylesheet" href="test-fixtures.css">
+    <style>
+        web-daterangepicker { display: block; max-width: 720px; }
+    </style>
+</head>
+<body>
+    <h1>misc features</h1>
+    <p>Targeted by <code>e2e/misc-features.spec.ts</code>.</p>
+
+    <div class="fixture">
+        <div class="fixture-label">badge tooltip (specialDates badgeTooltip)</div>
+        <web-daterangepicker id="badge-tip" selection-mode="single"
+            initial-date="2026-06-15"></web-daterangepicker>
+    </div>
+
+    <div class="fixture">
+        <div class="fixture-label">invalid-range error styling via beforeDateSelectCallback restore + showInvalidRange</div>
+        <web-daterangepicker id="invalid-range" selection-mode="range"
+            initial-date="2026-06-15"></web-daterangepicker>
+    </div>
+
+    <div class="fixture">
+        <div class="fixture-label">unified-header-interactive — click unified header opens unified rolling selector</div>
+        <web-daterangepicker id="unified-click" selection-mode="range"
+            initial-date="2026-06-15" visible-months-count="3"
+            unified-navigation unified-header-interactive></web-daterangepicker>
+    </div>
+
+    <div class="fixture">
+        <div class="fixture-label">mobile-modal-breakpoint — auto-switch to modal when viewport ≤ 600px</div>
+        <web-daterangepicker id="mobile-modal" selection-mode="single"
+            initial-date="2026-06-15"
+            mobile-modal-breakpoint="600"></web-daterangepicker>
+    </div>
+
+    <script type="module">
+        await customElements.whenDefined('web-daterangepicker');
+
+        document.getElementById('badge-tip').specialDates = [
+            { date: '2026-06-20', badgeText: 'B', badgeTooltip: 'Special badge tooltip' }
+        ];
+
+        document.getElementById('invalid-range').beforeDateSelectCallback = (range) => {
+            if (range && typeof range === 'object' && 'start' in range) {
+                return { action: 'restore', message: 'Reject', showInvalidRange: true };
+            }
+            return { action: 'accept' };
+        };
+    </script>
+    <script type="module" src="/src/index.ts"></script>
+</body>
+</html>

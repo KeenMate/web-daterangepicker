@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Test — drag-to-adjust range endpoints</title>
+    <link rel="stylesheet" href="test-fixtures.css">
+    <style>
+        web-daterangepicker { display: block; max-width: 320px; }
+    </style>
+</head>
+<body>
+    <h1>drag-to-adjust range endpoints</h1>
+    <p>Targeted by <code>e2e/drag-adjust.spec.ts</code>.</p>
+
+    <div class="fixture">
+        <div class="fixture-label">range picker with seeded selection 2026-06-10..15</div>
+        <web-daterangepicker id="range" selection-mode="range"
+            initial-date="2026-06-15"></web-daterangepicker>
+        <script type="module">
+            await customElements.whenDefined('web-daterangepicker');
+            const p = document.getElementById('range');
+            p.selectedRanges = [{ start: new Date(2026, 5, 10), end: new Date(2026, 5, 15) }];
+        </script>
+    </div>
+
+    <script type="module" src="/src/index.ts"></script>
+</body>
+</html>

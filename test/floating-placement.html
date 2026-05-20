@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Test — floating placement &amp; scroll-close</title>
+    <link rel="stylesheet" href="test-fixtures.css">
+    <style>
+        web-daterangepicker { display: block; max-width: 320px; }
+        .scrollbox {
+            height: 200px;
+            overflow-y: auto;
+            border: 1px solid #d1d5db;
+            padding: 10px;
+        }
+        .spacer { height: 600px; }
+    </style>
+</head>
+<body>
+    <h1>floating placement &amp; scroll-close</h1>
+    <p>Targeted by <code>e2e/floating-placement.spec.ts</code>.</p>
+
+    <div class="fixture">
+        <div class="fixture-label">default placement — calendar opens below the input</div>
+        <web-daterangepicker id="below" selection-mode="single"
+            initial-date="2026-06-15"></web-daterangepicker>
+    </div>
+
+    <div class="fixture">
+        <div class="fixture-label">explicit calendar-placement="top-start" — needs vertical room above to honor it</div>
+        <!-- Push the input down so Floating UI's flip doesn't override 'top-start'. -->
+        <div style="height: 500px"></div>
+        <web-daterangepicker id="top" selection-mode="single"
+            initial-date="2026-06-15" calendar-placement="top-start"></web-daterangepicker>
+    </div>
+
+    <div class="fixture">
+        <div class="fixture-label">close-on-scroll default (true) — picker dismisses when ancestor scrolls</div>
+        <div class="scrollbox" id="scrollbox-default">
+            <web-daterangepicker id="scroll-default" selection-mode="single"
+                initial-date="2026-06-15"></web-daterangepicker>
+            <div class="spacer"></div>
+        </div>
+    </div>
+
+    <div class="fixture">
+        <div class="fixture-label">close-on-scroll="false" — picker stays open through scroll</div>
+        <div class="scrollbox" id="scrollbox-stay">
+            <web-daterangepicker id="scroll-stay" selection-mode="single"
+                initial-date="2026-06-15" close-on-scroll="false"></web-daterangepicker>
+            <div class="spacer"></div>
+        </div>
+    </div>
+
+    <script type="module" src="/src/index.ts"></script>
+</body>
+</html>

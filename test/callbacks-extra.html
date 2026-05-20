@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Test — extra callbacks &amp; specialDates</title>
+    <link rel="stylesheet" href="test-fixtures.css">
+    <style>
+        web-daterangepicker { display: block; max-width: 720px; }
+    </style>
+</head>
+<body>
+    <h1>extra callbacks &amp; specialDates</h1>
+    <p>Targeted by <code>e2e/callbacks-extra.spec.ts</code>.</p>
+
+    <div class="fixture">
+        <div class="fixture-label">renderDayCallback — full replacement (returns HTMLElement for day 20)</div>
+        <web-daterangepicker id="full-render" selection-mode="single"
+            initial-date="2026-06-15"></web-daterangepicker>
+    </div>
+
+    <div class="fixture">
+        <div class="fixture-label">customStylesCallback — injects a stylesheet into the shadow DOM</div>
+        <web-daterangepicker id="custom-styles" selection-mode="single"
+            initial-date="2026-06-15"></web-daterangepicker>
+    </div>
+
+    <div class="fixture">
+        <div class="fixture-label">specialDates with default member names — adds a badge to two dates</div>
+        <web-daterangepicker id="specials" selection-mode="single"
+            initial-date="2026-06-15"></web-daterangepicker>
+    </div>
+
+    <div class="fixture">
+        <div class="fixture-label">specialDates with custom *Member mapping — uses `when` and `tag` fields (set via property)</div>
+        <web-daterangepicker id="specials-custom" selection-mode="single"
+            initial-date="2026-06-15"></web-daterangepicker>
+    </div>
+
+    <div class="fixture">
+        <div class="fixture-label">getUnifiedHeaderCallback — replaces unified-header text</div>
+        <web-daterangepicker id="unified-header" selection-mode="range"
+            initial-date="2026-06-15" visible-months-count="3"
+            unified-navigation></web-daterangepicker>
+    </div>
+
+    <script type="module">
+        await customElements.whenDefined('web-daterangepicker');
+
+        document.getElementById('full-render').renderDayCallback = ({ dayNumber }) => {
+            if (dayNumber !== 20) return null;
+            const span = document.createElement('span');
+            span.dataset.testid = 'fullday';
+            span.textContent = '★';
+            return span;
+        };
+
+        document.getElementById('custom-styles').customStylesCallback = () =>
+            '.my-flag { outline: 2px solid magenta; }';
+
+        document.getElementById('specials').specialDates = [
+            { date: '2026-06-18', badgeText: 'A' },
+            { date: '2026-06-22', badgeText: 'B' }
+        ];
+
+        {
+            const specCustom = document.getElementById('specials-custom');
+            specCustom.dateMember = 'when';
+            specCustom.badgeTextMember = 'tag';
+            specCustom.specialDates = [
+                { when: '2026-06-19', tag: 'X' }
+            ];
+        }
+
+        document.getElementById('unified-header').getUnifiedHeaderCallback = ({ firstMonth, lastMonth, monthNames }) =>
+            `${monthNames[firstMonth.getMonth()]} → ${monthNames[lastMonth.getMonth()]}`;
+    </script>
+    <script type="module" src="/src/index.ts"></script>
+</body>
+</html>

@@ -44,11 +44,25 @@
             highlight-disabled-in-range="false"></web-daterangepicker>
     </div>
 
+    <div class="fixture">
+        <div class="fixture-label">'split' — change.detail.dateRanges has multiple sub-ranges separated by disabled days</div>
+        <web-daterangepicker id="split" selection-mode="range"
+            initial-date="2026-06-15"
+            disabled-dates-handling="split"></web-daterangepicker>
+    </div>
+
+    <div class="fixture">
+        <div class="fixture-label">'individual' — change.detail.dates is the flat enabled-date list</div>
+        <web-daterangepicker id="individual" selection-mode="range"
+            initial-date="2026-06-15"
+            disabled-dates-handling="individual"></web-daterangepicker>
+    </div>
+
     <script type="module">
         await customElements.whenDefined('web-daterangepicker');
         // Inject disabledDates on each picker — there's no HTML attribute for it.
         const disabledDates = ['2026-06-12', '2026-06-13'];
-        for (const id of ['allow', 'prevent', 'block', 'no-highlight']) {
+        for (const id of ['allow', 'prevent', 'block', 'no-highlight', 'split', 'individual']) {
             const p = document.getElementById(id);
             p.disabledDates = disabledDates;
         }

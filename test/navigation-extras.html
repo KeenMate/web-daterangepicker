@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Test — navigation extras</title>
+    <link rel="stylesheet" href="test-fixtures.css">
+    <style>
+        web-daterangepicker { display: block; max-width: 720px; }
+    </style>
+</head>
+<body>
+    <h1>navigation extras</h1>
+    <p>Targeted by <code>e2e/navigation-extras.spec.ts</code>.</p>
+
+    <div class="fixture">
+        <div class="fixture-label">single picker — prev/next + rolling-selector toggle</div>
+        <web-daterangepicker id="single" selection-mode="single"
+            initial-date="2026-06-15"></web-daterangepicker>
+    </div>
+
+    <div class="fixture">
+        <div class="fixture-label">two-month picker — Tab between columns, Ctrl+Home/End</div>
+        <web-daterangepicker id="two-month" selection-mode="range"
+            initial-date="2026-06-15" visible-months-count="2"></web-daterangepicker>
+    </div>
+
+    <script type="module" src="/src/index.ts"></script>
+</body>
+</html>

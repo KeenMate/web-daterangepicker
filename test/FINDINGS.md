@@ -87,6 +87,22 @@ whether to fix the picker, change the docs, or accept the behavior.
     in `web-component.ts` or any CSS partial. `input-size` is the only
     member of the family that works. The docs need pruning.
 
+12a. **`dateMember` / `badgeTextMember` / `dayClassMember` etc. have
+    property setters but no HTML attributes.** Inconsistent with sibling
+    `specialDates` (also no attribute) and with options like
+    `disabled-dates-handling` (attribute-driven). Documenting which paths
+    are attribute-eligible vs property-only would help, or wire up the
+    parser for these short string props.
+
+12. **`displayFormatMask` is documented and accepted but never applied.**
+    The option appears in `types.ts`, is parsed in `web-component.ts`
+    (`display-format-mask` attribute), and is copied into
+    `picker.options.displayFormatMask` in the constructor — but no code
+    path ever reads it. Setting `date-format-mask="YYYY-MM-DD"` +
+    `display-format-mask="DD/MM/YYYY"` produces "2026-06-20" in the
+    input, not "20/06/2026". Either implement the second format hook or
+    remove the option from types.ts + web-component attributes.
+
 ---
 
 Add new entries below as more specs land.

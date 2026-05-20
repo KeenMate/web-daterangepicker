@@ -19,8 +19,8 @@ When a row is marked `✓`/`△`, the **Spec** column points at the file under
 | ------------------------------------------------------------- | :----: | ---- | ------- |
 | Single-date selection                                         | ✓      | `selection-modes.spec.ts`    | `selection-modes.html`    |
 | Range selection (click start → click end)                     | ✓      | `selection-modes.spec.ts`    | `selection-modes.html`    |
-| Range: drag-to-adjust start                                   | ✗      |      |         |
-| Range: drag-to-adjust end                                     | ✗      |      |         |
+| Range: drag-to-adjust start                                   | ✓      | `drag-adjust.spec.ts`        | `drag-adjust.html`        |
+| Range: drag-to-adjust end                                     | ✓      | `drag-adjust.spec.ts`        | `drag-adjust.html`        |
 | Multiple-date selection (toggle individual days)              | ✓      | `selection-modes.spec.ts`    | `selection-modes.html`    |
 | Apply-required: cancel restores `originalInputValue`          | ✓      | `selection-modes.spec.ts`    | `selection-modes.html`    |
 | `autoClose`: `'never'` / `'selection'` (default) / `'apply'`  | △      | `selection-modes.spec.ts`    | `selection-modes.html`    |
@@ -29,20 +29,20 @@ When a row is marked `✓`/`△`, the **Spec** column points at the file under
 
 | Feature                                                       | Status | Spec | Fixture |
 | ------------------------------------------------------------- | :----: | ---- | ------- |
-| `floating` mode: opens below input                            | ✗      |      |         |
-| `floating` mode: flips above when no room below               | ✗      |      |         |
-| `floating` mode: `calendar-placement` override                | ✗      |      |         |
+| `floating` mode: opens below input                            | ✓      | `floating-placement.spec.ts` | `floating-placement.html` |
+| `floating` mode: flips above when no room below               | △      | _covered indirectly by `anchor-stability.html`_ |         |
+| `floating` mode: `calendar-placement` override                | ✓      | `floating-placement.spec.ts` | `floating-placement.html` |
 | `floating`: escapes `overflow:auto` ancestor (SPFx fix)       | ✓      | `floating-overflow.spec.ts`  | `floating-overflow.html`  |
 | `floating`: anchor stable when calendar content grows         | ✓      | `anchor-stability.spec.ts`   | `anchor-stability.html`   |
 | `floating`: closes on viewport resize                         | ✓      | `anchor-stability.spec.ts`   | `anchor-stability.html`   |
-| `floating`: `close-on-scroll` (default true / false)          | ✗      |      |         |
+| `floating`: `close-on-scroll` (default true / false)          | ✓      | `floating-placement.spec.ts` | `floating-placement.html` |
 | `inline` mode: renders in-place, never hidden                 | ✓      | `positioning-modes.spec.ts`  | `positioning-modes.html`  |
 | `modal` mode: centered overlay + backdrop                     | ✓      | `positioning-modes.spec.ts`  | `positioning-modes.html`  |
 | `modal` mode: backdrop click closes                           | ✓      | `positioning-modes.spec.ts`  | `positioning-modes.html`  |
 | `modal` mode: body scroll locked while open                   | ✓      | `positioning-modes.spec.ts`  | `positioning-modes.html`  |
 | `modal` mode: input blurred to suppress mobile keyboard       | ✗      |      |         |
 | `modal` mode: container-query inner layout tiers              | ✗      |      |         |
-| `mobile-modal-breakpoint` auto-engages modal at small widths  | ✗      |      |         |
+| `mobile-modal-breakpoint` auto-engages modal at small widths  | ✓      | `misc-features.spec.ts`      | `misc-features.html`      |
 
 ## 3. Trigger / open-close
 
@@ -67,23 +67,23 @@ When a row is marked `✓`/`△`, the **Spec** column points at the file under
 | Per-column independent navigation                             | ✓      | `multi-month.spec.ts`        | `multi-month.html`        |
 | `unified-navigation`: single header drives all columns        | △      | `multi-month.spec.ts`        | `multi-month.html`        |
 | `unified-navigation-anchor-index`                             | ✗      |      |         |
-| `unified-header-interactive` opens unified rolling selector   | ✗      |      |         |
+| `unified-header-interactive` opens unified rolling selector   | ✓      | `misc-features.spec.ts`      | `misc-features.html`      |
 | Always-6-week rendering (stable height in modal)              | ✗      |      |         |
 
 ## 5. Navigation
 
 | Feature                                                       | Status | Spec | Fixture |
 | ------------------------------------------------------------- | :----: | ---- | ------- |
-| Prev / next month buttons                                     | ✗      |      |         |
-| Rolling year/month selector toggles via month-year header     | ✗      |      |         |
+| Prev / next month buttons                                     | ✓      | `navigation-extras.spec.ts`  | `navigation-extras.html`  |
+| Rolling year/month selector toggles via month-year header     | ✓      | `navigation-extras.spec.ts`  | `navigation-extras.html`  |
 | Rolling list scrolls without chaining to page                 | ✓      | `rolling-selector.spec.ts`   | `rolling-selector.html`   |
 | Rolling list border-box (no overflow into elements below)     | ✓      | `rolling-selector.spec.ts`   | `rolling-selector.html`   |
 | Keyboard: arrows (day), Ctrl+arrows / PgUp/PgDn (month)       | △      | `keyboard-navigation.spec.ts` | `keyboard-navigation.html` |
 | Keyboard: Home/End (start/end of month)                       | △      | `keyboard-navigation.spec.ts` | `keyboard-navigation.html` |
-| Keyboard: Ctrl+Home/End (year jump, step year-by-year)        | ✗      |      |         |
+| Keyboard: Ctrl+Home/End (year jump, step year-by-year)        | △      | `navigation-extras.spec.ts`  | `navigation-extras.html`  |
 | Keyboard: `t` jumps to today                                  | ✓      | `keyboard-navigation.spec.ts` | `keyboard-navigation.html` |
 | Keyboard: Enter selects, Escape closes                        | ✓      | `keyboard-navigation.spec.ts` | `keyboard-navigation.html` |
-| Keyboard: Tab cycles between month columns                    | ✗      |      |         |
+| Keyboard: Tab cycles between month columns                    | ✓      | `navigation-extras.spec.ts`  | `navigation-extras.html`  |
 
 ## 6. Input behavior
 
@@ -92,8 +92,8 @@ When a row is marked `✓`/`△`, the **Spec** column points at the file under
 | Input mask: progressive auto-format as user types             | ✓      | `input-behavior.spec.ts`     | `input-behavior.html`     |
 | Custom `date-format-mask` (YYYY-MM-DD, DD.MM.YYYY, etc.)      | ✓      | `input-behavior.spec.ts`     | `input-behavior.html`     |
 | Progressive parsing: calendar follows valid typed segments    | ✗      |      |         |
-| `input-size` variants (xs, sm, md, lg, xl)                    | ✗      |      |         |
-| `displayFormatMask` differs from `dateFormatMask`             | ✗      |      |         |
+| `input-size` variants (xs, sm, md, lg, xl)                    | ✓      | `sizing-theming.spec.ts`     | `sizing-theming.html`     |
+| `displayFormatMask` differs from `dateFormatMask`             | n/a    | _option documented but not consumed; see FINDINGS.md #12_ |         |
 
 ## 7. Date restrictions
 
@@ -101,7 +101,7 @@ When a row is marked `✓`/`△`, the **Spec** column points at the file under
 | ------------------------------------------------------------- | :----: | ---- | ------- |
 | `min-date` / `max-date` disable out-of-range days             | ✓      | `date-restrictions.spec.ts`  | `date-restrictions.html`  |
 | `disabled-weekdays` (Sat/Sun, etc.)                           | ✓      | `date-restrictions.spec.ts`  | `date-restrictions.html`  |
-| `disabledDates` (specific dates)                              | ✗      |      |         |
+| `disabledDates` (specific dates)                              | ✓      | `disabled-handling.spec.ts`  | `disabled-handling.html`  |
 | `initial-date` controls opening month                         | ✓      | `date-restrictions.spec.ts`  | `date-restrictions.html`  |
 | `rolling-year-range` / `rolling-month-range`                  | △      | `date-restrictions.spec.ts`  | `date-restrictions.html`  |
 | Rolling selector disables out-of-range entries                | ✗      |      |         |
@@ -113,8 +113,8 @@ When a row is marked `✓`/`△`, the **Spec** column points at the file under
 | `'allow'`: range crosses disabled days                        | ✓      | `disabled-handling.spec.ts`  | `disabled-handling.html`  |
 | `'prevent'`: blocks selection crossing disabled               | ✓      | `disabled-handling.spec.ts`  | `disabled-handling.html`  |
 | `'block'`: snaps to last enabled before disabled gap          | ✓      | `disabled-handling.spec.ts`  | `disabled-handling.html`  |
-| `'split'`: yields multiple ranges in event detail             | ✗      |      |         |
-| `'individual'`: yields flat enabled-dates array               | ✗      |      |         |
+| `'split'`: yields multiple ranges in event detail             | ✓      | `disabled-handling.spec.ts`  | `disabled-handling.html`  |
+| `'individual'`: yields flat enabled-dates array               | ✓      | `disabled-handling.spec.ts`  | `disabled-handling.html`  |
 | `highlight-disabled-in-range` toggles styling                 | ✓      | `disabled-handling.spec.ts`  | `disabled-handling.html`  |
 
 ## 9. Action buttons & summary
@@ -137,14 +137,14 @@ When a row is marked `✓`/`△`, the **Spec** column points at the file under
 
 | Feature                                                       | Status | Spec | Fixture |
 | ------------------------------------------------------------- | :----: | ---- | ------- |
-| `renderDayCallback` (full replacement)                        | ✗      |      |         |
+| `renderDayCallback` (full replacement)                        | ✓      | `callbacks-extra.spec.ts`    | `callbacks-extra.html`    |
 | `renderDayContentCallback` (augmentation)                     | ✓      | `callbacks.spec.ts`          | `callbacks.html`          |
 | `getMonthHeaderCallback` overrides per-month header           | ✓      | `callbacks.spec.ts`          | `callbacks.html`          |
-| `getUnifiedHeaderCallback` overrides unified-mode header text | ✗      |      |         |
-| `customStylesCallback` injects styles into Shadow DOM         | ✗      |      |         |
+| `getUnifiedHeaderCallback` overrides unified-mode header text | ✓      | `callbacks-extra.spec.ts`    | `callbacks-extra.html`    |
+| `customStylesCallback` injects styles into Shadow DOM         | ✓      | `callbacks-extra.spec.ts`    | `callbacks-extra.html`    |
 | `beforeDateSelectCallback`: accept / adjust / restore / clear | △      | `callbacks.spec.ts`          | `callbacks.html`          |
 | `beforeMonthChangedCallback`: bulk metadata, block            | △      | `callbacks.spec.ts`          | `callbacks.html`          |
-| `specialDates` + `*Member` property mapping                   | ✗      |      |         |
+| `specialDates` + `*Member` property mapping                   | ✓      | `callbacks-extra.spec.ts`    | `callbacks-extra.html`    |
 | `getDateMetadataCallback` per-date                            | ✓      | `callbacks.spec.ts`          | `callbacks.html`          |
 
 ## 11. Tooltips
@@ -152,7 +152,7 @@ When a row is marked `✓`/`△`, the **Spec** column points at the file under
 | Feature                                                       | Status | Spec | Fixture |
 | ------------------------------------------------------------- | :----: | ---- | ------- |
 | Day-cell tooltip on hover                                     | ✓      | `tooltips.spec.ts`           | `tooltips.html`           |
-| Badge tooltip                                                 | ✗      |      |         |
+| Badge tooltip                                                 | ✓      | `misc-features.spec.ts`      | `misc-features.html`      |
 | Action-button tooltip                                         | ✓      | `tooltips.spec.ts`           | `tooltips.html`           |
 | Tooltips escape `overflow:auto` ancestor (position: fixed)    | ✓      | `tooltips.spec.ts`           | `tooltips.html`           |
 
@@ -175,10 +175,10 @@ When a row is marked `✓`/`△`, the **Spec** column points at the file under
 | `apply` event                                                 | n/a    | _picker dispatches `change` on apply; no separate event_ |         |
 | `cancel` event                                                | n/a    | _no event; pending selection restores prior input value_ |         |
 | `custom-action` event (per v1.12.0 docs)                      | ✓      | `events-api.spec.ts`         | `events-api.html`         |
-| `selectedDate` / `selectedRanges` / `selectedDates` setters   | ✗      |      |         |
+| `selectedDate` / `selectedRanges` / `selectedDates` setters   | △      | `api-extras.spec.ts`         | `api-extras.html`         |
 | `isOpen` setter opens/closes programmatically                 | ✓      | `events-api.spec.ts`, `triggers.spec.ts` | `events-api.html`, `triggers.html` |
 | `updateOptions(partial)` survives without losing selection    | ✓      | `events-api.spec.ts`         | `events-api.html`         |
-| `showMessage` / `hideMessage`                                 | ✗      |      |         |
+| `showMessage` / `hideMessage`                                 | ✓      | `api-extras.spec.ts`         | `api-extras.html`         |
 | `value` setter populates input + selection                    | △      | `events-api.spec.ts`         | `events-api.html`         |
 | `disabled` setter disables input + suppresses open            | △      | `events-api.spec.ts`         | `events-api.html`         |
 
@@ -191,11 +191,11 @@ When a row is marked `✓`/`△`, the **Spec** column points at the file under
 | Today highlight                                               | ✓      | `visual-states.spec.ts`      | `visual-states.html`      |
 | Disabled day styling                                          | ✓      | `date-restrictions.spec.ts`  | `date-restrictions.html`  |
 | Hover preview during range selection                          | n/a    | _picker has no hover-preview class; mid-pick uses `:hover` only_ |         |
-| Drag-preview classes during drag-adjust                       | ✗      |      |         |
+| Drag-preview classes during drag-adjust                       | ✓      | `drag-adjust.spec.ts`        | `drag-adjust.html`        |
 | Keyboard-focused day class                                    | ✓      | `keyboard-navigation.spec.ts`| `keyboard-navigation.html`|
 | Weekend styling                                               | n/a    | _picker emits no `--weekend` class; weekend cells are unstyled by default_ |         |
 | Adjacent-month (faded) days                                   | ✓      | `visual-states.spec.ts`      | `visual-states.html`      |
-| Invalid-range error styling (`showInvalidRange`)              | ✗      |      |         |
+| Invalid-range error styling (`showInvalidRange`)              | ✓      | `misc-features.spec.ts`      | `misc-features.html`      |
 
 ## 15. Sizing & theming
 
