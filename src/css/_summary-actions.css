@@ -19,6 +19,10 @@
 
 .drp-date-picker__summary--visible {
   display: block;
+  /* Push the summary border away from the months area above so the rolling
+     selector overlay (which fills the months container via inset: 0) doesn't
+     visually touch the summary's border-top when opened. */
+  margin-top: var(--drp-spacing-sm);
 }
 
 .drp-date-picker__summary--hidden {
@@ -40,6 +44,14 @@
   gap: var(--drp-spacing-sm);
   justify-content: space-between;
   padding-top: var(--drp-spacing-sm);
+}
+
+/* The border-top is a "separator from the visible summary above". Only draw it
+   when a visible summary actually precedes the actions — single mode never
+   appends a summary, range mode marks it --hidden until a range is selected,
+   and the always-present .drp-date-picker__message sits between the summary
+   and actions, so an adjacent-sibling selector wouldn't reach back. */
+.drp-date-picker:has(.drp-date-picker__summary--visible) .drp-date-picker__actions {
   border-top: var(--drp-summary-border);
 }
 

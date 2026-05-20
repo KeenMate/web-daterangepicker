@@ -13,6 +13,11 @@ import { updateCalendarFromInput } from './date-picker-interaction';
 // Cleanup function for autoUpdate
 let cleanupAutoUpdate: (() => void) | null = null;
 
+// Window resize handler — registered in floating mode so we can close on
+// viewport changes (since elementResize is disabled on autoUpdate, the picker
+// wouldn't otherwise adapt to a smaller/larger viewport).
+let viewportResizeHandler: (() => void) | null = null;
+
 // Tracks the prior body overflow value so multiple modal pickers don't fight
 // over restoring it. We only set the body to hidden when the count goes 0→1
 // and only restore when it goes back to 0.
@@ -103,10 +108,22 @@ export function show(picker: any) {
 
     if (!isModal) {
         // Floating mode: anchor positioning + auto-reposition on scroll/resize.
+        // elementResize disabled so the calendar's *own* size changes (e.g. a
+        // custom formatSummaryCallback rendering 2 vs 3 lines on hover) don't
+        // re-run position(). With a flipped placement the new top would be
+        // inputTop − newHeight − offset, sliding the calendar upward and the
+        // hovered day with it — which lands the cursor on a different day,
+        // re-fires hover, and loops. Anchor once, let the bottom grow downward.
         position(picker);
         cleanupAutoUpdate = autoUpdate(picker.input, picker.calendar, () => {
             position(picker);
-        });
+        }, { elementResize: false });
+
+        // Close on viewport resize (in either direction). With elementResize
+        // off, we can't gracefully adapt to a smaller/larger window, so just
+        // dismiss the picker and let the user reopen it in the new viewport.
+        viewportResizeHandler = () => hide(picker);
+        window.addEventListener('resize', viewportResizeHandler);
     } else {
         // Modal mode is centered purely via CSS — no Floating UI involvement.
         // Log actual dimensions so we can diagnose width-collapse issues.
@@ -165,6 +182,11 @@ export function hide(picker: any) {
     if (cleanupAutoUpdate) {
         cleanupAutoUpdate();
         cleanupAutoUpdate = null;
+    }
+
+    if (viewportResizeHandler) {
+        window.removeEventListener('resize', viewportResizeHandler);
+        viewportResizeHandler = null;
     }
 
     if (isModal) {
@@ -245,6 +267,7 @@ export async function position(picker: any) {
     // the session. Rely on Floating UI's own scroll-debouncing inside autoUpdate.
     const result = await computePosition(picker.input, picker.calendar, {
         placement: (picker.options.calendarPlacement || 'bottom-start') as any,
+        strategy: 'fixed',
         middleware: [
             offset(8),
             flip({ padding: 8 }),
@@ -281,6 +304,7 @@ export async function showTooltip(picker: any, element: HTMLElement, content: st
 
     const { x, y, placement, middlewareData } = await computePosition(element, picker.tooltip, {
         placement: 'top',
+        strategy: 'fixed',
         middleware: [
             offset(6),
             flip(),

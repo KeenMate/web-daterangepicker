@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Test — anchor stability + viewport-close</title>
+    <link rel="stylesheet" href="test-fixtures.css">
+    <style>
+        /*
+         * Push the input far enough down that flip middleware places the
+         * calendar ABOVE the input — that's the configuration where the
+         * "bottom-anchored, top moves up" jitter used to manifest.
+         */
+        .pusher { height: 700px; }
+        web-daterangepicker { display: block; max-width: 320px; }
+    </style>
+</head>
+<body>
+    <h1>anchor stability + viewport close</h1>
+    <p>Targeted by <code>e2e/anchor-stability.spec.ts</code>.</p>
+
+    <div class="pusher"></div>
+
+    <div class="fixture">
+        <div class="fixture-label">range picker positioned low so the calendar flips above</div>
+        <web-daterangepicker id="picker" selection-mode="range" placeholder="YYYY-MM-DD"></web-daterangepicker>
+    </div>
+
+    <script type="module" src="/src/index.ts"></script>
+</body>
+</html>

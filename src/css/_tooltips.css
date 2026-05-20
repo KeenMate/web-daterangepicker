@@ -8,7 +8,7 @@
    ============================================================================== */
 
 .drp-date-picker__tooltip {
-  position: absolute;
+  position: fixed;
   z-index: var(--drp-z-index-tooltip);
   background-color: var(--drp-tooltip-bg);
   color: var(--drp-tooltip-text-color);

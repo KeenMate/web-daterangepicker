@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Test — keyboard navigation</title>
+    <link rel="stylesheet" href="test-fixtures.css">
+    <style>
+        web-daterangepicker { display: block; max-width: 320px; }
+    </style>
+</head>
+<body>
+    <h1>keyboard navigation</h1>
+    <p>Targeted by <code>e2e/keyboard-navigation.spec.ts</code>. Picker is pinned
+       to <code>initial-date="2026-06-15"</code> so arrow / Home / End / month
+       jumps land on predictable cells.</p>
+
+    <div class="fixture">
+        <div class="fixture-label">single picker (initial 2026-06-15)</div>
+        <web-daterangepicker id="picker" selection-mode="single"
+            initial-date="2026-06-15" placeholder="YYYY-MM-DD"></web-daterangepicker>
+    </div>
+
+    <script type="module" src="/src/index.ts"></script>
+</body>
+</html>

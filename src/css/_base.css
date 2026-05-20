@@ -124,7 +124,7 @@
    ============================================================================== */
 
 .drp-date-picker {
-  position: absolute;
+  position: fixed;
   z-index: var(--drp-z-index-dropdown);
   font-family: var(--drp-font-family, var(--base-font-family, inherit));
   background: var(--drp-dropdown-bg);

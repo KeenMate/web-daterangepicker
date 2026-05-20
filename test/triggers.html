@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Test — trigger modes &amp; open/close</title>
+    <link rel="stylesheet" href="test-fixtures.css">
+    <style>
+        web-daterangepicker { display: block; max-width: 320px; }
+        .outside-target {
+            margin-top: 32px;
+            padding: 16px;
+            background: #f3f4f6;
+            border: 1px dashed #9ca3af;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <h1>trigger modes &amp; open/close</h1>
+    <p>Targeted by <code>e2e/triggers.spec.ts</code>.</p>
+
+    <div class="fixture">
+        <div class="fixture-label">focus trigger (default) — input click opens</div>
+        <web-daterangepicker id="focus" selection-mode="single"
+            initial-date="2026-06-15"></web-daterangepicker>
+    </div>
+
+    <div class="fixture">
+        <div class="fixture-label">typing trigger — opens only after typing</div>
+        <web-daterangepicker id="typing" selection-mode="single"
+            initial-date="2026-06-15" calendar-open-trigger="typing"></web-daterangepicker>
+    </div>
+
+    <div class="fixture">
+        <div class="fixture-label">manual trigger — picker.isOpen = true to open</div>
+        <web-daterangepicker id="manual" selection-mode="single"
+            initial-date="2026-06-15" calendar-open-trigger="manual"></web-daterangepicker>
+    </div>
+
+    <div id="outside" class="outside-target">outside-click target</div>
+
+    <script type="module" src="/src/index.ts"></script>
+</body>
+</html>

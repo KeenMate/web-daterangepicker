@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Test — floating overflow escape</title>
+    <link rel="stylesheet" href="test-fixtures.css">
+    <style>
+        /*
+         * The scroll-clip container is the whole point of this fixture: it
+         * reproduces a SharePoint-workbench / micro-frontend-style ancestor
+         * that would clip an absolutely-positioned popover. With the picker
+         * fix (position: fixed + strategy: fixed), the calendar's bounding
+         * rect must extend past .clip's bottom edge.
+         */
+        .clip {
+            height: 200px;
+            overflow-y: auto;
+            border: 1px solid #ef4444;
+            padding: 12px;
+        }
+        .spacer { height: 600px; }
+        web-daterangepicker { display: block; max-width: 320px; }
+    </style>
+</head>
+<body>
+    <h1>floating overflow escape</h1>
+    <p>Targeted by <code>e2e/floating-overflow.spec.ts</code>.</p>
+
+    <div class="fixture">
+        <div class="fixture-label">picker inside overflow:auto ancestor</div>
+        <div id="clip" class="clip">
+            <web-daterangepicker id="picker" selection-mode="single" placeholder="YYYY-MM-DD"></web-daterangepicker>
+            <div class="spacer"></div>
+        </div>
+    </div>
+
+    <script type="module" src="/src/index.ts"></script>
+</body>
+</html>

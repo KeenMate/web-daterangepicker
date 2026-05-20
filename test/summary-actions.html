@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Test — summary &amp; actions border</title>
+    <link rel="stylesheet" href="test-fixtures.css">
+    <style>
+        web-daterangepicker { display: block; max-width: 320px; }
+    </style>
+</head>
+<body>
+    <h1>summary &amp; actions border</h1>
+    <p>Targeted by <code>e2e/summary-actions.spec.ts</code>. Three pickers cover the
+       cases where the actions row should / shouldn't show a border-top.</p>
+
+    <div class="fixture">
+        <div class="fixture-label">single mode — summary element is never appended</div>
+        <web-daterangepicker id="single" selection-mode="single" placeholder="YYYY-MM-DD"></web-daterangepicker>
+    </div>
+
+    <div class="fixture">
+        <div class="fixture-label">range mode — summary starts --hidden until a range is selected; spec drives the selection itself</div>
+        <web-daterangepicker id="range" selection-mode="range" placeholder="YYYY-MM-DD"></web-daterangepicker>
+    </div>
+
+    <script type="module" src="/src/index.ts"></script>
+</body>
+</html>

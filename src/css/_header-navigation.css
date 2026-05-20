@@ -127,7 +127,14 @@
   flex: 1;
   min-width: 0; /* Allow flex child to shrink below content size (enables ellipsis on items) */
   height: 100%; /* Fill parent height */
+  /* Without border-box, the 1px top+bottom border pushes the rendered height to
+     100% + 2px, overflowing the rolling-selector container and overlapping the
+     elements below it. */
+  box-sizing: border-box;
   overflow-y: auto;
+  /* Prevent scroll chaining: when the user reaches the top/bottom of this list,
+     the wheel/touch event would otherwise bubble up and scroll the page. */
+  overscroll-behavior: contain;
   border: var(--drp-rolling-border);
   border-radius: var(--drp-border-radius-lg);
   /* Flex layout to control child item sizing */

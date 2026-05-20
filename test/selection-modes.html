@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Test — selection modes</title>
+    <link rel="stylesheet" href="test-fixtures.css">
+    <style>
+        web-daterangepicker { display: block; max-width: 320px; }
+    </style>
+</head>
+<body>
+    <h1>selection modes</h1>
+    <p>Targeted by <code>e2e/selection-modes.spec.ts</code>. Each picker is pinned
+       to <code>initial-date="2026-06-15"</code> so day cells are deterministic
+       across machines / timezones / runs.</p>
+
+    <div class="fixture">
+        <div class="fixture-label">single — selects one date, no Apply button</div>
+        <web-daterangepicker id="single" selection-mode="single"
+            initial-date="2026-06-15" placeholder="YYYY-MM-DD"></web-daterangepicker>
+    </div>
+
+    <div class="fixture">
+        <div class="fixture-label">range — two clicks define a range</div>
+        <web-daterangepicker id="range" selection-mode="range"
+            initial-date="2026-06-15" placeholder="YYYY-MM-DD"></web-daterangepicker>
+    </div>
+
+    <div class="fixture">
+        <div class="fixture-label">multiple — toggles individual days, requires Apply</div>
+        <web-daterangepicker id="multiple" selection-mode="multiple"
+            initial-date="2026-06-15" placeholder="YYYY-MM-DD"></web-daterangepicker>
+    </div>
+
+    <div class="fixture">
+        <div class="fixture-label">range with auto-close="apply" — defers commit until Apply, Escape restores prior value</div>
+        <web-daterangepicker id="range-apply" selection-mode="range"
+            initial-date="2026-06-15" auto-close="apply" placeholder="YYYY-MM-DD"></web-daterangepicker>
+    </div>
+
+    <div class="fixture">
+        <div class="fixture-label">single with auto-close="never" — does NOT close after pick</div>
+        <web-daterangepicker id="single-never" selection-mode="single"
+            initial-date="2026-06-15" auto-close="never" placeholder="YYYY-MM-DD"></web-daterangepicker>
+    </div>
+
+    <script type="module" src="/src/index.ts"></script>
+</body>
+</html>
