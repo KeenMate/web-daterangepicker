@@ -16,6 +16,11 @@ if "%1"=="clean" goto :clean
 if "%1"=="clean-dist" goto :clean-dist
 if "%1"=="preview" goto :preview
 if "%1"=="check-version" goto :check-version
+if "%1"=="test" goto :test-e2e
+if "%1"=="test-e2e" goto :test-e2e
+if "%1"=="test-e2e-ui" goto :test-e2e-ui
+if "%1"=="test-e2e-headed" goto :test-e2e-headed
+if "%1"=="test-e2e-install" goto :test-e2e-install
 goto :unknown
 
 :help
@@ -31,6 +36,13 @@ echo   clean         - Clean all build artifacts
 echo   clean-dist    - Clean only dist folder
 echo   preview       - Preview production build
 echo   check-version - Show current version
+echo.
+echo Testing (Playwright e2e):
+echo   test          - Run e2e tests (alias for test-e2e)
+echo   test-e2e      - Run Playwright e2e tests (headless)
+echo   test-e2e-ui   - Run Playwright e2e tests in interactive UI mode
+echo   test-e2e-headed  - Run Playwright e2e tests headed
+echo   test-e2e-install - One-time: install chromium browser binary
 echo.
 goto :end
 
@@ -92,6 +104,24 @@ goto :end
 :check-version
 echo Current version:
 call node -p "require('./package.json').version"
+goto :end
+
+:test-e2e
+echo Running Playwright e2e tests...
+call npm run test:e2e
+goto :end
+
+:test-e2e-ui
+call npm run test:e2e:ui
+goto :end
+
+:test-e2e-headed
+call npm run test:e2e:headed
+goto :end
+
+:test-e2e-install
+echo Installing chromium browser binary...
+call npm run test:e2e:install
 goto :end
 
 :unknown

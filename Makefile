@@ -1,11 +1,11 @@
-.PHONY: help setup dev build package publish publish-dry clean test lint
+.PHONY: help setup dev build package publish publish-dry clean test test-e2e test-e2e-ui test-e2e-headed test-e2e-install lint
 
 # Use bash-compatible commands for Git Bash on Windows
 SHELL := /bin/bash
 
 help: ## Show this help message
 	@echo "Available targets:"
-	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "  %-15s %s\n", $$1, $$2}'
+	@grep -E '^[a-zA-Z0-9_-]+:.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "  %-18s %s\n", $$1, $$2}'
 
 setup: ## Install dependencies and prepare project
 	@echo "Installing dependencies..."
@@ -57,9 +57,20 @@ lint: ## Run linter (if configured)
 	@echo "Linting is not configured yet"
 	@echo "Consider adding ESLint in the future"
 
-test: ## Run tests (if configured)
-	@echo "Tests are not configured yet"
-	@echo "Consider adding tests in the future"
+test: test-e2e ## Run the test suite (alias for test-e2e)
+
+test-e2e: ## Run Playwright e2e tests (headless)
+	@echo "Running e2e tests..."
+	npm run test:e2e
+
+test-e2e-ui: ## Run Playwright e2e tests in interactive UI mode
+	npm run test:e2e:ui
+
+test-e2e-headed: ## Run Playwright e2e tests headed (watch the browser)
+	npm run test:e2e:headed
+
+test-e2e-install: ## One-time: install the chromium browser binary for Playwright
+	npm run test:e2e:install
 
 check-version: ## Show current package version
 	@echo "Current version:"
