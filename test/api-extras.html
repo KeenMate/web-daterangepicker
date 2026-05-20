@@ -31,11 +31,18 @@
     </div>
 
     <div class="fixture">
-        <div class="fixture-label">displayFormatMask different from dateFormatMask — display uses dd/mm/yyyy</div>
-        <web-daterangepicker id="display-mask" selection-mode="single"
-            initial-date="2026-06-15"
-            date-format-mask="YYYY-MM-DD"
-            display-format-mask="DD/MM/YYYY"></web-daterangepicker>
+        <div class="fixture-label">display-format-mask — localized hint fills the placeholder when no explicit placeholder is set</div>
+        <web-daterangepicker id="display-mask-hint" selection-mode="single"
+            date-format-mask="DD.MM.YYYY"
+            display-format-mask="dd.mm.rrrr"></web-daterangepicker>
+    </div>
+
+    <div class="fixture">
+        <div class="fixture-label">explicit placeholder wins over display-format-mask</div>
+        <web-daterangepicker id="placeholder-wins" selection-mode="single"
+            date-format-mask="DD.MM.YYYY"
+            display-format-mask="dd.mm.rrrr"
+            placeholder="Vyberte datum"></web-daterangepicker>
     </div>
 
     <script type="module" src="/src/index.ts"></script>

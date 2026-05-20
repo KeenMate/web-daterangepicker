@@ -21,16 +21,16 @@
     </div>
 
     <div class="fixture">
-        <div class="fixture-label">picker with a custom action button (configured after upgrade)</div>
+        <div class="fixture-label">picker with a custom action button — set BEFORE upgrade to exercise pre-upgrade property lifting</div>
         <web-daterangepicker id="custom" selection-mode="single"
             initial-date="2026-06-15"></web-daterangepicker>
-        <script type="module">
-            // Wait for the custom element to be defined AND upgraded so the
-            // accessor (not an own-property shadow) receives our value; then
-            // updateOptions triggers a button re-render.
-            await customElements.whenDefined('web-daterangepicker');
-            const p = document.getElementById('custom');
-            p.actionButtons = [
+        <script>
+            // Plain (non-module) inline script: runs synchronously during
+            // parsing, BEFORE the module that registers the custom element.
+            // Setting a property here creates an own-property on the not-yet-
+            // upgraded element; the upgrade must lift it back through the
+            // class accessor for the picker constructor to see it.
+            document.getElementById('custom').actionButtons = [
                 { action: 'today', text: 'Today' },
                 { action: 'custom', text: 'Reset', onClick: () => {} }
             ];

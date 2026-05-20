@@ -66,6 +66,14 @@ export function show(picker: any) {
         return;
     }
 
+    // Disabled input — refuse to open. The browser already blocks a real
+    // user click on a disabled input, but programmatic clicks, focus calls,
+    // and some a11y tools can still dispatch events. Guard show() so the
+    // `disabled` setter on the host element fully suppresses opening.
+    if (picker.input?.disabled) {
+        return;
+    }
+
     uiLogger.debug('show() - adding visible class');
 
     // Store original input value if Apply button is required (for restore on close without Apply)

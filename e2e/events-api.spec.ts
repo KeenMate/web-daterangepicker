@@ -87,11 +87,11 @@ test('custom-action event fires when the custom action button is clicked', async
     await p.locator('.drp-date-picker__button[data-action="custom"]').click();
 
     const events = await getCaptured(p, 'custom-action');
-    // The picker dispatches the event on the calendar (composed → bubbles
-    // across shadow boundary) AND the web-component re-emits it for the
-    // outside world. Listening on the host catches both — so a single click
-    // yields ≥ 1 captured events.
-    expect(events.length).toBeGreaterThanOrEqual(1);
+    // The picker dispatches a single composed+bubbling event on the
+    // calendar; that one event crosses the shadow boundary and is what the
+    // outside listener sees. (Used to double-fire because the web-component
+    // also manually re-emitted — see FINDINGS.md #1, fixed.)
+    expect(events.length).toBe(1);
 });
 
 // =============================================================================
@@ -114,6 +114,22 @@ test('setting .disabled = true disables the input element', async ({ page }) => 
     // Setting back to false re-enables.
     await p.evaluate((el: any) => { el.disabled = false; });
     await expect(inputOf(p)).toBeEnabled();
+});
+
+test('disabled = true suppresses calendar open even via programmatic clicks', async ({ page }) => {
+    const p = pickerById(page, 'basic');
+
+    await p.evaluate((el: any) => { el.disabled = true; });
+
+    // Force a click past the browser's pointer-events block on the input
+    // and confirm the picker still doesn't open (show() guards on input.disabled).
+    await inputOf(p).click({ force: true });
+    await expect(calendarOf(p)).toBeHidden();
+
+    // Re-enabling restores normal open behavior.
+    await p.evaluate((el: any) => { el.disabled = false; });
+    await inputOf(p).click();
+    await expect(calendarOf(p)).toBeVisible();
 });
 
 test('setting .isOpen = true opens the calendar, false closes it', async ({ page }) => {

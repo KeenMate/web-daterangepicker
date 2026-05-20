@@ -208,9 +208,37 @@ export class WebDaterangepickerElement extends HTMLElement {
     }
 
     connectedCallback() {
+        this._liftPreUpgradeProperties();
         this.render();
         this.initializePicker();
         this.setupMobileModalListener();
+    }
+
+    /**
+     * Standard Custom Elements upgrade fix: if a consumer assigned to a
+     * property setter (e.g. `el.actionButtons = [...]`) before the element
+     * class was registered, that assignment created an own-property that now
+     * shadows the class accessor. Re-running the assignment through the
+     * accessor — after deleting the own-property — routes it through the
+     * setter, populating the private backing field that `initializePicker`
+     * is about to read.
+     */
+    private _liftPreUpgradeProperties() {
+        const seen = new Set<string>();
+        for (let proto = Object.getPrototypeOf(this);
+             proto && proto !== HTMLElement.prototype;
+             proto = Object.getPrototypeOf(proto)) {
+            for (const name of Object.getOwnPropertyNames(proto)) {
+                if (seen.has(name)) continue;
+                seen.add(name);
+                const desc = Object.getOwnPropertyDescriptor(proto, name);
+                if (desc?.set && Object.hasOwn(this, name)) {
+                    const value = (this as any)[name];
+                    delete (this as any)[name];
+                    (this as any)[name] = value;
+                }
+            }
+        }
     }
 
     disconnectedCallback() {
@@ -304,6 +332,12 @@ export class WebDaterangepickerElement extends HTMLElement {
             this.inputElement.placeholder = newValue;
             return;
         }
+        // display-format-mask doubles as a placeholder hint when no explicit
+        // placeholder is set. Mirror that behavior for runtime attribute
+        // updates so a late-set displayFormatMask still surfaces.
+        if (name === 'display-format-mask' && this.inputElement && !this.hasAttribute('placeholder')) {
+            this.inputElement.placeholder = newValue ?? '';
+        }
         if (name === 'disabled' && this.inputElement) {
             this.inputElement.disabled = newValue !== null;
             return;
@@ -338,8 +372,12 @@ export class WebDaterangepickerElement extends HTMLElement {
             this.inputElement.type = 'text';
             this.inputElement.classList.add('drp-input', 'drp-date-picker-input');
 
-            // Set initial attributes
-            const placeholder = this.getAttribute('placeholder');
+            // Set initial attributes. `placeholder` wins if set explicitly;
+            // otherwise fall back to `display-format-mask`, which exists as
+            // a localized format hint (tt.mm.jjjj, dd.mm.rrrr, dd/mm/aaaa,
+            // etc.) that consumers want shown to users in their language.
+            const placeholder = this.getAttribute('placeholder')
+                ?? this.getAttribute('display-format-mask');
             if (placeholder) {
                 this.inputElement.placeholder = placeholder;
             }
@@ -408,15 +446,10 @@ export class WebDaterangepickerElement extends HTMLElement {
         this.picker = new DateRangePicker(inputElement, options);
         // Calendar is automatically appended to shadow root via container option
 
-        // Forward custom-action events from picker to web component
-        this.picker.calendar.addEventListener('custom-action', (e: Event) => {
-            const customEvent = e as CustomEvent;
-            this.dispatchEvent(new CustomEvent('custom-action', {
-                detail: customEvent.detail,
-                bubbles: true,
-                composed: true
-            }));
-        });
+        // No manual re-emit of `custom-action` needed: the picker already
+        // dispatches it with { bubbles: true, composed: true }, which crosses
+        // the shadow boundary and bubbles up to this host. Re-emitting here
+        // doubled every event for outside listeners.
 
         // Inject custom styles if callback provided
         if (this._customStylesCallback) {

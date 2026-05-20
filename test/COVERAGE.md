@@ -93,7 +93,7 @@ When a row is marked `✓`/`△`, the **Spec** column points at the file under
 | Custom `date-format-mask` (YYYY-MM-DD, DD.MM.YYYY, etc.)      | ✓      | `input-behavior.spec.ts`     | `input-behavior.html`     |
 | Progressive parsing: calendar follows valid typed segments    | ✗      |      |         |
 | `input-size` variants (xs, sm, md, lg, xl)                    | ✓      | `sizing-theming.spec.ts`     | `sizing-theming.html`     |
-| `displayFormatMask` differs from `dateFormatMask`             | n/a    | _option documented but not consumed; see FINDINGS.md #12_ |         |
+| `displayFormatMask` fills placeholder when no explicit one    | ✓      | `api-extras.spec.ts`         | `api-extras.html`         |
 
 ## 7. Date restrictions
 
@@ -180,7 +180,7 @@ When a row is marked `✓`/`△`, the **Spec** column points at the file under
 | `updateOptions(partial)` survives without losing selection    | ✓      | `events-api.spec.ts`         | `events-api.html`         |
 | `showMessage` / `hideMessage`                                 | ✓      | `api-extras.spec.ts`         | `api-extras.html`         |
 | `value` setter populates input + selection                    | △      | `events-api.spec.ts`         | `events-api.html`         |
-| `disabled` setter disables input + suppresses open            | △      | `events-api.spec.ts`         | `events-api.html`         |
+| `disabled` setter disables input + suppresses open            | ✓      | `events-api.spec.ts`         | `events-api.html`         |
 
 ## 14. Visual states
 

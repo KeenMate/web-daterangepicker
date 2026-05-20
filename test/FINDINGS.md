@@ -6,23 +6,20 @@ whether to fix the picker, change the docs, or accept the behavior.
 
 ## Confirmed odd behavior (worth a look)
 
-1. **`custom-action` event is double-dispatched on the web component.**
+1. **~~`custom-action` event is double-dispatched on the web component.~~** ✅ FIXED
    `DateRangePicker.fireCustomActionEvent` dispatches on `this.calendar`
-   with `{ bubbles: true, composed: true }`, AND `web-component.ts:412`
-   listens on the calendar and re-emits a new event on the host. Because
-   the original is `composed`, it already crosses the shadow boundary and
-   bubbles up to the host — so an outside listener on `<web-daterangepicker>`
-   receives two events per click. See `e2e/events-api.spec.ts` —
-   "custom-action event fires" — relaxed to `expect ≥ 1`.
+   with `{ bubbles: true, composed: true }`, which already crosses the
+   shadow boundary and bubbles up to the host. The manual re-emit in
+   `web-component.ts` was redundant and doubled every event for outside
+   listeners. Fix: removed the redundant listener; spec now expects
+   exactly 1 event per click.
 
-2. **`disabled` setter only flags the input element; it doesn't suppress
-   open-on-click.** Setting `el.disabled = true` flips
-   `inputElement.disabled` (correct) but `attachInputListeners` doesn't
-   guard `show()` against `this.input.disabled`. A programmatic
-   `click({ force: true })` (or any synthetic dispatch) still opens the
-   calendar. Real users can't click a disabled input via mouse, but the
-   feature could plausibly be expected to inhibit `pointerdown` /
-   programmatic clicks too.
+2. **~~`disabled` setter only flags the input element; it doesn't suppress
+   open-on-click.~~** ✅ FIXED
+   `show()` in `date-picker-ui.ts` now early-returns if `picker.input?.disabled`,
+   so programmatic clicks (and any other event path that bypasses the
+   browser's pointer-events block) can't open a disabled picker. New spec
+   verifies the suppression.
 
 3. **Range-typing separator differs from committed-range separator.**
    Typing into a range input uses `" to "` (auto-injected when start side
@@ -30,14 +27,14 @@ whether to fix the picker, change the docs, or accept the behavior.
    clicks uses `" - "`. The user has to remember two different separators
    for the same field. See `e2e/input-behavior.spec.ts` for both forms.
 
-4. **`actionButtons` setter merges via `updateOptions` but the resulting
-   re-render happens *only* inside `renderCalendar`'s
-   `if (picker.actionsContainer)` branch.** Means: setting `actionButtons`
-   on a not-yet-upgraded element (inline script before module load) ends
-   up as an own-property shadow over the accessor and the picker never
-   sees it. Fixture has to wrap the setter in
-   `await customElements.whenDefined(...)`. Could be solved by lifting
-   pre-upgrade own-properties in `connectedCallback`.
+4. **~~`actionButtons` setter requires waiting for `customElements.whenDefined`.~~** ✅ FIXED
+   Properties assigned to a not-yet-upgraded element used to become own-
+   properties that shadowed the class accessors forever. Fix: added
+   `_liftPreUpgradeProperties()` to `connectedCallback`, which walks the
+   prototype chain for `set` descriptors and re-routes any matching own-
+   properties through their accessors. The `events-api.html` fixture now
+   sets `actionButtons` in a plain inline script (no `whenDefined`) to
+   prove the lifting works.
 
 ## Things on the original checklist that don't actually exist
 
@@ -94,14 +91,13 @@ whether to fix the picker, change the docs, or accept the behavior.
     are attribute-eligible vs property-only would help, or wire up the
     parser for these short string props.
 
-12. **`displayFormatMask` is documented and accepted but never applied.**
-    The option appears in `types.ts`, is parsed in `web-component.ts`
-    (`display-format-mask` attribute), and is copied into
-    `picker.options.displayFormatMask` in the constructor — but no code
-    path ever reads it. Setting `date-format-mask="YYYY-MM-DD"` +
-    `display-format-mask="DD/MM/YYYY"` produces "2026-06-20" in the
-    input, not "20/06/2026". Either implement the second format hook or
-    remove the option from types.ts + web-component attributes.
+12. **~~`displayFormatMask` is documented and accepted but never applied.~~** ✅ FIXED
+    The docs describe it as a "localized format hint shown to users"
+    (tt.mm.jjjj, dd.mm.rrrr, dd/mm/aaaa) — for languages whose date words
+    don't match English Y/M/D tokens. Fix: when `display-format-mask` is
+    set and the consumer hasn't set an explicit `placeholder`, the mask
+    is now used as the input's placeholder. Explicit `placeholder=` still
+    wins. Two specs in `api-extras.spec.ts` cover both paths.
 
 ---
 

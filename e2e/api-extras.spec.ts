@@ -101,5 +101,18 @@ test('showMessage auto-hides after the supplied timeout', async ({ page }) => {
     await expect(msg).not.toHaveClass(/drp-date-picker__message--visible/, { timeout: 2000 });
 });
 
-// displayFormatMask intentionally not tested — the option is declared and
-// stored on options but never consumed (see test/FINDINGS.md #12).
+// =============================================================================
+// display-format-mask as auto-placeholder hint
+// =============================================================================
+
+test('display-format-mask becomes the input placeholder when no explicit placeholder is set', async ({ page }) => {
+    const p = pickerById(page, 'display-mask-hint');
+    // The Czech-style localized hint ("dd.mm.rrrr") surfaces in the input
+    // even though date-format-mask uses English tokens (DD.MM.YYYY).
+    await expect(inputOf(p)).toHaveAttribute('placeholder', 'dd.mm.rrrr');
+});
+
+test('an explicit placeholder attribute wins over display-format-mask', async ({ page }) => {
+    const p = pickerById(page, 'placeholder-wins');
+    await expect(inputOf(p)).toHaveAttribute('placeholder', 'Vyberte datum');
+});
