@@ -410,6 +410,9 @@ export function renderDays(picker: any, monthIndex: number, date: Date) {
             const classes = ['drp-date-picker__day'];
             if (dayData.isOtherMonth) classes.push('drp-date-picker__day--other-month');
 
+            const weekday = dayData.date.getDay();
+            if (weekday === 0 || weekday === 6) classes.push('drp-date-picker__day--weekend');
+
             // Check for special date info (for styling classes and disabled state)
             const dateInfo = picker.getDateInfoInternal(dayData.date);
 
@@ -527,7 +530,7 @@ export function renderDays(picker: any, monthIndex: number, date: Date) {
             // Render day cell with slot support
             // Priority: per-day slot > renderDayCallback > renderDayContentCallback > default
             const tooltipAttr = dayTooltip ? ` data-tooltip="${dayTooltip.replace(/"/g, '&quot;')}"` : '';
-            html += `<div class="${classes.join(' ')}" data-date="${dateStr}" data-day-number="${dayData.day}"${tooltipAttr}>`;
+            html += `<div class="${classes.join(' ')}" data-date="${dateStr}" data-day-number="${dayData.day}" data-weekday="${weekday}"${tooltipAttr}>`;
             html += `<slot name="day-${dateStr}">${dayData.day}</slot>`;
             html += `</div>`;
         }
@@ -902,6 +905,69 @@ export function updateSummaryWithPreview(picker: any) {
             `;
         }
     }
+}
+
+/**
+ * Paint the would-be range while the user is in the half-selected state
+ * (start clicked, end pending). Mode-aware per the disabled-handling semantics
+ * — see FINDINGS.md #6 for the design rationale.
+ *
+ *   allow       full range → '--hover-preview' on every cell (disabled overlay wins)
+ *   prevent     range crosses disabled → '--hover-preview-invalid'; else '--hover-preview'
+ *   block       end snaps to last-enabled-before-gap; paint up to snap only
+ *   split       paint enabled days only; disabled days remain bare → visual gaps
+ *   individual  same as 'allow' (no way to express "discrete dates" in a grid view)
+ */
+export function updateHoverPreview(picker: any) {
+    picker.calendar.querySelectorAll(
+        '.drp-date-picker__day--hover-preview, .drp-date-picker__day--hover-preview-invalid'
+    ).forEach((day: Element) => {
+        day.classList.remove(
+            'drp-date-picker__day--hover-preview',
+            'drp-date-picker__day--hover-preview-invalid'
+        );
+    });
+
+    if (!picker.selectedStartDate || picker.selectedEndDate || !picker.hoverPreviewEnd) return;
+    if (picker.isDragging) return;
+
+    let start: Date = picker.selectedStartDate;
+    let end: Date = picker.hoverPreviewEnd;
+    if (end < start) [start, end] = [end, start];
+
+    const mode = picker.options.disabledDatesHandling;
+    let cls = 'drp-date-picker__day--hover-preview';
+    let skipDisabled = false;
+
+    if (mode === 'prevent' && picker.hasDisabledDatesInRange(start, end)) {
+        cls = 'drp-date-picker__day--hover-preview-invalid';
+    } else if (mode === 'block' && picker.hasDisabledDatesInRange(start, end)) {
+        end = picker.findLastEnabledBeforeGap(start, end);
+        if (end < start) return; // snap landed before start — nothing to paint
+    } else if (mode === 'split') {
+        skipDisabled = true;
+    }
+
+    // The committed start day always carries --range-start (solid accent bg
+    // + on-accent text). Painting --hover-preview on top would override the
+    // solid background with a translucent one and leave the on-accent text
+    // visually mismatched (white-on-pale). Skip it.
+    const committedStartTime = picker.selectedStartDate.getTime();
+
+    const allDays = picker.calendar.querySelectorAll('.drp-date-picker__day');
+    allDays.forEach((day: Element) => {
+        const dateAttr = (day as HTMLElement).dataset.date;
+        if (!dateAttr) return;
+
+        const [year, month, dayNum] = dateAttr.split('-').map(Number);
+        const date = new Date(year, month - 1, dayNum);
+
+        if (date >= start && date <= end) {
+            if (date.getTime() === committedStartTime) return;
+            if (skipDisabled && day.classList.contains('drp-date-picker__day--disabled')) return;
+            day.classList.add(cls);
+        }
+    });
 }
 
 export function updateDragPreview(picker: any) {

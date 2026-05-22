@@ -95,18 +95,33 @@ test('DD.MM.YYYY: progressive separators after day, then after month', async ({ 
 // range
 // =============================================================================
 
-test('range: completing the start date auto-appends " to " so the user can type the end immediately', async ({ page }) => {
+test('range: completing the start date auto-appends " - " so the user can type the end immediately', async ({ page }) => {
     const p = pickerById(page, 'range');
 
     await typeInto(p, '20260610');
     // Once the start side is fully masked (matches maxLength), the picker
-    // injects " to " as a hint for the second date.
-    await expect(inputOf(p)).toHaveValue('2026-06-10 to ');
+    // injects " - " as a hint for the second date — same separator the
+    // committed value uses, so the user sees one form everywhere.
+    await expect(inputOf(p)).toHaveValue('2026-06-10 - ');
 });
 
-test('range: typing both halves produces "start to end" (typing separator differs from committed " - ")', async ({ page }) => {
+test('range: typing both halves produces "start - end" matching the committed form', async ({ page }) => {
     const p = pickerById(page, 'range');
 
     await typeInto(p, '2026061020260615');
-    await expect(inputOf(p)).toHaveValue('2026-06-10 to 2026-06-15');
+    await expect(inputOf(p)).toHaveValue('2026-06-10 - 2026-06-15');
+});
+
+test('range: a compact bare "-" between the two dates is accepted and normalised to " - "', async ({ page }) => {
+    const p = pickerById(page, 'range');
+    const inp = inputOf(p);
+
+    // Format the value manually with a bare dash, then trigger the input mask
+    // (mirrors a paste / manual edit). The mask should rewrite it to " - ".
+    await inp.click();
+    await inp.evaluate((el: HTMLInputElement) => {
+        el.value = '2026-06-10-2026-06-15';
+        el.dispatchEvent(new Event('input', { bubbles: true }));
+    });
+    await expect(inp).toHaveValue('2026-06-10 - 2026-06-15');
 });

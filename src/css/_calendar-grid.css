@@ -207,6 +207,20 @@
 }
 
 /* --------------------------------------
+   Hover preview (range mode, half-selected state)
+   Paints the would-be range live as the user moves the mouse looking for an
+   end date. Quieter than drag-preview by design: this is exploratory, not
+   committed action.
+   -------------------------------------- */
+.drp-date-picker__day--hover-preview {
+  background-color: color-mix(in srgb, var(--drp-day-range-bg) calc(var(--drp-day-hover-preview-bg-opacity) * 100%), transparent);
+}
+
+.drp-date-picker__day--hover-preview-invalid {
+  background-color: color-mix(in srgb, var(--drp-day-drag-invalid-bg) calc(var(--drp-day-hover-preview-invalid-bg-opacity) * 100%), transparent);
+}
+
+/* --------------------------------------
    Invalid range states (showInvalidRange)
    Used when beforeDateSelectCallback returns { action: 'restore', showInvalidRange: true }
    -------------------------------------- */

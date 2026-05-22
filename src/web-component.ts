@@ -1,5 +1,5 @@
 import { DateRangePicker } from './date-picker';
-import type { DatePickerOptions, DateRange, DecoratedDate, DateInfo, DayRenderData, BeforeSelectResult, ActionButton } from './types';
+import type { DatePickerOptions, DateRange, DecoratedDate, DateInfo, DayRenderData, BeforeSelectResult, ActionButton, LocaleStrings } from './types';
 import styles from './css/main.css?inline';
 
 // =============================================================================
@@ -46,6 +46,15 @@ const parseDisabledWeekdays: AttrParser = (el, attr) => {
     const parsed = raw.split(',').map(d => parseInt(d.trim())).filter(d => !isNaN(d) && d >= 0 && d <= 6);
     return parsed.length ? parsed : undefined;
 };
+const parseDisabledDates: AttrParser = (el, attr) => {
+    const raw = el.getAttribute(attr);
+    if (!raw) return undefined;
+    // Accept comma-separated ISO date strings; whitespace tolerated. Empty
+    // segments and unparseable entries are dropped silently. The core's
+    // normalizeDate() validates each string at picker-init time.
+    const parsed = raw.split(',').map(s => s.trim()).filter(Boolean);
+    return parsed.length ? parsed : undefined;
+};
 const parseWeekStartDay: AttrParser = (el, attr) => {
     const raw = el.getAttribute(attr);
     if (!raw) return undefined;
@@ -90,6 +99,14 @@ const ATTRIBUTE_TABLE: AttributeEntry[] = [
     { attr: 'max-date',                        key: 'maxDate',                        parser: parseStringOrUndefined },
     { attr: 'initial-date',                    key: 'initialDate',                    parser: parseStringOrUndefined },
     { attr: 'disabled-weekdays',               key: 'disabledWeekdays',               parser: parseDisabledWeekdays },
+    { attr: 'disabled-dates',                  key: 'disabledDates',                  parser: parseDisabledDates },
+    { attr: 'date-member',                     key: 'dateMember',                     parser: parseStringOrUndefined },
+    { attr: 'badge-text-member',               key: 'badgeTextMember',                parser: parseStringOrUndefined },
+    { attr: 'badge-class-member',              key: 'badgeClassMember',               parser: parseStringOrUndefined },
+    { attr: 'day-class-member',                key: 'dayClassMember',                 parser: parseStringOrUndefined },
+    { attr: 'badge-tooltip-member',            key: 'badgeTooltipMember',             parser: parseStringOrUndefined },
+    { attr: 'day-tooltip-member',              key: 'dayTooltipMember',               parser: parseStringOrUndefined },
+    { attr: 'is-disabled-member',              key: 'isDisabledMember',               parser: parseStringOrUndefined },
     { attr: 'disabled-dates-handling',         key: 'disabledDatesHandling',          parser: parseEnum(DISABLED_HANDLING) },
     { attr: 'highlight-disabled-in-range',     key: 'highlightDisabledInRange',       parser: parseTriStateBool },
     { attr: 'locale',                          key: 'locale',                         parser: parseStringWithDefault('auto') },
@@ -107,6 +124,23 @@ const ATTRIBUTE_TABLE: AttributeEntry[] = [
 
 /** Attributes that don't affect the picker itself — handled by surgical `attributeChangedCallback` paths. */
 const NON_PICKER_ATTRIBUTES = ['value', 'placeholder', 'disabled', 'enable-transitions', 'input-size', 'mobile-modal-breakpoint', 'mobile-modal-min-height'] as const;
+
+/**
+ * Options that are reachable both via HTML attribute AND a property setter.
+ * The explicitly-set property is the canonical source — when one of these
+ * has a non-undefined backing field, the attribute is ignored. (Property
+ * setters are the documented escape hatch for complex/Date-bearing data.)
+ */
+const DUAL_PATH_KEYS = new Set<keyof DatePickerOptions>([
+    'disabledDates',
+    'dateMember',
+    'badgeTextMember',
+    'badgeClassMember',
+    'dayClassMember',
+    'badgeTooltipMember',
+    'dayTooltipMember',
+    'isDisabledMember',
+]);
 
 /** Read all picker-affecting attributes from `el` into a partial DatePickerOptions. */
 function parseAttributesFromTable(el: AttrReader): Partial<DatePickerOptions> {
@@ -152,6 +186,11 @@ export class WebDaterangepickerElement extends HTMLElement {
 
     // Action button configuration
     private _actionButtons?: ActionButton[];
+
+    // Localization overrides (no HTML attribute — content is too structured for
+    // a string attribute; held on the element like the other complex options).
+    private _customStrings?: Partial<LocaleStrings>;
+    private _monthNames?: string[];
 
     // Deferred re-initialization flag
     private _pendingReinit = false;
@@ -232,7 +271,7 @@ export class WebDaterangepickerElement extends HTMLElement {
                 if (seen.has(name)) continue;
                 seen.add(name);
                 const desc = Object.getOwnPropertyDescriptor(proto, name);
-                if (desc?.set && Object.hasOwn(this, name)) {
+                if (desc?.set && Object.prototype.hasOwnProperty.call(this, name)) {
                     const value = (this as any)[name];
                     delete (this as any)[name];
                     (this as any)[name] = value;
@@ -349,6 +388,11 @@ export class WebDaterangepickerElement extends HTMLElement {
         // Falls back to full reinit only for genuinely structural changes.
         const entry = ATTRIBUTE_TABLE.find(e => e.attr === name);
         if (entry) {
+            // For attribute/property dual-path keys, the explicitly-set
+            // property is the canonical source — don't let an attribute
+            // mutation overwrite it. Getter returns the backing field.
+            if (DUAL_PATH_KEYS.has(entry.key) && (this as any)[entry.key] !== undefined) return;
+
             const value = entry.parser(this, entry.attr);
             const applied = this.picker.updateOptions({ [entry.key]: value } as Partial<DatePickerOptions>);
             if (applied) return;
@@ -406,8 +450,9 @@ export class WebDaterangepickerElement extends HTMLElement {
         if ((display === 'floating' || display === 'modal') && !this.inputElement) return;
 
         // Build options from attributes (table-driven) + complex/data properties (held on element).
+        const fromAttributes = parseAttributesFromTable(this);
         const options: DatePickerOptions = {
-            ...parseAttributesFromTable(this),
+            ...fromAttributes,
 
             // Defaults that aren't attribute-derived or that always need a value
             selectionMode: (this.getAttribute('selection-mode') as 'single' | 'range' | 'multiple') || 'single',
@@ -417,19 +462,22 @@ export class WebDaterangepickerElement extends HTMLElement {
             onSelect: (date) => this.handleDateSelect(date),
             container: this.shadow as unknown as HTMLElement, // Append calendar to shadow root
 
-            // Complex data — held on the element, not attributes
-            disabledDates: this._disabledDates,
+            // Complex data — held on the element, not attributes.
+            // Dual-path keys (disabledDates + the *Member family) are also
+            // attribute-parseable; the property wins if set (consistent with
+            // whenDefined-set complex data being the canonical escape hatch).
+            disabledDates: this._disabledDates ?? fromAttributes.disabledDates,
             specialDates: this._specialDates,
             getDateMetadataCallback: this._getDateMetadataCallback,
             badgeTooltipCallback: this._badgeTooltipCallback,
             dayTooltipCallback: this._dayTooltipCallback,
-            dateMember: this._dateMember,
-            badgeTextMember: this._badgeTextMember,
-            badgeClassMember: this._badgeClassMember,
-            dayClassMember: this._dayClassMember,
-            badgeTooltipMember: this._badgeTooltipMember,
-            dayTooltipMember: this._dayTooltipMember,
-            isDisabledMember: this._isDisabledMember,
+            dateMember: this._dateMember ?? fromAttributes.dateMember,
+            badgeTextMember: this._badgeTextMember ?? fromAttributes.badgeTextMember,
+            badgeClassMember: this._badgeClassMember ?? fromAttributes.badgeClassMember,
+            dayClassMember: this._dayClassMember ?? fromAttributes.dayClassMember,
+            badgeTooltipMember: this._badgeTooltipMember ?? fromAttributes.badgeTooltipMember,
+            dayTooltipMember: this._dayTooltipMember ?? fromAttributes.dayTooltipMember,
+            isDisabledMember: this._isDisabledMember ?? fromAttributes.isDisabledMember,
             customStylesCallback: this._customStylesCallback,
             renderDayCallback: this._renderDayCallback,
             renderDayContentCallback: this._renderDayContentCallback,
@@ -439,6 +487,8 @@ export class WebDaterangepickerElement extends HTMLElement {
             getUnifiedHeaderCallback: this._getUnifiedHeaderCallback,
             getMonthHeaderCallback: this._getMonthHeaderCallback,
             actionButtons: this._actionButtons,
+            customStrings: this._customStrings,
+            monthNames: this._monthNames,
         };
 
         // For inline mode, pass null as input element
@@ -652,11 +702,9 @@ export class WebDaterangepickerElement extends HTMLElement {
         this.setAttribute('value', value);
     }
 
+    /** @deprecated Use the `monthNames` property setter instead. */
     public setMonthNames(monthNames: string[]) {
-        if (this.picker) {
-            this.picker.monthNames = monthNames;
-            this.picker.renderCalendar();
-        }
+        this.monthNames = monthNames;
     }
 
     public setRollingItemAlignment(alignment: 'flex-start' | 'center' | 'flex-end') {
@@ -971,6 +1019,25 @@ export class WebDaterangepickerElement extends HTMLElement {
     set actionButtons(value: ActionButton[] | undefined) {
         this._actionButtons = value;
         this.applyOptionUpdate('actionButtons', value);
+    }
+
+    // Localization overrides
+    get customStrings(): Partial<LocaleStrings> | undefined {
+        return this._customStrings;
+    }
+
+    set customStrings(value: Partial<LocaleStrings> | undefined) {
+        this._customStrings = value;
+        this.applyOptionUpdate('customStrings', value);
+    }
+
+    get monthNames(): string[] | undefined {
+        return this._monthNames;
+    }
+
+    set monthNames(value: string[] | undefined) {
+        this._monthNames = value;
+        this.applyOptionUpdate('monthNames', value);
     }
 
     // Reactive selection properties (forward to picker)

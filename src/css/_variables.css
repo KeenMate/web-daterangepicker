@@ -290,6 +290,8 @@
   --drp-day-in-range-hover-bg-opacity: 0.25;
   --drp-day-drag-preview-bg-opacity: 0.30;
   --drp-day-drag-preview-edge-bg-opacity: 0.60;
+  --drp-day-hover-preview-bg-opacity: 0.18;
+  --drp-day-hover-preview-invalid-bg-opacity: 0.18;
 
   /* Invalid Range (showInvalidRange callback) */
   --drp-day-invalid-range-bg: var(--drp-message-error-border);

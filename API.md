@@ -321,6 +321,8 @@ The web component dispatches the following events:
 
 `date-select` and `change` have the same `detail` structure. `custom-action` has its own — see below.
 
+> **Note**: there are no separate `apply` or `cancel` events. Clicking the Apply button commits the pending selection and dispatches `change`. Pressing Escape with an uncommitted selection silently restores the previous input value and fires nothing.
+
 ### Event Detail Properties
 
 The `event.detail` object contains different properties depending on the mode and configuration:

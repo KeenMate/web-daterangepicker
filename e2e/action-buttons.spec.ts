@@ -52,8 +52,8 @@ test('clicking Today selects today and closes the picker', async ({ page }) => {
 
     await p.locator('.drp-date-picker__button--today').click();
 
-    // Today is 2026-05-20 (set by harness).
-    await expect(inputOf(p)).toHaveValue('2026-05-20');
+    // Today is 2026-05-22 (set by harness).
+    await expect(inputOf(p)).toHaveValue('2026-05-22');
     await expect(calendarOf(p)).toBeHidden();
 });
 

@@ -110,22 +110,16 @@ Key state properties:
 
 ### Size System
 
-The component uses a consistent 5-level size scale (xs, sm, md, lg, xl) across all sizing attributes:
+**Input field — attribute-driven 5-level scale (xs / sm / md / lg / xl):**
+- `input-size` is the only sizing attribute on the web component. It toggles `.drp-input--{size}` and `.drp-date-picker-input--{size}` on the input element. `md` is the unstyled default. Floating/modal modes only — inline mode has no input.
+- Per-size CSS hooks: `--drp-input-size-{size}-font`, `--drp-input-size-{size}-padding-v`, `--drp-input-size-{size}-padding-h`, `--drp-input-size-{size}-height`, `--drp-input-size-{size}-icon-size`.
 
-**Web Component Attributes:**
-- `input-size` - Input field size (floating mode only)
-- `spacing` - Calendar spacing scale
-- `font-size` - Calendar font size scale
-- `cell-size` - Calendar day cell size
-
-**CSS Variables (per size):**
-- Input: `--drp-input-size-{size}-font`, `--drp-input-size-{size}-padding-v`, `--drp-input-size-{size}-padding-h`, `--drp-input-size-{size}-height`, `--drp-input-size-{size}-icon-size`
-- Calendar: Uses `.drp-spacing-{size}`, `.drp-font-{size}`, `.drp-cell-{size}` classes
+**Calendar — token-driven, not attribute-driven:**
+Internal partials consume `--drp-spacing-{xs,sm,md,lg,xl}` and `--drp-font-size-{2xs,xs,sm,base,lg,xl,2xl}` from `_variables.css`. These are CSS custom-property tokens for theming, not BEM classes. There is no `spacing` / `font-size` / `cell-size` HTML attribute, and no `.drp-spacing-*` / `.drp-font-*` / `.drp-cell-*` class. To rescale the whole calendar, set `--drp-rem` (default `10px`) on the host element — every size token is `calc(N * var(--drp-rem))`. To override an individual token, set it on the host: `web-daterangepicker { --drp-spacing-md: 20px; }`.
 
 **Example:**
 ```html
-<web-daterangepicker input-size="lg" spacing="lg" font-size="lg" cell-size="lg">
-</web-daterangepicker>
+<web-daterangepicker input-size="lg" style="--drp-rem: 12px"></web-daterangepicker>
 ```
 
 ## Build System

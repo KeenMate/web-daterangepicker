@@ -41,6 +41,27 @@
             rolling-year-range="2025-2027"></web-daterangepicker>
     </div>
 
+    <div class="fixture">
+        <div class="fixture-label">disabled-dates="2026-06-11,2026-06-12,2026-06-15" (declarative HTML attribute)</div>
+        <web-daterangepicker id="disabled-dates-attr" selection-mode="single"
+            initial-date="2026-06-15"
+            disabled-dates="2026-06-11, 2026-06-12, 2026-06-15"></web-daterangepicker>
+    </div>
+
+    <div class="fixture">
+        <div class="fixture-label">disabled-dates set as property — wins over the (different) attribute</div>
+        <web-daterangepicker id="disabled-dates-prop" selection-mode="single"
+            initial-date="2026-06-15"
+            disabled-dates="2026-06-11"></web-daterangepicker>
+    </div>
+
+    <script type="module">
+        // Property setter wins over the attribute, and exercises pre-upgrade
+        // property lifting (no whenDefined()).
+        document.getElementById('disabled-dates-prop').disabledDates = [
+            '2026-06-17', new Date(2026, 5, 18)  // mix of strings and Date objects
+        ];
+    </script>
     <script type="module" src="/src/index.ts"></script>
 </body>
 </html>

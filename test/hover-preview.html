@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Test — hover preview (half-selected range)</title>
+    <link rel="stylesheet" href="test-fixtures.css">
+    <style>
+        web-daterangepicker { display: block; max-width: 360px; }
+    </style>
+</head>
+<body>
+    <h1>hover preview</h1>
+    <p>Targeted by <code>e2e/hover-preview.spec.ts</code>. Each fixture uses
+       initial-date=2026-06-15 and disabled-weekdays=0,6 (Sat/Sun) so weekends
+       are the disabled cells used to exercise each handling mode.</p>
+
+    <div class="fixture">
+        <div class="fixture-label">allow — paint full range</div>
+        <web-daterangepicker id="allow" selection-mode="range"
+            initial-date="2026-06-15"
+            disabled-weekdays="0,6"
+            disabled-dates-handling="allow"></web-daterangepicker>
+    </div>
+
+    <div class="fixture">
+        <div class="fixture-label">prevent — invalid styling when crossing weekend</div>
+        <web-daterangepicker id="prevent" selection-mode="range"
+            initial-date="2026-06-15"
+            disabled-weekdays="0,6"
+            disabled-dates-handling="prevent"></web-daterangepicker>
+    </div>
+
+    <div class="fixture">
+        <div class="fixture-label">block — preview snaps end to last enabled before gap</div>
+        <web-daterangepicker id="block" selection-mode="range"
+            initial-date="2026-06-15"
+            disabled-weekdays="0,6"
+            disabled-dates-handling="block"></web-daterangepicker>
+    </div>
+
+    <div class="fixture">
+        <div class="fixture-label">split — paint enabled days only (gaps on disabled)</div>
+        <web-daterangepicker id="split" selection-mode="range"
+            initial-date="2026-06-15"
+            disabled-weekdays="0,6"
+            disabled-dates-handling="split"></web-daterangepicker>
+    </div>
+
+    <div class="fixture">
+        <div class="fixture-label">no disabled dates — hover before start auto-swaps</div>
+        <web-daterangepicker id="swap" selection-mode="range"
+            initial-date="2026-06-15"></web-daterangepicker>
+    </div>
+
+    <script type="module" src="/src/index.ts"></script>
+</body>
+</html>

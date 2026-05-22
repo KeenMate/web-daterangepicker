@@ -12,6 +12,7 @@ A lightweight, accessible date picker web component with excellent keyboard navi
 - 📊 **Multi-Month Display** - Show 1-3+ months side by side with independent navigation
 - 🎨 **Themeable** - All styles use CSS custom properties (`--drp-*`)
 - 🖱️ **Drag-to-Adjust** - Drag range endpoints to adjust selection (range mode)
+- 👀 **Live Hover Preview** - See the would-be range painted live as you move toward an end date (range mode, mode-aware per `disabled-dates-handling`)
 - 🌐 **Multiple Formats** - YYYY-MM-DD, DD.MM.YYYY, MM/DD/YYYY, etc.
 - 🌍 **Locale-Aware** - Auto-detect week start day from user's locale
 - 🚫 **Date Restrictions** - Min/max dates, disabled days/dates, custom disable logic
@@ -140,7 +141,9 @@ See the [JavaScript Instantiation Examples](examples-javascript-instantiation.ht
 | `min-date` | `string` | - | Minimum selectable date (YYYY-MM-DD) |
 | `max-date` | `string` | - | Maximum selectable date (YYYY-MM-DD) |
 | `disabled-weekdays` | `string` | - | Comma-separated day numbers to disable (e.g., "0,6" for weekends) |
+| `disabled-dates` | `string` | - | Comma-separated ISO dates to disable (e.g., `"2026-06-13, 2026-06-14, 2026-12-25"`). The `disabledDates` property still wins if both paths are set. |
 | `disabled-dates-handling` | `'allow' \| 'prevent' \| 'block' \| 'split' \| 'individual'` | `'allow'` | How to handle range selections over disabled dates (see [Range Selection Modes](#range-selection-modes)) |
+| `display-format-mask` | `string` | Same as `date-format-mask` | Localized format hint shown to users (e.g., `'dd/mm/aaaa'` Spanish, `'tt.mm.jjjj'` German). Used as the input placeholder when no explicit `placeholder` is set. Validation still uses `date-format-mask`. |
 | `highlight-disabled-in-range` | `boolean` | `true` | Whether to visually highlight disabled dates within a selected range. Set to `false` to only highlight enabled dates. |
 | `auto-close` | `'never' \| 'selection' \| 'apply'` | `'selection'` | When to close calendar (selection = after picking, apply = after Apply button, never = manual) |
 | `positioning-mode` | `'inline' \| 'floating' \| 'modal'` | `'floating'` | Calendar positioning (inline = embedded, floating = popup anchored to input, modal = centered overlay with backdrop) |
@@ -149,6 +152,13 @@ See the [JavaScript Instantiation Examples](examples-javascript-instantiation.ht
 | `show-summary` | `boolean` | `true` | Show range-mode days/nights summary block. Set to `false` to omit entirely (no empty-div jump). |
 | `input-size` | `'xs' \| 'sm' \| 'md' \| 'lg' \| 'xl'` | `'md'` | Input field size (floating/modal modes only) |
 | `enable-transitions` | `boolean` | `false` | Enable CSS transitions/animations |
+| `date-member` | `string` | `'date'` | Field name on `specialDates` objects holding the date. Lets you reuse existing data shapes without renaming keys. |
+| `badge-text-member` | `string` | `'badgeText'` | Field name on `specialDates` objects holding the badge label. |
+| `badge-class-member` | `string` | `'badgeClass'` | Field name on `specialDates` objects holding the badge's extra CSS class. |
+| `day-class-member` | `string` | `'dayClass'` | Field name on `specialDates` objects holding the day cell's extra CSS class. |
+| `badge-tooltip-member` | `string` | `'badgeTooltip'` | Field name on `specialDates` objects holding the badge tooltip text. |
+| `day-tooltip-member` | `string` | `'dayTooltip'` | Field name on `specialDates` objects holding the day tooltip text. |
+| `is-disabled-member` | `string` | `'isDisabled'` | Field name on `specialDates` objects holding the disabled flag. |
 
 ## Properties
 
@@ -158,7 +168,17 @@ picker.selectionMode = 'range';
 picker.dateFormatMask = 'DD.MM.YYYY';
 picker.value = '2025-11-15';
 picker.disabled = true;
+
+// Complex data (arrays / objects / callbacks) — set via property, not attribute
+picker.disabledDates = ['2026-06-13', '2026-06-14'];
+picker.specialDates  = [{ date: '2026-12-25', badgeText: '🎄', badgeTooltip: 'Christmas' }];
+
+// Localization overrides
+picker.customStrings = { today: 'Jump', clear: 'Wipe' };
+picker.monthNames    = ['01','02','03','04','05','06','07','08','09','10','11','12'];
 ```
+
+> Property setters work even before the element is upgraded — assignments made before `customElements.define()` runs are routed through the accessors during `connectedCallback`, so you don't need `customElements.whenDefined('web-daterangepicker')` guards.
 
 ## Methods
 
@@ -180,6 +200,8 @@ picker.disabled = true;
 | `date-select` | `{ date?, dateRange?, formattedValue }` | Fired when a date is selected |
 | `change` | `{ date?, dateRange?, formattedValue }` | Fired when selection changes |
 | `custom-action` | `{ [key: string]: string }` | Fired when a button with `data-action="custom"` is clicked. Detail contains all `data-*` attributes as camelCase keys. |
+
+> There are no separate `apply` or `cancel` events. The Apply button commits the pending selection and dispatches `change`. Pressing Escape with an uncommitted selection silently restores the input value and fires nothing.
 
 ## Keyboard Shortcuts
 

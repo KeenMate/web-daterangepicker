@@ -37,6 +37,27 @@
     </div>
 
     <div class="fixture">
+        <div class="fixture-label">*Member mapping via HTML attributes — `date-member="on"`, `badge-text-member="label"`</div>
+        <web-daterangepicker id="specials-attr" selection-mode="single"
+            initial-date="2026-06-15"
+            date-member="on"
+            badge-text-member="label"></web-daterangepicker>
+    </div>
+
+    <div class="fixture">
+        <div class="fixture-label">all 7 *-member attributes renamed via HTML (covers the remaining 5)</div>
+        <web-daterangepicker id="specials-all-members" selection-mode="single"
+            initial-date="2026-06-15"
+            date-member="on"
+            badge-text-member="label"
+            badge-class-member="badgeCls"
+            day-class-member="dayCls"
+            badge-tooltip-member="badgeTip"
+            day-tooltip-member="dayTip"
+            is-disabled-member="off"></web-daterangepicker>
+    </div>
+
+    <div class="fixture">
         <div class="fixture-label">getUnifiedHeaderCallback — replaces unified-header text</div>
         <web-daterangepicker id="unified-header" selection-mode="range"
             initial-date="2026-06-15" visible-months-count="3"
@@ -70,6 +91,28 @@
                 { when: '2026-06-19', tag: 'X' }
             ];
         }
+
+        // Attribute-driven *Member mapping. specialDates is set as a property,
+        // but the mappings come from HTML attributes (no JS configuration needed
+        // for the member names).
+        document.getElementById('specials-attr').specialDates = [
+            { on: '2026-06-21', label: 'Z' }
+        ];
+
+        // All 7 *-member attributes renamed: every consumed field on the
+        // specialDate object uses a non-default key. The picker must look
+        // each value up via the attribute-configured key.
+        document.getElementById('specials-all-members').specialDates = [
+            {
+                on: '2026-06-22',
+                label: 'M',
+                badgeCls: 'my-badge-cls',
+                dayCls: 'my-day-cls',
+                badgeTip: 'badge tip text',
+                dayTip: 'day tip text',
+                off: true
+            }
+        ];
 
         document.getElementById('unified-header').getUnifiedHeaderCallback = ({ firstMonth, lastMonth, monthNames }) =>
             `${monthNames[firstMonth.getMonth()]} → ${monthNames[lastMonth.getMonth()]}`;

@@ -195,6 +195,10 @@ export async function validateRangeAsync(
             return { isValid: false, message: 'Range contains disabled dates' };
         }
     } else if (picker.options.disabledDatesHandling === 'block') {
+        // 'block' = "yes, but shorter": accept the selection and snap the end to the
+        // last enabled date BEFORE the first disabled gap. Not "exclude disabled days
+        // from the middle while keeping the original end" — that's `split`/`individual`.
+        // See showcase route /features/range-disabled-handling (section RDH04).
         validationLogger.debug(' Checking BLOCK mode');
         if (picker.hasDisabledDatesInRange(startDate, endDate)) {
             validationLogger.debug(' BLOCK mode - range contains disabled dates, adjusting');
@@ -451,6 +455,7 @@ export function clearSelection(picker: any) {
     // Clear drag preview state
     picker.dragPreviewStart = null;
     picker.dragPreviewEnd = null;
+    picker.hoverPreviewEnd = null;
 
     // Clear invalid range state
     picker.invalidRangeStart = null;

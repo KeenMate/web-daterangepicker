@@ -215,6 +215,7 @@ export function hide(picker: any) {
 
     picker.calendar.classList.remove('drp-date-picker--visible');
     picker.isCalendarActive = false; // Deactivate calendar when hidden
+    picker.hoverPreviewEnd = null;
 
     // Restore original input value and selection state if closed without Apply
     if (picker.requiresApplyButton() && picker.pendingSelection && picker.input) {

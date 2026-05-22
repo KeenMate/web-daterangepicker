@@ -158,6 +158,16 @@
   flex: 1 1 auto;
   min-height: 0;
   overflow-y: auto;
+  /* Inline padding gives breathing room for visual decoration that
+     extends beyond the day-cell box: the focused-day outline (4px:
+     2px offset + 2px width) and the badge cell's hover scale(1.05).
+     Two reasons this matters:
+       1. Without the padding, first-column cells have their outline
+          clipped on the left.
+       2. `overflow-y: auto` silently coerces `overflow-x: visible` to
+          `auto`, so any pixel of horizontal overflow trips a scrollbar.
+          The badge scale on the rightmost cell would do exactly that. */
+  padding-inline: 4px;
 }
 
 .drp-date-picker:not(.drp-date-picker--inline) > .drp-date-picker__unified-header,

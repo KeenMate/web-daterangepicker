@@ -43,20 +43,12 @@
     </div>
 
     <script type="module">
-        await customElements.whenDefined('web-daterangepicker');
-
-        // No public setter for customStrings — go through the picker's
-        // updateOptions API so derived state (localeStrings) is recomputed
-        // and the buttons re-render.
-        {
-            const el = document.getElementById('custom-strings');
-            el.picker.updateOptions({ customStrings: { today: 'Jump' } });
-        }
-
-        // monthNames has a dedicated setMonthNames() public method.
-        document.getElementById('numeric-months').setMonthNames([
+        // No whenDefined() — _liftPreUpgradeProperties handles late upgrade.
+        // Direct property setters; no need to reach into el.picker.
+        document.getElementById('custom-strings').customStrings = { today: 'Jump' };
+        document.getElementById('numeric-months').monthNames = [
             '01','02','03','04','05','06','07','08','09','10','11','12'
-        ]);
+        ];
     </script>
     <script type="module" src="/src/index.ts"></script>
 </body>

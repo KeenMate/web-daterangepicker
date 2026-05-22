@@ -5,6 +5,45 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.13.0] - 2026-05-22
+
+### Added — Hover preview for half-selected range mode
+
+- After the first click sets a start date in range mode, hovering over candidate end dates now paints the would-be range live with `--hover-preview` (or `--hover-preview-invalid` when the click would be rejected). Behavior is mode-aware per `disabled-dates-handling` so the preview is *honest* about what a commit would produce:
+  - `allow` / `individual` — full range painted; disabled days keep their disabled overlay layered on top.
+  - `prevent` — `--hover-preview-invalid` when the range would cross a disabled gap (telegraphs the rejection).
+  - `block` — preview snaps backward to the last enabled day before the gap (teaches the snap behavior in advance).
+  - `split` — disabled days stay bare so the visual gaps communicate the upcoming sub-range split.
+  - Auto-swap when hovering before the committed start: preview paints (hovered)..(start) so the user can grow the range in either direction.
+- Cleanup wired on commit, mouseleave, drag-start, hide, and destroy. The committed start day keeps its `--range-start` solid styling — `updateHoverPreview()` skips it so the cascade doesn't override the solid accent background with a translucent one (which would leave the on-accent text visually mismatched).
+- New CSS hooks: `--drp-day-hover-preview-bg-opacity: 0.18` and `--drp-day-hover-preview-invalid-bg-opacity: 0.18`. The classes themselves derive their colors from `--drp-day-range-bg` and `--drp-day-drag-invalid-bg` via `color-mix`. 10 specs in `e2e/hover-preview.spec.ts`.
+
+### Added — Other features
+
+- **Weekend CSS hooks on day cells**: `.drp-date-picker__day--weekend` modifier on Saturday/Sunday, plus `data-weekday="0..6"` (matching `Date.prototype.getDay()`) on every cell. No default styling shipped — pure theming surface. `[data-weekday="5"]` for Friday-only treatment, `--weekend` for the standard Sat/Sun pair.
+- **HTML attribute `disabled-dates`** — comma-separated ISO dates as a declarative alternative to the `disabledDates` property (e.g., `disabled-dates="2026-06-13, 2026-06-14, 2026-12-25"`). Whitespace tolerated; invalid entries silently dropped. The property still wins if both paths are populated (consistent with the other complex-data options' escape-hatch semantics).
+- **HTML attributes for the `specialDates` member-mapping family**: `date-member`, `badge-text-member`, `badge-class-member`, `day-class-member`, `badge-tooltip-member`, `day-tooltip-member`, `is-disabled-member`. Brings the seven `*Member` props to attribute parity. Same property-wins precedence as `disabled-dates`.
+- **Property setters for `customStrings` and `monthNames`** on the web component. Previously only reachable via `picker.updateOptions(...)` (which leaked the internal `picker` instance) or the dedicated `setMonthNames()` method. Both now work like the other ~35 property setters: `el.customStrings = { today: 'Jump' }` or `el.monthNames = ['01','02',...]`. `setMonthNames()` kept as a deprecated alias that forwards to the new setter.
+- **`displayFormatMask` is now also used as the input placeholder** when no explicit `placeholder` is set. Explicit `placeholder=` still wins. Closes the loop on the option's documented purpose: localized format hint (`tt.mm.jjjj`, `dd.mm.rrrr`, `dd/mm/aaaa`) that consumers want shown to users in their language.
+- **Compact `-` accepted in range typing mode** — `2026-06-10-2026-06-15` normalizes to `2026-06-10 - 2026-06-15`. Position-based fallback (anything past `maxLength` is the end side, with leading dashes/spaces stripped) so paste-style compact dashes Just Work alongside the new spaced separator.
+- **Playwright e2e harness** with 172 specs covering selection, triggers, multi-month, keyboard, input behavior, date restrictions, disabled-handling, visual states, positioning, locale, theming, callbacks, tooltips, and the hover preview. Run with `npm run test:e2e` or `make test-e2e`.
+
+### Changed
+
+- **Range typing separator: `" to "` → `" - "`**. The auto-injected separator after a complete start date now matches the committed range format (`"YYYY-MM-DD - YYYY-MM-DD"`), and the keydown whitelist allows `-` and space instead of the English-only letters `t`/`o`. The old `" to "` was unusable in non-English locales anyway. Migration: anyone relying on literal `to` typing needs to switch to `-`.
+- **`setMonthNames(arr)` deprecated** — use the `monthNames` property setter. The method now forwards to the setter; behavior is unchanged.
+- **CLAUDE.md "Size System" section pruned** to reflect reality. The `spacing` / `font-size` / `cell-size` attributes and `.drp-spacing-*` / `.drp-font-*` / `.drp-cell-*` classes documented previously never existed in the code. Only `input-size` is an attribute; calendar sizing is theming-only via the `--drp-spacing-*` and `--drp-font-size-*` CSS tokens, with `--drp-rem` (default `10px`) as the global rescale knob (every size token is `calc(N * var(--drp-rem))`).
+- **API.md events section** got a clarifying note: there are no separate `apply` or `cancel` events. The Apply button commits and dispatches `change`; Escape with an uncommitted selection silently restores the previous input value and fires nothing.
+
+### Fixed
+
+- **`custom-action` event was double-dispatched** on the web component. The picker's internal dispatcher already crosses the shadow boundary via `{ bubbles: true, composed: true }`; the manual re-emit in `web-component.ts` was redundant and outside listeners saw every event twice.
+- **`disabled` setter only flagged the input element** — it didn't suppress programmatic `show()`. The picker could still be opened by `picker.show()` or any event path bypassing the browser's pointer-events block. `show()` now early-returns when `picker.input?.disabled` is true.
+- **`actionButtons` setter required `customElements.whenDefined()`**. Properties assigned to a not-yet-upgraded element used to become own-properties that shadowed the class accessors forever. Added `_liftPreUpgradeProperties()` in `connectedCallback`: walks the prototype chain for `set` descriptors and re-routes any matching own-properties through their accessors. Fixes the issue for all 35+ property setters, not just `actionButtons` — consumers can now drop `whenDefined` calls before setting complex data.
+- **Range-start day's font color was nearly invisible during hover-preview**. The new `--hover-preview` class (declared later in the cascade than `--range-start`) was overriding the solid accent background with a translucent one, leaving the white on-accent text visually mismatched. `updateHoverPreview()` now skips the committed start day so the cascade doesn't get crossed.
+- **Horizontal scrollbar appeared on the months area when hovering a badge cell on the rightmost column**. The badge cell's `transform: scale(1.05)` hover effect pushed ~1–2px past the right edge; combined with the CSS-spec coercion (`overflow-y: auto` implicitly making `overflow-x` `auto`), that was enough to trip a scrollbar. **Fix:** `padding-inline: 4px` on the months container — gives breathing room for both the badge scale AND the focused-day outline (4px extent: 2px offset + 2px width), so neither overflows.
+- **`'block' mode disabled-dates-handling`** — added a clarifying source comment above the `block` branch in `validateRangeAsync()`. Not a behavior change: `block` always meant "Yes, but shorter" (snap end to the last enabled day before the first disabled gap). The comment now documents the contract so the next reader doesn't mistake it for `prevent` (rejects) or `split` (returns sub-ranges with disabled days excluded from the middle).
+
 ## [1.12.0] - 2026-05-02 - PUBLISHED
 
 ### Added — Modal positioning mode

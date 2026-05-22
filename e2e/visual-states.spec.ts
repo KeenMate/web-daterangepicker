@@ -37,12 +37,12 @@ test.beforeEach(async ({ page }) => {
 // today
 // =============================================================================
 
-test('today (2026-05-20) gets the --today class even when calendar opens on a different month', async ({ page }) => {
+test('today (2026-05-22) gets the --today class even when calendar opens on a different month', async ({ page }) => {
     const p = await open(page, 'single');
 
     // Navigate to May 2026 so today is visible.
     await p.locator('.drp-date-picker__nav--prev[data-month-index="0"]').click();
-    await expect(dayByDate(p, '2026-05-20')).toHaveClass(/drp-date-picker__day--today/);
+    await expect(dayByDate(p, '2026-05-22')).toHaveClass(/drp-date-picker__day--today/);
 });
 
 // =============================================================================
@@ -112,4 +112,41 @@ test.describe('range visual classes', () => {
         await expect(outsideDay).not.toHaveClass(/drp-date-picker__day--range-end/);
         await expect(outsideDay).not.toHaveClass(/drp-date-picker__day--in-range/);
     });
+});
+
+// =============================================================================
+// weekend hooks (CSS-only theming for Saturday / Sunday)
+// =============================================================================
+
+test('Saturday and Sunday cells get the --weekend modifier', async ({ page }) => {
+    const p = await open(page, 'single');
+
+    // 2026-06-06 is a Saturday, 2026-06-07 is a Sunday.
+    await expect(dayByDate(p, '2026-06-06')).toHaveClass(/drp-date-picker__day--weekend/);
+    await expect(dayByDate(p, '2026-06-07')).toHaveClass(/drp-date-picker__day--weekend/);
+});
+
+test('Monday through Friday cells do NOT get the --weekend modifier', async ({ page }) => {
+    const p = await open(page, 'single');
+
+    // 2026-06-08..2026-06-12 are Mon..Fri.
+    for (const iso of ['2026-06-08', '2026-06-09', '2026-06-10', '2026-06-11', '2026-06-12']) {
+        await expect(dayByDate(p, iso)).not.toHaveClass(/drp-date-picker__day--weekend/);
+    }
+});
+
+test('every day cell carries a data-weekday attribute matching getDay()', async ({ page }) => {
+    const p = await open(page, 'single');
+
+    // Sun=0, Mon=1, ... Sat=6. Spot-check a handful across June 2026.
+    const expected: Array<[string, string]> = [
+        ['2026-06-07', '0'], // Sun
+        ['2026-06-08', '1'], // Mon
+        ['2026-06-10', '3'], // Wed
+        ['2026-06-12', '5'], // Fri
+        ['2026-06-06', '6'], // Sat
+    ];
+    for (const [iso, weekday] of expected) {
+        await expect(dayByDate(p, iso)).toHaveAttribute('data-weekday', weekday);
+    }
 });

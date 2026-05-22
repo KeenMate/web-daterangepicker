@@ -105,7 +105,7 @@ test('"t" key navigates the active column to today', async ({ page }) => {
 
     await page.keyboard.press('t');
 
-    // Today is 2026-05-20 (set by harness). Header should show May 2026.
+    // Today is 2026-05-22 (set by harness). Header should show May 2026.
     await expect(picker(page).locator('.drp-date-picker__month-year').first()).toContainText(/May\s+2026/);
-    await expect(dayByDate(page, '2026-05-20')).toHaveClass(/drp-date-picker__day--today/);
+    await expect(dayByDate(page, '2026-05-22')).toHaveClass(/drp-date-picker__day--today/);
 });

@@ -147,6 +147,12 @@ export function startDrag(picker: any, event: MouseEvent, type: 'start' | 'end',
         }
     }
 
+    // Drag takes over from hover preview — clear it so the two don't fight.
+    if (picker.hoverPreviewEnd) {
+        picker.hoverPreviewEnd = null;
+        picker.updateHoverPreview();
+    }
+
     // Add dragging class to the day being dragged
     clickedElement.classList.add('drp-date-picker__day--dragging');
 
@@ -470,10 +476,10 @@ export function handleInputMask(picker: any, event: Event) {
 
     const { separator } = picker.formatInfo;
 
-    // For range mode, handle " to " separator
+    // For range mode, handle " - " separator
     if (picker.options.selectionMode === 'range') {
-        // Keep digits, date separators, and allow 'to' with spaces
-        const cleanValue = currentValue.replace(new RegExp(`[^0-9${separator.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}to ]`, 'gi'), '');
+        // Keep digits, date separators, and allow '-' with spaces
+        const cleanValue = currentValue.replace(new RegExp(`[^0-9${separator.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\- ]`, 'g'), '');
 
         // Apply range mask
         const formatted = applyRangeMask(picker, cleanValue);
@@ -487,12 +493,12 @@ export function handleInputMask(picker: any, event: Event) {
             if (wasDeleting) {
                 newCursorPos = currentCursorPos;
             } else if (formatted.length > currentValue.length) {
-                // Check if " to " was just inserted
-                if (formatted.includes(' to ') && !currentValue.includes(' to ')) {
-                    // " to " was auto-inserted, move cursor after it
-                    const toIndex = formatted.indexOf(' to ');
-                    if (currentCursorPos >= toIndex && currentCursorPos <= toIndex + 4) {
-                        newCursorPos = toIndex + 4; // Move after " to "
+                // Check if " - " was just inserted
+                if (formatted.includes(' - ') && !currentValue.includes(' - ')) {
+                    // " - " was auto-inserted, move cursor after it
+                    const dashIndex = formatted.indexOf(' - ');
+                    if (currentCursorPos >= dashIndex && currentCursorPos <= dashIndex + 3) {
+                        newCursorPos = dashIndex + 3; // Move after " - "
                     } else {
                         newCursorPos = currentCursorPos + (formatted.length - currentValue.length);
                     }
@@ -573,38 +579,40 @@ export function applyMask(picker: any, value: string): string {
 }
 
 export function applyRangeMask(picker: any, value: string): string {
-    const { separator, maxLength } = picker.formatInfo;
+    const { maxLength } = picker.formatInfo;
 
-    // Split by " to " to get start and end dates
-    const toSeparator = ' to ';
+    // Canonical range separator is " - " (mirrors the committed value form).
+    // We also accept a bare "-" without spaces (e.g. pasted "2026-06-10-2026-06-15"):
+    // once the start side reaches maxLength, anything that follows is treated as
+    // the end side with any leading dashes/whitespace stripped.
+    const RANGE_SEP = ' - ';
     let startPart = '';
     let endPart = '';
+    let hasExplicitSep = false;
 
-    if (value.includes(toSeparator)) {
-        const parts = value.split(toSeparator);
-        startPart = parts[0];
-        endPart = parts.slice(1).join(toSeparator); // In case there are multiple "to"
+    const sepIndex = value.indexOf(RANGE_SEP);
+    if (sepIndex !== -1) {
+        startPart = value.substring(0, sepIndex);
+        endPart = value.substring(sepIndex + RANGE_SEP.length);
+        hasExplicitSep = true;
+    } else if (value.length > maxLength) {
+        startPart = value.substring(0, maxLength);
+        endPart = value.substring(maxLength).replace(/^[-\s]+/, '');
+        hasExplicitSep = true;
     } else {
         startPart = value;
     }
 
-    // Apply mask to start date
     const formattedStart = applyMask(picker, startPart);
 
-    // Check if start date is complete (maxLength characters)
     if (formattedStart.length === maxLength) {
-        // Start date is complete, auto-append " to " if not already there
-        if (!value.includes(toSeparator)) {
-            return formattedStart + toSeparator;
-        } else {
-            // Apply mask to end date
-            const formattedEnd = applyMask(picker, endPart);
-            return formattedStart + toSeparator + formattedEnd;
+        if (!hasExplicitSep) {
+            return formattedStart + RANGE_SEP;
         }
-    } else {
-        // Start date not complete yet
-        return formattedStart;
+        const formattedEnd = applyMask(picker, endPart);
+        return formattedStart + RANGE_SEP + formattedEnd;
     }
+    return formattedStart;
 }
 
 export function handleKeydown(picker: any, event: KeyboardEvent) {
@@ -672,9 +680,9 @@ export function handleKeydown(picker: any, event: KeyboardEvent) {
         // Otherwise allow normal separator insertion (will be handled by input mask)
     }
 
-    // For range mode, also allow space and letters 't', 'o' (for " to ")
+    // For range mode, also allow space and '-' (for " - ")
     if (picker.options.selectionMode === 'range') {
-        if (!/^\d$/.test(key) && key !== separator && key !== ' ' && key.toLowerCase() !== 't' && key.toLowerCase() !== 'o') {
+        if (!/^\d$/.test(key) && key !== separator && key !== ' ' && key !== '-') {
             event.preventDefault();
         }
     } else {
@@ -734,28 +742,34 @@ export function updateCalendarFromInput(picker: any) {
     const { separator, parts, maxLength } = picker.formatInfo;
     interactionLogger.debug('Format info:', { separator, parts, maxLength });
 
-    // For range mode, split by " to " first
-    if (picker.options.selectionMode === 'range' && value.includes(' to ')) {
-        const rangeParts = value.split(' to ');
-        const startValue = rangeParts[0];
-        const endValue = rangeParts[1];
+    // For range mode, split on " - " (canonical) or the position right after the
+    // start date when the user used a bare "-" without spaces.
+    if (picker.options.selectionMode === 'range') {
+        let startValue: string | null = null;
+        let endValue = '';
 
-        interactionLogger.debug('Range parts - start:', startValue, 'end:', endValue);
-
-        // Parse start date
-        parseAndUpdateSingleDate(picker, startValue, 'start');
-
-        // Parse end date if present, otherwise clear it
-        if (endValue) {
-            parseAndUpdateSingleDate(picker, endValue, 'end');
-        } else {
-            picker.selectedEndDate = null;
+        const sepIndex = value.indexOf(' - ');
+        if (sepIndex !== -1) {
+            startValue = value.substring(0, sepIndex);
+            endValue = value.substring(sepIndex + 3);
+        } else if (value.length > maxLength) {
+            startValue = value.substring(0, maxLength);
+            endValue = value.substring(maxLength).replace(/^[-\s]+/, '');
         }
 
-        return;
+        if (startValue !== null) {
+            interactionLogger.debug('Range parts - start:', startValue, 'end:', endValue);
+            parseAndUpdateSingleDate(picker, startValue, 'start');
+            if (endValue) {
+                parseAndUpdateSingleDate(picker, endValue, 'end');
+            } else {
+                picker.selectedEndDate = null;
+            }
+            return;
+        }
     }
 
-    // Single mode or range without " to " yet
+    // Single mode or range without separator yet
     // Use helper to parse and update
     const dateType = picker.options.selectionMode === 'range' ? 'start' : 'single';
     parseAndUpdateSingleDate(picker, value, dateType);

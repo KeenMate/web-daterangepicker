@@ -60,6 +60,7 @@ class DateRangePicker {
     originalEndDate: Date | null;
     dragPreviewStart: Date | null;
     dragPreviewEnd: Date | null;
+    hoverPreviewEnd: Date | null;
     invalidRangeStart: Date | null;
     invalidRangeEnd: Date | null;
     autoScrollInterval: number | null;
@@ -298,6 +299,10 @@ class DateRangePicker {
         this.originalEndDate = null;
         this.dragPreviewStart = null;
         this.dragPreviewEnd = null;
+        // Hover preview: only active in range mode after the first click (half-selected
+        // state). Repainted on every day-cell mouseover; cleared on commit, mouseleave,
+        // drag-start, hide, and destroy. See updateHoverPreview() for per-mode logic.
+        this.hoverPreviewEnd = null;
         this.invalidRangeStart = null;
         this.invalidRangeEnd = null;
         this.autoScrollInterval = null;
@@ -1188,6 +1193,35 @@ class DateRangePicker {
             }
         }, true);
 
+        // Hover preview: paint the would-be range while the user is in the
+        // half-selected state (start clicked, end pending). Drag has its own
+        // preview, so suppress this when isDragging.
+        this.calendar.addEventListener('mouseover', (e) => {
+            if (this.options.selectionMode !== 'range') return;
+            if (!this.selectedStartDate || this.selectedEndDate) return;
+            if (this.isDragging) return;
+
+            const target = e.target as HTMLElement;
+            const day = target.closest('.drp-date-picker__day') as HTMLElement | null;
+            if (!day) return;
+
+            const dateAttr = day.dataset.date;
+            if (!dateAttr) return;
+
+            const [year, month, dayNum] = dateAttr.split('-').map(Number);
+            const hoveredDate = new Date(year, month - 1, dayNum);
+
+            this.hoverPreviewEnd = hoveredDate;
+            this.updateHoverPreview();
+        });
+
+        this.calendar.addEventListener('mouseleave', () => {
+            if (this.hoverPreviewEnd) {
+                this.hoverPreviewEnd = null;
+                this.updateHoverPreview();
+            }
+        });
+
         // Track calendar focus for keyboard navigation (especially important for inline mode)
         // Note: Calendar click tracking is also handled by clickEvents manager
         this.calendar.addEventListener('focusin', () => {
@@ -1744,6 +1778,7 @@ class DateRangePicker {
     updateSummary() { return Rendering.updateSummary(this); }
     updateSummaryWithPreview() { return Rendering.updateSummaryWithPreview(this); }
     updateDragPreview() { return Rendering.updateDragPreview(this); }
+    updateHoverPreview() { return Rendering.updateHoverPreview(this); }
 
     // Navigation methods - wrappers for pure functions
     toggleRollingSelector(monthIndex: number) { return Navigation.toggleRollingSelector(this, monthIndex); }

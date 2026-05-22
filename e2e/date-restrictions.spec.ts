@@ -105,6 +105,34 @@ test('initial-date controls the month/year shown on first open', async ({ page }
 // rolling-year-range
 // =============================================================================
 
+// =============================================================================
+// disabled-dates (HTML attribute + property setter, with precedence)
+// =============================================================================
+
+test.describe('disabled-dates', () => {
+    test('declarative disabled-dates="..." attribute disables each listed date', async ({ page }) => {
+        const p = await open(page, 'disabled-dates-attr');
+        for (const iso of ['2026-06-11', '2026-06-12', '2026-06-15']) {
+            await expect(dayByDate(p, iso)).toHaveClass(/drp-date-picker__day--disabled/);
+        }
+        // A non-listed day stays enabled.
+        await expect(dayByDate(p, '2026-06-10')).not.toHaveClass(/drp-date-picker__day--disabled/);
+    });
+
+    test('disabledDates property wins when both attribute and property are set', async ({ page }) => {
+        const p = await open(page, 'disabled-dates-prop');
+        // Property listed 06-17 (string) and 06-18 (Date) — those are disabled.
+        await expect(dayByDate(p, '2026-06-17')).toHaveClass(/drp-date-picker__day--disabled/);
+        await expect(dayByDate(p, '2026-06-18')).toHaveClass(/drp-date-picker__day--disabled/);
+        // Attribute listed 06-11 — but property wins, so it's enabled.
+        await expect(dayByDate(p, '2026-06-11')).not.toHaveClass(/drp-date-picker__day--disabled/);
+    });
+});
+
+// =============================================================================
+// rolling-year-range
+// =============================================================================
+
 test('rolling-year-range="2025-2027" limits the year list to exactly those years', async ({ page }) => {
     const p = await open(page, 'rolling');
 
