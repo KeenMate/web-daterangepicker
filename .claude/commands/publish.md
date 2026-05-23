@@ -25,15 +25,17 @@ This repo has a single root `package.json` (`@keenmate/web-daterangepicker`). Re
 - `package.json` — version will be bumped
 - `package-lock.json` — must be re-synced after bump
 - `CHANGELOG.md` — must have an `## [Unreleased]` section with content
+- `README.md` — must have a `## What's New in vWIP_VERSION` section for the release being prepared
 
-`README.md` does **not** maintain per-version "What's New" sections — its `## Changelog` block just links to `CHANGELOG.md`. Don't add per-version content to README; keep the link-based pattern.
+`README.md` keeps the **two most recent** `## What's New in vX.Y.Z` sections (the just-finalized one plus the previous one). Older What's New sections are pruned during publish. The `## Changelog` block at the bottom of the README still links to `CHANGELOG.md` for the full history.
 
 ## Steps (in order)
 
 ### 1. Sanity checks
 
-- Run `git status`. If the working tree has uncommitted changes other than the files you're about to touch (`package.json`, `package-lock.json`, `CHANGELOG.md`), warn the user and ask before continuing. Small in-flight edits to those three are fine to roll into the release commit.
+- Run `git status`. If the working tree has uncommitted changes other than the files you're about to touch (`package.json`, `package-lock.json`, `CHANGELOG.md`, `README.md`), warn the user and ask before continuing. Small in-flight edits to those four are fine to roll into the release commit.
 - Confirm `CHANGELOG.md` has an `## [Unreleased]` section with at least one bullet under it. If empty, stop — there's nothing meaningful to release.
+- Confirm `README.md` has a `## What's New in vWIP_VERSION` section (where `WIP_VERSION` is whatever heading exists for the in-flight release — usually `vNEW_VERSION`, but sometimes the author wrote it speculatively under the previous patch number). If it's missing entirely, stop and ask the user to add one — the publish step shouldn't invent the highlights, that's a writing call, not a mechanical one.
 - Run `npm run build` to confirm the build is clean before tagging the release. If it fails, stop and report.
 
 ### 2. Bump version
@@ -50,7 +52,20 @@ In `CHANGELOG.md`:
 - Leave all content under the heading untouched.
 - Do **not** create a new empty `## [Unreleased]` section — the next release cycle will re-create it.
 
-### 4. Validate CHANGELOG entries match the work being released
+### 4. Update README "What's New" sections
+
+In `README.md`:
+
+- If the existing `## What's New in vWIP_VERSION` section's version differs from `NEW_VERSION`, rename its heading to `## What's New in vNEW_VERSION`. No content rewrites — the text was already curated for this release.
+- Then count the `## What's New in vX.Y.Z` headings. If there are more than **two**, delete the oldest ones so only the **two most recent** remain (the just-finalized one plus the one before it).
+
+### 5. Validate README reflects the release
+
+Read both the finalized CHANGELOG section and the matching `What's New in vNEW_VERSION` section. Every **Added** or **Changed** bullet in the CHANGELOG that represents a user-facing feature or behavior change should have a corresponding hit in the What's New section (paraphrased, not verbatim). Pure internal refactors and Fixed-only entries don't need coverage.
+
+If you find a significant CHANGELOG entry that isn't reflected in What's New, add a bullet for it. If the section ends up with more than ~8 bullets after this pass, condense — What's New should be scannable, not exhaustive.
+
+### 6. Validate CHANGELOG entries match the work being released
 
 Find the previous published version's commit SHA (the one before NEW_VERSION). Run `git log --oneline <prev>..HEAD`. Also check `git diff` for any uncommitted work staged/unstaged.
 
@@ -58,9 +73,9 @@ For every substantive commit or uncommitted change, verify the CHANGELOG section
 
 For pure-internal changes (refactors, code-analysis docs, test artifacts) it's fine if they don't appear in the CHANGELOG, but **API surface changes, behavior changes, and bug fixes must be there**.
 
-### 5. Commit
+### 7. Commit
 
-Stage `package.json`, `package-lock.json`, `CHANGELOG.md`. Match the existing commit-message style in this repo — short prose subject, no body, using the `v` prefix:
+Stage `package.json`, `package-lock.json`, `CHANGELOG.md`, and `README.md`. Match the existing commit-message style in this repo — short prose subject, no body, using the `v` prefix:
 
 ```
 vNEW_VERSION - <one-line summary of the release's headline change>
@@ -70,7 +85,7 @@ Look at recent published-version commits (`git log --grep='^v[0-9]'`) for tone �
 
 If the release is large enough that a body adds real value, write one — but err on the side of brevity. If the most recent few commits include a `Co-Authored-By` line, include one; otherwise don't add one.
 
-### 6. Report
+### 8. Report
 
 Report back with:
 - The new version number
@@ -85,7 +100,8 @@ Report back with:
 - **Do not add a new empty `[Unreleased]` section** after finalizing — next cycle re-creates it.
 - **Do not invent CHANGELOG entries** to cover commits you find; ask the user if something's missing.
 - **Do not bump if there's nothing meaningful in `[Unreleased]`** — stop and explain.
-- **Do not add a "What's New in vX.Y.Z" section to README.** This repo intentionally points to `CHANGELOG.md` from `README.md#Changelog` and avoids duplication.
+- **Do not invent What's New content** during the publish step — the section should already exist with curated bullets by the time publish runs. If it's missing or stale, stop and ask the author to write the highlights.
+- **Do not let What's New grow past two sections.** The pattern is "current release + previous release"; older sections live in `CHANGELOG.md` only.
 - **Do not skip `npm install --package-lock-only`.** A stale `package-lock.json` after a version bump confuses downstream consumers.
 
 ## Edge cases
