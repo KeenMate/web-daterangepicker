@@ -82,6 +82,16 @@ export function show(picker: any) {
         uiLogger.debug('show() - stored original input value:', picker.originalInputValue);
     }
 
+    // Snapshot wall-clock so renderTimePicker has a stable "now" for uncommitted
+    // fields. Without this, real-time-seconds advance between renders pulls the
+    // seconds roll along (and minutes/hours once enough time passes).
+    // Also flag the upcoming render so each roll force-scrolls to center its
+    // committed/focus value (the rolls preserve scrollTop across hide/show).
+    if (picker.options.pickerMode !== 'date') {
+        picker.timePickerOpenSnapshot = new Date();
+        picker.forceTimePickerScroll = true;
+    }
+
     // Sync calendar selection with current input value (handles manually cleared input)
     updateCalendarFromInput(picker);
 
@@ -92,6 +102,10 @@ export function show(picker: any) {
 
         // Call beforeMonthChangedCallback for initial month load
         handleInitialMonthLoad(picker);
+    } else if (picker.options.pickerMode !== 'date') {
+        // Time/datetime modes: re-render every open so committed values get the
+        // --selected highlight applied and the rolls re-center via force-scroll.
+        picker.renderCalendar();
     }
 
     const isModal = picker.options.positioningMode === 'modal';
@@ -231,11 +245,17 @@ export function hide(picker: any) {
         } else if (picker.options.selectionMode === 'single') {
             picker.selectedDate = picker.committedDate;
         }
+        // Time/datetime modes also revert the per-field time selection.
+        if (picker.options.pickerMode !== 'date') {
+            picker.selectedTime = picker.committedTime ? { ...picker.committedTime } : null;
+        }
         uiLogger.debug('hide() - reverted selection state');
     }
 
     // Clear pending selection when calendar closes
     picker.pendingSelection = null;
+    // Drop the wall-clock snapshot so the next open captures a fresh "now".
+    picker.timePickerOpenSnapshot = null;
     // Reset all rolling selectors to closed state
     for (let i = 0; i < picker.showingRollingSelector.length; i++) {
         picker.showingRollingSelector[i] = false;

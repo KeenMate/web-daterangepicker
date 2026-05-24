@@ -80,6 +80,8 @@ const MONTH_LAYOUTS = ['horizontal', 'grid'] as const;
 const POSITIONING_MODES = ['inline', 'floating', 'modal'] as const;
 const DISABLED_HANDLING = ['allow', 'prevent', 'block', 'split', 'individual'] as const;
 const AUTO_CLOSE = ['never', 'selection', 'apply'] as const;
+const PICKER_MODES = ['date', 'time', 'datetime'] as const;
+const HOUR_CYCLES = ['h12', 'h24'] as const;
 
 const ATTRIBUTE_TABLE: AttributeEntry[] = [
     { attr: 'selection-mode',                  key: 'selectionMode',                  parser: parseEnum(SELECTION_MODES) },
@@ -120,6 +122,13 @@ const ATTRIBUTE_TABLE: AttributeEntry[] = [
     { attr: 'show-clear-button',               key: 'showClearButton',                parser: parseTriStateBool },
     { attr: 'show-apply-button',               key: 'showApplyButton',                parser: parseTriStateBool },
     { attr: 'show-summary',                    key: 'showSummary',                    parser: parseTriStateBool },
+    { attr: 'picker-mode',                     key: 'pickerMode',                     parser: parseEnum(PICKER_MODES) },
+    { attr: 'time-format-mask',                key: 'timeFormatMask',                 parser: parseStringWithDefault('HH:mm') },
+    { attr: 'display-time-format-mask',        key: 'displayTimeFormatMask',          parser: parseStringOrUndefined },
+    { attr: 'time-step',                       key: 'timeStep',                       parser: parsePositiveIntOrUndefined },
+    { attr: 'hour-cycle',                      key: 'hourCycle',                      parser: parseEnum(HOUR_CYCLES) },
+    { attr: 'show-seconds',                    key: 'showSeconds',                    parser: parseTriStateBool },
+    { attr: 'show-now-button',                 key: 'showNowButton',                  parser: parseTriStateBool },
 ];
 
 /** Attributes that don't affect the picker itself — handled by surgical `attributeChangedCallback` paths. */
@@ -822,6 +831,84 @@ export class WebDaterangepickerElement extends HTMLElement {
 
     set inputSize(value: string) {
         this.setAttribute('input-size', value);
+    }
+
+    // Picker mode (date / time / datetime)
+    get pickerMode(): 'date' | 'time' | 'datetime' {
+        const raw = this.getAttribute('picker-mode');
+        return raw === 'time' || raw === 'datetime' ? raw : 'date';
+    }
+
+    set pickerMode(value: 'date' | 'time' | 'datetime') {
+        this.setAttribute('picker-mode', value);
+    }
+
+    get timeFormatMask(): string {
+        return this.getAttribute('time-format-mask') || 'HH:mm';
+    }
+
+    set timeFormatMask(value: string) {
+        this.setAttribute('time-format-mask', value);
+    }
+
+    get displayTimeFormatMask(): string | undefined {
+        return this.getAttribute('display-time-format-mask') || undefined;
+    }
+
+    set displayTimeFormatMask(value: string | undefined) {
+        if (value) {
+            this.setAttribute('display-time-format-mask', value);
+        } else {
+            this.removeAttribute('display-time-format-mask');
+        }
+    }
+
+    get timeStep(): number {
+        const raw = parseInt(this.getAttribute('time-step') || '1', 10);
+        return Number.isFinite(raw) && raw > 0 ? raw : 1;
+    }
+
+    set timeStep(value: number) {
+        this.setAttribute('time-step', String(value));
+    }
+
+    get hourCycle(): 'h12' | 'h24' | undefined {
+        const raw = this.getAttribute('hour-cycle');
+        return raw === 'h12' || raw === 'h24' ? raw : undefined;
+    }
+
+    set hourCycle(value: 'h12' | 'h24' | undefined) {
+        if (value) {
+            this.setAttribute('hour-cycle', value);
+        } else {
+            this.removeAttribute('hour-cycle');
+        }
+    }
+
+    get showSeconds(): boolean | undefined {
+        if (!this.hasAttribute('show-seconds')) return undefined;
+        return this.getAttribute('show-seconds') === 'true';
+    }
+
+    set showSeconds(value: boolean | undefined) {
+        if (value === undefined) {
+            this.removeAttribute('show-seconds');
+        } else {
+            this.setAttribute('show-seconds', value ? 'true' : 'false');
+        }
+    }
+
+    get showNowButton(): boolean | undefined {
+        if (!this.hasAttribute('show-now-button')) return undefined;
+        return this.getAttribute('show-now-button') === 'true';
+    }
+
+    set showNowButton(value: boolean | undefined) {
+        if (value === undefined) {
+            this.removeAttribute('show-now-button');
+        } else {
+            this.setAttribute('show-now-button', value ? 'true' : 'false');
+        }
     }
 
     // Complex data properties (not attributes)

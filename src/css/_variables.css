@@ -237,6 +237,19 @@
   /* Navigation Button Dimensions */
   --drp-nav-size: calc(3.2 * var(--drp-rem));  /* 32px */
 
+  /* Time Picker (pickerMode: time / datetime) */
+  --drp-time-picker-gap: var(--drp-spacing-sm);
+  --drp-time-picker-padding: 0;
+  --drp-time-picker-max-height: calc(28 * var(--drp-rem));    /* 280px */
+  --drp-time-picker-roll-min-width: calc(6 * var(--drp-rem));  /* 60px floor for columns */
+  --drp-time-picker-label-color: var(--drp-text-secondary);
+  --drp-time-picker-label-font-size: var(--drp-font-size-sm);
+  --drp-time-picker-label-font-weight: var(--drp-font-weight-semibold);
+  --drp-time-picker-main-gap: var(--drp-spacing-lg);
+  /* Datetime mode needs to fit one month + 3 time-roll columns side by side.
+     ~28rem month + ~24rem time picker + gap → 56rem floor (560px at default rem). */
+  --drp-datetime-min-width: calc(56 * var(--drp-rem));
+
   /* Rolling Selector */
   --drp-rolling-bg: var(--drp-primary-bg);
   --drp-rolling-border-color: var(--drp-border-color);

@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Time / Datetime Picker Examples</title>
+  <link rel="stylesheet" href="examples-shared.css">
+  <style>
+    .out {
+      margin-top: 0.5rem;
+      padding: 0.5rem 0.75rem;
+      background: #f3f4f6;
+      border: 1px solid #e5e7eb;
+      border-radius: 0.375rem;
+      font-family: ui-monospace, Menlo, monospace;
+      font-size: 0.875rem;
+      color: #111827;
+      min-height: 1.25rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <a href="index.html" class="back-link">&larr; Back to Examples</a>
+      <h1>&#9201; Time / Datetime Picker (v1.14)</h1>
+      <p class="subtitle">picker-mode="time" and picker-mode="datetime" with rolling-list UI for hours/minutes/[seconds]/[AM-PM]</p>
+    </header>
+
+    <div class="card">
+      <h2>Time mode &mdash; defaults (HH:mm, 24h)</h2>
+      <div class="form-group">
+        <label>Pick a time</label>
+        <web-daterangepicker id="t1" picker-mode="time" placeholder="HH:mm"></web-daterangepicker>
+        <div class="out" id="t1-out">No selection yet</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Time mode &mdash; 12-hour format with AM/PM</h2>
+      <div class="form-group">
+        <label>hh:mm a</label>
+        <web-daterangepicker
+          id="t2"
+          picker-mode="time"
+          time-format-mask="hh:mm a"
+          placeholder="hh:mm AM/PM">
+        </web-daterangepicker>
+        <div class="out" id="t2-out">No selection yet</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Time mode &mdash; 15-minute step</h2>
+      <div class="form-group">
+        <label>time-step="15"</label>
+        <web-daterangepicker
+          id="t3"
+          picker-mode="time"
+          time-step="15"
+          placeholder="HH:mm">
+        </web-daterangepicker>
+        <div class="out" id="t3-out">No selection yet</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Time mode &mdash; with seconds</h2>
+      <div class="form-group">
+        <label>HH:mm:ss</label>
+        <web-daterangepicker
+          id="t4"
+          picker-mode="time"
+          time-format-mask="HH:mm:ss"
+          placeholder="HH:mm:ss">
+        </web-daterangepicker>
+        <div class="out" id="t4-out">No selection yet</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Datetime mode &mdash; calendar + time side by side</h2>
+      <div class="form-group">
+        <label>YYYY-MM-DD HH:mm</label>
+        <web-daterangepicker
+          id="d1"
+          picker-mode="datetime"
+          placeholder="YYYY-MM-DD HH:mm">
+        </web-daterangepicker>
+        <div class="out" id="d1-out">No selection yet</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Datetime mode &mdash; 12-hour with seconds</h2>
+      <div class="form-group">
+        <label>YYYY-MM-DD hh:mm:ss a</label>
+        <web-daterangepicker
+          id="d2"
+          picker-mode="datetime"
+          time-format-mask="hh:mm:ss a"
+          placeholder="date and time">
+        </web-daterangepicker>
+        <div class="out" id="d2-out">No selection yet</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Datetime + range &mdash; should fall back to date range (console warning)</h2>
+      <div class="form-group">
+        <label>This combo is not supported in v1.14 &mdash; expect a warning</label>
+        <web-daterangepicker
+          id="d3"
+          picker-mode="datetime"
+          selection-mode="range"
+          placeholder="should be a date range">
+        </web-daterangepicker>
+        <div class="out" id="d3-out">Selection logged here. Check console for a single fallback warning.</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Datetime with initialDate &mdash; ISO datetime string</h2>
+      <div class="form-group">
+        <label>initial-date="2026-05-23T14:30:00"</label>
+        <web-daterangepicker
+          id="d4"
+          picker-mode="datetime"
+          initial-date="2026-05-23T14:30:00"
+          placeholder="should pre-fill date and time">
+        </web-daterangepicker>
+        <div class="out" id="d4-out">Should display 2026-05-23 14:30 on first render</div>
+      </div>
+    </div>
+  </div>
+
+  <script type="module">
+    import './src/index.ts';
+
+    const wireOutput = (id) => {
+      const el = document.getElementById(id);
+      const out = document.getElementById(`${id}-out`);
+      el.addEventListener('date-select', (e) => {
+        out.textContent = `value: ${el.value}  |  detail.date: ${e.detail.date}`;
+      });
+    };
+    ['t1','t2','t3','t4','d1','d2','d3','d4'].forEach(wireOutput);
+  </script>
+</body>
+</html>

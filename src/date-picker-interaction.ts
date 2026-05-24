@@ -729,6 +729,13 @@ export function updateCalendarFromInput(picker: any) {
     // Parse current input value and update calendar progressively
     if (!picker.input) return;
 
+    // Time/datetime modes do not implement input parsing in v1. The committed
+    // selection on the picker is authoritative; bailing out preserves the time
+    // component across reopens (date-only parsing would silently zero it).
+    if (picker.options.pickerMode !== 'date') {
+        return;
+    }
+
     const value = picker.input.value;
     interactionLogger.debug('updateCalendarFromInput - value:', value);
 

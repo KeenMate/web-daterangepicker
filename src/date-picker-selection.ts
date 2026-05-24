@@ -155,6 +155,13 @@ function moveFocusToDate(picker: any, target: Date): void {
  */
 function formatInputValue(picker: any): string | null {
     const mode = picker.options.selectionMode;
+    // Time-only mode: selectedDate stays null. Format from selectedTime parts so
+    // Apply writes "10:37:50" even though there's no date involved.
+    if (picker.options.pickerMode === 'time') {
+        const t = picker.selectedTime;
+        const anyCommitted = t && (t.hour !== null || t.minute !== null || t.second !== null);
+        return anyCommitted ? picker.formatTime(t) : null;
+    }
     if (mode === 'range' && picker.selectedStartDate && picker.selectedEndDate) {
         return `${picker.formatDate(picker.selectedStartDate)} - ${picker.formatDate(picker.selectedEndDate)}`;
     }
@@ -293,11 +300,14 @@ export async function selectDay(picker: any, dayElement: HTMLElement) {
         picker.selectedDate = finalDate;
         commitInputValue(picker, picker.formatDate(finalDate));
 
+        // In datetime mode, the payload to onSelect is the composed Date+time.
+        const payload = picker.options.pickerMode === 'datetime' ? picker.selectedDatetime : finalDate;
+
         // Defer onSelect callback if Apply button is required
         if (picker.requiresApplyButton()) {
-            picker.pendingSelection = finalDate;
+            picker.pendingSelection = payload;
         } else {
-            if (picker.options.onSelect) picker.options.onSelect(finalDate);
+            if (picker.options.onSelect) picker.options.onSelect(payload);
         }
 
         // Auto-close handling
@@ -425,15 +435,22 @@ export async function selectDay(picker: any, dayElement: HTMLElement) {
 }
 
 export function selectToday(picker: any) {
+    // Time mode has no calendar grid to seek to — Today is meaningless there.
+    if (picker.options.pickerMode === 'time') return;
+
     picker.monthDates[picker.activeMonthIndex] = new Date();
-    picker.selectedDate = new Date();
+    // In datetime mode keep selectedDate as date-only (time lives in selectedTime
+    // and is untouched). In date mode the time portion is irrelevant.
+    const today = new Date();
+    picker.selectedDate = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+    const payload = picker.options.pickerMode === 'datetime' ? picker.selectedDatetime : picker.selectedDate;
     commitInputValue(picker, picker.formatDate(picker.selectedDate));
 
     // Defer onSelect callback if Apply button is required
     if (picker.requiresApplyButton()) {
-        picker.pendingSelection = picker.selectedDate;
+        picker.pendingSelection = payload;
     } else {
-        if (picker.options.onSelect) picker.options.onSelect(picker.selectedDate);
+        if (picker.options.onSelect) picker.options.onSelect(payload);
     }
 
     picker.renderCalendar();
@@ -451,6 +468,7 @@ export function clearSelection(picker: any) {
     picker.selectedRanges = [];
     picker.selectedDates = [];
     picker.pendingSelection = null;
+    picker.selectedTime = null;
 
     // Clear drag preview state
     picker.dragPreviewStart = null;
@@ -471,6 +489,100 @@ export function clearSelection(picker: any) {
         picker.input.value = '';
     }
     commitSelection(picker);
+}
+
+/**
+ * Ensure picker.selectedTime exists with all fields null. Each select* helper
+ * then fills in the field the user clicked. Null fields stay null so the
+ * renderer knows not to highlight that roll.
+ */
+function ensureSelectedTime(picker: any) {
+    if (!picker.selectedTime) {
+        picker.selectedTime = { hour: null, minute: null, second: null, ampm: null };
+    }
+    return picker.selectedTime;
+}
+
+function commitTimeSelection(picker: any) {
+    const mode = picker.options.pickerMode;
+    let formatted: string;
+    if (mode === 'time') {
+        formatted = picker.formatTime(picker.selectedTime);
+    } else if (mode === 'datetime' && picker.selectedDate) {
+        formatted = picker.formatDate(picker.selectedDate);
+    } else {
+        // datetime mode without a committed date — show just the time so the
+        // user sees feedback for their click. Day-click later replaces the input.
+        formatted = picker.formatTime(picker.selectedTime);
+    }
+    commitInputValue(picker, formatted);
+    // onSelect receives the composed Date when the picker has time semantics.
+    const payload = picker.selectedDatetime;
+    if (picker.requiresApplyButton()) {
+        picker.pendingSelection = payload;
+    } else if (picker.options.onSelect) {
+        picker.options.onSelect(payload);
+    }
+    picker.renderCalendar();
+}
+
+export function selectHour(picker: any, hour: number, is12Hour: boolean) {
+    const time = ensureSelectedTime(picker);
+    let h24 = hour;
+    if (is12Hour) {
+        // Translate 1-12 + current AM/PM into 0-23. If user hasn't picked AM/PM
+        // yet, default to AM (matches old behavior where the seed was 00:00:00).
+        const wasPm = time.ampm === 'pm' || (time.ampm === null && (time.hour ?? 0) >= 12);
+        if (hour === 12) h24 = wasPm ? 12 : 0;
+        else h24 = wasPm ? hour + 12 : hour;
+        // Auto-commit ampm so the AM/PM roll highlights the implied half.
+        time.ampm = h24 >= 12 ? 'pm' : 'am';
+    }
+    time.hour = h24;
+    commitTimeSelection(picker);
+}
+
+export function selectMinute(picker: any, minute: number) {
+    const time = ensureSelectedTime(picker);
+    time.minute = minute;
+    commitTimeSelection(picker);
+}
+
+export function selectSecond(picker: any, second: number) {
+    const time = ensureSelectedTime(picker);
+    time.second = second;
+    commitTimeSelection(picker);
+}
+
+export function selectAmpm(picker: any, ampm: 'am' | 'pm') {
+    const time = ensureSelectedTime(picker);
+    // If hour is already set, shift it into the right half.
+    if (time.hour !== null) {
+        const isPm = time.hour >= 12;
+        if (ampm === 'pm' && !isPm) time.hour += 12;
+        else if (ampm === 'am' && isPm) time.hour -= 12;
+    }
+    time.ampm = ampm;
+    commitTimeSelection(picker);
+}
+
+export function selectNow(picker: any) {
+    const now = new Date();
+    if (picker.options.pickerMode === 'datetime') {
+        // Set both date and time to now, and re-seek calendar to today.
+        picker.selectedDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+        if (picker.monthDates && picker.monthDates.length > 0) {
+            picker.monthDates[picker.activeMonthIndex || 0] = new Date(now.getFullYear(), now.getMonth(), 1);
+        }
+    }
+    // "Now" is an explicit commitment of every time field.
+    picker.selectedTime = {
+        hour: now.getHours(),
+        minute: now.getMinutes(),
+        second: now.getSeconds(),
+        ampm: now.getHours() >= 12 ? 'pm' : 'am',
+    };
+    commitTimeSelection(picker);
 }
 
 export function apply(picker: any) {
@@ -495,6 +607,10 @@ export function apply(picker: any) {
         picker.committedEndDate = picker.selectedEndDate;
     } else if (picker.options.selectionMode === 'single') {
         picker.committedDate = picker.selectedDate;
+    }
+    // Time/datetime modes also commit the time parts so hide() can revert.
+    if (picker.options.pickerMode !== 'date') {
+        picker.committedTime = picker.selectedTime ? { ...picker.selectedTime } : null;
     }
 
     // Always close on Apply (inline mode never closes; floating and modal both close)

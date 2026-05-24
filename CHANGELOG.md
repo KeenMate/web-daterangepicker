@@ -5,6 +5,51 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.14.0] - 2026-05-23
+
+### Added — Time picker and datetime mode
+
+- **New `picker-mode` attribute** with three values: `date` (default, unchanged), `time` (rolls-only popover for picking hours/minutes), and `datetime` (calendar grid and time rolls side-by-side in one popover). Orthogonal to the existing `selection-mode` — date mode keeps the full single/range/multiple matrix. Time and datetime modes are v1.14 single-only; range/multiple silently falls back with a console warning (range datetime will land later).
+- **Rolling-list time rolls** reuse the existing year/month rolling-selector UI pattern (`.drp-date-picker__rolling-list` + `.drp-date-picker__rolling-item`) so they inherit theming hooks for free. Two-to-four columns: hours, minutes, optional seconds, optional AM/PM. Click an item to commit; the highlighted item snaps to the current selection.
+- **Time configuration attributes:**
+  - `time-format-mask` — tokens `HH`/`H`/`hh`/`h`/`mm`/`m`/`ss`/`s`/`a`. Default `HH:mm`. AM/PM column appears when the `a` token is present.
+  - `display-time-format-mask` — parallel to `display-format-mask` for localized placeholder.
+  - `time-step` — minute/second increment shown in the rolls (e.g., `time-step="15"`). Default `1`.
+  - `hour-cycle` — `h12` or `h24`. Auto-derived from the mask (`a` token → h12); explicit attribute wins.
+  - `show-seconds` — adds the seconds roll. Auto-derived from `s` token in the mask; explicit attribute wins.
+  - `show-now-button` — adds a "Now" button next to Today/Clear/Apply. Default true in time/datetime, ignored in date mode.
+- **`autoClose` default flips to `'apply'`** in time/datetime modes so each roll-click doesn't slam the popover shut between hour and minute. User-supplied `auto-close` still wins.
+- **`normalizeDate()` gained a `preserveTime` flag** (default `false` — existing callers unchanged). `initialDate` parsing flips it on in time/datetime modes, so `initial-date="2026-05-23T14:30"` survives both the parse and ISO string handling. Other call sites (`minDate`, `maxDate`, `disabledDates`, day-iteration helpers) stay midnight by design.
+- **Locale strings:** added `time`, `now`, `am`, `pm` to `LocaleStrings`. Hardcoded for the four bundled locales (en/de/fr/es). `customStrings` override still works.
+- **CSS surface:** new `_time-picker.css` partial. New variables `--drp-time-picker-gap`, `--drp-time-picker-padding`, `--drp-time-picker-roll-min-width`, `--drp-time-picker-separator-color`, `--drp-time-picker-label-color`, `--drp-time-picker-main-gap`, `--drp-datetime-min-width` (560px default, popover comfort floor in datetime mode). New BEM classes `.drp-date-picker__main` (datetime row wrapper), `.drp-date-picker__time-picker`, `.drp-date-picker__time-rolls`, `.drp-date-picker__time-column`, `.drp-date-picker__time-column-header`, `.drp-date-picker__time-roll`, `.drp-date-picker__time-separator`, `.drp-date-picker__time-label`, plus root modifiers `.drp-date-picker--time` and `.drp-date-picker--datetime`. `@media (max-width: 600px)` collapses datetime to a vertical stack on narrow viewports / modal mode.
+- **New `examples-time-picker.html`** with 8 scenarios covering the format mask permutations, time-step, seconds, datetime, the range fallback, and ISO-datetime `initial-date`.
+
+### Fixed during dogfooding
+
+- **Time selection split into three separate fields.** `selectedDate` stays date-only (date/datetime modes), `selectedTime: SelectedTime | null` holds nullable `{hour, minute, second, ampm}` parts, and a `selectedDatetime` derived getter composes the two when needed. Replaces the earlier "Y/M/D pinned to today + flags array" shape — single source of truth per field, no double-bookkeeping between the picker's internal `Date` and the committed values.
+- **`showApplyButton` now flips alongside `autoClose`** in time/datetime modes. Previously only `autoClose='apply'` was set by default, so the Apply button was required to commit but never rendered — every time selection silently vanished on close. Both options now flip together; explicit user overrides still win.
+- **`formatInputValue` recognized time-only mode**. The previous gate on `selectedDate` made the input stay empty in time mode even after Apply (no date is set in time mode by design). New `pickerMode === 'time'` branch formats from `selectedTime`.
+- **Rolls re-center on every open with a pre-existing selection.** `show()` now sets a one-shot `forceTimePickerScroll` flag and re-renders the time picker on each open in time/datetime modes. The "already visible" early-return in `scrollFocusIntoView` is bypassed when the flag is set, so a `selectedTime` from `initial-date` (or from a prior committed value) always lands centered.
+- **h12 hour click was a no-op.** The roll items emitted `data-hour-12` but the click router read `el.dataset.hour12` — per the DOMStringMap rule, a hyphen followed by a digit is not consumed, so `hour-12` stays `hour-12` in the dataset. Renamed to `data-hour12` so it camelCases cleanly. h24 mode was unaffected (already `data-hour`).
+- **Datetime layout: calendar + time picker now actually render side-by-side.**
+  - Removed `container-type: inline-size` on `.drp-date-picker--datetime`. Inline-size containment by spec makes the element's width independent of its contents, which pinned the popover at the `min-width` floor and squeezed the calendar below its 280px intrinsic minimum. The `@container` query was replaced with a `@media (max-width: 600px)` viewport breakpoint, which is the appropriate scoping for a `position: fixed` popover.
+  - Set a 560px `min-width` floor on the popover via `--drp-datetime-min-width` so the row layout has room before the breakpoint kicks in.
+  - Dropped `min-width: 0` on the inner `__main > __months` and `__time-picker` rules so each panel's intrinsic min-content propagates and the popover grows naturally to fit calendar (~280px) + time picker (~280-320px depending on `show-seconds` / `hour-cycle`) + gap.
+- **Time-only mode skips the `__main` wrapper** entirely and mounts the time picker as the direct flex-column child of the popover. Avoids an unnecessary scroll container and matches the date-only path's "single primary child" shape.
+- **`__main` scrollbar artifacts**. Originally had `overflow-y: auto`, which per CSS spec coerces `overflow-x: visible` to `auto` (the one-axis rule), producing a spurious horizontal scrollbar at the bottom of the popover. Now `overflow: hidden`, with the inner `__main > __months` carrying its own `overflow-y: auto; overflow-x: hidden` for tall multi-month layouts.
+- **Focused-day outline no longer clipped at the calendar's left edge in datetime mode.** The `padding-inline: 4px` allowance from `_base.css` only matches `.drp-date-picker > __months` (direct child) and didn't apply once `__main` sat in between. Mirrored the padding onto the `__main > __months` rule.
+- **Time rolls fill the available height to match the calendar.** Previously a fixed `max-height: 280px` cap left a gap below the rolls; the obvious fix (drop the cap, let the rolls flex-grow) made the rolls' 24-hour intrinsic content push the popover to ~960px. Final shape: `flex: 1 1 0` on the roll — basis 0 contributes no intrinsic height, so `__main` is driven by the calendar, `__time-picker` stretches to match via `align-items: stretch`, and the roll grows to fill whatever vertical space the time picker has left.
+- **Roll item digits center horizontally.** The cell already had `justify-content: center`, but the `.__rolling-item-text` wrapper is `width: 100%` (for month-name ellipsis), so the short digit labels fell back to left-aligned text. Time-roll text now gets `text-align: center` (scoped to time rolls only, so month names keep their ellipsis layout).
+
+### Out of scope for v1.14 (warnings or documented limitations)
+
+- Time/datetime + `selection-mode="range"` or `"multiple"` — falls back to single, warning logged once.
+- `picker-mode="datetime"` + `month-layout="grid"` — forces horizontal, warning logged once (the grid wants 100% width and the time roll can't share the row).
+- Input mask for time tokens — typing into the input field still triggers the date mask only. On reopen, the committed H/M/S survive because `updateCalendarFromInput` no-ops in time/datetime modes (the picker's `selectedDate` is authoritative).
+- Per-hour disabling — `disabledDates` still disables whole days only.
+- Keyboard navigation in time mode — arrow keys are short-circuited; selecting from the rolls is click-only. Escape closes.
+- `min-time` / `max-time` constraint attributes — deferred.
+
 ## [1.13.0] - 2026-05-22
 
 ### Added — Hover preview for half-selected range mode

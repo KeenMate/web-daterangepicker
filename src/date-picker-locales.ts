@@ -19,7 +19,14 @@ const LOCALE_STRINGS: Record<string, LocaleStrings> = {
     day: 'day',
     days: 'days',
     night: 'night',
-    nights: 'nights'
+    nights: 'nights',
+    time: 'Time',
+    now: 'Now',
+    am: 'AM',
+    pm: 'PM',
+    hours: 'Hours',
+    minutes: 'Minutes',
+    seconds: 'Seconds'
   },
   de: {
     today: 'Heute',
@@ -29,7 +36,14 @@ const LOCALE_STRINGS: Record<string, LocaleStrings> = {
     day: 'Tag',
     days: 'Tage',
     night: 'Nacht',
-    nights: 'Nächte'
+    nights: 'Nächte',
+    time: 'Zeit',
+    now: 'Jetzt',
+    am: 'AM',
+    pm: 'PM',
+    hours: 'Stunden',
+    minutes: 'Minuten',
+    seconds: 'Sekunden'
   },
   fr: {
     today: 'Aujourd\'hui',
@@ -39,7 +53,14 @@ const LOCALE_STRINGS: Record<string, LocaleStrings> = {
     day: 'jour',
     days: 'jours',
     night: 'nuit',
-    nights: 'nuits'
+    nights: 'nuits',
+    time: 'Heure',
+    now: 'Maintenant',
+    am: 'AM',
+    pm: 'PM',
+    hours: 'Heures',
+    minutes: 'Minutes',
+    seconds: 'Secondes'
   },
   es: {
     today: 'Hoy',
@@ -49,7 +70,14 @@ const LOCALE_STRINGS: Record<string, LocaleStrings> = {
     day: 'día',
     days: 'días',
     night: 'noche',
-    nights: 'noches'
+    nights: 'noches',
+    time: 'Hora',
+    now: 'Ahora',
+    am: 'AM',
+    pm: 'PM',
+    hours: 'Horas',
+    minutes: 'Minutos',
+    seconds: 'Segundos'
   }
 };
 

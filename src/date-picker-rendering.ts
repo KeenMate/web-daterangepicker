@@ -64,12 +64,20 @@ export function renderCalendar(picker: any) {
         renderUnifiedRollingSelector(picker);
     }
 
-    // Render each month
-    for (let i = 0; i < picker.options.visibleMonthsCount; i++) {
-        if (picker.showingRollingSelector[i]) {
-            renderRollingSelector(picker, i);
-        } else {
-            renderNormalView(picker, i);
+    // Time picker (time / datetime modes). Lives outside the month loop —
+    // datetime mode also runs the loop below to draw the calendar grid.
+    if (picker.options.pickerMode === 'time' || picker.options.pickerMode === 'datetime') {
+        renderTimePicker(picker);
+    }
+
+    // Render each month (skipped entirely in time-only mode — no DOM to render)
+    if (picker.options.pickerMode !== 'time') {
+        for (let i = 0; i < picker.options.visibleMonthsCount; i++) {
+            if (picker.showingRollingSelector[i]) {
+                renderRollingSelector(picker, i);
+            } else {
+                renderNormalView(picker, i);
+            }
         }
     }
 
@@ -728,6 +736,141 @@ export function renderUnifiedRollingSelector(picker: any) {
         currentMonth: date.getMonth(),
         extraAttrs: 'data-unified="true"',
     });
+}
+
+/**
+ * Populate the four possible time rolls (hours / minutes / [seconds] / [ampm]).
+ * The DOM scaffolding is built once in createCalendar; this function only fills
+ * the inner `.drp-date-picker__rolling-list` containers with items.
+ *
+ * Reads from `picker.selectedTime` — each field is independently nullable. Null
+ * fields don't get a highlight (so picking only the hour leaves the minute roll
+ * un-marked) and their focus value falls back to wall-clock (so the visual
+ * centroid stays useful instead of snapping to 00).
+ */
+export function renderTimePicker(picker: any) {
+    const root = picker.calendar.querySelector('.drp-date-picker__time-picker');
+    if (!root) return;
+
+    const time = picker.selectedTime || { hour: null, minute: null, second: null, ampm: null };
+    // Per-field focus: committed value if the user picked it, else the wall-clock
+    // SNAPSHOT taken when the picker opened. Using a snapshot (not live `new Date()`)
+    // keeps uncommitted rolls still — otherwise real-time-seconds tick forward
+    // between renders and the auto-scroll chases the moving target.
+    const snapshot: Date = picker.timePickerOpenSnapshot || new Date();
+    const focusHour = time.hour !== null ? time.hour : snapshot.getHours();
+    const focusMinute = time.minute !== null ? time.minute : snapshot.getMinutes();
+    const focusSecond = time.second !== null ? time.second : snapshot.getSeconds();
+    const step = picker.options.timeStep || 1;
+    const is12h = picker.options.hourCycle === 'h12';
+
+    // Consume the one-shot "force scroll" flag set by show(). Re-opens must
+    // re-center even if a stale focus item is technically still in the viewport
+    // (the rolls keep their scrollTop across hide/show).
+    const forceScroll = !!picker.forceTimePickerScroll;
+    picker.forceTimePickerScroll = false;
+
+    const items = (range: number[], focusValue: number, selectedValue: number | null, valueAttr: string) => {
+        let html = '';
+        for (const v of range) {
+            const selected = selectedValue !== null && v === selectedValue ? 'drp-date-picker__rolling-item--selected' : '';
+            const focusMark = v === focusValue ? 'data-time-focus="true"' : '';
+            const label = String(v).padStart(2, '0');
+            html += `<div class="drp-date-picker__rolling-item ${selected}" ${valueAttr}="${v}" ${focusMark}><span class="drp-date-picker__rolling-item-text">${label}</span></div>`;
+        }
+        return html;
+    };
+
+    // Scroll the focus item to vertical center within its own roll container,
+    // but only if it's not already fully visible (so clicking an item that's
+    // already on screen doesn't shuffle the list).
+    //
+    // Three things to get right:
+    //   - offsetTop is relative to the nearest positioned ancestor (the popover
+    //     with `position: fixed`), NOT to the scrolling rolling-list. Use
+    //     getBoundingClientRect deltas instead to get the in-container offset.
+    //   - Run inside requestAnimationFrame so reads happen after the browser
+    //     has laid out the freshly-set innerHTML.
+    //   - scrollTo with behavior:'auto' overrides the CSS rule
+    //     `scroll-behavior: smooth` so the position lands instantly.
+    const scrollFocusIntoView = (container: Element | null) => {
+        if (!container) return;
+        requestAnimationFrame(() => {
+            const focused = container.querySelector('[data-time-focus="true"]') as HTMLElement | null;
+            if (!focused) return;
+            const c = container as HTMLElement;
+            const containerRect = c.getBoundingClientRect();
+            const itemRect = focused.getBoundingClientRect();
+            const itemTopInContainer = itemRect.top - containerRect.top + c.scrollTop;
+            const itemBottomInContainer = itemTopInContainer + focused.offsetHeight;
+
+            // On an open render, always re-center — the roll may show a stale
+            // value at the centroid from the previous session. Otherwise skip
+            // when the focus item is already fully visible so per-field clicks
+            // don't shuffle the other rolls.
+            if (!forceScroll && itemTopInContainer >= c.scrollTop && itemBottomInContainer <= c.scrollTop + c.clientHeight) {
+                return;
+            }
+
+            const target = itemTopInContainer - (c.clientHeight - focused.offsetHeight) / 2;
+            c.scrollTo({ top: Math.max(0, target), behavior: 'auto' });
+        });
+    };
+
+    // Hours
+    const hoursContainer = root.querySelector('[data-time-list="hours"]');
+    if (hoursContainer) {
+        if (is12h) {
+            const hours: number[] = [];
+            for (let i = 1; i <= 12; i++) hours.push(i);
+            const displayHour = picker.toDisplayHour(focusHour);
+            const selectedHour = time.hour !== null ? picker.toDisplayHour(time.hour) : null;
+            hoursContainer.innerHTML = items(hours, displayHour, selectedHour, 'data-hour12');
+        } else {
+            const hours: number[] = [];
+            for (let i = 0; i < 24; i++) hours.push(i);
+            const selectedHour = time.hour;
+            hoursContainer.innerHTML = items(hours, focusHour, selectedHour, 'data-hour');
+        }
+        scrollFocusIntoView(hoursContainer);
+    }
+
+    // Minutes
+    const minutesContainer = root.querySelector('[data-time-list="minutes"]');
+    if (minutesContainer) {
+        const minutes: number[] = [];
+        for (let i = 0; i < 60; i += step) minutes.push(i);
+        const snappedFocusMinute = Math.floor(focusMinute / step) * step;
+        const selectedMinute = time.minute !== null ? Math.floor(time.minute / step) * step : null;
+        minutesContainer.innerHTML = items(minutes, snappedFocusMinute, selectedMinute, 'data-minute');
+        scrollFocusIntoView(minutesContainer);
+    }
+
+    // Seconds (optional)
+    if (picker.options.showSeconds) {
+        const secondsContainer = root.querySelector('[data-time-list="seconds"]');
+        if (secondsContainer) {
+            const seconds: number[] = [];
+            for (let i = 0; i < 60; i += step) seconds.push(i);
+            const snappedFocusSecond = Math.floor(focusSecond / step) * step;
+            const selectedSecond = time.second !== null ? Math.floor(time.second / step) * step : null;
+            secondsContainer.innerHTML = items(seconds, snappedFocusSecond, selectedSecond, 'data-second');
+            scrollFocusIntoView(secondsContainer);
+        }
+    }
+
+    // AM/PM (12-hour mode only). Only two items — no scroll needed.
+    if (is12h) {
+        const ampmContainer = root.querySelector('[data-time-list="ampm"]');
+        if (ampmContainer) {
+            const amSelected = time.ampm === 'am' ? 'drp-date-picker__rolling-item--selected' : '';
+            const pmSelected = time.ampm === 'pm' ? 'drp-date-picker__rolling-item--selected' : '';
+            ampmContainer.innerHTML = `
+                <div class="drp-date-picker__rolling-item ${amSelected}" data-ampm="am"><span class="drp-date-picker__rolling-item-text">${picker.localeStrings.am}</span></div>
+                <div class="drp-date-picker__rolling-item ${pmSelected}" data-ampm="pm"><span class="drp-date-picker__rolling-item-text">${picker.localeStrings.pm}</span></div>
+            `;
+        }
+    }
 }
 
 export function updateSummary(picker: any) {

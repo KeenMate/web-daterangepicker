@@ -48,21 +48,30 @@ export function detectWeekStartDay(weekStartDay: 'auto' | 0 | 1 | 2 | 3 | 4 | 5 
 }
 
 /**
- * Normalize a date input (string or Date) to a Date object at midnight
+ * Normalize a date input (string or Date) to a Date object.
+ *
+ * @param preserveTime When false (default), the time component is zeroed to
+ * midnight — load-bearing for day-boundary comparisons in disabled-dates /
+ * range logic. When true, the time component is kept; used by time/datetime
+ * pickerMode where the H/M/S carry meaning. String inputs that lack a time
+ * portion accept either `YYYY-MM-DD` or `YYYY-MM-DDTHH:mm[:ss]` ISO forms.
  */
-export function normalizeDate(dateInput: Date | string): Date | null {
+export function normalizeDate(dateInput: Date | string, preserveTime: boolean = false): Date | null {
     if (!dateInput) return null;
 
     let date: Date;
     if (typeof dateInput === 'string') {
-        // Parse string date (assume YYYY-MM-DD format)
-        date = new Date(dateInput + 'T00:00:00');
+        // Plain date-only string gets a T00:00:00 suffix so it parses in local time.
+        // ISO datetime strings already carry their own time portion.
+        const hasTime = /T\d{2}:\d{2}/.test(dateInput);
+        date = new Date(hasTime ? dateInput : dateInput + 'T00:00:00');
     } else {
         date = new Date(dateInput);
     }
 
-    // Set to midnight to avoid time comparison issues
-    date.setHours(0, 0, 0, 0);
+    if (!preserveTime) {
+        date.setHours(0, 0, 0, 0);
+    }
 
     return isNaN(date.getTime()) ? null : date;
 }

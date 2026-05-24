@@ -13,7 +13,7 @@
  * Dependencies: @floating-ui/dom
  */
 
-import type { DatePickerOptions, DateRange, FormatInfo, MonthDisplay, DecoratedDate, DateInfo, LocaleStrings, ActionButton } from './types';
+import type { DatePickerOptions, DateRange, FormatInfo, TimeFormatInfo, SelectedTime, MonthDisplay, DecoratedDate, DateInfo, LocaleStrings, ActionButton } from './types';
 import * as Validation from './date-picker-validation';
 import * as Rendering from './date-picker-rendering';
 import * as Navigation from './date-picker-navigation';
@@ -34,6 +34,8 @@ class DateRangePicker {
     input: HTMLInputElement | null;
     options: Required<DatePickerOptions>;
     formatInfo: FormatInfo;
+    /** Parsed time format mask, only populated when pickerMode is 'time' or 'datetime'. */
+    timeFormatInfo!: TimeFormatInfo;
     _previousInputValue: string;
     currentDate: Date;
     monthDates: Date[];
@@ -45,11 +47,28 @@ class DateRangePicker {
     selectedDates: Date[];
     pendingSelection: any; // Stores uncommitted selection when Apply button is required
 
+    // Time picker state for pickerMode 'time' / 'datetime'. Each field is
+    // independently nullable so we can highlight only the rolls the user has
+    // explicitly committed (clicking only the hour shouldn't visually claim
+    // minutes/seconds as selected just because they default to 00).
+    selectedTime: SelectedTime | null = null;
+
+    // Wall-clock snapshot captured when the picker opens (time/datetime modes).
+    // renderTimePicker uses this as the focus fallback for fields the user hasn't
+    // committed, so real-time-seconds advance doesn't pull the rolls along.
+    timePickerOpenSnapshot: Date | null = null;
+
+    // Set by show() to tell the next renderTimePicker to force-scroll each roll
+    // to center, bypassing the "already visible" optimization. Needed on reopen
+    // because the rolls keep their stale scroll position from the previous open.
+    forceTimePickerScroll: boolean = false;
+
     // State for deferred commit when Apply button is required
     originalInputValue: string | null = null; // Stores input value when calendar opens (for restore on close without Apply)
     committedDate: Date | null = null; // Last committed single date
     committedStartDate: Date | null = null; // Last committed range start
     committedEndDate: Date | null = null; // Last committed range end
+    committedTime: SelectedTime | null = null; // Last committed time parts (time/datetime modes)
     focusedDayIndex: number | null;
     activeMonthIndex: number;
     showingRollingSelector: boolean[];
@@ -182,8 +201,40 @@ class DateRangePicker {
             showTodayButton: options.showTodayButton !== undefined ? options.showTodayButton : true,
             showClearButton: options.showClearButton !== undefined ? options.showClearButton : true,
             showApplyButton: options.showApplyButton !== undefined ? options.showApplyButton : (options.selectionMode === 'range' || options.selectionMode === 'multiple'),
-            showSummary: options.showSummary !== undefined ? options.showSummary : true
+            showSummary: options.showSummary !== undefined ? options.showSummary : true,
+            pickerMode: options.pickerMode || 'date',
+            timeFormatMask: options.timeFormatMask || 'HH:mm',
+            displayTimeFormatMask: options.displayTimeFormatMask,
+            timeStep: options.timeStep && options.timeStep > 0 ? options.timeStep : 1,
+            hourCycle: options.hourCycle,
+            showSeconds: options.showSeconds,
+            showNowButton: options.showNowButton !== undefined ? options.showNowButton : true
         };
+
+        // Mode fallback enforcement — keep downstream code free of defensive checks.
+        // pickerMode 'time'/'datetime' only support selectionMode 'single' in v1.
+        if (this.options.pickerMode !== 'date' &&
+            (this.options.selectionMode === 'range' || this.options.selectionMode === 'multiple')) {
+            console.warn(`[web-daterangepicker] pickerMode="${this.options.pickerMode}" does not support selectionMode="${this.options.selectionMode}" yet. Falling back to "single".`);
+            this.options.selectionMode = 'single';
+            this.options.visibleMonthsCount = 1;
+            this.options.showApplyButton = options.showApplyButton !== undefined ? options.showApplyButton : true;
+        }
+        // pickerMode 'datetime' + monthLayout 'grid' — the time picker fights the grid for width.
+        if (this.options.pickerMode === 'datetime' && this.options.monthLayout === 'grid') {
+            console.warn('[web-daterangepicker] pickerMode="datetime" is incompatible with monthLayout="grid". Falling back to "horizontal".');
+            this.options.monthLayout = 'horizontal';
+        }
+        // For time/datetime modes, default autoClose to 'apply' so each roll-click
+        // doesn't auto-commit. Honors an explicit user-supplied autoClose value.
+        // The matching showApplyButton flip is required — otherwise Apply is gated
+        // on but the button never renders and the user has no way to commit.
+        if (this.options.pickerMode !== 'date' && options.autoClose === undefined) {
+            this.options.autoClose = 'apply';
+        }
+        if (this.options.pickerMode !== 'date' && options.showApplyButton === undefined) {
+            this.options.showApplyButton = true;
+        }
 
         // Enable/disable logging based on showDebugInfo option
         if (this.options.showDebugInfo) {
@@ -220,6 +271,17 @@ class DateRangePicker {
         this.formatInfo = this.parseFormat(this.options.dateFormatMask);
         drpLogger.debug('Format info:', this.formatInfo);
 
+        // Parse time format for time / datetime modes. Always parse (even in date mode)
+        // so the field is populated for any later picker-mode flip via updateOptions.
+        this.timeFormatInfo = this.parseTimeFormat(this.options.timeFormatMask);
+        // Derive hourCycle and showSeconds from the time mask if not explicitly set.
+        if (this.options.hourCycle === undefined) {
+            this.options.hourCycle = this.timeFormatInfo.is12Hour ? 'h12' : 'h24';
+        }
+        if (this.options.showSeconds === undefined) {
+            this.options.showSeconds = this.timeFormatInfo.hasSeconds;
+        }
+
         // Track previous input value for deletion detection
         this._previousInputValue = '';
 
@@ -228,8 +290,10 @@ class DateRangePicker {
         // Determine initial display date
         let initialDisplayDate: Date;
         if (this.options.initialDate) {
-            // Use explicit initialDate if provided
-            const parsedDate = Validation.normalizeDate(this.options.initialDate);
+            // Use explicit initialDate if provided. Preserve the time portion when
+            // pickerMode carries time meaning so ISO datetime strings survive.
+            const preserveTime = this.options.pickerMode === 'time' || this.options.pickerMode === 'datetime';
+            const parsedDate = Validation.normalizeDate(this.options.initialDate, preserveTime);
             initialDisplayDate = parsedDate || new Date();
             drpLogger.debug(`Using initialDate: ${initialDisplayDate.toISOString()}`);
         } else if (this.options.rollingYearRange || this.options.rollingMonthRange) {
@@ -284,6 +348,28 @@ class DateRangePicker {
         this.pendingSelection = null;
         this.focusedDayIndex = null;
         this.activeMonthIndex = 0; // Track which month column is active for keyboard navigation
+
+        // For time/datetime modes: if initialDate was provided with time, seed selectedDate
+        // (date portion) and selectedTime (h/m/s) so the input shows it on first render.
+        // Otherwise leave both null and let the user commit.
+        if (this.options.pickerMode !== 'date' && this.options.initialDate) {
+            const seedDate = Validation.normalizeDate(this.options.initialDate, true);
+            if (seedDate) {
+                // Date portion (Y/M/D only, time zeroed)
+                const dateOnly = new Date(seedDate.getFullYear(), seedDate.getMonth(), seedDate.getDate());
+                this.selectedDate = dateOnly;
+                this.committedDate = dateOnly;
+                // Time portion — every field is a developer commitment.
+                const h = seedDate.getHours();
+                this.selectedTime = {
+                    hour: h,
+                    minute: seedDate.getMinutes(),
+                    second: seedDate.getSeconds(),
+                    ampm: h >= 12 ? 'pm' : 'am',
+                };
+                this.committedTime = { ...this.selectedTime };
+            }
+        }
 
         // Initialize rolling selector state for each month
         this.showingRollingSelector = [];
@@ -368,6 +454,12 @@ class DateRangePicker {
             if (this.options.positioningMode === 'floating' && this.isOpen) {
                 // Check if scroll close is disabled globally
                 if (this.options.closeOnScroll === false) {
+                    return;
+                }
+
+                // Time/datetime modes have internal scroll inside the time rolls;
+                // scrolling there must not slam the popover shut.
+                if (this.options.pickerMode === 'time' || this.options.pickerMode === 'datetime') {
                     return;
                 }
 
@@ -494,6 +586,9 @@ class DateRangePicker {
             'unifiedNavigationAnchorIndex',
             'calendarOpenTrigger',
             'showSummary',
+            'pickerMode',
+            'showSeconds',
+            'hourCycle',
         ];
         const has = (k: keyof DatePickerOptions) => Object.prototype.hasOwnProperty.call(partial, k);
         const changed = (k: keyof DatePickerOptions) => has(k) && (partial as any)[k] !== (this.options as any)[k];
@@ -639,11 +734,19 @@ class DateRangePicker {
     private getDefaultButtons(): ActionButton[] {
         const buttons: ActionButton[] = [];
 
-        // Today button
-        if (this.options.showTodayButton) {
+        // Today button — date and datetime modes only. Time-only has no day to navigate to.
+        if (this.options.showTodayButton && this.options.pickerMode !== 'time') {
             buttons.push({
                 action: 'today',
                 text: this.localeStrings.today
+            });
+        }
+
+        // Now button — time and datetime modes only.
+        if (this.options.showNowButton && this.options.pickerMode !== 'date') {
+            buttons.push({
+                action: 'now',
+                text: this.localeStrings.now
             });
         }
 
@@ -865,6 +968,11 @@ class DateRangePicker {
             this.calendar.classList.add('drp-date-picker--unified-nav');
         }
 
+        // Picker-mode modifier class — used by CSS for the time picker layout.
+        if (this.options.pickerMode === 'time' || this.options.pickerMode === 'datetime') {
+            this.calendar.classList.add(`drp-date-picker--${this.options.pickerMode}`);
+        }
+
         // Create unified navigation header (if enabled)
         if (this.options.unifiedNavigation) {
             this.unifiedHeader = document.createElement('div');
@@ -911,8 +1019,11 @@ class DateRangePicker {
             monthsContainer.className = 'drp-date-picker__months drp-date-picker__months--horizontal';
         }
 
+        // Skip month rendering entirely in time-only mode.
+        const skipMonths = this.options.pickerMode === 'time';
+
         // Create individual month calendars
-        for (let i = 0; i < this.options.visibleMonthsCount; i++) {
+        for (let i = 0; !skipMonths && i < this.options.visibleMonthsCount; i++) {
             const monthCalendar = document.createElement('div');
             monthCalendar.className = 'drp-date-picker__month';
             monthCalendar.dataset.monthIndex = String(i);
@@ -943,7 +1054,45 @@ class DateRangePicker {
             monthsContainer.appendChild(monthCalendar);
         }
 
-        this.calendar.appendChild(monthsContainer);
+        // Time picker DOM (built once, placed differently depending on mode).
+        let timePicker: HTMLDivElement | null = null;
+        if (this.options.pickerMode === 'time' || this.options.pickerMode === 'datetime') {
+            timePicker = document.createElement('div');
+            timePicker.className = 'drp-date-picker__time-picker';
+            // Layout: section label, then a row of columns. Each column has a
+            // header (Hours / Minutes / Seconds / AM/PM) above its roll list.
+            const column = (key: string, headerText: string, extraRollClass: string = '') => `
+                <div class="drp-date-picker__time-column">
+                    <div class="drp-date-picker__time-column-header">${headerText}</div>
+                    <div class="drp-date-picker__rolling-list drp-date-picker__time-roll ${extraRollClass}" data-time-list="${key}"></div>
+                </div>
+            `;
+            timePicker.innerHTML = `
+                <div class="drp-date-picker__time-label">${this.localeStrings.time}</div>
+                <div class="drp-date-picker__time-rolls">
+                    ${column('hours', this.localeStrings.hours)}
+                    ${column('minutes', this.localeStrings.minutes)}
+                    ${this.options.showSeconds ? column('seconds', this.localeStrings.seconds) : ''}
+                    ${this.options.hourCycle === 'h12' ? column('ampm', `${this.localeStrings.am}/${this.localeStrings.pm}`, 'drp-date-picker__time-roll--ampm') : ''}
+                </div>
+            `;
+        }
+
+        // Mount strategy by mode:
+        //   date     -> monthsContainer is the direct flex-column child (unchanged).
+        //   time     -> timePicker is the direct child; no wrapper, no months.
+        //   datetime -> .drp-date-picker__main wraps months + timePicker side by side.
+        if (this.options.pickerMode === 'datetime') {
+            const main = document.createElement('div');
+            main.className = 'drp-date-picker__main';
+            main.appendChild(monthsContainer);
+            main.appendChild(timePicker!);
+            this.calendar.appendChild(main);
+        } else if (this.options.pickerMode === 'time') {
+            this.calendar.appendChild(timePicker!);
+        } else {
+            this.calendar.appendChild(monthsContainer);
+        }
 
         // Add message area (for validation feedback, errors, etc.)
         this.messageElement = document.createElement('div');
@@ -1091,9 +1240,36 @@ class DateRangePicker {
             else if (action === 'toggle-rolling') this.toggleRollingSelector(monthIndex);
             else if (action === 'toggle-unified-rolling') this.toggleUnifiedRollingSelector();
             else if (action === 'today') this.selectToday();
+            else if (action === 'now') this.selectNow();
             else if (action === 'clear') this.clearSelection();
             else if (action === 'apply') this.apply();
             else if (action === 'close-message') this.hideMessage();
+            else if (target.closest('[data-hour], [data-hour12]')) {
+                const el = target.closest('[data-hour], [data-hour12]') as HTMLElement;
+                if (el.dataset.hour !== undefined) {
+                    this.selectHour(parseInt(el.dataset.hour, 10), false);
+                } else if (el.dataset.hour12 !== undefined) {
+                    this.selectHour(parseInt(el.dataset.hour12, 10), true);
+                }
+            }
+            else if (target.closest('[data-minute]')) {
+                const el = target.closest('[data-minute]') as HTMLElement;
+                if (el.dataset.minute !== undefined) {
+                    this.selectMinute(parseInt(el.dataset.minute, 10));
+                }
+            }
+            else if (target.closest('[data-second]')) {
+                const el = target.closest('[data-second]') as HTMLElement;
+                if (el.dataset.second !== undefined) {
+                    this.selectSecond(parseInt(el.dataset.second, 10));
+                }
+            }
+            else if (target.closest('[data-ampm]')) {
+                const el = target.closest('[data-ampm]') as HTMLElement;
+                if (el.dataset.ampm === 'am' || el.dataset.ampm === 'pm') {
+                    this.selectAmpm(el.dataset.ampm);
+                }
+            }
             else if (target.closest('.drp-date-picker__day:not(.drp-date-picker__day--disabled)')) {
                 await this.selectDay(target.closest('.drp-date-picker__day') as HTMLElement);
             }
@@ -1237,6 +1413,12 @@ class DateRangePicker {
             if (!this.isCalendarActive) return;
 
             drpLogger.debug('Keydown', e.key, 'Ctrl:', e.ctrlKey, 'Meta:', e.metaKey, 'Shift:', e.shiftKey, 'Alt:', e.altKey);
+
+            // Time mode has no calendar grid — allow Escape but skip every grid-relative key.
+            // Arrow-keys-step-time is out of scope for v1; revisit later.
+            if (this.options.pickerMode === 'time' && e.key !== 'Escape') {
+                return;
+            }
 
             if (e.key === 'Escape') {
                 this.hide();
@@ -1557,6 +1739,54 @@ class DateRangePicker {
         // Note: Outside click handling is now managed by the clickEvents manager (see setupEventSubscriptions)
     }
 
+    /**
+     * Parse a time format mask into a TimeFormatInfo. Tokens: HH/H (24h hours),
+     * hh/h (12h hours), mm/m, ss/s, a (am/pm). Separators between fields are
+     * preserved literally (typically `:`). The `a` token, when present, switches
+     * 12-hour mode on regardless of the hour token used.
+     */
+    parseTimeFormat(formatString: string): TimeFormatInfo {
+        const parts: TimeFormatInfo['parts'] = {};
+        let separator = ':';
+        if (formatString.includes(':')) separator = ':';
+        else if (formatString.includes('.')) separator = '.';
+
+        // Detect tokens by regex scan over the format string. Ampm is a separate
+        // suffix token after a space; we treat the time tokens as the rest.
+        const trimmed = formatString.trim();
+
+        // Hours
+        let is12Hour = false;
+        const hh = trimmed.match(/HH|hh|H(?!H)|h(?!h)/);
+        if (hh) {
+            const len = hh[0].length;
+            parts.hours = { index: 0, length: len };
+            is12Hour = hh[0] === 'h' || hh[0] === 'hh';
+        }
+
+        // Minutes
+        const mm = trimmed.match(/mm|m(?!m)/);
+        if (mm) {
+            parts.minutes = { index: 1, length: mm[0].length };
+        }
+
+        // Seconds
+        let hasSeconds = false;
+        const ss = trimmed.match(/ss|s(?!s)/);
+        if (ss) {
+            parts.seconds = { index: 2, length: ss[0].length };
+            hasSeconds = true;
+        }
+
+        // AM/PM marker
+        if (/\ba\b/.test(trimmed)) {
+            parts.ampm = { index: 3 };
+            is12Hour = true;
+        }
+
+        return { format: formatString, separator, parts, is12Hour, hasSeconds };
+    }
+
     // Helper methods
     parseFormat(formatString: string): FormatInfo {
         // Parse format string like "YYYY-MM-DD" or "DD.MM.YYYY"
@@ -1597,7 +1827,7 @@ class DateRangePicker {
         const day = String(date.getDate()).padStart(2, '0');
 
         // Use configured format
-        const { format, separator, parts } = this.formatInfo;
+        const { separator, parts } = this.formatInfo;
         const values: (string | number)[] = [];
 
         // Build array in correct order
@@ -1611,7 +1841,59 @@ class DateRangePicker {
             }
         }
 
-        return values.join(separator);
+        const datePart = values.join(separator);
+
+        // Time mode: time only. Datetime mode: date + space + time. Date mode: date only.
+        // Time portion is sourced from this.selectedTime — `date` only supplies Y/M/D.
+        if (this.options.pickerMode === 'time') {
+            return this.formatTime(this.selectedTime);
+        }
+        if (this.options.pickerMode === 'datetime') {
+            return `${datePart} ${this.formatTime(this.selectedTime)}`;
+        }
+        return datePart;
+    }
+
+    /**
+     * Format `selectedTime` parts using `timeFormatInfo`. Null fields render as 00
+     * (or 12 for the hours roll in h12 mode, since the hour token is 1-12 there).
+     * Only used when pickerMode is 'time' or 'datetime'.
+     */
+    formatTime(time: SelectedTime | null): string {
+        const info = this.timeFormatInfo;
+        const h24 = time?.hour ?? 0;
+        const m = time?.minute ?? 0;
+        const s = time?.second ?? 0;
+
+        const pad = (n: number, len: number) => String(n).padStart(len, '0');
+
+        let formatted = info.format;
+
+        if (info.parts.hours) {
+            const len = info.parts.hours.length;
+            const value = info.is12Hour ? this.toDisplayHour(h24) : h24;
+            formatted = formatted.replace(len === 2 ? /HH|hh/ : /H|h/, pad(value, len));
+        }
+        if (info.parts.minutes) {
+            const len = info.parts.minutes.length;
+            formatted = formatted.replace(len === 2 ? /mm/ : /m/, pad(m, len));
+        }
+        if (info.parts.seconds) {
+            const len = info.parts.seconds.length;
+            formatted = formatted.replace(len === 2 ? /ss/ : /s/, pad(s, len));
+        }
+        if (info.parts.ampm) {
+            const label = h24 >= 12 ? this.localeStrings.pm : this.localeStrings.am;
+            formatted = formatted.replace(/a/, label);
+        }
+
+        return formatted;
+    }
+
+    /** Convert 0-23 hour to 1-12 display hour (12-hour clock). */
+    toDisplayHour(h24: number): number {
+        const mod = h24 % 12;
+        return mod === 0 ? 12 : mod;
     }
 
     // Reactive getters/setters for programmatic control
@@ -1709,6 +1991,32 @@ class DateRangePicker {
     }
 
     /**
+     * Composed date+time value, derived from `selectedDate` (Y/M/D) and
+     * `selectedTime` (H/M/S). Returns null in date mode (use `selectedDate`
+     * instead) and in datetime mode when no date has been committed yet.
+     *
+     * In `time` mode the date portion is anchored to today.
+     */
+    get selectedDatetime(): Date | null {
+        const mode = this.options.pickerMode;
+        if (mode === 'date') return this.selectedDate ? new Date(this.selectedDate) : null;
+        const t = this.selectedTime;
+        const h = t?.hour ?? 0;
+        const m = t?.minute ?? 0;
+        const s = t?.second ?? 0;
+        if (mode === 'time') {
+            const d = new Date();
+            d.setHours(h, m, s, 0);
+            return d;
+        }
+        // datetime — both parts required (date drives the anchor)
+        if (!this.selectedDate) return null;
+        const d = new Date(this.selectedDate);
+        d.setHours(h, m, s, 0);
+        return d;
+    }
+
+    /**
      * Fire a custom-action event with the provided data attributes
      */
     private fireCustomActionEvent(detail: Record<string, string>): void {
@@ -1803,6 +2111,11 @@ class DateRangePicker {
     selectToday() { return Selection.selectToday(this); }
     clearSelection() { return Selection.clearSelection(this); }
     apply() { return Selection.apply(this); }
+    selectHour(hour: number, is12Hour: boolean) { return Selection.selectHour(this, hour, is12Hour); }
+    selectMinute(minute: number) { return Selection.selectMinute(this, minute); }
+    selectSecond(second: number) { return Selection.selectSecond(this, second); }
+    selectAmpm(ampm: 'am' | 'pm') { return Selection.selectAmpm(this, ampm); }
+    selectNow() { return Selection.selectNow(this); }
 
     // Interaction methods - wrappers for pure functions
     initDragListeners() { return Interaction.initDragListeners(this); }

@@ -115,8 +115,8 @@ export interface BeforeMonthChangeResult {
  * Aligned with web-multiselect ActionButton interface
  */
 export interface ActionButton {
-  /** Action identifier ('today', 'clear', 'apply', or 'custom' for custom actions) */
-  action: 'today' | 'clear' | 'apply' | 'custom';
+  /** Action identifier ('today', 'now', 'clear', 'apply', or 'custom' for custom actions) */
+  action: 'today' | 'now' | 'clear' | 'apply' | 'custom';
 
   /** Button text label */
   text: string;
@@ -152,8 +152,32 @@ export interface ActionButton {
   getTooltipCallback?: (picker: any) => string;
 }
 
+export type PickerMode = 'date' | 'time' | 'datetime';
+
 export interface DatePickerOptions {
   selectionMode?: 'single' | 'range' | 'multiple';
+  /**
+   * What the picker is selecting:
+   * - 'date' (default): calendar grid only — unchanged historical behavior
+   * - 'time': time rolls only (hours/minutes + optional seconds/AM-PM), no calendar
+   * - 'datetime': calendar grid plus time rolls in a side-by-side popover
+   *
+   * In v1, 'time' and 'datetime' only support selectionMode 'single' and
+   * 'datetime' is incompatible with monthLayout 'grid' — both fall back with a console warning.
+   */
+  pickerMode?: PickerMode;
+  /** Time format for time / datetime modes. Tokens: HH/H, hh/h, mm/m, ss/s, a. Default: 'HH:mm'. */
+  timeFormatMask?: string;
+  /** Optional separate display format for the time portion (mirrors displayFormatMask). Falls back to timeFormatMask. */
+  displayTimeFormatMask?: string;
+  /** Minute (and second) increment for the rolls. Default: 1. */
+  timeStep?: number;
+  /** 'h24' for 0-23, 'h12' for 1-12 + AM/PM roll. Default: derived from timeFormatMask (h12 if `a` token present, else h24). */
+  hourCycle?: 'h12' | 'h24';
+  /** Show a third roll for seconds. Default: derived from timeFormatMask (true if `s` token present). */
+  showSeconds?: boolean;
+  /** Show a "Now" button in time/datetime modes (parallel to showTodayButton). Default: true. Ignored in date mode. */
+  showNowButton?: boolean;
   calendarPlacement?: string;
   visibleMonthsCount?: number;
   dateFormatMask?: string;
@@ -447,6 +471,15 @@ export interface LocaleStrings {
   days: string;
   night: string;
   nights: string;
+
+  // Time picker (used in pickerMode 'time' / 'datetime')
+  time: string;
+  now: string;
+  am: string;
+  pm: string;
+  hours: string;
+  minutes: string;
+  seconds: string;
 }
 
 export interface DateRange {
@@ -463,6 +496,38 @@ export interface FormatInfo {
     day?: { index: number; length: number };
   };
   maxLength: number;
+}
+
+/**
+ * Per-field time selection state for the time picker.
+ *
+ * Each field is independently nullable so we can distinguish "user committed
+ * this value" from "still defaulted". `hour` is stored as 0-23 (canonical, mode-
+ * independent). `ampm` is a separate commit-flag-with-value used only for the
+ * AM/PM roll highlight in h12 mode; its half is always derivable from `hour`.
+ */
+export interface SelectedTime {
+  hour: number | null;       // 0-23
+  minute: number | null;     // 0-59
+  second: number | null;     // 0-59
+  ampm: 'am' | 'pm' | null;  // h12 mode only; UI commit flag
+}
+
+/**
+ * Parsed time format mask, parallel to FormatInfo for the date side.
+ * Used by time/datetime modes. Tokens recognised: HH/H (24h), hh/h (12h), mm/m, ss/s, a (am/pm).
+ */
+export interface TimeFormatInfo {
+  format: string;
+  separator: string;
+  parts: {
+    hours?: { index: number; length: number };
+    minutes?: { index: number; length: number };
+    seconds?: { index: number; length: number };
+    ampm?: { index: number };
+  };
+  is12Hour: boolean;
+  hasSeconds: boolean;
 }
 
 export interface MonthDisplay {

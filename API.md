@@ -101,6 +101,13 @@ All attributes can be set directly on the `<web-daterangepicker>` HTML element.
 | `font-size` | `'xs' \| 'sm' \| 'md' \| 'lg' \| 'xl'` | `'md'` | Calendar font size scale |
 | `cell-size` | `'xs' \| 'sm' \| 'md' \| 'lg' \| 'xl'` | `'md'` | Calendar day cell size |
 | `enable-transitions` | `boolean` | `false` | Enable CSS transitions/animations (opt-in for performance) |
+| `picker-mode` | `'date' \| 'time' \| 'datetime'` | `'date'` | What the picker selects. `'date'` (default) is the historical calendar-only behavior. `'time'` shows only the rolling-list time picker (hours/minutes/[seconds]/[AM-PM]). `'datetime'` shows calendar grid + time picker side-by-side. Time/datetime are single-mode only in v1.14; range/multiple falls back with a console warning. |
+| `time-format-mask` | `string` | `'HH:mm'` | Time format for time/datetime modes. Tokens: `HH`/`H` (24h), `hh`/`h` (12h), `mm`/`m`, `ss`/`s`, `a` (AM/PM marker). |
+| `display-time-format-mask` | `string` | falls back to `time-format-mask` | Localized time placeholder, parallel to `display-format-mask`. |
+| `time-step` | `number` | `1` | Minute/second increment shown in the rolls (e.g., `15` shows `00/15/30/45`). |
+| `hour-cycle` | `'h12' \| 'h24'` | derived from mask | Force 12-hour (adds AM/PM column) or 24-hour. Auto-derives `h12` when the `a` token is present in `time-format-mask`. |
+| `show-seconds` | `boolean` | derived from mask | Add a seconds roll. Auto-true when the `s` token is present in `time-format-mask`. |
+| `show-now-button` | `boolean` | `true` (in time/datetime) | Add a "Now" button to the action bar. Ignored in date mode. |
 
 **Smart default positioning:**
 - Grid layouts: `'bottom'` (centered)
@@ -1084,6 +1091,12 @@ interface LocaleStrings {
   days: string;
   night: string;
   nights: string;
+
+  // Time picker (used when pickerMode is 'time' or 'datetime')
+  time: string;   // Label above the time rolls
+  now: string;    // "Now" button label
+  am: string;     // AM/PM column label for the 12-hour roll
+  pm: string;
 }
 ```
 
