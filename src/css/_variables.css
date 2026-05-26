@@ -240,8 +240,13 @@
   /* Time Picker (pickerMode: time / datetime) */
   --drp-time-picker-gap: var(--drp-spacing-sm);
   --drp-time-picker-padding: 0;
-  --drp-time-picker-max-height: calc(28 * var(--drp-rem));    /* 280px */
-  --drp-time-picker-roll-min-width: calc(6 * var(--drp-rem));  /* 60px floor for columns */
+  --drp-time-picker-roll-min-width: calc(6 * var(--drp-rem));   /* 60px floor for columns */
+  /* Floor for individual roll height. The roll uses flex-basis: 0 so it doesn't
+     push the popover to the full ~960px content height; this min-height gives
+     time-only mode (no calendar to anchor row height) something to render against
+     and ensures ~5-6 items are visible at every scale. In datetime mode the
+     calendar still drives the row height (taller than this floor). */
+  --drp-time-picker-roll-min-height: calc(18 * var(--drp-rem)); /* 180px */
   --drp-time-picker-label-color: var(--drp-text-secondary);
   --drp-time-picker-label-font-size: var(--drp-font-size-sm);
   --drp-time-picker-label-font-weight: var(--drp-font-weight-semibold);

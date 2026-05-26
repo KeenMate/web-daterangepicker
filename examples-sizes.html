@@ -261,6 +261,107 @@
 }</div>
   </div>
 
+  <!-- Time Picker Scaling -->
+  <div class="card">
+    <h2>Time Picker &mdash; Scaling</h2>
+    <p>The <code>picker-mode="time"</code> rolling lists derive their column width, item height, padding,
+      and font size from <code>--drp-rem</code> (and the spacing/font tokens it drives). Change <code>--drp-rem</code>
+      and the whole time picker scales.</p>
+
+    <div class="grid-wide">
+      <div class="form-group">
+        <label>Extra Small (--drp-rem: 6px)</label>
+        <web-daterangepicker
+          class="scale-xs"
+          picker-mode="time"
+          positioning-mode="inline"></web-daterangepicker>
+      </div>
+
+      <div class="form-group">
+        <label>Small (--drp-rem: 8px)</label>
+        <web-daterangepicker
+          class="scale-sm"
+          picker-mode="time"
+          positioning-mode="inline"></web-daterangepicker>
+      </div>
+
+      <div class="form-group">
+        <label>Medium (--drp-rem: 10px, default)</label>
+        <web-daterangepicker
+          class="scale-md"
+          picker-mode="time"
+          positioning-mode="inline"></web-daterangepicker>
+      </div>
+
+      <div class="form-group">
+        <label>Large (--drp-rem: 15px)</label>
+        <web-daterangepicker
+          class="scale-lg"
+          picker-mode="time"
+          positioning-mode="inline"></web-daterangepicker>
+      </div>
+
+      <div class="form-group">
+        <label>Extra Large (--drp-rem: 20px)</label>
+        <web-daterangepicker
+          class="scale-xl"
+          picker-mode="time"
+          positioning-mode="inline"></web-daterangepicker>
+      </div>
+
+      <div class="form-group">
+        <label>12-hour with seconds @ Large</label>
+        <web-daterangepicker
+          class="scale-lg"
+          picker-mode="time"
+          time-format-mask="hh:mm:ss a"
+          positioning-mode="inline"></web-daterangepicker>
+        <small>4 columns (H, M, S, AM/PM) scale together</small>
+      </div>
+    </div>
+  </div>
+
+  <!-- Datetime Picker Scaling -->
+  <div class="card">
+    <h2>Datetime Picker &mdash; Scaling</h2>
+    <p><code>picker-mode="datetime"</code> places the calendar and the time rolls side by side. The popover floor
+      (<code>--drp-datetime-min-width</code>, default <code>calc(56 * var(--drp-rem))</code>) scales with <code>--drp-rem</code>
+      so the side-by-side layout holds at any scale. Inline mode skips the floor and sizes to content.</p>
+
+    <div class="form-group">
+      <label>Small (--drp-rem: 8px)</label>
+      <web-daterangepicker
+        class="scale-sm"
+        picker-mode="datetime"
+        positioning-mode="inline"></web-daterangepicker>
+    </div>
+
+    <div class="form-group">
+      <label>Medium (--drp-rem: 10px, default)</label>
+      <web-daterangepicker
+        class="scale-md"
+        picker-mode="datetime"
+        positioning-mode="inline"></web-daterangepicker>
+    </div>
+
+    <div class="form-group">
+      <label>Large (--drp-rem: 15px)</label>
+      <web-daterangepicker
+        class="scale-lg"
+        picker-mode="datetime"
+        positioning-mode="inline"></web-daterangepicker>
+    </div>
+
+    <div class="form-group">
+      <label>Spacious tokens + large fonts @ Medium</label>
+      <web-daterangepicker
+        class="scale-md spacing-spacious fonts-large"
+        picker-mode="datetime"
+        positioning-mode="inline"></web-daterangepicker>
+      <small>Spacing and font overrides flow through to the time rolls too</small>
+    </div>
+  </div>
+
   <!-- Interactive Demo -->
   <div class="card">
     <h2>Interactive Scale Demo</h2>

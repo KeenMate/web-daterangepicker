@@ -150,10 +150,16 @@
    match the rolls' unconstrained height. Basis 0 means the roll contributes
    no intrinsic height, so __main sizes to the calendar, __time-picker
    stretches to match (align-items: stretch on __main), and the roll
-   flex-grows to fill whatever vertical space __time-picker has left. */
+   flex-grows to fill whatever vertical space __time-picker has left.
+
+   `min-height` (not 0) is needed for time-ONLY mode where there's no calendar
+   to anchor the row height: without it, the whole chain collapses to 0 (no
+   intrinsic height anywhere) and the roll renders empty. The token defaults
+   to ~18rem so ~5-6 items are visible at every scale; in datetime mode the
+   calendar is taller so this floor is invisible (roll stretches past it). */
 .drp-date-picker__time-roll {
   flex: 1 1 0;
-  min-height: 0;
+  min-height: var(--drp-time-picker-roll-min-height);
 }
 
 /* AM/PM has only two items — let the column hug them instead of stretching. */
