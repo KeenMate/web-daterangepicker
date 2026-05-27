@@ -153,6 +153,7 @@ export interface ActionButton {
 }
 
 export type PickerMode = 'date' | 'time' | 'datetime';
+export type TimeDisplay = 'rolls' | 'clock';
 
 export interface DatePickerOptions {
   selectionMode?: 'single' | 'range' | 'multiple';
@@ -178,6 +179,16 @@ export interface DatePickerOptions {
   showSeconds?: boolean;
   /** Show a "Now" button in time/datetime modes (parallel to showTodayButton). Default: true. Ignored in date mode. */
   showNowButton?: boolean;
+  /**
+   * Which UI to use for picking the time portion (time/datetime modes):
+   * - 'rolls' (default): scrollable rolling lists for hours/minutes/seconds/AM-PM (v1.14 default).
+   * - 'clock': Material-style two-step clock face (hours then minutes). h24 uses a dual ring
+   *   (outer 1-12, inner 13-24). Seconds are ignored and `time-step` must divide 60 evenly;
+   *   non-divisor steps fall back to 1 with a console warning.
+   *
+   * Ignored when `pickerMode === 'date'`.
+   */
+  timeDisplay?: TimeDisplay;
   calendarPlacement?: string;
   visibleMonthsCount?: number;
   dateFormatMask?: string;

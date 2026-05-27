@@ -63,6 +63,12 @@ class DateRangePicker {
     // because the rolls keep their stale scroll position from the previous open.
     forceTimePickerScroll: boolean = false;
 
+    // Clock picker (timeDisplay: clock) — which step of the two-step Material
+    // flow is showing. Reset to 'hours' on show(); advances to 'minutes' when
+    // the user picks an hour; clicking the HH or MM digit in the header jumps
+    // back to that step.
+    clockStep: 'hours' | 'minutes' = 'hours';
+
     // State for deferred commit when Apply button is required
     originalInputValue: string | null = null; // Stores input value when calendar opens (for restore on close without Apply)
     committedDate: Date | null = null; // Last committed single date
@@ -208,7 +214,8 @@ class DateRangePicker {
             timeStep: options.timeStep && options.timeStep > 0 ? options.timeStep : 1,
             hourCycle: options.hourCycle,
             showSeconds: options.showSeconds,
-            showNowButton: options.showNowButton !== undefined ? options.showNowButton : true
+            showNowButton: options.showNowButton !== undefined ? options.showNowButton : true,
+            timeDisplay: options.timeDisplay || 'rolls'
         };
 
         // Mode fallback enforcement — keep downstream code free of defensive checks.
@@ -224,6 +231,21 @@ class DateRangePicker {
         if (this.options.pickerMode === 'datetime' && this.options.monthLayout === 'grid') {
             console.warn('[web-daterangepicker] pickerMode="datetime" is incompatible with monthLayout="grid". Falling back to "horizontal".');
             this.options.monthLayout = 'horizontal';
+        }
+        // timeDisplay 'clock' constraints — only when actually rendering time.
+        // The clock face places labels at equal angles around the dial, so a step
+        // that doesn't divide 60 leaves "valid" values mid-arc with no label.
+        // Seconds drop entirely because a third clock step (or a 60-tick dial)
+        // would clutter the UI past the point of usefulness.
+        const clockActive = this.options.timeDisplay === 'clock'
+            && (this.options.pickerMode === 'time' || this.options.pickerMode === 'datetime');
+        if (clockActive && this.options.timeStep && 60 % this.options.timeStep !== 0) {
+            console.warn(`[web-daterangepicker] timeDisplay="clock" requires (60 % timeStep === 0). Got timeStep=${this.options.timeStep}. Falling back to 1.`);
+            this.options.timeStep = 1;
+        }
+        if (clockActive && this.options.showSeconds) {
+            console.warn('[web-daterangepicker] timeDisplay="clock" does not support showSeconds; seconds will always be 00. Set timeDisplay="rolls" to pick seconds.');
+            this.options.showSeconds = false;
         }
         // For time/datetime modes, default autoClose to 'apply' so each roll-click
         // doesn't auto-commit. Honors an explicit user-supplied autoClose value.
@@ -1055,27 +1077,42 @@ class DateRangePicker {
         }
 
         // Time picker DOM (built once, placed differently depending on mode).
+        // Two display strategies share the same wrapper logic: rolls (default,
+        // v1.14) and clock (Material-style face, v1.15). The skeleton differs
+        // but mount placement (no wrapper for time-only, __main for datetime)
+        // is identical.
         let timePicker: HTMLDivElement | null = null;
         if (this.options.pickerMode === 'time' || this.options.pickerMode === 'datetime') {
             timePicker = document.createElement('div');
-            timePicker.className = 'drp-date-picker__time-picker';
-            // Layout: section label, then a row of columns. Each column has a
-            // header (Hours / Minutes / Seconds / AM/PM) above its roll list.
-            const column = (key: string, headerText: string, extraRollClass: string = '') => `
-                <div class="drp-date-picker__time-column">
-                    <div class="drp-date-picker__time-column-header">${headerText}</div>
-                    <div class="drp-date-picker__rolling-list drp-date-picker__time-roll ${extraRollClass}" data-time-list="${key}"></div>
-                </div>
-            `;
-            timePicker.innerHTML = `
-                <div class="drp-date-picker__time-label">${this.localeStrings.time}</div>
-                <div class="drp-date-picker__time-rolls">
-                    ${column('hours', this.localeStrings.hours)}
-                    ${column('minutes', this.localeStrings.minutes)}
-                    ${this.options.showSeconds ? column('seconds', this.localeStrings.seconds) : ''}
-                    ${this.options.hourCycle === 'h12' ? column('ampm', `${this.localeStrings.am}/${this.localeStrings.pm}`, 'drp-date-picker__time-roll--ampm') : ''}
-                </div>
-            `;
+            if (this.options.timeDisplay === 'clock') {
+                timePicker.className = 'drp-date-picker__clock-picker';
+                // Renderer fills .clock-header and .clock-face on every renderCalendar().
+                // AM/PM toggle only emitted for h12 — h24 encodes the half in the hour itself.
+                timePicker.innerHTML = `
+                    <div class="drp-date-picker__clock-header"></div>
+                    <div class="drp-date-picker__clock-face"></div>
+                    ${this.options.hourCycle === 'h12' ? '<div class="drp-date-picker__clock-ampm"></div>' : ''}
+                `;
+            } else {
+                timePicker.className = 'drp-date-picker__time-picker';
+                // Layout: section label, then a row of columns. Each column has a
+                // header (Hours / Minutes / Seconds / AM/PM) above its roll list.
+                const column = (key: string, headerText: string, extraRollClass: string = '') => `
+                    <div class="drp-date-picker__time-column">
+                        <div class="drp-date-picker__time-column-header">${headerText}</div>
+                        <div class="drp-date-picker__rolling-list drp-date-picker__time-roll ${extraRollClass}" data-time-list="${key}"></div>
+                    </div>
+                `;
+                timePicker.innerHTML = `
+                    <div class="drp-date-picker__time-label">${this.localeStrings.time}</div>
+                    <div class="drp-date-picker__time-rolls">
+                        ${column('hours', this.localeStrings.hours)}
+                        ${column('minutes', this.localeStrings.minutes)}
+                        ${this.options.showSeconds ? column('seconds', this.localeStrings.seconds) : ''}
+                        ${this.options.hourCycle === 'h12' ? column('ampm', `${this.localeStrings.am}/${this.localeStrings.pm}`, 'drp-date-picker__time-roll--ampm') : ''}
+                    </div>
+                `;
+            }
         }
 
         // Mount strategy by mode:
@@ -1268,6 +1305,36 @@ class DateRangePicker {
                 const el = target.closest('[data-ampm]') as HTMLElement;
                 if (el.dataset.ampm === 'am' || el.dataset.ampm === 'pm') {
                     this.selectAmpm(el.dataset.ampm);
+                }
+            }
+            // Clock picker (timeDisplay: 'clock') — Material-style face dispatches
+            // through dedicated data attributes so the rolls handlers above stay
+            // independent. Mirrors the rolls' camelCased dataset reads.
+            else if (target.closest('[data-clock-hour], [data-clock-hour12]')) {
+                const el = target.closest('[data-clock-hour], [data-clock-hour12]') as HTMLElement;
+                if (el.dataset.clockHour !== undefined) {
+                    this.selectClockHour(parseInt(el.dataset.clockHour, 10), false);
+                } else if (el.dataset.clockHour12 !== undefined) {
+                    this.selectClockHour(parseInt(el.dataset.clockHour12, 10), true);
+                }
+            }
+            else if (target.closest('[data-clock-minute]')) {
+                const el = target.closest('[data-clock-minute]') as HTMLElement;
+                if (el.dataset.clockMinute !== undefined) {
+                    this.selectClockMinute(parseInt(el.dataset.clockMinute, 10));
+                }
+            }
+            else if (target.closest('[data-clock-step]')) {
+                const el = target.closest('[data-clock-step]') as HTMLElement;
+                const step = el.dataset.clockStep;
+                if (step === 'hours' || step === 'minutes') {
+                    this.setClockStep(step);
+                }
+            }
+            else if (target.closest('[data-clock-ampm]')) {
+                const el = target.closest('[data-clock-ampm]') as HTMLElement;
+                if (el.dataset.clockAmpm === 'am' || el.dataset.clockAmpm === 'pm') {
+                    this.selectAmpm(el.dataset.clockAmpm);
                 }
             }
             else if (target.closest('.drp-date-picker__day:not(.drp-date-picker__day--disabled)')) {
@@ -2115,6 +2182,9 @@ class DateRangePicker {
     selectMinute(minute: number) { return Selection.selectMinute(this, minute); }
     selectSecond(second: number) { return Selection.selectSecond(this, second); }
     selectAmpm(ampm: 'am' | 'pm') { return Selection.selectAmpm(this, ampm); }
+    selectClockHour(hour: number, is12Hour: boolean) { return Selection.selectClockHour(this, hour, is12Hour); }
+    selectClockMinute(minute: number) { return Selection.selectClockMinute(this, minute); }
+    setClockStep(step: 'hours' | 'minutes') { return Selection.setClockStep(this, step); }
     selectNow() { return Selection.selectNow(this); }
 
     // Interaction methods - wrappers for pure functions

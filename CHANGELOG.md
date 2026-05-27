@@ -5,6 +5,42 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.15.0] - 2026-05-27
+
+### Added — Clock-face time picker
+
+- **New `time-display` attribute** with two values: `rolls` (default, unchanged v1.14 behavior) and `clock`. Opt-in Material-style two-step clock face for `picker-mode="time"` and `picker-mode="datetime"`. Rolls implementation stays as the default — no migration required.
+- **Two-step Material flow.** Header shows the current selection as big `HH:MM` digit buttons. The dial starts on hours; clicking an hour auto-advances to the minutes face. Clicking either digit in the header jumps back to that step. The face re-opens on the hours step every time the popover opens.
+- **h24 dual ring.** Outer ring 1-12, inner ring 13-24 with 24 sitting at the 12-o'clock position (so the dual ring reads as "top = midnight + noon"). The hand length shortens to point at the inner ring when an h24 inner-ring value is selected. h12 mode uses the outer ring only plus the AM/PM toggle.
+- **`60 % time-step === 0` enforced in clock mode.** Non-divisor steps (e.g., `time-step="7"`) log a console warning and fall back to `time-step=1`. The rolls mode is unaffected — it still handles arbitrary steps. Valid clock steps: 1, 2, 3, 4, 5, 6, 10, 12, 15, 20, 30. For steps ≥ 5, only valid values get labels; for steps in {1,2,3,4}, labels stay at the 12 standard 5-minute marks and clicks snap to the nearest valid value.
+- **Seconds dropped in clock mode.** A third clock step would clutter past usefulness; if `show-seconds=true` is set alongside `time-display=clock`, a warning fires and the seconds value stays at 0 (the format mask is still honored, e.g. `HH:mm:ss` produces `14:30:00`). Set `time-display=rolls` to pick seconds.
+- **Header AM/PM indicator (h12 only).** After the `HH : MM` digits, a small `AM`/`PM` label surfaces the current half so it's legible without scanning down to the toggle buttons. Falls back to the focus-hour-derived half before the user commits, and the toggle buttons honor the same fallback so the indicator and the buttons never disagree.
+- **Hover preview + rim selection (Material-style).** Hovering a number now paints a semi-transparent accent circle (same `color-mix` recipe and 18% opacity as the range-mode day hover-preview, so the two interactions feel coherent). Click commits and the value gets a rim (inset box-shadow) instead of a solid fill — the value text stays readable, the rim frames it. The marker tracks the focused value (committed if any, otherwise the open-time snapshot) so the hand and the rim always agree, including on first render.
+- **No separate hand tip.** Original Material-style translucent tip ball was removed in favor of the rim above. The hand is just a clean line, shortened by half a button-size so it terminates at the rim's near edge instead of running through the value's center.
+- **CSS surface:** new `_clock-picker.css` partial. New variables `--drp-clock-size`, `--drp-clock-face-bg`, `--drp-clock-radius-outer` / `--drp-clock-radius-inner` / `--drp-clock-radius-minute`, `--drp-clock-number-size` / `--drp-clock-number-size-inner`, `--drp-clock-number-font-size`, `--drp-clock-number-color`, `--drp-clock-number-bg-hover` (resolves to the semi-transparent accent preview), `--drp-clock-number-rim-color` / `--drp-clock-number-rim-width`, `--drp-clock-hand-color` / `--drp-clock-hand-width` / `--drp-clock-hand-pivot-size`, `--drp-clock-header-digit-font-size` / `--drp-clock-header-digit-color` / `--drp-clock-header-digit-color-active`, `--drp-clock-header-sep-color`, `--drp-clock-ampm-*`. New BEM classes `.drp-date-picker__clock-picker`, `__clock-header`, `__clock-header-digit` (+ `--active`), `__clock-header-sep`, `__clock-header-ampm`, `__clock-face`, `__clock-number` (+ `--inner`, `--selected`), `__clock-hand` (+ `--outer` / `--inner` / `--minute` ring modifiers), `__clock-ampm`, `__clock-ampm-button` (+ `--selected`).
+- **5 new clock demos in `examples-time-picker.html`:** h12-with-AMPM, h24-dual-ring, 15-minute-step, non-divisor-step (warning fires), and datetime side-by-side. Sizing demo (`examples-sizes.html`) and theming demo (`examples-theming.html`) also gained clock variants exercising scale and theme overrides.
+
+### Fixed during dogfooding (clock face)
+
+- **Number ring positioning broken at non-default `--drp-rem`.** The renderer was reading `--drp-clock-radius-*` via `getComputedStyle.getPropertyValue`, which returns the literal `calc(...)` token sequence for unregistered custom properties — `parseFloat` then returned `NaN` and the code fell through to a hard-coded fallback (110/75) that only happened to match the actual radius at the default scale. Switched to a temp-ruler measurement, then to `sizePx × known-ratio` when the ruler returns `0` (initial render before layout has run, which is most of the time for inline pickers).
+- **Hand length wrong at non-default `--drp-rem`.** Hand height was driven by an inline `--drp-clock-hand-length: var(--drp-clock-radius-X)` (var inside var via inline style), which turned out to be unreliable across browsers — the fallback to `--drp-clock-radius-outer` was leaking through at scaled sizes, making the hand too long for the inner ring. Replaced with three modifier classes (`__clock-hand--outer` / `--inner` / `--minute`) so each ring's radius resolves once in CSS with no JS indirection.
+- **`hour-cycle="h12"` clicks were a no-op.** The renderer emitted `data-hour-12` but the click router read `el.dataset.hour12` — per the DOMStringMap rule, a hyphen-before-digit isn't consumed, so `hour-12` stays `hour-12` in the dataset. Renamed to `data-hour12` (and the clock equivalent `data-clock-hour12`) so they camelCase cleanly.
+- **Clock face overflowed narrow containers.** Face was `width: var(--drp-clock-size)` (fixed 280px) and would clip outside the popover on mobile-width viewports or stacked datetime mode. Capped via `width: min(var(--drp-clock-size), 100%)` + `aspect-ratio: 1`, and refactored all internal dial dimensions (`--drp-clock-radius-*`, `--drp-clock-number-size*`) from rem multipliers to percentages of the face. Whole dial now shrinks coherently — radii, numbers, hand, hover preview, rim — when the container forces a smaller width.
+
+### Fixed — Responsive layout (calendar + actions)
+
+Surfaced while dogfooding the new datetime+clock combos on narrow viewports; the fixes apply to every mode (date / time / datetime).
+
+- **Calendar columns now shrink to fit narrow containers.** The weekdays grid and the day-cells grid both used `grid-template-columns: repeat(7, 1fr)`, which respects min-content per column — at scale-lg or in a tight popover the weekday labels' min-content (e.g. "WED" at the active font + padding) pushed the grid past the container and the rightmost columns got clipped or shoved off-screen. Switched both to `repeat(7, minmax(0, 1fr))` and added `overflow:hidden; text-overflow:ellipsis; white-space:nowrap` on the weekday labels so they truncate when columns are narrower than the label.
+- **Action button row now wraps.** `.drp-date-picker__actions` was a non-wrapping flex row; with 4 buttons (Today, Now, Clear, Apply) at scale-lg or on a narrow popover the row overflowed past the picker edge. Added `flex-wrap: wrap` so buttons spill to a second row when they can't fit.
+
+### Out of scope for v1.15 (warnings or documented limitations)
+
+- **Drag-the-hand interaction.** Click-only for v1.15. Reusing the existing range-mode drag machinery cleanly is a follow-up.
+- **Seconds on the clock face.** Hard limitation — set `time-display="rolls"` to pick seconds.
+- **Keyboard navigation on the clock face.** Arrow keys are not wired; Material's own picker also skips this. Tab between input and Apply still works.
+- **Animation between hours and minutes steps.** Instant swap for v1.15.
+
 ## [1.14.0] - 2026-05-23
 
 ### Added — Time picker and datetime mode

@@ -66,8 +66,14 @@ export function renderCalendar(picker: any) {
 
     // Time picker (time / datetime modes). Lives outside the month loop —
     // datetime mode also runs the loop below to draw the calendar grid.
+    // Dispatch on timeDisplay: 'rolls' (default) → renderTimePicker,
+    // 'clock' → renderClockPicker (Material-style two-step face, v1.15).
     if (picker.options.pickerMode === 'time' || picker.options.pickerMode === 'datetime') {
-        renderTimePicker(picker);
+        if (picker.options.timeDisplay === 'clock') {
+            renderClockPicker(picker);
+        } else {
+            renderTimePicker(picker);
+        }
     }
 
     // Render each month (skipped entirely in time-only mode — no DOM to render)
@@ -868,6 +874,227 @@ export function renderTimePicker(picker: any) {
             ampmContainer.innerHTML = `
                 <div class="drp-date-picker__rolling-item ${amSelected}" data-ampm="am"><span class="drp-date-picker__rolling-item-text">${picker.localeStrings.am}</span></div>
                 <div class="drp-date-picker__rolling-item ${pmSelected}" data-ampm="pm"><span class="drp-date-picker__rolling-item-text">${picker.localeStrings.pm}</span></div>
+            `;
+        }
+    }
+}
+
+/**
+ * Clock-face time picker (timeDisplay: 'clock').
+ *
+ * Material-style two-step UI: header shows HH:MM big-digit toggle buttons; the
+ * dial renders hour numbers (or minute numbers) positioned around a circle by
+ * angle, with a rotating hand pointing at the current value. AM/PM toggle below
+ * (h12 only).
+ *
+ * Layout philosophy: numbers are absolutely positioned with inline left/top
+ * computed here from angle + radius. The hand uses inline `transform: rotate()`
+ * around its bottom-center pivot (which is the dial center). CSS owns colors,
+ * sizes, and hover/selected styling.
+ */
+export function renderClockPicker(picker: any) {
+    const root = picker.calendar.querySelector('.drp-date-picker__clock-picker');
+    if (!root) return;
+
+    const time = picker.selectedTime || { hour: null, minute: null, second: null, ampm: null };
+    // Focus value semantics match the rolls: committed value if the user picked
+    // it, otherwise the wall-clock snapshot taken when the picker opened. Using
+    // the snapshot avoids live-seconds chasing across renders.
+    const snapshot: Date = picker.timePickerOpenSnapshot || new Date();
+    const focusHour = time.hour !== null ? time.hour : snapshot.getHours();
+    const focusMinute = time.minute !== null ? time.minute : snapshot.getMinutes();
+    const is12h = picker.options.hourCycle === 'h12';
+    const step = picker.options.timeStep || 1;
+    const clockStep: 'hours' | 'minutes' = picker.clockStep || 'hours';
+
+    // ---- Header (HH : MM [AM/PM]) ----
+    const headerEl = root.querySelector('.drp-date-picker__clock-header');
+    if (headerEl) {
+        const displayHour = is12h ? picker.toDisplayHour(focusHour) : focusHour;
+        const hourLabel = String(displayHour).padStart(2, '0');
+        const minuteLabel = String(focusMinute).padStart(2, '0');
+        const hoursActive = clockStep === 'hours' ? 'drp-date-picker__clock-header-digit--active' : '';
+        const minutesActive = clockStep === 'minutes' ? 'drp-date-picker__clock-header-digit--active' : '';
+        // h12 only: surface AM/PM next to the digits so the current half is
+        // legible from the header alone (the toggle buttons below still drive it).
+        // Fall back to focusHour-derived half when the user hasn't committed ampm yet.
+        let ampmIndicator = '';
+        if (is12h) {
+            const ampm = time.ampm ?? (focusHour >= 12 ? 'pm' : 'am');
+            ampmIndicator = `<span class="drp-date-picker__clock-header-ampm">${ampm === 'pm' ? picker.localeStrings.pm : picker.localeStrings.am}</span>`;
+        }
+        headerEl.innerHTML = `
+            <button type="button" class="drp-date-picker__clock-header-digit ${hoursActive}" data-clock-step="hours">${hourLabel}</button>
+            <span class="drp-date-picker__clock-header-sep">:</span>
+            <button type="button" class="drp-date-picker__clock-header-digit ${minutesActive}" data-clock-step="minutes">${minuteLabel}</button>
+            ${ampmIndicator}
+        `;
+    }
+
+    // ---- Dial face ----
+    const faceEl = root.querySelector('.drp-date-picker__clock-face') as HTMLElement | null;
+    if (faceEl) {
+        // Read radii as resolved pixel lengths. Important: `getPropertyValue` on
+        // an unregistered custom property returns the literal token sequence
+        // (e.g. "calc(11 * var(--drp-rem))" or "calc(11 * 15px)"), NOT a
+        // calc-resolved px — so `parseFloat` would always return NaN and we'd
+        // fall through to a fallback that happens to be correct only at the
+        // default --drp-rem. Use a hidden ruler so the browser actually resolves
+        // the calc(); the ruler inherits the face's CSS variable scope.
+        const cs = getComputedStyle(faceEl);
+        const sizePx = parseFloat(cs.width) || 280;
+        // Read each ring radius. Strategy:
+        //   1. Try a hidden ruler with `width: var(--drp-clock-radius-X)`. This
+        //      honors any user override and reads the actually-resolved px.
+        //   2. If offsetWidth comes back 0 — typically on initial render before
+        //      the browser has run a layout pass for the inline-positioned
+        //      pickers — fall back to `sizePx × ratio`, which matches the
+        //      default --drp-clock-radius-* definitions (all proportional to
+        //      --drp-clock-size). Without this fallback, the numbers would be
+        //      placed using stale 110/75 constants and would only line up at
+        //      --drp-rem: 10px (the size at which the constants happen to be
+        //      correct).
+        const ruler = document.createElement('div');
+        ruler.style.cssText = 'position:absolute;visibility:hidden;pointer-events:none;height:0';
+        faceEl.appendChild(ruler);
+        const readPx = (prop: string, ratioOfSize: number) => {
+            ruler.style.width = `var(${prop})`;
+            const v = ruler.offsetWidth;
+            return v > 0 ? v : sizePx * ratioOfSize;
+        };
+        const outerRadiusPx = readPx('--drp-clock-radius-outer', 11 / 28);
+        const innerRadiusPx = readPx('--drp-clock-radius-inner', 7.5 / 28);
+        const minuteRadiusPx = readPx('--drp-clock-radius-minute', 11 / 28);
+        ruler.remove();
+        const outerPct = (outerRadiusPx / sizePx) * 100;
+        const innerPct = (innerRadiusPx / sizePx) * 100;
+        const minutePct = (minuteRadiusPx / sizePx) * 100;
+
+        // angle = (value × stepDeg − 90°) so position 0 (e.g. 12-o'clock, or
+        // minute :00) sits at the top of the dial.
+        const pointAt = (radiusPct: number, angleDeg: number) => {
+            const rad = (angleDeg * Math.PI) / 180;
+            return {
+                left: 50 + radiusPct * Math.cos(rad),
+                top: 50 + radiusPct * Math.sin(rad),
+            };
+        };
+
+        let html = '';
+
+        if (clockStep === 'hours') {
+            // The selected-circle marker tracks the focus value (committed value
+            // if there is one, otherwise the open-time snapshot), not just the
+            // committed value — that way the marker and the hand always agree.
+            // Without this, first render shows the hand pointing somewhere but
+            // no value circled until the user clicks.
+            const markerHour = focusHour;
+            for (let n = 1; n <= 12; n++) {
+                const angle = n * 30 - 90;
+                const pos = pointAt(outerPct, angle);
+                let selected = false;
+                if (is12h) {
+                    // 1..12 ring uses display hour (12-hour clock).
+                    const dh = picker.toDisplayHour(markerHour);
+                    selected = dh === n;
+                } else {
+                    // Outer ring shows 1..12. Inner ring handles 0/13..23.
+                    selected = markerHour === n;
+                }
+                const sel = selected ? 'drp-date-picker__clock-number--selected' : '';
+                const attr = is12h ? `data-clock-hour12="${n}"` : `data-clock-hour="${n}"`;
+                html += `<button type="button" class="drp-date-picker__clock-number ${sel}" ${attr} style="left:${pos.left}%;top:${pos.top}%">${n}</button>`;
+            }
+
+            // Inner ring (h24 only): values 13..24 with 24 at the top (replacing 12).
+            // 13 → 1 o'clock, 14 → 2 o'clock, ..., 23 → 11 o'clock, 24 → 12 o'clock.
+            // The selected highlight uses the canonical 0-23 hour: 0 maps to "24" label.
+            if (!is12h) {
+                for (let n = 13; n <= 24; n++) {
+                    // n === 24 → angle for 12 (top); otherwise n - 12 maps to outer position.
+                    const ringPos = n === 24 ? 12 : n - 12;
+                    const angle = ringPos * 30 - 90;
+                    const pos = pointAt(innerPct, angle);
+                    // Canonical hour-of-day for this label: 24 ↔ 0, 13..23 ↔ themselves.
+                    const canonical = n === 24 ? 0 : n;
+                    const selected = markerHour === canonical;
+                    const sel = selected ? 'drp-date-picker__clock-number--selected' : '';
+                    html += `<button type="button" class="drp-date-picker__clock-number drp-date-picker__clock-number--inner ${sel}" data-clock-hour="${canonical}" style="left:${pos.left}%;top:${pos.top}%">${n}</button>`;
+                }
+            }
+        } else {
+            // Minutes step. Label set:
+            //   - step ∈ {5, 6, 10, 12, 15, 20, 30} → show only valid values (60/step ≤ 12)
+            //   - step ∈ {1, 2, 3, 4}              → show 12 labels at 5-min marks; clicks snap
+            //
+            // Marker uses focus value (not just committed) so the highlighted
+            // label and the hand agree even on first render — same rationale as
+            // the hours step above.
+            const labelStep = step >= 5 ? step : 5;
+            const labelCount = 60 / labelStep;
+            const snappedMarker = Math.round(focusMinute / labelStep) * labelStep % 60;
+            for (let i = 0; i < labelCount; i++) {
+                const value = i * labelStep;
+                const angle = i * (360 / labelCount) - 90;
+                const pos = pointAt(minutePct, angle);
+                const selected = snappedMarker === value;
+                const sel = selected ? 'drp-date-picker__clock-number--selected' : '';
+                const label = String(value).padStart(2, '0');
+                html += `<button type="button" class="drp-date-picker__clock-number ${sel}" data-clock-minute="${value}" style="left:${pos.left}%;top:${pos.top}%">${label}</button>`;
+            }
+        }
+
+        // ---- Hand ----
+        // Angle reflects the actual selected value (or focus value when nothing
+        // is committed) — not the snapped label position — so a :23 selection
+        // with step=1 puts the hand between :20 and :25.
+        //
+        // Length is picked via a modifier class (--outer / --inner / --minute)
+        // so the chain stays in CSS. The tip also resizes from --inner so it
+        // doesn't overflow the smaller h24 inner-ring buttons.
+        let handAngle = 0;
+        let handRingClass = 'drp-date-picker__clock-hand--outer';
+        if (clockStep === 'hours') {
+            if (is12h) {
+                const dh = picker.toDisplayHour(focusHour); // 1..12
+                handAngle = (dh % 12) * 30;
+            } else {
+                // For h24: 1..12 → outer ring angle; 0/13..23 → inner ring angle.
+                if (focusHour === 0 || focusHour > 12) {
+                    const ringPos = focusHour === 0 ? 12 : focusHour - 12;
+                    handAngle = (ringPos % 12) * 30;
+                    handRingClass = 'drp-date-picker__clock-hand--inner';
+                } else {
+                    handAngle = (focusHour % 12) * 30;
+                }
+            }
+        } else {
+            handAngle = focusMinute * 6;
+            handRingClass = 'drp-date-picker__clock-hand--minute';
+        }
+        // No tip element — the --selected highlight on the number IS the marker.
+        // The hand modifier shortens the line by half a button so it terminates
+        // at the selection circle's near edge instead of running into its center.
+        html += `<div class="drp-date-picker__clock-hand ${handRingClass}" style="transform:rotate(${handAngle}deg)"></div>`;
+
+        faceEl.innerHTML = html;
+        faceEl.dataset.clockMode = clockStep;
+    }
+
+    // ---- AM/PM toggle (h12 only) ----
+    if (is12h) {
+        const ampmEl = root.querySelector('.drp-date-picker__clock-ampm');
+        if (ampmEl) {
+            // Same fallback as the header indicator: when ampm isn't committed,
+            // derive from focusHour so the highlighted button matches the
+            // displayed half. Otherwise the header would read "12:12 PM" while
+            // neither button is selected, which looks broken.
+            const effectiveAmpm = time.ampm ?? (focusHour >= 12 ? 'pm' : 'am');
+            const amSelected = effectiveAmpm === 'am' ? 'drp-date-picker__clock-ampm-button--selected' : '';
+            const pmSelected = effectiveAmpm === 'pm' ? 'drp-date-picker__clock-ampm-button--selected' : '';
+            ampmEl.innerHTML = `
+                <button type="button" class="drp-date-picker__clock-ampm-button ${amSelected}" data-clock-ampm="am">${picker.localeStrings.am}</button>
+                <button type="button" class="drp-date-picker__clock-ampm-button ${pmSelected}" data-clock-ampm="pm">${picker.localeStrings.pm}</button>
             `;
         }
     }

@@ -90,6 +90,10 @@ export function show(picker: any) {
     if (picker.options.pickerMode !== 'date') {
         picker.timePickerOpenSnapshot = new Date();
         picker.forceTimePickerScroll = true;
+        // Clock picker always re-opens on the hours step (Material flow). Resetting
+        // here means closing on the minutes face then reopening lands the user
+        // back at hours rather than mid-flow.
+        picker.clockStep = 'hours';
     }
 
     // Sync calendar selection with current input value (handles manually cleared input)

@@ -41,6 +41,7 @@
 
 .drp-date-picker__actions {
   display: flex;
+  flex-wrap: wrap;
   gap: var(--drp-spacing-sm);
   justify-content: space-between;
   padding-top: var(--drp-spacing-sm);

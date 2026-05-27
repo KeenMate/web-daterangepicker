@@ -132,6 +132,85 @@
         <div class="out" id="d4-out">Should display 2026-05-23 14:30 on first render</div>
       </div>
     </div>
+
+    <header style="margin-top: 3rem;">
+      <h2>Clock face (v1.15) &mdash; <code>time-display="clock"</code></h2>
+      <p class="subtitle">Material-style two-step face: pick the hour, the dial flips to minutes. Click the HH or MM digit in the header to jump back.</p>
+    </header>
+
+    <div class="card">
+      <h2>Clock &mdash; h12 with AM/PM</h2>
+      <div class="form-group">
+        <label>time-display="clock" time-format-mask="hh:mm a"</label>
+        <web-daterangepicker
+          id="c1"
+          picker-mode="time"
+          time-display="clock"
+          time-format-mask="hh:mm a"
+          placeholder="hh:mm AM/PM">
+        </web-daterangepicker>
+        <div class="out" id="c1-out">No selection yet</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Clock &mdash; h24 dual ring (outer 1-12, inner 13-24)</h2>
+      <div class="form-group">
+        <label>time-display="clock" (hour-cycle defaults to h24 with HH:mm)</label>
+        <web-daterangepicker
+          id="c2"
+          picker-mode="time"
+          time-display="clock"
+          placeholder="HH:mm">
+        </web-daterangepicker>
+        <div class="out" id="c2-out">Inner ring shows 13..24 with 24 at the top</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Clock &mdash; 15-minute step (4 labels)</h2>
+      <div class="form-group">
+        <label>time-display="clock" time-step="15"</label>
+        <web-daterangepicker
+          id="c3"
+          picker-mode="time"
+          time-display="clock"
+          time-step="15"
+          placeholder="HH:mm">
+        </web-daterangepicker>
+        <div class="out" id="c3-out">Minute face shows :00 :15 :30 :45 only</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Clock &mdash; time-step="7" (non-divisor warning &rarr; falls back to 1)</h2>
+      <div class="form-group">
+        <label>time-display="clock" time-step="7" &mdash; check the console</label>
+        <web-daterangepicker
+          id="c4"
+          picker-mode="time"
+          time-display="clock"
+          time-step="7"
+          placeholder="HH:mm">
+        </web-daterangepicker>
+        <div class="out" id="c4-out">60 % 7 !== 0 &rarr; console.warn fires; step becomes 1</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Clock &mdash; datetime side-by-side</h2>
+      <div class="form-group">
+        <label>picker-mode="datetime" time-display="clock" hour-cycle="h12"</label>
+        <web-daterangepicker
+          id="c5"
+          picker-mode="datetime"
+          time-display="clock"
+          hour-cycle="h12"
+          placeholder="YYYY-MM-DD hh:mm">
+        </web-daterangepicker>
+        <div class="out" id="c5-out">Calendar + clock face in one popover</div>
+      </div>
+    </div>
   </div>
 
   <script type="module">
@@ -144,7 +223,7 @@
         out.textContent = `value: ${el.value}  |  detail.date: ${e.detail.date}`;
       });
     };
-    ['t1','t2','t3','t4','d1','d2','d3','d4'].forEach(wireOutput);
+    ['t1','t2','t3','t4','d1','d2','d3','d4','c1','c2','c3','c4','c5'].forEach(wireOutput);
   </script>
 </body>
 </html>

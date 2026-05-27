@@ -82,6 +82,7 @@ const DISABLED_HANDLING = ['allow', 'prevent', 'block', 'split', 'individual'] a
 const AUTO_CLOSE = ['never', 'selection', 'apply'] as const;
 const PICKER_MODES = ['date', 'time', 'datetime'] as const;
 const HOUR_CYCLES = ['h12', 'h24'] as const;
+const TIME_DISPLAYS = ['rolls', 'clock'] as const;
 
 const ATTRIBUTE_TABLE: AttributeEntry[] = [
     { attr: 'selection-mode',                  key: 'selectionMode',                  parser: parseEnum(SELECTION_MODES) },
@@ -129,6 +130,7 @@ const ATTRIBUTE_TABLE: AttributeEntry[] = [
     { attr: 'hour-cycle',                      key: 'hourCycle',                      parser: parseEnum(HOUR_CYCLES) },
     { attr: 'show-seconds',                    key: 'showSeconds',                    parser: parseTriStateBool },
     { attr: 'show-now-button',                 key: 'showNowButton',                  parser: parseTriStateBool },
+    { attr: 'time-display',                    key: 'timeDisplay',                    parser: parseEnum(TIME_DISPLAYS) },
 ];
 
 /** Attributes that don't affect the picker itself — handled by surgical `attributeChangedCallback` paths. */
@@ -909,6 +911,14 @@ export class WebDaterangepickerElement extends HTMLElement {
         } else {
             this.setAttribute('show-now-button', value ? 'true' : 'false');
         }
+    }
+
+    get timeDisplay(): 'rolls' | 'clock' {
+        return (this.getAttribute('time-display') as 'rolls' | 'clock') || 'rolls';
+    }
+
+    set timeDisplay(value: 'rolls' | 'clock') {
+        this.setAttribute('time-display', value);
     }
 
     // Complex data properties (not attributes)

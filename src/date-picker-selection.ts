@@ -566,6 +566,36 @@ export function selectAmpm(picker: any, ampm: 'am' | 'pm') {
     commitTimeSelection(picker);
 }
 
+/**
+ * Clock-face hour selection: commits the hour via the shared selectHour path,
+ * then auto-advances the dial to the minutes step (Material flow).
+ */
+export function selectClockHour(picker: any, hour: number, is12Hour: boolean) {
+    selectHour(picker, hour, is12Hour);
+    picker.clockStep = 'minutes';
+    picker.renderCalendar();
+}
+
+/**
+ * Clock-face minute selection. Labels may sit at 5-minute marks (when
+ * `timeStep` is in {1,2,3,4}) even though only multiples of timeStep are valid;
+ * snap the clicked label's value to the nearest valid step. Stays on the
+ * minutes step — Apply commits the whole selection.
+ */
+export function selectClockMinute(picker: any, minute: number) {
+    const step = picker.options.timeStep || 1;
+    const snapped = (Math.round(minute / step) * step) % 60;
+    selectMinute(picker, snapped);
+}
+
+/**
+ * Header digit click → jump the dial to that step.
+ */
+export function setClockStep(picker: any, step: 'hours' | 'minutes') {
+    picker.clockStep = step;
+    picker.renderCalendar();
+}
+
 export function selectNow(picker: any) {
     const now = new Date();
     if (picker.options.pickerMode === 'datetime') {

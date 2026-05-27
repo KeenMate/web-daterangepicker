@@ -364,6 +364,96 @@ web-daterangepicker.theme-selection-hover {
   </div>
 
   <div class="test-section">
+    <h2>&#9989; Test 8: Time Picker &amp; Clock Theming</h2>
+    <p>The time rolls (<code>time-display="rolls"</code>) and the Material clock face
+      (<code>time-display="clock"</code>) consume the same <code>--drp-accent-color</code>
+      token used elsewhere &mdash; selected hour/minute, the clock hand, the AM/PM toggle,
+      the header digit indicator, and the rolls' selected-item background all follow it
+      automatically. No clock-specific overrides needed for color theming.</p>
+
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1rem; margin-top: 1rem;">
+      <div>
+        <label>Rolls &mdash; default (blue)</label>
+        <web-daterangepicker
+          picker-mode="time"
+          positioning-mode="inline"></web-daterangepicker>
+      </div>
+      <div>
+        <label>Rolls &mdash; green theme</label>
+        <web-daterangepicker
+          class="theme-green"
+          picker-mode="time"
+          positioning-mode="inline"></web-daterangepicker>
+      </div>
+      <div>
+        <label>Rolls &mdash; purple theme</label>
+        <web-daterangepicker
+          class="theme-purple"
+          picker-mode="time"
+          time-format-mask="hh:mm a"
+          positioning-mode="inline"></web-daterangepicker>
+      </div>
+    </div>
+
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1rem; margin-top: 1.5rem;">
+      <div>
+        <label>Clock &mdash; default (blue)</label>
+        <web-daterangepicker
+          picker-mode="time"
+          time-display="clock"
+          time-format-mask="hh:mm a"
+          positioning-mode="inline"></web-daterangepicker>
+      </div>
+      <div>
+        <label>Clock &mdash; green theme</label>
+        <web-daterangepicker
+          class="theme-green"
+          picker-mode="time"
+          time-display="clock"
+          time-format-mask="hh:mm a"
+          positioning-mode="inline"></web-daterangepicker>
+      </div>
+      <div>
+        <label>Clock &mdash; red theme (h24 dual ring)</label>
+        <web-daterangepicker
+          class="theme-red"
+          picker-mode="time"
+          time-display="clock"
+          positioning-mode="inline"></web-daterangepicker>
+      </div>
+    </div>
+
+    <div style="margin-top: 1.5rem;">
+      <label>Dark theme &mdash; rolls + datetime side by side</label>
+      <web-daterangepicker
+        class="theme-dark"
+        picker-mode="datetime"
+        positioning-mode="inline"></web-daterangepicker>
+    </div>
+
+    <div style="margin-top: 1.5rem;">
+      <label>Pastel theme &mdash; clock + datetime</label>
+      <web-daterangepicker
+        class="theme-pastel"
+        picker-mode="datetime"
+        time-display="clock"
+        time-format-mask="hh:mm a"
+        positioning-mode="inline"></web-daterangepicker>
+    </div>
+
+    <div class="success">
+      &check; Accent, background, border, and text-on-accent tokens cascade into both pickers without extra overrides.
+    </div>
+
+    <div class="info" style="margin-top: 1rem;">
+      <strong>For fine-grained control</strong>, override the time/clock-specific tokens directly &mdash; e.g.,
+      <code>--drp-clock-hand-color</code> for a different hand color than the accent,
+      <code>--drp-clock-face-bg</code> for the dial background,
+      <code>--drp-time-picker-label-color</code> for the column headers, etc. See the variable list below.
+    </div>
+  </div>
+
+  <div class="test-section">
     <h2>Available CSS Custom Properties</h2>
     <p>All variables you can override with <code>--drp-</code> prefix:</p>
 
@@ -401,6 +491,35 @@ web-daterangepicker.theme-selection-hover {
 --drp-border-radius         /* Border radius */
 --drp-shadow-xl             /* Extra large shadow */
 --drp-transition-fast       /* Fast transition duration */</div>
+
+    <h3 style="margin-top: 1.5rem; font-size: 1.1rem;">Time Picker (rolls)</h3>
+    <div class="code-block">--drp-time-picker-gap              /* Gap between roll columns */
+--drp-time-picker-padding          /* Padding around the time picker block */
+--drp-time-picker-roll-min-width   /* Minimum column width */
+--drp-time-picker-roll-min-height  /* Minimum roll height (~5-6 items visible) */
+--drp-time-picker-label-color      /* Section label + column headers */
+--drp-time-picker-label-font-size  /* Label font size */
+--drp-time-picker-main-gap         /* Gap between calendar and rolls in datetime mode */
+--drp-datetime-min-width           /* Popover width floor in datetime mode (560px default) */</div>
+
+    <h3 style="margin-top: 1.5rem; font-size: 1.1rem;">Clock Picker (Material face)</h3>
+    <div class="code-block">--drp-clock-size                       /* Dial square size (280px default) */
+--drp-clock-face-bg                    /* Dial background circle */
+--drp-clock-radius-outer               /* Outer hour-ring radius */
+--drp-clock-radius-inner               /* Inner hour-ring radius (h24 only) */
+--drp-clock-radius-minute              /* Minute-ring radius */
+--drp-clock-number-size                /* Number button diameter */
+--drp-clock-number-size-inner          /* Inner-ring button diameter */
+--drp-clock-number-color               /* Number color */
+--drp-clock-number-bg-hover            /* Number hover background */
+--drp-clock-number-bg-selected         /* Selected number background (defaults to accent) */
+--drp-clock-number-color-selected      /* Selected number color */
+--drp-clock-hand-color                 /* Hand + center pivot color (defaults to accent) */
+--drp-clock-hand-width                 /* Hand thickness */
+--drp-clock-header-digit-font-size     /* HH:MM big-digit size */
+--drp-clock-header-digit-color         /* Inactive digit color */
+--drp-clock-header-digit-color-active  /* Active digit (current step) color */
+--drp-clock-ampm-bg-selected           /* AM/PM toggle selected background */</div>
   </div>
 
   <div class="test-section">

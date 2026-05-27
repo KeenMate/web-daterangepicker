@@ -362,6 +362,55 @@
     </div>
   </div>
 
+  <!-- Clock Picker Scaling -->
+  <div class="card">
+    <h2>Clock Picker &mdash; Scaling</h2>
+    <p><code>time-display="clock"</code> uses a fixed-aspect dial. All clock metrics
+      (dial size, ring radii, number-button diameter, hand pivot) derive from
+      <code>--drp-rem</code> via <code>calc()</code>, so the whole face scales
+      proportionally without breaking the angle math.</p>
+
+    <div class="grid-wide">
+      <div class="form-group">
+        <label>Small (--drp-rem: 8px) &mdash; h12</label>
+        <web-daterangepicker
+          class="scale-sm"
+          picker-mode="time"
+          time-display="clock"
+          time-format-mask="hh:mm a"
+          positioning-mode="inline"></web-daterangepicker>
+      </div>
+
+      <div class="form-group">
+        <label>Medium (--drp-rem: 10px, default) &mdash; h24 dual ring</label>
+        <web-daterangepicker
+          class="scale-md"
+          picker-mode="time"
+          time-display="clock"
+          positioning-mode="inline"></web-daterangepicker>
+      </div>
+
+      <div class="form-group">
+        <label>Large (--drp-rem: 15px) &mdash; h24 dual ring</label>
+        <web-daterangepicker
+          class="scale-lg"
+          picker-mode="time"
+          time-display="clock"
+          positioning-mode="inline"></web-daterangepicker>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label>Datetime + clock @ Large &mdash; h24</label>
+      <web-daterangepicker
+        class="scale-lg"
+        picker-mode="datetime"
+        time-display="clock"
+        positioning-mode="inline"></web-daterangepicker>
+      <small>Calendar + clock side by side, both scaled together</small>
+    </div>
+  </div>
+
   <!-- Interactive Demo -->
   <div class="card">
     <h2>Interactive Scale Demo</h2>

@@ -7,9 +7,13 @@
    WEEKDAY LABELS
    ============================================================================== */
 
+/* `minmax(0, 1fr)` (not `1fr`) lets columns shrink below their min-content
+   width. Without it, the weekday labels' min-content (e.g. "WED" at the active
+   font-size + padding) pushes the grid past narrow containers and the
+   rightmost weekday/day columns get clipped or pushed off-screen. */
 .drp-date-picker__weekdays {
   display: grid;
-  grid-template-columns: repeat(7, 1fr);
+  grid-template-columns: repeat(7, minmax(0, 1fr));
   gap: var(--drp-spacing-xs);
   margin-bottom: var(--drp-spacing-sm);
 }
@@ -21,6 +25,13 @@
   color: var(--drp-weekday-color);
   padding: var(--drp-spacing-xs);
   text-transform: uppercase;
+  /* Truncate when the column is narrower than the label (works in tandem with
+     minmax(0, 1fr) above). All weekday labels are 3 letters max in the bundled
+     locales so partial ellipsis is acceptable; users in narrower locales just
+     see slightly smaller padding. */
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 /* ==============================================================================
@@ -34,9 +45,11 @@
   margin-bottom: var(--drp-spacing-md);
 }
 
+/* Same minmax(0, 1fr) reasoning as the weekday row — lets day cells shrink
+   below their min-content width when the container is narrow. */
 .drp-date-picker__date-row {
   display: grid;
-  grid-template-columns: repeat(7, 1fr);
+  grid-template-columns: repeat(7, minmax(0, 1fr));
   gap: var(--drp-spacing-xs);
 }
 

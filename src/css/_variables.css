@@ -255,6 +255,39 @@
      ~28rem month + ~24rem time picker + gap → 56rem floor (560px at default rem). */
   --drp-datetime-min-width: calc(56 * var(--drp-rem));
 
+  /* Clock Picker (timeDisplay: clock) — Material-style two-step face.
+     The face width is capped at the container (see _clock-picker.css), and
+     every dial dimension is declared as a percentage of the FACE so the whole
+     dial — radii, buttons, hand — scales coherently when the container forces
+     it narrower than the declared size. */
+  --drp-clock-size: calc(28 * var(--drp-rem));                   /* desired square size (280px @ default rem) */
+  --drp-clock-face-bg: var(--drp-rolling-bg);                    /* dial background */
+  --drp-clock-radius-outer: 39.2857%;                            /* 11/28 of face */
+  --drp-clock-radius-inner: 26.7857%;                            /* 7.5/28 of face — h24 inner hour ring */
+  --drp-clock-radius-minute: 39.2857%;                           /* 11/28 — minute ring (same as outer hour by default) */
+  --drp-clock-number-size: 12.8571%;                             /* 3.6/28 — outer button diameter */
+  --drp-clock-number-size-inner: 10.7143%;                       /* 3/28 — h24 inner button diameter */
+  --drp-clock-number-font-size: var(--drp-font-size-sm);
+  --drp-clock-number-color: var(--drp-text-primary);
+  /* Hover preview: semi-transparent accent fill, same recipe as the range-mode
+     day hover-preview so the two interactions feel coherent. Opacity reuses the
+     day token (--drp-day-hover-preview-bg-opacity, default 0.18). */
+  --drp-clock-number-bg-hover: color-mix(in srgb, var(--drp-accent-color) calc(var(--drp-day-hover-preview-bg-opacity) * 100%), transparent);
+  /* Selected: a rim (inset box-shadow so it doesn't change layout) instead of a
+     solid fill — the selection circle frames the value rather than masking it. */
+  --drp-clock-number-rim-color: var(--drp-accent-color);
+  --drp-clock-number-rim-width: 2px;
+  --drp-clock-hand-color: var(--drp-accent-color);
+  --drp-clock-hand-width: 2px;
+  --drp-clock-hand-pivot-size: calc(0.8 * var(--drp-rem));       /* center dot diameter */
+  --drp-clock-header-digit-font-size: var(--drp-font-size-2xl);
+  --drp-clock-header-digit-color: var(--drp-text-secondary);
+  --drp-clock-header-digit-color-active: var(--drp-accent-color);
+  --drp-clock-header-sep-color: var(--drp-text-secondary);
+  --drp-clock-ampm-color: var(--drp-text-secondary);
+  --drp-clock-ampm-color-selected: var(--drp-text-color-on-accent);
+  --drp-clock-ampm-bg-selected: var(--drp-accent-color);
+
   /* Rolling Selector */
   --drp-rolling-bg: var(--drp-primary-bg);
   --drp-rolling-border-color: var(--drp-border-color);
