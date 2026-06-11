@@ -7,7 +7,7 @@
    SELECTION SUMMARY (DAYS/NIGHTS COUNT)
    ============================================================================== */
 
-.drp-date-picker__summary {
+.drp__summary {
   text-align: center;
   padding: 0;
   margin: 0;
@@ -17,7 +17,7 @@
   color: var(--drp-summary-text-color);
 }
 
-.drp-date-picker__summary--visible {
+.drp__summary--visible {
   display: block;
   /* Push the summary border away from the months area above so the rolling
      selector overlay (which fills the months container via inset: 0) doesn't
@@ -25,11 +25,11 @@
   margin-top: var(--drp-spacing-sm);
 }
 
-.drp-date-picker__summary--hidden {
+.drp__summary--hidden {
   display: none;
 }
 
-.drp-date-picker__summary-count {
+.drp__summary-count {
   font-weight: var(--drp-font-weight-semibold);
   color: var(--drp-summary-count-color);
   font-size: var(--drp-font-size-base);
@@ -39,7 +39,7 @@
    ACTION BUTTONS
    ============================================================================== */
 
-.drp-date-picker__actions {
+.drp__actions {
   display: flex;
   flex-wrap: wrap;
   gap: var(--drp-spacing-sm);
@@ -50,13 +50,13 @@
 /* The border-top is a "separator from the visible summary above". Only draw it
    when a visible summary actually precedes the actions — single mode never
    appends a summary, range mode marks it --hidden until a range is selected,
-   and the always-present .drp-date-picker__message sits between the summary
+   and the always-present .drp__message sits between the summary
    and actions, so an adjacent-sibling selector wouldn't reach back. */
-.drp-date-picker:has(.drp-date-picker__summary--visible) .drp-date-picker__actions {
+.drp__picker:has(.drp__summary--visible) .drp__actions {
   border-top: var(--drp-summary-border);
 }
 
-.drp-date-picker__button {
+.drp__button {
   flex: 1;
   padding: var(--drp-spacing-sm) var(--drp-spacing-md);
   border: var(--drp-button-border);
@@ -69,47 +69,47 @@
   font-weight: var(--drp-font-weight-medium);
 }
 
-.drp-date-picker__button:hover {
+.drp__button:hover {
   background-color: var(--drp-button-bg-hover);
   border: var(--drp-button-border-hover-full);
 }
 
 /* Disabled state */
-.drp-date-picker__button:disabled,
-.drp-date-picker__button[disabled] {
+.drp__button:disabled,
+.drp__button[disabled] {
   opacity: var(--drp-opacity-disabled);
   cursor: not-allowed;
   pointer-events: none;  /* Critical - prevents all mouse interactions */
 }
 
-.drp-date-picker__button:disabled:hover,
-.drp-date-picker__button[disabled]:hover {
+.drp__button:disabled:hover,
+.drp__button[disabled]:hover {
   background-color: var(--drp-button-bg);
   border: var(--drp-button-border);
 }
 
 /* Today Button */
-.drp-date-picker__button--today {
+.drp__button--today {
   color: var(--drp-button-today-color);
 }
 
 /* Clear Button */
-.drp-date-picker__button--clear {
+.drp__button--clear {
   color: var(--drp-button-clear-color);
 }
 
 /* Apply Button (primary action) */
-.drp-date-picker__button--apply {
+.drp__button--apply {
   background-color: var(--drp-button-apply-bg);
   color: var(--drp-button-apply-color);
   border-color: var(--drp-button-apply-border);
 }
 
-.drp-date-picker__button--apply:hover {
+.drp__button--apply:hover {
   background-color: var(--drp-button-apply-bg-hover);
 }
 
 /* Cancel Button */
-.drp-date-picker__button--cancel {
+.drp__button--cancel {
   color: var(--drp-button-cancel-color);
 }

@@ -1,4 +1,4 @@
-import { test, expect, Page, Locator } from '@playwright/test';
+import { test, expect, Page, Locator } from './fixtures';
 
 /**
  * Default placement (below input), explicit calendar-placement, and the
@@ -14,7 +14,7 @@ function pickerById(page: Page, id: string) {
 }
 
 function calendarOf(p: Locator) {
-    return p.locator('.drp-date-picker');
+    return p.locator('.drp__picker');
 }
 
 async function open(page: Page, id: string) {

@@ -1,4 +1,4 @@
-import { test, expect, Page } from '@playwright/test';
+import { test, expect, Page } from './fixtures';
 
 /**
  * Verifies the rolling year/month selector overlays its container correctly
@@ -15,15 +15,15 @@ function picker(page: Page) {
 }
 
 function calendar(page: Page) {
-    return picker(page).locator('.drp-date-picker');
+    return picker(page).locator('.drp__picker');
 }
 
 function rollingSelector(page: Page) {
-    return picker(page).locator('.drp-date-picker__rolling-selector');
+    return picker(page).locator('.drp__rolling-selector');
 }
 
 function rollingLists(page: Page) {
-    return picker(page).locator('.drp-date-picker__rolling-list');
+    return picker(page).locator('.drp__rolling-list');
 }
 
 async function openCalendarAndRollingSelector(page: Page) {
@@ -32,7 +32,7 @@ async function openCalendarAndRollingSelector(page: Page) {
     await expect(calendar(page)).toBeVisible();
 
     // Clicking the month-year header toggles the rolling year/month picker.
-    await picker(page).locator('.drp-date-picker__month-year').first().click();
+    await picker(page).locator('.drp__month-year').first().click();
     await expect(rollingSelector(page).first()).toBeVisible();
 }
 

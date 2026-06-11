@@ -1,0 +1,141 @@
+/* ==============================================================================
+   COMPACT PICKER (timeDisplay: compact)
+   ==============================================================================
+   iOS 14+ aesthetic: HH : MM [: SS] [AM/PM] with tappable pills. Each pill is a
+   single <button> that becomes contentEditable when clicked — typing replaces
+   the value, Enter commits, Escape reverts, Arrow keys increment/decrement.
+
+   Calmest of the four time-display modes — fits inline with input forms and
+   surfaces only one focused field at a time. */
+
+.drp__compact-picker {
+  display: flex;
+  flex-direction: column;
+  gap: var(--drp-spacing-sm);
+  padding: var(--drp-time-picker-padding);
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Time-only mode: compact-picker is the direct flex-column child of the popover
+   (no __main wrapper). Mirror padding-inline allowance for focus rings. */
+.drp__picker--time:not(.drp__picker--inline) > .drp__compact-picker {
+  padding-inline: 4px;
+  padding-block: var(--drp-spacing-md);
+}
+
+.drp__compact-picker .drp__time-label {
+  align-self: center;
+}
+
+.drp__compact-row {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--drp-spacing-xs);
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.drp__compact-pill {
+  /* inline-flex so an empty contentEditable still reserves the line-box height
+     (inline-block collapses to zero height when content is deleted, which made
+     the pill visibly shrink mid-edit). min-width keeps the box at ~2 digits
+     wide; min-height + line-height keep it tall even when empty. */
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 2.4em;
+  min-height: 1.2em;
+  line-height: 1.2;
+  padding: var(--drp-compact-pill-padding-v) var(--drp-compact-pill-padding-h);
+  background: var(--drp-compact-pill-bg);
+  color: var(--drp-compact-pill-color);
+  border: none;
+  border-radius: var(--drp-border-radius);
+  font: inherit;
+  font-size: var(--drp-compact-pill-font-size);
+  font-weight: var(--drp-font-weight-semibold);
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+  cursor: pointer;
+  transition: background-color 120ms ease, color 120ms ease;
+}
+
+/* Reserve a baseline width for empty contentEditable pills. The non-breaking
+   spaces are visibility:hidden so they're invisible but still occupy width;
+   without this, an inline-flex contentEditable element collapses its inline
+   box when emptied even with min-width set (browsers compute min-width against
+   the empty content's intrinsic size in some flex contexts). */
+.drp__compact-pill[contenteditable="true"]:empty::before {
+  content: '\00a0\00a0';
+  visibility: hidden;
+}
+
+.drp__compact-pill:hover {
+  background: var(--drp-compact-pill-bg-hover);
+}
+
+.drp__compact-pill:focus {
+  outline: 2px solid var(--drp-compact-pill-focus-ring);
+  outline-offset: 2px;
+}
+
+/* While typing — slightly more solid background + caret-tinted ring so the
+   user knows the pill is "live" and accepting input. */
+.drp__compact-pill[contenteditable="true"] {
+  background: var(--drp-primary-bg);
+  box-shadow: inset 0 0 0 2px var(--drp-compact-pill-focus-ring);
+  outline: none;
+  caret-color: var(--drp-accent-color);
+}
+
+/* Visually quieter when the user hasn't committed yet — same idea as the rolls
+   showing the snapshot time without selection highlights. */
+.drp__compact-pill:not(.drp__compact-pill--committed) {
+  color: var(--drp-compact-pill-color-uncommitted);
+  font-weight: var(--drp-font-weight-medium);
+}
+
+.drp__compact-sep {
+  color: var(--drp-compact-sep-color);
+  font-size: var(--drp-compact-pill-font-size);
+  font-weight: var(--drp-font-weight-semibold);
+  line-height: 1;
+  user-select: none;
+}
+
+/* AM/PM toggle sits to the right of the time pills. Small attached buttons —
+   keeps the row compact. */
+.drp__compact-ampm {
+  display: inline-flex;
+  margin-left: var(--drp-spacing-sm);
+  border-radius: var(--drp-border-radius);
+  overflow: hidden;
+  border: var(--drp-border-width-base) solid var(--drp-compact-ampm-bg-selected);
+}
+
+.drp__compact-ampm-button {
+  padding: var(--drp-rolling-item-padding-v) var(--drp-rolling-item-padding-h);
+  background: var(--drp-compact-ampm-bg);
+  color: var(--drp-compact-ampm-color);
+  border: none;
+  cursor: pointer;
+  font: inherit;
+  font-size: var(--drp-rolling-item-font-size);
+  font-weight: var(--drp-font-weight-medium);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  transition: background-color 120ms ease, color 120ms ease;
+}
+
+.drp__compact-ampm-button:hover {
+  background: var(--drp-compact-pill-bg);
+  color: var(--drp-compact-pill-color);
+}
+
+.drp__compact-ampm-button--selected,
+.drp__compact-ampm-button--selected:hover {
+  background: var(--drp-compact-ampm-bg-selected);
+  color: var(--drp-compact-ampm-color-selected);
+}

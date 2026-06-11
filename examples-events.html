@@ -1010,13 +1010,13 @@ picker.beforeMonthChangedCallback = async ({ year, month }) => {
 
     // Add custom styles for badge classes
     monthBulkPricing.customStylesCallback = () => `
-      .drp-date-picker__badge-cell.available {
+      .drp__badge-cell.available {
         background-color: rgba(34, 197, 94, 0.3);
         color: #166534;
         font-weight: 600;
       }
 
-      .drp-date-picker__badge-cell.sold-out {
+      .drp__badge-cell.sold-out {
         background-color: rgba(239, 68, 68, 0.3);
         color: #991b1b;
         font-weight: 600;
@@ -1130,13 +1130,13 @@ picker.beforeMonthChangedCallback = async ({ year, month }) => {
 
     // Add custom styles for badge classes
     unifiedGridExample.customStylesCallback = () => `
-      .drp-date-picker__badge-cell.available {
+      .drp__badge-cell.available {
         background-color: rgba(34, 197, 94, 0.3);
         color: #166534;
         font-weight: 600;
       }
 
-      .drp-date-picker__badge-cell.sold-out {
+      .drp__badge-cell.sold-out {
         background-color: rgba(239, 68, 68, 0.3);
         color: #991b1b;
         font-weight: 600;
@@ -1261,10 +1261,10 @@ picker.beforeMonthChangedCallback = async ({ year, month }) => {
 
     // Custom styles for working day and special day highlighting
     headerCallback.customStylesCallback = () => `
-      .drp-date-picker__day.working-day {
+      .drp__day.working-day {
         background-color: rgba(34, 197, 94, 0.15);
       }
-      .drp-date-picker__day.special-day {
+      .drp__day.special-day {
         background-color: rgba(251, 191, 36, 0.25);
       }
     `;
@@ -1328,15 +1328,15 @@ picker.beforeMonthChangedCallback = async ({ year, month }) => {
 
     // Custom styles for badge classes
     headerAsync.customStylesCallback = () => `
-      .drp-date-picker__badge-cell.rooms-high {
+      .drp__badge-cell.rooms-high {
         background-color: rgba(34, 197, 94, 0.3);
         color: #166534;
       }
-      .drp-date-picker__badge-cell.rooms-low {
+      .drp__badge-cell.rooms-low {
         background-color: rgba(251, 191, 36, 0.3);
         color: #92400e;
       }
-      .drp-date-picker__badge-cell.rooms-none {
+      .drp__badge-cell.rooms-none {
         background-color: rgba(239, 68, 68, 0.2);
         color: #991b1b;
       }

@@ -1,4 +1,4 @@
-import { test, expect, Page } from '@playwright/test';
+import { test, expect, Page } from './fixtures';
 
 /**
  * Verifies the floating-mode positioning escapes an ancestor with
@@ -20,7 +20,7 @@ function picker(page: Page) {
 function calendar(page: Page) {
     // Calendar is rendered inside the web-component's shadow DOM. Playwright's
     // locators pierce open shadow roots transparently.
-    return page.locator('#picker').locator('.drp-date-picker');
+    return page.locator('#picker').locator('.drp__picker');
 }
 
 async function openPicker(page: Page) {

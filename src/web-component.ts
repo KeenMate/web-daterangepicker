@@ -82,7 +82,7 @@ const DISABLED_HANDLING = ['allow', 'prevent', 'block', 'split', 'individual'] a
 const AUTO_CLOSE = ['never', 'selection', 'apply'] as const;
 const PICKER_MODES = ['date', 'time', 'datetime'] as const;
 const HOUR_CYCLES = ['h12', 'h24'] as const;
-const TIME_DISPLAYS = ['rolls', 'clock'] as const;
+const TIME_DISPLAYS = ['rolls', 'clock', 'wheel', 'compact'] as const;
 
 const ATTRIBUTE_TABLE: AttributeEntry[] = [
     { attr: 'selection-mode',                  key: 'selectionMode',                  parser: parseEnum(SELECTION_MODES) },
@@ -228,7 +228,7 @@ export class WebDaterangepickerElement extends HTMLElement {
 
     private applyTransitionStyles() {
         // Target the calendar element inside shadow DOM
-        const calendar = this.shadow.querySelector('.drp-date-picker') as HTMLElement;
+        const calendar = this.shadow.querySelector('.drp__picker') as HTMLElement;
         if (!calendar) return; // Calendar not created yet
 
         const enableTransitions = this.hasAttribute('enable-transitions');
@@ -247,13 +247,13 @@ export class WebDaterangepickerElement extends HTMLElement {
         const inputSize = this.getAttribute('input-size');
 
         // Remove existing size classes
-        this.inputElement.classList.remove('drp-input--xs', 'drp-input--sm', 'drp-input--lg', 'drp-input--xl');
-        this.inputElement.classList.remove('drp-date-picker-input--xs', 'drp-date-picker-input--sm', 'drp-date-picker-input--lg', 'drp-date-picker-input--xl');
+        this.inputElement.classList.remove('drp__input--xs', 'drp__input--sm', 'drp__input--lg', 'drp__input--xl');
+        this.inputElement.classList.remove('drp__input--xs', 'drp__input--sm', 'drp__input--lg', 'drp__input--xl');
 
         // Add new size classes (md is default, no class needed)
         if (inputSize && inputSize !== 'md') {
-            this.inputElement.classList.add(`drp-input--${inputSize}`);
-            this.inputElement.classList.add(`drp-date-picker-input--${inputSize}`);
+            this.inputElement.classList.add(`drp__input--${inputSize}`);
+            this.inputElement.classList.add(`drp__input--${inputSize}`);
         }
     }
 
@@ -425,7 +425,7 @@ export class WebDaterangepickerElement extends HTMLElement {
         if (display === 'floating' || display === 'modal') {
             this.inputElement = document.createElement('input');
             this.inputElement.type = 'text';
-            this.inputElement.classList.add('drp-input', 'drp-date-picker-input');
+            this.inputElement.classList.add('drp__input', 'drp__input');
 
             // Set initial attributes. `placeholder` wins if set explicitly;
             // otherwise fall back to `display-format-mask`, which exists as
@@ -719,7 +719,7 @@ export class WebDaterangepickerElement extends HTMLElement {
     }
 
     public setRollingItemAlignment(alignment: 'flex-start' | 'center' | 'flex-end') {
-        const calendar = this.shadow.querySelector('.drp-date-picker') as HTMLElement;
+        const calendar = this.shadow.querySelector('.drp__picker') as HTMLElement;
         if (calendar) {
             calendar.style.setProperty('--drp-rolling-item-justify-content', alignment);
         }
@@ -913,11 +913,11 @@ export class WebDaterangepickerElement extends HTMLElement {
         }
     }
 
-    get timeDisplay(): 'rolls' | 'clock' {
-        return (this.getAttribute('time-display') as 'rolls' | 'clock') || 'rolls';
+    get timeDisplay(): 'rolls' | 'clock' | 'wheel' | 'compact' {
+        return (this.getAttribute('time-display') as 'rolls' | 'clock' | 'wheel' | 'compact') || 'rolls';
     }
 
-    set timeDisplay(value: 'rolls' | 'clock') {
+    set timeDisplay(value: 'rolls' | 'clock' | 'wheel' | 'compact') {
         this.setAttribute('time-display', value);
     }
 

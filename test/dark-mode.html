@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Test — dark-mode contrast</title>
+    <link rel="stylesheet" href="test-fixtures.css">
+    <style>
+        body {
+            background: #1a1a1a;
+            color: #f5f5f5;
+            /* This is the key declaration: tells the browser "I'm a dark surface",
+               which propagates into shadow DOMs and drives `light-dark()` to the
+               dark branch. Mirrors how dhl-rdm-organiogram sets it on <body>. */
+            color-scheme: dark;
+        }
+        web-daterangepicker { display: block; max-width: 320px; }
+        .fixture-label { color: #c0c0c0; }
+        p { color: #c0c0c0; }
+    </style>
+</head>
+<body>
+    <h1>dark-mode contrast</h1>
+    <p>Targeted by <code>e2e/dark-mode.spec.ts</code>. A daterangepicker themed for
+       a dark page via the documented <code>--base-*</code> override set. The specs
+       verify that interactive states (day hover, focus, selected) maintain readable
+       text-vs-background contrast on a dark surface. Each picker is pinned to
+       <code>initial-date="2026-06-15"</code> so day cells are deterministic.</p>
+
+    <div class="fixture">
+        <div class="fixture-label">fully-configured dark theme</div>
+        <web-daterangepicker
+            id="drp-dark"
+            selection-mode="single"
+            initial-date="2026-06-15"
+            style="
+                --base-text-color-1: #f5f5f5;
+                --base-text-color-3: #a3a3a3;
+                --base-input-bg: #2a2a2a;
+                --base-input-color: #f5f5f5;
+                --base-dropdown-bg: #2a2a2a;
+                --base-hover-bg: #3a3a3a;
+                --base-active-bg: #4a4a4a;
+                --base-border-color: #4a4a4a;
+                --base-main-bg: #2a2a2a;
+            ">
+        </web-daterangepicker>
+    </div>
+
+    <div class="fixture">
+        <div class="fixture-label">consumer-minimal dark theme (only text + bg)</div>
+        <web-daterangepicker
+            id="drp-dark-minimal"
+            selection-mode="single"
+            initial-date="2026-06-15"
+            style="
+                --base-text-color-1: #f5f5f5;
+                --base-input-bg: #2a2a2a;
+                --base-dropdown-bg: #2a2a2a;
+                --base-main-bg: #2a2a2a;
+            ">
+        </web-daterangepicker>
+    </div>
+
+    <div class="fixture">
+        <div class="fixture-label">no overrides at all — only the OS color-scheme preference</div>
+        <web-daterangepicker
+            id="drp-dark-auto"
+            selection-mode="single"
+            initial-date="2026-06-15">
+        </web-daterangepicker>
+    </div>
+
+    <script type="module" src="/src/index.ts"></script>
+</body>
+</html>

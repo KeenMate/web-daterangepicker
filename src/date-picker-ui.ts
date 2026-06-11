@@ -5,10 +5,129 @@
  * and tooltips.
  */
 
-import { computePosition, flip, shift, offset, arrow, autoUpdate, size } from '@floating-ui/dom';
+import { computePosition, flip, shift, offset, arrow, autoUpdate, size, platform } from '@floating-ui/dom';
 import { uiLogger } from './logger';
 import { handleInitialMonthLoad } from './date-picker-navigation';
 import { updateCalendarFromInput } from './date-picker-interaction';
+
+/**
+ * Resolve the nearest ancestor that genuinely establishes a containing block for a
+ * `position: fixed` descendant — walking across shadow-DOM boundaries. Returns `window`
+ * if none is found, matching the browser's actual layout behavior.
+ *
+ * Per CSS specs, ONLY these properties cause the browser to anchor a fixed-positioned
+ * descendant to an ancestor (instead of the viewport):
+ *   - `transform` (non-none)
+ *   - `perspective` (non-none)
+ *   - `filter` / `backdrop-filter` (non-none)
+ *   - `will-change: transform | filter | perspective`
+ *
+ * Floating UI's default `getOffsetParent` ALSO treats `contain: layout|paint|strict|content`
+ * and `container-type` as containing-block-establishing for fixed positioning, but those
+ * properties only create a CB for *absolute* positioning — the browser keeps fixed elements
+ * anchored to the viewport. The mismatch surfaces as the calendar landing `ancestor.x` pixels
+ * off from where Floating UI computed it (notably in pure-admin's `.pa-layout__main` wrapper,
+ * which uses `container-type: inline-size`).
+ *
+ * This function intentionally omits `contain` and `container-type` so the result agrees
+ * with what the browser actually does, regardless of where the calendar lives in the tree
+ * (shadow DOM or light DOM).
+ */
+function getFixedPositionOffsetParent(el: Element): Element | Window {
+    let node: Node | null = el;
+    while (node) {
+        if (node === document.body || node === document.documentElement) break;
+        if (node instanceof Element) {
+            const cs = getComputedStyle(node);
+            if (cs.transform !== 'none') return node;
+            if (cs.perspective !== 'none') return node;
+            if (cs.filter !== 'none') return node;
+            const bdf = (cs as any).backdropFilter;
+            if (bdf && bdf !== 'none') return node;
+            if (cs.willChange && /\b(transform|filter|perspective)\b/.test(cs.willChange)) return node;
+        }
+        // Cross shadow root boundary so we see light-DOM ancestors of the host too.
+        const parent = (node as any).parentNode;
+        node = parent instanceof ShadowRoot ? parent.host : parent;
+    }
+    return window;
+}
+
+/**
+ * Given an observed drift of the calendar from its expected viewport position, walk up from
+ * the input and find the first ancestor whose `getBoundingClientRect().{x,y}` matches the
+ * drift. That ancestor is the most likely containing block the browser actually anchored the
+ * fixed panel to. Returns null if no match is found (drift caused by something else — visual
+ * viewport, iframe, scrollbar gutter, etc.).
+ */
+function findDriftCulprit(el: Element, driftX: number, driftY: number): Element | null {
+    let node: Node | null = el;
+    while (node) {
+        if (node === document.body || node === document.documentElement) break;
+        if (node instanceof Element) {
+            const rect = node.getBoundingClientRect();
+            if (Math.abs(rect.x - driftX) < 2 && Math.abs(rect.y - driftY) < 2) return node;
+        }
+        const parent = (node as any).parentNode;
+        node = parent instanceof ShadowRoot ? parent.host : parent;
+    }
+    return null;
+}
+
+/**
+ * Report which CB-establishing properties (per Floating UI's `isContainingBlock`) are set on
+ * the given element. Used by the drift warning to point at the specific CSS that's likely
+ * responsible — so the developer doesn't have to manually inspect computed styles.
+ */
+function listContainingBlockProps(el: Element): string {
+    const cs = getComputedStyle(el);
+    const props: string[] = [];
+    if (cs.transform !== 'none') props.push(`transform: ${cs.transform}`);
+    if (cs.perspective !== 'none') props.push(`perspective: ${cs.perspective}`);
+    if (cs.filter !== 'none') props.push(`filter: ${cs.filter}`);
+    const bdf = (cs as any).backdropFilter;
+    if (bdf && bdf !== 'none') props.push(`backdrop-filter: ${bdf}`);
+    if (cs.willChange && /\b(transform|filter|perspective)\b/.test(cs.willChange)) props.push(`will-change: ${cs.willChange}`);
+    if (cs.contain && /\b(paint|layout|strict|content)\b/.test(cs.contain)) props.push(`contain: ${cs.contain}`);
+    if ((cs as any).containerType && (cs as any).containerType !== 'normal') props.push(`container-type: ${(cs as any).containerType}`);
+    return props.join('; ');
+}
+
+/**
+ * Sanity-check that the browser placed the calendar where we told it to. With `position: fixed`
+ * and no transformed/perspective/filter ancestor, `left: ${x}px` must render at viewport-x = x.
+ * If the rendered position drifts, the consumer has an ancestor that establishes a fixed
+ * containing block but isn't on our reliable-anchors list (likely `contain: paint|layout|strict`
+ * or `container-type` — which the spec says creates a CB but the browser's actual behavior
+ * varies across shadow-DOM scenarios). We can't fix it from inside the library, but we can
+ * surface a clear warning so the developer knows where to look.
+ *
+ * Fires at most once per picker instance to avoid flooding the console during autoUpdate.
+ */
+function verifyPanelLanded(picker: any, panel: HTMLElement, expectedX: number, expectedY: number): void {
+    if (picker.positioningDriftWarned) return;
+    const rect = panel.getBoundingClientRect();
+    const driftX = rect.x - expectedX;
+    const driftY = rect.y - expectedY;
+    if (Math.abs(driftX) < 1 && Math.abs(driftY) < 1) return;
+
+    picker.positioningDriftWarned = true;
+    const culprit = findDriftCulprit(picker.input, driftX, driftY);
+    const culpritDescription = culprit
+        ? `<${culprit.tagName.toLowerCase()}${culprit.id ? '#' + culprit.id : ''}${typeof culprit.className === 'string' && culprit.className ? '.' + culprit.className.split(/\s+/).filter(Boolean).slice(0, 2).join('.') : ''}>`
+        : 'an ancestor element (could not auto-identify)';
+    const culpritCss = culprit ? listContainingBlockProps(culprit) : '';
+
+    console.warn(
+        `[@keenmate/web-daterangepicker] Calendar rendered ${driftX.toFixed(0)}px / ${driftY.toFixed(0)}px ` +
+        `away from where the library positioned it. Most likely culprit: ${culpritDescription}` +
+        (culpritCss ? ` (has ${culpritCss})` : '') + `.\n` +
+        `An ancestor of <web-daterangepicker> establishes a fixed-positioning containing block that the library's ` +
+        `heuristic doesn't recognize. Fix on your side: replace the property with \`transform: translateZ(0)\` ` +
+        `on that ancestor, OR move the trigger out of that ancestor's subtree. If neither is acceptable, ` +
+        `please file an issue at https://github.com/keenmate/web-daterangepicker/issues with the ancestor's computed CSS.`
+    );
+}
 
 // Cleanup function for autoUpdate
 let cleanupAutoUpdate: (() => void) | null = null;
@@ -43,7 +162,7 @@ function unlockBodyScroll() {
 function ensureModalBackdrop(picker: any): HTMLElement {
     if (picker.modalBackdrop) return picker.modalBackdrop;
     const backdrop = document.createElement('div');
-    backdrop.className = 'drp-date-picker__backdrop';
+    backdrop.className = 'drp__backdrop';
     backdrop.addEventListener('click', () => {
         uiLogger.debug('Backdrop clicked - closing modal');
         hide(picker);
@@ -62,7 +181,7 @@ export function show(picker: any) {
     // Already visible — skip. Without this guard, repeated show() calls (e.g., focus
     // fires after mousedown on the same click) overwrite originalInputValue with the
     // already-pending value and leak the autoUpdate cleanup function.
-    if (picker.calendar.classList.contains('drp-date-picker--visible')) {
+    if (picker.calendar.classList.contains('drp__picker--visible')) {
         return;
     }
 
@@ -94,6 +213,10 @@ export function show(picker: any) {
         // here means closing on the minutes face then reopening lands the user
         // back at hours rather than mid-flow.
         picker.clockStep = 'hours';
+        // Wheel picker: same idea as the rolls' forceTimePickerScroll — every open
+        // re-centers the focus value in each column even if scrollTop is preserved
+        // across hide/show.
+        picker.forceWheelScroll = true;
     }
 
     // Sync calendar selection with current input value (handles manually cleared input)
@@ -116,7 +239,7 @@ export function show(picker: any) {
 
     if (isModal) {
         // Modal mode: backdrop, body scroll lock, blur input to suppress mobile keyboard.
-        ensureModalBackdrop(picker).classList.add('drp-date-picker__backdrop--visible');
+        ensureModalBackdrop(picker).classList.add('drp__backdrop--visible');
         lockBodyScroll();
         // Remember if input was focused so we can restore on close.
         if (picker.input && document.activeElement === picker.input) {
@@ -125,10 +248,10 @@ export function show(picker: any) {
         } else {
             picker.modalRestoreFocus = false;
         }
-        picker.calendar.classList.add('drp-date-picker--modal');
+        picker.calendar.classList.add('drp__picker--modal');
     }
 
-    picker.calendar.classList.add('drp-date-picker--visible');
+    picker.calendar.classList.add('drp__picker--visible');
     picker.setCalendarActive(); // Make calendar active and deactivate other pickers
     uiLogger.debug('show() - calendar classes:', picker.calendar.className);
 
@@ -158,9 +281,9 @@ export function show(picker: any) {
             const cal = picker.calendar as HTMLElement;
             const cs = getComputedStyle(cal);
             const rect = cal.getBoundingClientRect();
-            const monthsContainer = cal.querySelector('.drp-date-picker__months, .drp-date-picker__months--grid') as HTMLElement | null;
+            const monthsContainer = cal.querySelector('.drp__months, .drp__months--grid') as HTMLElement | null;
             const monthsRect = monthsContainer?.getBoundingClientRect();
-            const months = cal.querySelectorAll('.drp-date-picker__month');
+            const months = cal.querySelectorAll('.drp__month');
             const visibleMonths = Array.from(months).filter(m => getComputedStyle(m as Element).display !== 'none');
             // Use raw console.warn so this is visible without needing to call enableLogging().
             // Remove this block once the modal width issue is diagnosed.
@@ -178,7 +301,7 @@ export function show(picker: any) {
                 visibleMonthEls: visibleMonths.length,
                 firstMonthCssMinWidth: months[0] ? getComputedStyle(months[0] as Element).minWidth : null,
                 firstMonthRectWidth: months[0] ? (months[0] as HTMLElement).getBoundingClientRect().width : null,
-                containerQueryActive: cal.matches(':is(.drp-date-picker--modal)') &&
+                containerQueryActive: cal.matches(':is(.drp__picker--modal)') &&
                     rect.width <= 600,
                 mediaQueryTier:
                     window.matchMedia('(max-width: 480px)').matches ? 'xs' :
@@ -198,7 +321,7 @@ export function hide(picker: any) {
     if (picker.options.positioningMode === 'inline') return;
 
     // Only process hide if calendar is actually visible
-    if (!picker.calendar.classList.contains('drp-date-picker--visible')) {
+    if (!picker.calendar.classList.contains('drp__picker--visible')) {
         return;
     }
 
@@ -217,10 +340,10 @@ export function hide(picker: any) {
 
     if (isModal) {
         if (picker.modalBackdrop) {
-            picker.modalBackdrop.classList.remove('drp-date-picker__backdrop--visible');
+            picker.modalBackdrop.classList.remove('drp__backdrop--visible');
         }
         unlockBodyScroll();
-        picker.calendar.classList.remove('drp-date-picker--modal');
+        picker.calendar.classList.remove('drp__picker--modal');
         // Restore focus to the input if it was focused before opening — the user
         // is back in the input flow and may want to type or Tab away.
         if (picker.modalRestoreFocus && picker.input) {
@@ -231,7 +354,7 @@ export function hide(picker: any) {
 
     // Note: Outside click handling is now managed by the clickEvents manager
 
-    picker.calendar.classList.remove('drp-date-picker--visible');
+    picker.calendar.classList.remove('drp__picker--visible');
     picker.isCalendarActive = false; // Deactivate calendar when hidden
     picker.hoverPreviewEnd = null;
 
@@ -275,7 +398,7 @@ export function hide(picker: any) {
 }
 
 export function toggle(picker: any) {
-    if (picker.calendar.classList.contains('drp-date-picker--visible')) {
+    if (picker.calendar.classList.contains('drp__picker--visible')) {
         hide(picker);
     } else {
         show(picker);
@@ -292,6 +415,19 @@ export async function position(picker: any) {
         return;
     }
 
+    // Floating UI's default `getOffsetParent` walks ancestors looking for any element with
+    // a CB-establishing property, including `contain: layout|paint|strict|content` and
+    // `container-type: <non-normal>`. In some real-world shadow-DOM layouts (e.g. a
+    // <web-daterangepicker> nested under `.pa-layout__main { container-type: inline-size }`)
+    // the browser does NOT actually anchor the calendar to that ancestor, and Floating UI's
+    // resulting coordinates end up offset by the ancestor's viewport-x. The custom platform
+    // narrows the heuristic to properties every browser reliably honors as a fixed-positioning
+    // CB. `verifyPanelLanded` below surfaces a one-shot warning if the panel still drifts.
+    const customPlatform = {
+        ...platform,
+        getOffsetParent: () => getFixedPositionOffsetParent(picker.input)
+    };
+
     // Always allow flip on every reposition. Previously the resolved placement was
     // cached after the first compute to prevent "jitter" during autoUpdate, but
     // the cache had a worse failure mode: if the first computePosition read the
@@ -301,13 +437,14 @@ export async function position(picker: any) {
     const result = await computePosition(picker.input, picker.calendar, {
         placement: (picker.options.calendarPlacement || 'bottom-start') as any,
         strategy: 'fixed',
+        platform: customPlatform,
         middleware: [
             offset(8),
             flip({ padding: 8 }),
             shift({ padding: 8 }),
             // Cap calendar height to whatever the viewport allows on the chosen side.
             // Scrolling is handled by the inner months container via the flex-column
-            // layout in `_base.css` — the calendar itself uses `overflow: hidden` so
+            // layout in `base.css` — the calendar itself uses `overflow: hidden` so
             // header and action bar stay pinned while the months area scrolls.
             size({
                 padding: 8,
@@ -322,6 +459,8 @@ export async function position(picker: any) {
 
     picker.calendar.style.left = `${result.x}px`;
     picker.calendar.style.top = `${result.y}px`;
+
+    verifyPanelLanded(picker, picker.calendar, result.x, result.y);
 }
 
 /**
@@ -333,11 +472,18 @@ export async function showTooltip(picker: any, element: HTMLElement, content: st
     picker.currentTooltipTarget = element;
     picker.tooltip.innerHTML = content; // Support HTML content
     picker.tooltip.appendChild(picker.tooltipArrow); // Re-append arrow after setting innerHTML
-    picker.tooltip.classList.add('drp-date-picker__tooltip--visible');
+    picker.tooltip.classList.add('drp__tooltip--visible');
 
+    // Same custom getOffsetParent rationale as position() — ignore container-type / contain
+    // so the tooltip lands where the browser actually places a fixed element.
+    const tooltipPlatform = {
+        ...platform,
+        getOffsetParent: () => getFixedPositionOffsetParent(element)
+    };
     const { x, y, placement, middlewareData } = await computePosition(element, picker.tooltip, {
         placement: 'top',
         strategy: 'fixed',
+        platform: tooltipPlatform,
         middleware: [
             offset(6),
             flip(),
@@ -378,7 +524,7 @@ export async function showTooltip(picker: any, element: HTMLElement, content: st
  */
 export function hideTooltip(picker: any) {
     if (!picker.tooltip) return;
-    picker.tooltip.classList.remove('drp-date-picker__tooltip--visible');
+    picker.tooltip.classList.remove('drp__tooltip--visible');
     picker.currentTooltipTarget = undefined;
 }
 
@@ -389,9 +535,9 @@ export function showLoadingOverlay(picker: any): void {
     if (picker.loadingOverlay) return; // Already showing
 
     const overlay = document.createElement('div');
-    overlay.className = 'drp-date-picker__loading-overlay';
+    overlay.className = 'drp__loading-overlay';
     overlay.innerHTML = `
-        <div class="drp-date-picker__loading-spinner"></div>
+        <div class="drp__loading-spinner"></div>
     `;
 
     picker.calendar.appendChild(overlay);
@@ -434,28 +580,28 @@ export function showMessage(
 
     // Remove all type classes
     picker.messageElement.classList.remove(
-        'drp-date-picker__message--error',
-        'drp-date-picker__message--warning',
-        'drp-date-picker__message--info',
-        'drp-date-picker__message--success',
-        'drp-date-picker__message--custom'
+        'drp__message--error',
+        'drp__message--warning',
+        'drp__message--info',
+        'drp__message--success',
+        'drp__message--custom'
     );
 
-    const textElement = picker.messageElement.querySelector('.drp-date-picker__message-text');
+    const textElement = picker.messageElement.querySelector('.drp__message-text');
     if (textElement) {
         textElement.innerHTML = content;
     }
 
     if (type) {
         // Type provided: use built-in styled alert box
-        picker.messageElement.classList.add(`drp-date-picker__message--${type}`);
+        picker.messageElement.classList.add(`drp__message--${type}`);
     } else {
         // No type: raw HTML with full user control (minimal wrapper styling)
-        picker.messageElement.classList.add('drp-date-picker__message--custom');
+        picker.messageElement.classList.add('drp__message--custom');
     }
 
     // Show the message
-    picker.messageElement.classList.add('drp-date-picker__message--visible');
+    picker.messageElement.classList.add('drp__message--visible');
 
     // Set up auto-hide if specified
     if (autoHide && autoHide > 0) {
@@ -479,5 +625,5 @@ export function hideMessage(picker: any): void {
     }
 
     // Hide the message
-    picker.messageElement.classList.remove('drp-date-picker__message--visible');
+    picker.messageElement.classList.remove('drp__message--visible');
 }

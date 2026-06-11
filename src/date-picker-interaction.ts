@@ -17,7 +17,7 @@ export function initDragListeners(picker: any) {
     // This allows drawing a range from scratch without clicking first
     // BUT: We need to detect actual dragging vs clicking to allow both behaviors
     if (picker.options.selectionMode === 'range') {
-        const allDays = picker.calendar.querySelectorAll('.drp-date-picker__day:not(.drp-date-picker__day--disabled)');
+        const allDays = picker.calendar.querySelectorAll('.drp__day:not(.drp__day--disabled)');
 
         allDays.forEach(day => {
             day.addEventListener('mousedown', (e) => {
@@ -33,8 +33,8 @@ export function initDragListeners(picker: any) {
                 let dragStarted = false;
 
                 // Determine drag type based on what's clicked and what's selected
-                const isRangeStart = dayElement.classList.contains('drp-date-picker__day--range-start');
-                const isRangeEnd = dayElement.classList.contains('drp-date-picker__day--range-end');
+                const isRangeStart = dayElement.classList.contains('drp__day--range-start');
+                const isRangeEnd = dayElement.classList.contains('drp__day--range-end');
 
                 let dragType: 'start' | 'end';
                 if (isRangeStart && picker.selectedStartDate && picker.selectedEndDate) {
@@ -125,8 +125,8 @@ export function startDrag(picker: any, event: MouseEvent, type: 'start' | 'end',
             picker.focusedDayIndex = null;
 
             // Remove visual selection classes from ALL previously selected days (across all months)
-            picker.calendar.querySelectorAll('.drp-date-picker__day--range-start, .drp-date-picker__day--range-end, .drp-date-picker__day--selected, .drp-date-picker__day--focused').forEach(day => {
-                day.classList.remove('drp-date-picker__day--range-start', 'drp-date-picker__day--range-end', 'drp-date-picker__day--selected', 'drp-date-picker__day--focused');
+            picker.calendar.querySelectorAll('.drp__day--range-start, .drp__day--range-end, .drp__day--selected, .drp__day--focused').forEach(day => {
+                day.classList.remove('drp__day--range-start', 'drp__day--range-end', 'drp__day--selected', 'drp__day--focused');
             });
 
             picker.originalStartDate = clickedDate;
@@ -154,7 +154,7 @@ export function startDrag(picker: any, event: MouseEvent, type: 'start' | 'end',
     }
 
     // Add dragging class to the day being dragged
-    clickedElement.classList.add('drp-date-picker__day--dragging');
+    clickedElement.classList.add('drp__day--dragging');
 
     dragLogger.debug(`Started dragging ${type} date`);
 
@@ -182,15 +182,15 @@ export function onDragMove(picker: any, event: MouseEvent) {
     }
 
     // Unified navigation button handling
-    const prevButton = element?.closest('.drp-date-picker__nav--prev');
-    const nextButton = element?.closest('.drp-date-picker__nav--next');
+    const prevButton = element?.closest('.drp__nav--prev');
+    const nextButton = element?.closest('.drp__nav--next');
 
     if (prevButton || nextButton) {
         // Hovering over a navigation button
         if (!picker.navInterval) {
             // Start navigation interval
             const button = (prevButton || nextButton) as Element;
-            const monthContainer = button.closest('.drp-date-picker__month');
+            const monthContainer = button.closest('.drp__month');
             if (monthContainer && monthContainer instanceof HTMLElement) {
                 const monthIndex = parseInt(monthContainer.dataset.monthIndex || '0');
                 const isPrev = !!prevButton;
@@ -223,7 +223,7 @@ export function onDragMove(picker: any, event: MouseEvent) {
 
     // Find the day element under the cursor
     const dayElement = element;
-    if (!dayElement || !dayElement.classList.contains('drp-date-picker__day')) return;
+    if (!dayElement || !dayElement.classList.contains('drp__day')) return;
 
     const dateAttr = (dayElement as HTMLElement).dataset.date;
     if (!dateAttr) return;
@@ -233,7 +233,7 @@ export function onDragMove(picker: any, event: MouseEvent) {
     let hoveredDate = new Date(year, month - 1, day); // month is 1-based in data-date, but Date constructor expects 0-based
 
     // If hovering over a disabled day, snap to nearest enabled date
-    if (dayElement.classList.contains('drp-date-picker__day--disabled')) {
+    if (dayElement.classList.contains('drp__day--disabled')) {
         const direction = picker.draggingType === 'start' ?
             (picker.originalEndDate && hoveredDate > picker.originalEndDate ? 'backward' : 'forward') :
             (picker.originalStartDate && hoveredDate < picker.originalStartDate ? 'forward' : 'backward');
@@ -357,8 +357,8 @@ export async function onDragEnd(picker: any, event: MouseEvent) {
     picker.dragPreviewEnd = null;
 
     // Remove dragging class
-    picker.calendar.querySelectorAll('.drp-date-picker__day--dragging').forEach(day => {
-        day.classList.remove('drp-date-picker__day--dragging');
+    picker.calendar.querySelectorAll('.drp__day--dragging').forEach(day => {
+        day.classList.remove('drp__day--dragging');
     });
 
     // Remove document-level listeners
@@ -390,9 +390,9 @@ export async function onDragEnd(picker: any, event: MouseEvent) {
             if (finalEndDate.getFullYear() === monthDate.getFullYear() && finalEndDate.getMonth() === monthDate.getMonth()) {
                 picker.activeMonthIndex = colIndex;
 
-                const daysContainer = picker.calendar.querySelector(`.drp-date-picker__days[data-month-index="${colIndex}"]`);
+                const daysContainer = picker.calendar.querySelector(`.drp__days[data-month-index="${colIndex}"]`);
                 if (daysContainer) {
-                    const days = daysContainer.querySelectorAll('.drp-date-picker__day:not(.drp-date-picker__day--other-month)');
+                    const days = daysContainer.querySelectorAll('.drp__day:not(.drp__day--other-month)');
                     const endDayIndex = Array.from(days).findIndex((day: Element) => {
                         const dateAttr = (day as HTMLElement).dataset.date;
                         if (!dateAttr) return false;
@@ -403,9 +403,9 @@ export async function onDragEnd(picker: any, event: MouseEvent) {
                     if (endDayIndex !== -1) {
                         picker.focusedDayIndex = endDayIndex;
                         // Re-apply the focused class to the correct day
-                        days.forEach((day: Element) => day.classList.remove('drp-date-picker__day--focused'));
+                        days.forEach((day: Element) => day.classList.remove('drp__day--focused'));
                         if (days[endDayIndex]) {
-                            (days[endDayIndex] as HTMLElement).classList.add('drp-date-picker__day--focused');
+                            (days[endDayIndex] as HTMLElement).classList.add('drp__day--focused');
                         }
                     }
                 }
@@ -620,7 +620,7 @@ export function handleKeydown(picker: any, event: KeyboardEvent) {
     const { separator } = picker.formatInfo;
 
     // If calendar is open, let document handler deal with navigation keys
-    if (picker.calendar.classList.contains('drp-date-picker--visible')) {
+    if (picker.calendar.classList.contains('drp__picker--visible')) {
         const navigationKeys = ['ArrowUp', 'ArrowDown', 'Home', 'End', 'PageUp', 'PageDown'];
         if (navigationKeys.includes(key)) {
             event.preventDefault(); // Prevent default input behavior

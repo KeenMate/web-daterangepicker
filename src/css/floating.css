@@ -1,13 +1,11 @@
 /* ==============================================================================
-   DATE RANGE PICKER - TOOLTIPS
+   FLOATING — Floating-UI-anchored elements (tooltips)
    ==============================================================================
-   Floating UI tooltips for badge hover information */
+   Tooltips for day-cell hover, badges, and action buttons. The calendar
+   popover itself is a Floating-UI-anchored element but lives in `base.css`
+   because it's the root container of the component. */
 
-/* ==============================================================================
-   FLOATING UI TOOLTIPS
-   ============================================================================== */
-
-.drp-date-picker__tooltip {
+.drp__tooltip {
   position: fixed;
   z-index: var(--drp-z-index-tooltip);
   background-color: var(--drp-tooltip-bg);
@@ -23,12 +21,12 @@
   transition: opacity var(--drp-transition-fast) var(--drp-easing-snappy);
 }
 
-.drp-date-picker__tooltip--visible {
+.drp__tooltip--visible {
   opacity: 1;
 }
 
 /* Tooltip arrow */
-.drp-date-picker__tooltip-arrow {
+.drp__tooltip-arrow {
   position: absolute;
   background-color: var(--drp-tooltip-bg);
   width: var(--drp-tooltip-arrow-size);

@@ -275,7 +275,7 @@ STYLING DISABLED DATES
 ----------------------
 Disabled dates automatically get CSS class:
 
-.drp-date-picker__day--disabled {
+.drp__day--disabled {
   opacity: 0.3;
   cursor: not-allowed;
   text-decoration: line-through;

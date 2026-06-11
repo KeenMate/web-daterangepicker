@@ -1,4 +1,4 @@
-import { test, expect, Page, Locator } from '@playwright/test';
+import { test, expect, Page, Locator } from './fixtures';
 
 /**
  * Verifies the v1.12.1 actions/summary CSS contract:
@@ -18,15 +18,15 @@ function pickerById(page: Page, id: string) {
 }
 
 function calendarOf(picker: Locator) {
-    return picker.locator('.drp-date-picker');
+    return picker.locator('.drp__picker');
 }
 
 function actionsOf(picker: Locator) {
-    return picker.locator('.drp-date-picker__actions');
+    return picker.locator('.drp__actions');
 }
 
 function summaryOf(picker: Locator) {
-    return picker.locator('.drp-date-picker__summary');
+    return picker.locator('.drp__summary');
 }
 
 async function open(page: Page, id: string) {
@@ -57,7 +57,7 @@ test('range mode, no selection: actions row has no border-top (summary is --hidd
 
     // Summary exists in range mode but starts hidden.
     await expect(summaryOf(p)).toHaveCount(1);
-    await expect(summaryOf(p)).toHaveClass(/drp-date-picker__summary--hidden/);
+    await expect(summaryOf(p)).toHaveClass(/drp__summary--hidden/);
 
     const borderTopWidth = await actionsOf(p).evaluate(
         el => parseFloat(getComputedStyle(el).borderTopWidth)
@@ -69,11 +69,11 @@ test('range mode with committed selection: summary --visible, actions has border
     const p = await open(page, 'range');
 
     // Pick any two enabled days in the visible month to commit a range.
-    const days = p.locator('.drp-date-picker__day:not(.drp-date-picker__day--disabled):not(.drp-date-picker__day--other-month)');
+    const days = p.locator('.drp__day:not(.drp__day--disabled):not(.drp__day--other-month)');
     await days.nth(5).click();
     await days.nth(10).click();
 
-    await expect(summaryOf(p)).toHaveClass(/drp-date-picker__summary--visible/);
+    await expect(summaryOf(p)).toHaveClass(/drp__summary--visible/);
 
     const borderTopWidth = await actionsOf(p).evaluate(
         el => parseFloat(getComputedStyle(el).borderTopWidth)
@@ -84,11 +84,11 @@ test('range mode with committed selection: summary --visible, actions has border
 test('visible summary has margin-top (gap from the months area above)', async ({ page }) => {
     const p = await open(page, 'range');
 
-    const days = p.locator('.drp-date-picker__day:not(.drp-date-picker__day--disabled):not(.drp-date-picker__day--other-month)');
+    const days = p.locator('.drp__day:not(.drp__day--disabled):not(.drp__day--other-month)');
     await days.nth(5).click();
     await days.nth(10).click();
 
-    await expect(summaryOf(p)).toHaveClass(/drp-date-picker__summary--visible/);
+    await expect(summaryOf(p)).toHaveClass(/drp__summary--visible/);
     const marginTop = await summaryOf(p).evaluate(
         el => parseFloat(getComputedStyle(el).marginTop)
     );

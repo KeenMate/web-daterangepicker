@@ -1,0 +1,122 @@
+/* ==============================================================================
+   CONTROLS — input field + wrapper
+   ==============================================================================
+   The text input (`.drp__input`) and its visual wrapper (`.drp__input`,
+   which carries the calendar icon and click target). Five size variants
+   (xs / sm / md / lg / xl) driven by `input-size` attribute on the host —
+   md is the unstyled default. */
+
+/* ==============================================================================
+   INPUT FIELD (actual <input> tag)
+   ============================================================================== */
+
+.drp__input {
+  width: 100%;
+  font-family: var(--drp-font-family);
+  font-size: var(--drp-input-size-md-font);
+  line-height: var(--drp-line-height-normal);
+  color: var(--drp-input-color);
+  background-color: var(--drp-input-bg);
+  border: var(--drp-input-border);
+  border-radius: var(--drp-border-radius);
+  padding: var(--drp-input-size-md-padding-v) var(--drp-input-size-md-padding-h);
+  padding-right: calc(var(--drp-input-size-md-padding-h) * 2.5); /* Extra space for calendar icon */
+  height: var(--drp-input-size-md-height);
+  box-sizing: border-box;
+  transition: border-color var(--drp-transition-fast) var(--drp-easing-snappy),
+              box-shadow var(--drp-transition-fast) var(--drp-easing-snappy);
+}
+
+.drp__input::placeholder {
+  color: var(--drp-input-placeholder-color);
+  opacity: 0.6;
+}
+
+.drp__input:hover:not(:disabled) {
+  border: var(--drp-input-border-hover);
+}
+
+.drp__input:focus {
+  outline: none;
+  border: var(--drp-input-border-focus);
+  box-shadow: 0 0 0 var(--drp-input-focus-shadow-size) var(--drp-input-focus-shadow-color);
+}
+
+.drp__input:disabled {
+  opacity: var(--drp-opacity-disabled);
+  cursor: not-allowed;
+  background-color: var(--drp-input-bg-disabled);
+}
+
+/* Input Size Variants */
+.drp__input.drp__input--xs {
+  font-size: var(--drp-input-size-xs-font);
+  padding: var(--drp-input-size-xs-padding-v) var(--drp-input-size-xs-padding-h);
+  padding-right: calc(var(--drp-input-size-xs-padding-h) * 2.5);
+  height: var(--drp-input-size-xs-height);
+}
+
+.drp__input.drp__input--sm {
+  font-size: var(--drp-input-size-sm-font);
+  padding: var(--drp-input-size-sm-padding-v) var(--drp-input-size-sm-padding-h);
+  padding-right: calc(var(--drp-input-size-sm-padding-h) * 2.5);
+  height: var(--drp-input-size-sm-height);
+}
+
+.drp__input.drp__input--lg {
+  font-size: var(--drp-input-size-lg-font);
+  padding: var(--drp-input-size-lg-padding-v) var(--drp-input-size-lg-padding-h);
+  padding-right: calc(var(--drp-input-size-lg-padding-h) * 2.5);
+  height: var(--drp-input-size-lg-height);
+}
+
+.drp__input.drp__input--xl {
+  font-size: var(--drp-input-size-xl-font);
+  padding: var(--drp-input-size-xl-padding-v) var(--drp-input-size-xl-padding-h);
+  padding-right: calc(var(--drp-input-size-xl-padding-h) * 2.5);
+  height: var(--drp-input-size-xl-height);
+}
+
+/* ==============================================================================
+   INPUT WRAPPER (for positioning the calendar icon)
+   ============================================================================== */
+
+.drp__input {
+  position: relative;
+  cursor: pointer;
+  display: inline-block;
+  width: 100%;
+}
+
+/* Calendar icon */
+.drp__input::after {
+  content: '📅';
+  position: absolute;
+  right: var(--drp-input-size-md-padding-h);
+  top: 50%;
+  transform: translateY(-50%);
+  pointer-events: none;
+  opacity: var(--drp-input-icon-opacity);
+  font-size: var(--drp-input-size-md-icon-size);
+}
+
+/* Size variant icon positioning */
+.drp__input.drp__input--xs::after {
+  right: var(--drp-input-size-xs-padding-h);
+  font-size: var(--drp-input-size-xs-icon-size);
+}
+
+.drp__input.drp__input--sm::after {
+  right: var(--drp-input-size-sm-padding-h);
+  font-size: var(--drp-input-size-sm-icon-size);
+}
+
+.drp__input.drp__input--lg::after {
+  right: var(--drp-input-size-lg-padding-h);
+  font-size: var(--drp-input-size-lg-icon-size);
+}
+
+.drp__input.drp__input--xl::after {
+  right: var(--drp-input-size-xl-padding-h);
+  font-size: var(--drp-input-size-xl-icon-size);
+}

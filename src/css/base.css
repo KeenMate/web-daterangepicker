@@ -1,0 +1,171 @@
+/* ==============================================================================
+   BASE — host display + popover container + months layout
+   ==============================================================================
+   The calendar popover root container (`.drp__picker`) and the multi-month
+   layout primitives. The input field lives in `controls.css`; tooltips live in
+   `floating.css`. */
+
+/* ==============================================================================
+   CALENDAR POPUP CONTAINER (root)
+   ============================================================================== */
+
+.drp__picker {
+  position: fixed;
+  z-index: var(--drp-z-index-dropdown);
+  font-family: var(--drp-font-family);
+  background: var(--drp-dropdown-bg);
+  border: var(--drp-border);
+  border-radius: var(--drp-border-radius-lg);
+  box-shadow: var(--drp-shadow-xl);
+  padding: var(--drp-spacing-md);
+  min-width: var(--drp-month-min-width);
+  max-width: var(--drp-calendar-max-width);
+  box-sizing: border-box;
+  user-select: none;
+}
+
+/* Non-inline pickers (floating + modal) use a flex column layout so that
+   the months area is the only scrollable region — header, summary, and
+   action bar stay anchored at the top/bottom regardless of how tall the
+   multi-month content is. Without this, when the calendar is taller than
+   its constrained height (modal max-height, or Floating UI's size
+   middleware in floating mode), the action buttons scroll out of view.
+   `min-height: 0` on the months area is required so it can shrink below
+   its intrinsic content size — flex defaults to `min-height: auto` which
+   prevents shrinking and breaks the inner scroll. */
+.drp__picker:not(.drp__picker--inline) {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.drp__picker:not(.drp__picker--inline) > .drp__months,
+.drp__picker:not(.drp__picker--inline) > .drp__months--grid {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  /* Inline padding gives breathing room for visual decoration that
+     extends beyond the day-cell box: the focused-day outline (4px:
+     2px offset + 2px width) and the badge cell's hover scale(1.05).
+     Two reasons this matters:
+       1. Without the padding, first-column cells have their outline
+          clipped on the left.
+       2. `overflow-y: auto` silently coerces `overflow-x: visible` to
+          `auto`, so any pixel of horizontal overflow trips a scrollbar.
+          The badge scale on the rightmost cell would do exactly that. */
+  padding-inline: 4px;
+}
+
+.drp__picker:not(.drp__picker--inline) > .drp__unified-header,
+.drp__picker:not(.drp__picker--inline) > .drp__summary,
+.drp__picker:not(.drp__picker--inline) > .drp__actions {
+  flex-shrink: 0;
+}
+
+/* Per-month headers (month name + prev/next nav, or static text in unified
+   mode) stick to the top of the scrolling months area so they stay visible
+   as the user scrolls through days. For multi-month layouts in a single row,
+   all headers stick simultaneously and look like a continuous header bar.
+   For grid layouts, each row's headers stick when that row is being scrolled
+   through, then unstick once the row is fully past. */
+.drp__picker:not(.drp__picker--inline) .drp__month .drp__header {
+  position: sticky;
+  top: 0;
+  background: var(--drp-dropdown-bg);
+  /* Above day cells (z-index: auto = 0) so the days scroll behind the header
+     instead of bleeding through it. */
+  z-index: 2;
+}
+
+/* Hide by default */
+.drp__picker:not(.drp__picker--visible) {
+  display: none;
+}
+
+/* Inline mode modifier */
+.drp__picker--inline {
+  position: relative !important;
+  display: block !important;
+  z-index: auto;
+  min-width: 0;
+  max-width: 100%;
+  width: fit-content;
+  box-sizing: border-box;
+}
+
+/* ==============================================================================
+   MONTHS CONTAINER (MULTI-MONTH LAYOUT)
+   ============================================================================== */
+
+.drp__months {
+  display: flex;
+  gap: var(--drp-spacing-lg);
+}
+
+/* Allow wrapping for inline mode on small screens */
+.drp__picker--inline .drp__months {
+  flex-wrap: wrap;
+}
+
+/* Grid layout mode */
+.drp__months--grid {
+  display: grid;
+  grid-template-columns: repeat(var(--drp-grid-columns, 3), minmax(0, 1fr));
+  grid-template-rows: repeat(var(--drp-grid-rows, 2), auto);
+  gap: var(--drp-spacing-lg);
+  width: 100%;
+}
+
+/* Responsive breakpoints for grid */
+@media (max-width: 1200px) {
+  .drp__months--grid {
+    grid-template-columns: repeat(min(var(--drp-grid-columns, 3), 3), minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 768px) {
+  .drp__months--grid {
+    grid-template-columns: repeat(min(var(--drp-grid-columns, 3), 2), minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 480px) {
+  .drp__months--grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+/* ==============================================================================
+   INDIVIDUAL MONTH CONTAINER
+   ============================================================================== */
+
+.drp__month {
+  flex: 1;
+  min-width: var(--drp-month-min-width);
+  /* Make month a flex column container so calendar-container can fill vertical space */
+  display: flex;
+  flex-direction: column;
+}
+
+/* Allow shrinking for inline mode */
+.drp__picker--inline .drp__month {
+  min-width: var(--drp-month-min-width-inline);
+}
+
+/* Grid layout: remove min-width to allow proper grid sizing */
+.drp__months--grid .drp__month {
+  min-width: 0;
+  width: 100%;
+}
+
+/* Calendar container for swapping between calendar grid and rolling selector */
+.drp__calendar-container {
+  position: relative; /* Establishes containing block for absolute positioning */
+  /* Fill available vertical space in month container */
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0; /* Allow flex item to shrink below content size if needed */
+  /* Calendar grid (weekdays + days) determines minimum size
+     Rolling selector overlays absolutely and fills this expanded space */
+}

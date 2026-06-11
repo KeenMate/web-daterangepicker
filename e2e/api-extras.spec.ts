@@ -1,4 +1,4 @@
-import { test, expect, Page, Locator } from '@playwright/test';
+import { test, expect, Page, Locator } from './fixtures';
 
 /**
  * Programmatic property setters: selectedDate, selectedRanges. Message API:
@@ -14,11 +14,11 @@ function pickerById(page: Page, id: string) {
 }
 
 function calendarOf(p: Locator) {
-    return p.locator('.drp-date-picker');
+    return p.locator('.drp__picker');
 }
 
 function dayByDate(p: Locator, isoDate: string) {
-    return p.locator(`.drp-date-picker__day[data-date="${isoDate}"]`);
+    return p.locator(`.drp__day[data-date="${isoDate}"]`);
 }
 
 function inputOf(p: Locator) {
@@ -41,7 +41,7 @@ test('selectedDate setter populates the input and marks the day --selected', asy
     await expect(inputOf(p)).toHaveValue('2026-06-18');
 
     await inputOf(p).click();
-    await expect(dayByDate(p, '2026-06-18')).toHaveClass(/drp-date-picker__day--selected/);
+    await expect(dayByDate(p, '2026-06-18')).toHaveClass(/drp__day--selected/);
 });
 
 // =============================================================================
@@ -56,8 +56,8 @@ test('selectedRanges setter populates a range and applies range-start / range-en
     });
 
     await inputOf(p).click();
-    await expect(dayByDate(p, '2026-06-10')).toHaveClass(/drp-date-picker__day--range-start/);
-    await expect(dayByDate(p, '2026-06-14')).toHaveClass(/drp-date-picker__day--range-end/);
+    await expect(dayByDate(p, '2026-06-10')).toHaveClass(/drp__day--range-start/);
+    await expect(dayByDate(p, '2026-06-14')).toHaveClass(/drp__day--range-end/);
 });
 
 // =============================================================================
@@ -72,9 +72,9 @@ test('showMessage renders the message element with the configured type class', a
 
     await p.evaluate((el: any) => el.showMessage('Heads up', 'warning'));
 
-    const msg = p.locator('.drp-date-picker__message');
-    await expect(msg).toHaveClass(/drp-date-picker__message--visible/);
-    await expect(msg).toHaveClass(/drp-date-picker__message--warning/);
+    const msg = p.locator('.drp__message');
+    await expect(msg).toHaveClass(/drp__message--visible/);
+    await expect(msg).toHaveClass(/drp__message--warning/);
     await expect(msg).toContainText('Heads up');
 });
 
@@ -83,11 +83,11 @@ test('hideMessage removes the --visible modifier', async ({ page }) => {
 
     await inputOf(p).click();
     await p.evaluate((el: any) => el.showMessage('Heads up', 'info'));
-    const msg = p.locator('.drp-date-picker__message');
-    await expect(msg).toHaveClass(/drp-date-picker__message--visible/);
+    const msg = p.locator('.drp__message');
+    await expect(msg).toHaveClass(/drp__message--visible/);
 
     await p.evaluate((el: any) => el.hideMessage());
-    await expect(msg).not.toHaveClass(/drp-date-picker__message--visible/);
+    await expect(msg).not.toHaveClass(/drp__message--visible/);
 });
 
 test('showMessage auto-hides after the supplied timeout', async ({ page }) => {
@@ -96,9 +96,9 @@ test('showMessage auto-hides after the supplied timeout', async ({ page }) => {
     await inputOf(p).click();
     await p.evaluate((el: any) => el.showMessage('Brief', 'info', 200));
 
-    const msg = p.locator('.drp-date-picker__message');
-    await expect(msg).toHaveClass(/drp-date-picker__message--visible/);
-    await expect(msg).not.toHaveClass(/drp-date-picker__message--visible/, { timeout: 2000 });
+    const msg = p.locator('.drp__message');
+    await expect(msg).toHaveClass(/drp__message--visible/);
+    await expect(msg).not.toHaveClass(/drp__message--visible/, { timeout: 2000 });
 });
 
 // =============================================================================

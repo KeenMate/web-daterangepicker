@@ -1,4 +1,4 @@
-import { test, expect, Page } from '@playwright/test';
+import { test, expect, Page } from './fixtures';
 
 /**
  * Two v1.12.1 behaviors:
@@ -23,7 +23,7 @@ function picker(page: Page) {
 }
 
 function calendar(page: Page) {
-    return picker(page).locator('.drp-date-picker');
+    return picker(page).locator('.drp__picker');
 }
 
 async function openPicker(page: Page) {
@@ -43,11 +43,11 @@ test('calendar top stays put when its own size changes (no reposition on growth)
     // ResizeObserver and re-positioned the calendar — moving its top edge
     // upward when flipped above the input.
     await calendar(page).evaluate(cal => {
-        const summary = cal.querySelector('.drp-date-picker__summary') as HTMLElement | null;
+        const summary = cal.querySelector('.drp__summary') as HTMLElement | null;
         if (summary) summary.style.minHeight = '120px';
         else {
             // Single mode has no summary; fall back to padding the actions.
-            const actions = cal.querySelector('.drp-date-picker__actions') as HTMLElement | null;
+            const actions = cal.querySelector('.drp__actions') as HTMLElement | null;
             if (actions) actions.style.paddingBottom = '100px';
         }
     });

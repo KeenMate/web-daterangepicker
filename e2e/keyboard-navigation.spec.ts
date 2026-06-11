@@ -1,4 +1,4 @@
-import { test, expect, Page } from '@playwright/test';
+import { test, expect, Page } from './fixtures';
 
 /**
  * Keyboard interactions in floating-mode single picker. Picker is pinned to
@@ -17,15 +17,15 @@ function picker(page: Page) {
 }
 
 function calendar(page: Page) {
-    return picker(page).locator('.drp-date-picker');
+    return picker(page).locator('.drp__picker');
 }
 
 function focusedDay(page: Page) {
-    return picker(page).locator('.drp-date-picker__day--focused');
+    return picker(page).locator('.drp__day--focused');
 }
 
 function dayByDate(page: Page, isoDate: string) {
-    return picker(page).locator(`.drp-date-picker__day[data-date="${isoDate}"]`);
+    return picker(page).locator(`.drp__day[data-date="${isoDate}"]`);
 }
 
 async function openPicker(page: Page) {
@@ -106,6 +106,6 @@ test('"t" key navigates the active column to today', async ({ page }) => {
     await page.keyboard.press('t');
 
     // Today is 2026-05-22 (set by harness). Header should show May 2026.
-    await expect(picker(page).locator('.drp-date-picker__month-year').first()).toContainText(/May\s+2026/);
-    await expect(dayByDate(page, '2026-05-22')).toHaveClass(/drp-date-picker__day--today/);
+    await expect(picker(page).locator('.drp__month-year').first()).toContainText(/May\s+2026/);
+    await expect(dayByDate(page, '2026-05-22')).toHaveClass(/drp__day--today/);
 });

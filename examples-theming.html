@@ -166,15 +166,23 @@ web-daterangepicker.theme-green {
   --drp-accent-color: #10b981;
   --drp-accent-color-hover: #059669;
 }</div>
+
+    <div class="info" style="margin-top: 1rem;">
+      <strong>🎬 Shared rich demo:</strong> Every calendar picker on this page (Tests&nbsp;1–7 and the dynamic switcher) renders the
+      <em>same</em> set of demo data &mdash; emoji badges for events 🎂&nbsp;☕&nbsp;🎉&nbsp;🎤&nbsp;🎬, disabled holidays 🎄&nbsp;🥳,
+      dynamic weekend / weekday price badges, and rich HTML tooltips on hover. Open any picker to compare how
+      identical content renders under each theme. Time-picker examples (Test&nbsp;8) intentionally show no calendar data.
+    </div>
   </div>
 
   <div class="test-section">
     <h2>✅ Test 1: Default Theme (Blue)</h2>
     <p>Uses component's default CSS variables</p>
-    <label>Select a date:</label>
+    <label>Select a date range:</label>
     <web-daterangepicker
       class="default"
-      selection-mode="single"
+      selection-mode="range"
+      visible-months-count="2" data-rich-demo
       placeholder="Default theme">
     </web-daterangepicker>
     <div class="success">
@@ -189,28 +197,32 @@ web-daterangepicker.theme-green {
     <label>Green Theme:</label>
     <web-daterangepicker
       class="theme-green"
-      selection-mode="single"
+      selection-mode="range"
+      visible-months-count="2" data-rich-demo
       placeholder="Green theme">
     </web-daterangepicker>
 
     <label style="margin-top: 1rem;">Purple Theme:</label>
     <web-daterangepicker
       class="theme-purple"
-      selection-mode="single"
+      selection-mode="range"
+      visible-months-count="2" data-rich-demo
       placeholder="Purple theme">
     </web-daterangepicker>
 
     <label style="margin-top: 1rem;">Red Theme:</label>
     <web-daterangepicker
       class="theme-red"
-      selection-mode="single"
+      selection-mode="range"
+      visible-months-count="2" data-rich-demo
       placeholder="Red theme">
     </web-daterangepicker>
 
     <label style="margin-top: 1rem;">Orange Theme:</label>
     <web-daterangepicker
       class="theme-orange"
-      selection-mode="single"
+      selection-mode="range"
+      visible-months-count="2" data-rich-demo
       placeholder="Orange theme">
     </web-daterangepicker>
 
@@ -222,10 +234,11 @@ web-daterangepicker.theme-green {
   <div class="test-section">
     <h2>✅ Test 3: Dark Theme (Multiple Variables)</h2>
     <p>Overrides multiple variables for complete dark mode</p>
-    <label>Select a date:</label>
+    <label>Select a date range:</label>
     <web-daterangepicker
       class="theme-dark"
-      selection-mode="single"
+      selection-mode="range"
+      visible-months-count="2" data-rich-demo
       placeholder="Dark theme">
     </web-daterangepicker>
     <div class="success">
@@ -251,14 +264,16 @@ web-daterangepicker.theme-green {
     <label>Large with rounded corners:</label>
     <web-daterangepicker
       class="custom-large"
-      selection-mode="single"
+      selection-mode="range"
+      visible-months-count="2" data-rich-demo
       placeholder="Custom large theme">
     </web-daterangepicker>
 
     <label style="margin-top: 1rem;">Compact theme:</label>
     <web-daterangepicker
       class="theme-compact"
-      selection-mode="single"
+      selection-mode="range"
+      visible-months-count="2" data-rich-demo
       placeholder="Compact theme">
     </web-daterangepicker>
 
@@ -275,7 +290,7 @@ web-daterangepicker.theme-green {
     <web-daterangepicker
       class="theme-green"
       selection-mode="range"
-      visible-months-count="2"
+      visible-months-count="2" data-rich-demo
       placeholder="Range with green theme">
     </web-daterangepicker>
 
@@ -283,7 +298,7 @@ web-daterangepicker.theme-green {
     <web-daterangepicker
       class="theme-dark"
       selection-mode="range"
-      visible-months-count="2"
+      visible-months-count="2" data-rich-demo
       placeholder="Range with dark theme">
     </web-daterangepicker>
 
@@ -300,7 +315,7 @@ web-daterangepicker.theme-green {
     <web-daterangepicker
       class="theme-selection-hover"
       selection-mode="range"
-      visible-months-count="2"
+      visible-months-count="2" data-rich-demo
       placeholder="Select a range and hover over start/end">
     </web-daterangepicker>
 
@@ -308,6 +323,7 @@ web-daterangepicker.theme-green {
     <web-daterangepicker
       class="theme-selection-hover"
       selection-mode="single"
+      data-rich-demo
       placeholder="Select a date and hover over it">
     </web-daterangepicker>
 
@@ -315,7 +331,7 @@ web-daterangepicker.theme-green {
     <web-daterangepicker
       class="theme-selection-contrast"
       selection-mode="range"
-      visible-months-count="2"
+      visible-months-count="2" data-rich-demo
       placeholder="Select a range and hover over start/end">
     </web-daterangepicker>
 
@@ -355,7 +371,8 @@ web-daterangepicker.theme-selection-hover {
     <label>Pastel theme:</label>
     <web-daterangepicker
       class="theme-pastel"
-      selection-mode="single"
+      selection-mode="range"
+      visible-months-count="2" data-rich-demo
       placeholder="Pastel theme">
     </web-daterangepicker>
     <div class="success">
@@ -364,12 +381,12 @@ web-daterangepicker.theme-selection-hover {
   </div>
 
   <div class="test-section">
-    <h2>&#9989; Test 8: Time Picker &amp; Clock Theming</h2>
-    <p>The time rolls (<code>time-display="rolls"</code>) and the Material clock face
-      (<code>time-display="clock"</code>) consume the same <code>--drp-accent-color</code>
-      token used elsewhere &mdash; selected hour/minute, the clock hand, the AM/PM toggle,
-      the header digit indicator, and the rolls' selected-item background all follow it
-      automatically. No clock-specific overrides needed for color theming.</p>
+    <h2>&#9989; Test 8: Time Picker Theming (all four UIs)</h2>
+    <p>All four time UIs &mdash; rolls, clock, wheel, compact &mdash; consume the same
+      <code>--drp-accent-color</code> token used elsewhere. Selected hour/minute, the
+      clock hand, the AM/PM toggle, the wheel's center selection band, the compact pill
+      backgrounds and focus ring &mdash; all follow it automatically. No
+      display-specific overrides needed for color theming.</p>
 
     <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1rem; margin-top: 1rem;">
       <div>
@@ -441,8 +458,62 @@ web-daterangepicker.theme-selection-hover {
         positioning-mode="inline"></web-daterangepicker>
     </div>
 
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1rem; margin-top: 1.5rem;">
+      <div>
+        <label>Wheel &mdash; default (blue)</label>
+        <web-daterangepicker
+          picker-mode="time"
+          time-display="wheel"
+          positioning-mode="inline"></web-daterangepicker>
+      </div>
+      <div>
+        <label>Wheel &mdash; green theme (h12)</label>
+        <web-daterangepicker
+          class="theme-green"
+          picker-mode="time"
+          time-display="wheel"
+          time-format-mask="hh:mm a"
+          positioning-mode="inline"></web-daterangepicker>
+      </div>
+      <div>
+        <label>Wheel &mdash; red theme</label>
+        <web-daterangepicker
+          class="theme-red"
+          picker-mode="time"
+          time-display="wheel"
+          positioning-mode="inline"></web-daterangepicker>
+      </div>
+    </div>
+
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1rem; margin-top: 1.5rem;">
+      <div>
+        <label>Compact &mdash; default (blue)</label>
+        <web-daterangepicker
+          picker-mode="time"
+          time-display="compact"
+          positioning-mode="inline"></web-daterangepicker>
+      </div>
+      <div>
+        <label>Compact &mdash; green theme (h12)</label>
+        <web-daterangepicker
+          class="theme-green"
+          picker-mode="time"
+          time-display="compact"
+          time-format-mask="hh:mm a"
+          positioning-mode="inline"></web-daterangepicker>
+      </div>
+      <div>
+        <label>Compact &mdash; purple theme</label>
+        <web-daterangepicker
+          class="theme-purple"
+          picker-mode="time"
+          time-display="compact"
+          positioning-mode="inline"></web-daterangepicker>
+      </div>
+    </div>
+
     <div class="success">
-      &check; Accent, background, border, and text-on-accent tokens cascade into both pickers without extra overrides.
+      &check; Accent, background, border, and text-on-accent tokens cascade into all four time pickers without extra overrides.
     </div>
 
     <div class="info" style="margin-top: 1rem;">
@@ -520,6 +591,35 @@ web-daterangepicker.theme-selection-hover {
 --drp-clock-header-digit-color         /* Inactive digit color */
 --drp-clock-header-digit-color-active  /* Active digit (current step) color */
 --drp-clock-ampm-bg-selected           /* AM/PM toggle selected background */</div>
+
+    <h3 style="margin-top: 1.5rem; font-size: 1.1rem;">Wheel Picker (iOS barrel)</h3>
+    <div class="code-block">--drp-wheel-bg                         /* Barrel background (whole row) */
+--drp-wheel-band-bg                    /* Center selection band fill */
+--drp-wheel-item-height                /* Per-item row height (also drives band height + fade) */
+--drp-wheel-item-font-size             /* Digit font size */
+--drp-wheel-item-color                 /* Off-center item color */
+--drp-wheel-item-color-hover           /* Hover color */
+--drp-wheel-item-color-selected        /* Centered item color (defaults to accent) */
+--drp-wheel-column-gap                 /* Gap between columns */
+--drp-wheel-column-min-width           /* Floor per column */
+--drp-wheel-ampm-min-width             /* Narrower floor for AM/PM column */
+--drp-wheel-min-height                 /* Barrel height (~180px default — 5-6 items visible) */
+--drp-wheel-fade-height                /* Top/bottom gradient height */</div>
+
+    <h3 style="margin-top: 1.5rem; font-size: 1.1rem;">Compact Picker (iOS pills)</h3>
+    <div class="code-block">--drp-compact-pill-bg                  /* Pill background (defaults to accent @ 12% alpha) */
+--drp-compact-pill-bg-hover            /* Pill hover background */
+--drp-compact-pill-color               /* Committed pill text (defaults to accent) */
+--drp-compact-pill-color-uncommitted   /* Pill text before user has typed */
+--drp-compact-pill-font-size           /* Pill digit size */
+--drp-compact-pill-padding-v           /* Pill vertical padding */
+--drp-compact-pill-padding-h           /* Pill horizontal padding */
+--drp-compact-pill-focus-ring          /* Outline ring while editing (defaults to accent) */
+--drp-compact-sep-color                /* ':' separator color */
+--drp-compact-ampm-bg                  /* AM/PM button background (unselected) */
+--drp-compact-ampm-bg-selected         /* AM/PM button background (selected, defaults to accent) */
+--drp-compact-ampm-color               /* AM/PM unselected text */
+--drp-compact-ampm-color-selected      /* AM/PM selected text */</div>
   </div>
 
   <div class="test-section">
@@ -529,7 +629,8 @@ web-daterangepicker.theme-selection-hover {
     <web-daterangepicker
       id="dynamic-picker"
       class="theme-green"
-      selection-mode="single"
+      selection-mode="range"
+      visible-months-count="2" data-rich-demo
       placeholder="Dynamic theme">
     </web-daterangepicker>
     <div style="margin-top: 1rem; display: flex; gap: 0.5rem; flex-wrap: wrap;">
@@ -549,24 +650,119 @@ function switchTheme(newTheme) {
 
   <script type="module" src="/src/index.ts"></script>
 
-  <script>
-    // Dynamic theme switching
-    function switchTheme(newTheme) {
-      const picker = document.getElementById('dynamic-picker');
-      picker.className = newTheme;
-      console.log('Theme switched to:', newTheme);
+  <script type="module">
+    // Wait for the web component to be registered before assigning properties.
+    await customElements.whenDefined('web-daterangepicker');
+
+    // ----- Anchor all demo data to today so the page never goes stale -----
+    const _today = new Date(); _today.setHours(0, 0, 0, 0);
+    const toLocalISO = (d) =>
+      `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+    const dayOffset = (days) => {
+      const d = new Date(_today); d.setDate(d.getDate() + days);
+      return toLocalISO(d);
+    };
+
+    // Curated mix: events stay clickable (badgeClass 'event'); holidays are disabled (badgeClass 'holiday')
+    const SPECIAL_DATES = [
+      { date: dayOffset(-7),  badgeText: '🎂', badgeClass: 'event',   badgeTooltip: 'Birthday' },
+      { date: dayOffset(-3),  badgeText: '☕', badgeClass: 'event',   badgeTooltip: 'Coffee meeting' },
+      { date: dayOffset(2),   badgeText: '🎉', badgeClass: 'event',   badgeTooltip: 'Team celebration' },
+      { date: dayOffset(5),   badgeText: '🎄', badgeClass: 'holiday', badgeTooltip: 'Public holiday (office closed)', isDisabled: true },
+      { date: dayOffset(11),  badgeText: '🎤', badgeClass: 'event',   badgeTooltip: 'Karaoke night' },
+      { date: dayOffset(17),  badgeText: '🥳', badgeClass: 'holiday', badgeTooltip: 'Company off-day',                isDisabled: true },
+      { date: dayOffset(23),  badgeText: '🎬', badgeClass: 'event',   badgeTooltip: 'Movie screening' }
+    ];
+    const SPECIAL_KEYS = new Set(SPECIAL_DATES.map(d => d.date));
+
+    // Rich HTML day tooltips for the event dates (holidays use the plain badge tooltip)
+    const RICH_TOOLTIPS = {
+      [dayOffset(-7)]: '<strong>Birthday 🎂</strong><br>🎁 Bring cake<br>📍 Kitchen<br>👥 Whole team',
+      [dayOffset(-3)]: '<strong>Coffee Meeting ☕</strong><br>⏰ 10:00 – 11:00 AM<br>📍 Stairwell Café<br>👥 With marketing',
+      [dayOffset(2)]:  '<strong>Team Celebration 🎉</strong><br>⏰ 4:00 – 6:00 PM<br>📍 Rooftop<br>🍕 Pizza & drinks',
+      [dayOffset(11)]: '<strong>Karaoke Night 🎤</strong><br>⏰ 7:00 PM onwards<br>📍 Sound Garden<br>🎶 BYO playlist',
+      [dayOffset(23)]: '<strong>Movie Screening 🎬</strong><br>⏰ 8:00 PM<br>📍 Auditorium B<br>🍿 Snacks provided'
+    };
+
+    // Inject styles into each picker's Shadow DOM. color-mix keeps badges readable on
+    // light AND dark theme backgrounds without per-theme overrides.
+    const richDemoStyles = () => `
+      .drp__badge-cell.event {
+        background-color: color-mix(in srgb, #3b82f6 28%, transparent) !important;
+        color: var(--drp-text-primary, currentColor) !important;
+        font-weight: 600;
+      }
+      .drp__badge-cell.holiday {
+        background-color: color-mix(in srgb, #ef4444 28%, transparent) !important;
+        color: var(--drp-text-primary, currentColor) !important;
+        font-weight: 600;
+      }
+      .drp__badge-cell.price-high {
+        background-color: color-mix(in srgb, #ef4444 22%, transparent) !important;
+        color: var(--drp-text-primary, currentColor) !important;
+        font-size: 0.65rem;
+        font-weight: 600;
+      }
+      .drp__badge-cell.price-mid {
+        background-color: color-mix(in srgb, #f59e0b 26%, transparent) !important;
+        color: var(--drp-text-primary, currentColor) !important;
+        font-size: 0.65rem;
+        font-weight: 600;
+      }
+      .drp__badge-cell.price-low {
+        background-color: color-mix(in srgb, #10b981 22%, transparent) !important;
+        color: var(--drp-text-primary, currentColor) !important;
+        font-size: 0.65rem;
+        font-weight: 600;
+      }
+    `;
+
+    function setupRichDemo(picker) {
+      // Keep the popover open after the end click so the days/nights summary
+      // block stays visible — default 'selection' snaps it shut too fast to see.
+      // Setting the attribute (not the property) lets the component pick it up
+      // on first init alongside the other observed attributes.
+      if (picker.getAttribute('selection-mode') === 'range') {
+        picker.setAttribute('auto-close', 'apply');
+      }
+
+      picker.customStylesCallback = richDemoStyles;
+      picker.specialDates = SPECIAL_DATES;
+
+      // Dynamic weekday/weekend pricing for every non-special date.
+      // specialDates take priority so we just skip those keys here.
+      picker.getDateMetadataCallback = (date) => {
+        const iso = toLocalISO(date);
+        if (SPECIAL_KEYS.has(iso)) return null;
+        const dow = date.getDay();
+        const isWeekend = (dow === 0 || dow === 6);
+        const price = isWeekend ? 220 : 150;
+        const cls = price >= 220 ? 'price-high' : (price >= 180 ? 'price-mid' : 'price-low');
+        return {
+          badgeText: `$${price}`,
+          badgeClass: cls,
+          badgeTooltip: `${isWeekend ? 'Weekend' : 'Weekday'} rate: $${price}/night`
+        };
+      };
+
+      // Rich HTML tooltip when an event date is hovered.
+      picker.dayTooltipCallback = (data) => RICH_TOOLTIPS[data.dateString] || null;
     }
 
-    // Log to console when components are ready
-    document.addEventListener('DOMContentLoaded', () => {
-      console.log('✅ Theming examples loaded');
-      console.log('📋 Instructions:');
-      console.log('1. Click each input to open the calendar');
-      console.log('2. Check if the accent colors match the theme');
-      console.log('3. Try the dynamic theme switcher at the bottom');
-      console.log('');
-      console.log('✅ If all themes work correctly, :host CSS variables are working!');
-    });
+    document.querySelectorAll('web-daterangepicker[data-rich-demo]').forEach(setupRichDemo);
+
+    // switchTheme is referenced from inline onclick attrs, so it must live on window.
+    // Re-applying setupRichDemo after the class swap is cheap insurance — class changes
+    // re-flow CSS only (no rebuild), so the existing setup survives, but this keeps the
+    // function self-contained in case the dynamic picker is recreated.
+    window.switchTheme = (newTheme) => {
+      const picker = document.getElementById('dynamic-picker');
+      picker.className = newTheme;
+      setupRichDemo(picker);
+      console.log('Theme switched to:', newTheme);
+    };
+
+    console.log('✅ Theming examples loaded — same rich demo applied to every themed picker');
   </script>
 </body>
 </html>

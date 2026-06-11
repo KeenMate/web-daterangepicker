@@ -1,0 +1,15 @@
+/* ==============================================================================
+   ANIMATIONS — @keyframes declarations
+   ==============================================================================
+   Keyframes are global within their stylesheet/layer; rule-level
+   `transition:` declarations stay alongside the rules that use them
+   (see `states.css` for the opt-in transition set). */
+
+@keyframes drp-spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}

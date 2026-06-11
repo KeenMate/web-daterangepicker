@@ -1,35 +1,47 @@
 /* ==============================================================================
-   DATE RANGE PICKER COMPONENT - MAIN ENTRY POINT
+   @keenmate/web-daterangepicker — MAIN ENTRY POINT
    ==============================================================================
+   Cascade layer order (later = higher priority):
+     variables  — :host { --drp-* } declarations
+     component  — base + Tier-2 canonical concerns + Tier-3 feature partials
+     overrides  — framework theme classes, per-instance data-theme
 
-   File structure:
-   ├── _variables.css          - CSS custom properties at :host level
-   ├── _base.css               - Base container, input field, calendar popup
-   ├── _header-navigation.css  - Header, month/year display, nav buttons, rolling selector
-   ├── _calendar-grid.css      - Weekdays, day cells, all day states
-   ├── _badges.css             - Badge system for events/markers
-   ├── _summary-actions.css    - Selection summary and action buttons
-   ├── _tooltips.css           - Floating UI tooltips
-   ├── _loading.css            - Loading overlay and spinner for async validation
-   ├── _message.css            - Message area for validation feedback
-   ├── _modal.css              - Modal positioning mode (centered overlay + backdrop)
-   ├── _modifiers.css          - Transitions, inline mode
-   └── main.css                - This file (imports all partials)
+   Consumer override contract:
+   - Any unlayered consumer rule beats every rule below
+     (e.g. `web-daterangepicker { background: red }` always wins — no
+     `!important` needed).
+   - Any `:root --base-*` declaration beats the `variables` layer.
+   - To override a rule inside `overrides` (the dark/light blocks), the
+     consumer needs equal or higher specificity in their own
+     `@layer overrides` block, or any unlayered rule.
 
-   Import order matters - variables must be first, modifiers should be last
-
+   See `guidelines/web-components/css-structure.md` for the layer rationale
+   and `guidelines/web-components/color-scheme.md` for the dark-mode pattern.
    ============================================================================== */
 
-@import './_variables.css';
-@import './_base.css';
-@import './_header-navigation.css';
-@import './_calendar-grid.css';
-@import './_badges.css';
-@import './_summary-actions.css';
-@import './_tooltips.css';
-@import './_loading.css';
-@import './_message.css';
-@import './_modal.css';
-@import './_time-picker.css';
-@import './_clock-picker.css';
-@import './_modifiers.css';
+@layer variables, component, overrides;
+
+@import url('./variables.css')         layer(variables);
+
+/* === SKELETON + CANONICAL CONCERNS (Tier 1 + Tier 2) === */
+@import url('./base.css')              layer(component);
+@import url('./controls.css')          layer(component);
+@import url('./floating.css')          layer(component);
+@import url('./states.css')            layer(component);
+@import url('./animations.css')        layer(component);
+
+/* === COMPONENT-SPECIFIC FEATURES (Tier 3 — alphabetized) === */
+@import url('./badges.css')            layer(component);
+@import url('./calendar-grid.css')     layer(component);
+@import url('./clock-picker.css')      layer(component);
+@import url('./compact-picker.css')    layer(component);
+@import url('./header-navigation.css') layer(component);
+@import url('./loading.css')           layer(component);
+@import url('./message.css')           layer(component);
+@import url('./modal.css')             layer(component);
+@import url('./summary-actions.css')   layer(component);
+@import url('./time-picker.css')       layer(component);
+@import url('./wheel-picker.css')      layer(component);
+
+/* === OVERRIDES === */
+@import url('./dark-mode.css')         layer(overrides);

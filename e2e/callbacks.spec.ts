@@ -1,4 +1,4 @@
-import { test, expect, Page, Locator } from '@playwright/test';
+import { test, expect, Page, Locator } from './fixtures';
 
 /**
  * Custom rendering + lifecycle callbacks:
@@ -18,11 +18,11 @@ function pickerById(page: Page, id: string) {
 }
 
 function calendarOf(p: Locator) {
-    return p.locator('.drp-date-picker');
+    return p.locator('.drp__picker');
 }
 
 function dayByDate(p: Locator, isoDate: string) {
-    return p.locator(`.drp-date-picker__day[data-date="${isoDate}"]`);
+    return p.locator(`.drp__day[data-date="${isoDate}"]`);
 }
 
 function inputOf(p: Locator) {
@@ -60,7 +60,7 @@ test('renderDayContentCallback appends additional HTML into the matched day cell
 test('getMonthHeaderCallback overrides the month-year header text', async ({ page }) => {
     const p = await open(page, 'header');
 
-    await expect(p.locator('.drp-date-picker__month-year').first()).toContainText('❄ June 2026 ❄');
+    await expect(p.locator('.drp__month-year').first()).toContainText('❄ June 2026 ❄');
 });
 
 // =============================================================================
@@ -92,12 +92,12 @@ test('beforeMonthChangedCallback action:"block" prevents navigation to the targe
     const p = await open(page, 'before-month');
 
     // June → July is allowed.
-    await p.locator('.drp-date-picker__nav--next[data-month-index="0"]').click();
-    await expect(p.locator('.drp-date-picker__month-year').first()).toContainText(/July\s+2026/);
+    await p.locator('.drp__nav--next[data-month-index="0"]').click();
+    await expect(p.locator('.drp__month-year').first()).toContainText(/July\s+2026/);
 
     // July → August is blocked.
-    await p.locator('.drp-date-picker__nav--next[data-month-index="0"]').click();
-    await expect(p.locator('.drp-date-picker__month-year').first()).toContainText(/July\s+2026/);
+    await p.locator('.drp__nav--next[data-month-index="0"]').click();
+    await expect(p.locator('.drp__month-year').first()).toContainText(/July\s+2026/);
 });
 
 // =============================================================================
@@ -107,7 +107,7 @@ test('beforeMonthChangedCallback action:"block" prevents navigation to the targe
 test('getDateMetadataCallback can mark an individual date disabled via {isDisabled:true}', async ({ page }) => {
     const p = await open(page, 'metadata');
 
-    await expect(dayByDate(p, '2026-06-17')).toHaveClass(/drp-date-picker__day--disabled/);
+    await expect(dayByDate(p, '2026-06-17')).toHaveClass(/drp__day--disabled/);
     // Adjacent day is still enabled.
-    await expect(dayByDate(p, '2026-06-18')).not.toHaveClass(/drp-date-picker__day--disabled/);
+    await expect(dayByDate(p, '2026-06-18')).not.toHaveClass(/drp__day--disabled/);
 });

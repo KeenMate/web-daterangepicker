@@ -1,4 +1,4 @@
-import { test, expect, Page, Locator } from '@playwright/test';
+import { test, expect, Page, Locator } from './fixtures';
 
 /**
  * Covers the three selection modes and the auto-close / Apply-button
@@ -15,11 +15,11 @@ function pickerById(page: Page, id: string) {
 }
 
 function calendarOf(picker: Locator) {
-    return picker.locator('.drp-date-picker');
+    return picker.locator('.drp__picker');
 }
 
 function dayByDate(picker: Locator, isoDate: string) {
-    return picker.locator(`.drp-date-picker__day[data-date="${isoDate}"]`);
+    return picker.locator(`.drp__day[data-date="${isoDate}"]`);
 }
 
 function inputOf(picker: Locator) {
@@ -58,7 +58,7 @@ test.describe('single mode', () => {
         await dayByDate(p, '2026-06-20').click();
         // Reopen to inspect class state.
         await inputOf(p).click();
-        await expect(dayByDate(p, '2026-06-20')).toHaveClass(/drp-date-picker__day--selected/);
+        await expect(dayByDate(p, '2026-06-20')).toHaveClass(/drp__day--selected/);
     });
 });
 
@@ -83,10 +83,10 @@ test.describe('range mode', () => {
         await dayByDate(p, '2026-06-15').click();
         await inputOf(p).click();
 
-        await expect(dayByDate(p, '2026-06-10')).toHaveClass(/drp-date-picker__day--range-start/);
-        await expect(dayByDate(p, '2026-06-15')).toHaveClass(/drp-date-picker__day--range-end/);
+        await expect(dayByDate(p, '2026-06-10')).toHaveClass(/drp__day--range-start/);
+        await expect(dayByDate(p, '2026-06-15')).toHaveClass(/drp__day--range-end/);
         // A day between start and end should be in-range.
-        await expect(dayByDate(p, '2026-06-12')).toHaveClass(/drp-date-picker__day--in-range/);
+        await expect(dayByDate(p, '2026-06-12')).toHaveClass(/drp__day--in-range/);
     });
 
     test('summary becomes --visible after a range is committed', async ({ page }) => {
@@ -96,7 +96,7 @@ test.describe('range mode', () => {
         await dayByDate(p, '2026-06-15').click();
         await inputOf(p).click();
 
-        await expect(p.locator('.drp-date-picker__summary')).toHaveClass(/drp-date-picker__summary--visible/);
+        await expect(p.locator('.drp__summary')).toHaveClass(/drp__summary--visible/);
     });
 
     test('clicking earlier date after start auto-orders the range (10 → 15 from clicks 15, 10)', async ({ page }) => {
@@ -125,11 +125,11 @@ test.describe('multiple mode', () => {
 
         // Multiple mode never auto-closes on selection — needs Apply.
         await expect(calendarOf(p)).toBeVisible();
-        await expect(dayByDate(p, '2026-06-10')).toHaveClass(/drp-date-picker__day--selected/);
-        await expect(dayByDate(p, '2026-06-12')).toHaveClass(/drp-date-picker__day--selected/);
-        await expect(dayByDate(p, '2026-06-15')).toHaveClass(/drp-date-picker__day--selected/);
+        await expect(dayByDate(p, '2026-06-10')).toHaveClass(/drp__day--selected/);
+        await expect(dayByDate(p, '2026-06-12')).toHaveClass(/drp__day--selected/);
+        await expect(dayByDate(p, '2026-06-15')).toHaveClass(/drp__day--selected/);
 
-        await p.locator('.drp-date-picker__button--apply').click();
+        await p.locator('.drp__button--apply').click();
         await expect(calendarOf(p)).toBeHidden();
         // Multiple mode summarizes the selection count in the input rather than
         // listing every date (which would overflow for long selections).
@@ -140,10 +140,10 @@ test.describe('multiple mode', () => {
         const p = await open(page, 'multiple');
 
         await dayByDate(p, '2026-06-10').click();
-        await expect(dayByDate(p, '2026-06-10')).toHaveClass(/drp-date-picker__day--selected/);
+        await expect(dayByDate(p, '2026-06-10')).toHaveClass(/drp__day--selected/);
 
         await dayByDate(p, '2026-06-10').click();
-        await expect(dayByDate(p, '2026-06-10')).not.toHaveClass(/drp-date-picker__day--selected/);
+        await expect(dayByDate(p, '2026-06-10')).not.toHaveClass(/drp__day--selected/);
     });
 });
 
@@ -158,7 +158,7 @@ test.describe('Apply button (range mode)', () => {
         // Seed an existing value, reopen, then make a different pending selection.
         await dayByDate(p, '2026-06-10').click();
         await dayByDate(p, '2026-06-12').click();
-        await p.locator('.drp-date-picker__button--apply').click();
+        await p.locator('.drp__button--apply').click();
         await expect(inputOf(p)).toHaveValue('2026-06-10 - 2026-06-12');
 
         await inputOf(p).click();
@@ -177,7 +177,7 @@ test.describe('Apply button (range mode)', () => {
 
         await dayByDate(p, '2026-06-10').click();
         await dayByDate(p, '2026-06-15').click();
-        await p.locator('.drp-date-picker__button--apply').click();
+        await p.locator('.drp__button--apply').click();
 
         await expect(calendarOf(p)).toBeHidden();
         await expect(inputOf(p)).toHaveValue('2026-06-10 - 2026-06-15');

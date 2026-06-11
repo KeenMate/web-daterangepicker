@@ -1,4 +1,4 @@
-import { test, expect, Page, Locator } from '@playwright/test';
+import { test, expect, Page, Locator } from './fixtures';
 
 /**
  * Drag-to-adjust: grabbing a range-start or range-end cell and dragging
@@ -14,11 +14,11 @@ function picker(page: Page) {
 }
 
 function calendar(page: Page) {
-    return picker(page).locator('.drp-date-picker');
+    return picker(page).locator('.drp__picker');
 }
 
 function dayByDate(page: Page, isoDate: string) {
-    return picker(page).locator(`.drp-date-picker__day[data-date="${isoDate}"]`);
+    return picker(page).locator(`.drp__day[data-date="${isoDate}"]`);
 }
 
 function inputOf(page: Page) {
@@ -81,7 +81,7 @@ test('during drag the dragged cell gets the --dragging class', async ({ page }) 
     await page.mouse.move(from!.x + from!.width / 2 + 12, from!.y + from!.height / 2, { steps: 2 });
 
     // While drag is active, the source carries --dragging.
-    await expect(dayByDate(page, '2026-06-15')).toHaveClass(/drp-date-picker__day--dragging/);
+    await expect(dayByDate(page, '2026-06-15')).toHaveClass(/drp__day--dragging/);
 
     await page.mouse.up();
 });

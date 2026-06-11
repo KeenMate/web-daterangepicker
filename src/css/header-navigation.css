@@ -7,7 +7,7 @@
    CALENDAR HEADER
    ============================================================================== */
 
-.drp-date-picker__header {
+.drp__header {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -16,15 +16,15 @@
 }
 
 /* Static header (used in unified navigation mode) */
-.drp-date-picker__header--static {
+.drp__header--static {
   justify-content: center;
 }
 
-.drp-date-picker__header--static .drp-date-picker__month-year {
+.drp__header--static .drp__month-year {
   cursor: default;
 }
 
-.drp-date-picker__header--static .drp-date-picker__month-year:hover {
+.drp__header--static .drp__month-year:hover {
   background-color: transparent;
 }
 
@@ -32,7 +32,7 @@
    MONTH/YEAR DISPLAY (CLICKABLE TO OPEN ROLLING SELECTOR)
    ============================================================================== */
 
-.drp-date-picker__month-year {
+.drp__month-year {
   flex: 1;
   text-align: center;
   font-weight: var(--drp-font-weight-semibold);
@@ -43,11 +43,11 @@
   cursor: pointer;
 }
 
-.drp-date-picker__month-year:hover {
+.drp__month-year:hover {
   background-color: var(--drp-header-bg-hover);
 }
 
-.drp-date-picker__month-year:active {
+.drp__month-year:active {
   background-color: var(--drp-header-bg-active);
 }
 
@@ -55,7 +55,7 @@
    NAVIGATION BUTTONS (PREVIOUS/NEXT MONTH)
    ============================================================================== */
 
-.drp-date-picker__nav {
+.drp__nav {
   width: var(--drp-nav-size);
   height: var(--drp-nav-size);
   display: flex;
@@ -69,34 +69,34 @@
   color: var(--drp-nav-text-color);
 }
 
-.drp-date-picker__nav:hover {
+.drp__nav:hover {
   background-color: var(--drp-nav-bg-hover);
   border: var(--drp-nav-border-hover-full);
 }
 
-.drp-date-picker__nav:active {
+.drp__nav:active {
   background-color: var(--drp-nav-bg-active);
 }
 
 /* Disabled state */
-.drp-date-picker__nav--disabled,
-.drp-date-picker__nav[disabled] {
+.drp__nav--disabled,
+.drp__nav[disabled] {
   opacity: var(--drp-opacity-disabled);
   cursor: not-allowed;
   pointer-events: none;
 }
 
-.drp-date-picker__nav--disabled:hover,
-.drp-date-picker__nav[disabled]:hover {
+.drp__nav--disabled:hover,
+.drp__nav[disabled]:hover {
   background-color: transparent;
   border: var(--drp-nav-border);
 }
 
-.drp-date-picker__nav--prev::before {
+.drp__nav--prev::before {
   content: '‹';
 }
 
-.drp-date-picker__nav--next::before {
+.drp__nav--next::before {
   content: '›';
 }
 
@@ -104,7 +104,7 @@
    ROLLING SELECTOR VIEW (MONTH/YEAR SELECTION)
    ============================================================================== */
 
-.drp-date-picker__rolling-selector {
+.drp__rolling-selector {
   /* Absolutely positioned to overlay calendar grid */
   position: absolute;
   inset: 0; /* Fill entire container from all edges */
@@ -113,17 +113,17 @@
   gap: var(--drp-spacing-xs);
 }
 
-.drp-date-picker__rolling-selector.drp-date-picker__rolling-selector--visible {
+.drp__rolling-selector.drp__rolling-selector--visible {
   display: flex;
 }
 
 /* Hide calendar grid when rolling selector is visible */
-.drp-date-picker__rolling-selector.drp-date-picker__rolling-selector--visible ~ .drp-date-picker__weekdays,
-.drp-date-picker__rolling-selector.drp-date-picker__rolling-selector--visible ~ .drp-date-picker__days {
+.drp__rolling-selector.drp__rolling-selector--visible ~ .drp__weekdays,
+.drp__rolling-selector.drp__rolling-selector--visible ~ .drp__days {
   visibility: hidden; /* Keeps elements in layout flow (maintains container height) */
 }
 
-.drp-date-picker__rolling-list {
+.drp__rolling-list {
   flex: 1;
   min-width: 0; /* Allow flex child to shrink below content size (enables ellipsis on items) */
   height: 100%; /* Fill parent height */
@@ -145,24 +145,24 @@
 }
 
 /* Custom scrollbar */
-.drp-date-picker__rolling-list::-webkit-scrollbar {
+.drp__rolling-list::-webkit-scrollbar {
   width: var(--drp-rolling-scrollbar-width);
 }
 
-.drp-date-picker__rolling-list::-webkit-scrollbar-track {
+.drp__rolling-list::-webkit-scrollbar-track {
   background: var(--drp-rolling-bg);
 }
 
-.drp-date-picker__rolling-list::-webkit-scrollbar-thumb {
+.drp__rolling-list::-webkit-scrollbar-thumb {
   background: var(--drp-rolling-scrollbar-thumb);
   border-radius: 3px;
 }
 
-.drp-date-picker__rolling-list::-webkit-scrollbar-thumb:hover {
+.drp__rolling-list::-webkit-scrollbar-thumb:hover {
   background: var(--drp-rolling-scrollbar-thumb-hover);
 }
 
-.drp-date-picker__rolling-item {
+.drp__rolling-item {
   padding: var(--drp-rolling-item-padding-v) var(--drp-rolling-item-padding-h);
   cursor: pointer;
   font-size: var(--drp-rolling-item-font-size);
@@ -175,22 +175,22 @@
   justify-content: var(--drp-rolling-item-justify-content);
 }
 
-.drp-date-picker__rolling-item:hover {
+.drp__rolling-item:hover {
   background-color: var(--drp-rolling-item-bg-hover);
 }
 
-.drp-date-picker__rolling-item--selected {
+.drp__rolling-item--selected {
   background-color: var(--drp-rolling-item-bg-selected);
   color: var(--drp-rolling-item-color-selected);
   font-weight: var(--drp-rolling-item-font-weight-selected);
 }
 
-.drp-date-picker__rolling-item--selected:hover {
+.drp__rolling-item--selected:hover {
   background-color: var(--drp-rolling-item-bg-selected-hover);
 }
 
 /* Text wrapper for ellipsis support */
-.drp-date-picker__rolling-item-text {
+.drp__rolling-item-text {
   /* Text overflow handling for long month names */
   overflow: hidden;
   text-overflow: ellipsis;
@@ -204,7 +204,7 @@
    ============================================================================== */
 
 /* Unified header - appears above all months */
-.drp-date-picker__unified-header {
+.drp__unified-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -214,7 +214,7 @@
 }
 
 /* Date range display in unified header (e.g., "Jan 2025 - Jun 2025") */
-.drp-date-picker__unified-range {
+.drp__unified-range {
   flex: 1;
   text-align: center;
   font-weight: var(--drp-font-weight-semibold);
@@ -225,29 +225,29 @@
   cursor: pointer;
 }
 
-.drp-date-picker__unified-range:hover {
+.drp__unified-range:hover {
   background-color: var(--drp-unified-range-bg-hover);
 }
 
-.drp-date-picker__unified-range:active {
+.drp__unified-range:active {
   background-color: var(--drp-unified-range-bg-active);
 }
 
 /* Non-interactive state (when unifiedHeaderInteractive is false) */
-.drp-date-picker__unified-range--static {
+.drp__unified-range--static {
   cursor: default !important;
 }
 
-.drp-date-picker__unified-range--static:hover {
+.drp__unified-range--static:hover {
   background-color: transparent;
 }
 
-.drp-date-picker__unified-range--static:active {
+.drp__unified-range--static:active {
   background-color: transparent;
 }
 
 /* Unified rolling selector - overlay for all months */
-.drp-date-picker__unified-rolling-selector {
+.drp__unified-rolling-selector {
   position: absolute;
   /* Position below unified header */
   top: calc(var(--drp-spacing-lg) + var(--drp-spacing-lg) * 2);
@@ -264,12 +264,12 @@
   gap: var(--drp-spacing-xs); /* Match normal rolling selector gap */
 }
 
-.drp-date-picker__unified-rolling-selector--visible {
+.drp__unified-rolling-selector--visible {
   display: flex;
 }
 
 /* Apply rolling list styles to child lists in unified selector */
-.drp-date-picker__unified-rolling-selector .drp-date-picker__rolling-list {
+.drp__unified-rolling-selector .drp__rolling-list {
   flex: 1;
   min-width: 0;
   height: 100%;
@@ -282,25 +282,25 @@
 }
 
 /* Custom scrollbar for unified selector */
-.drp-date-picker__unified-rolling-selector .drp-date-picker__rolling-list::-webkit-scrollbar {
+.drp__unified-rolling-selector .drp__rolling-list::-webkit-scrollbar {
   width: var(--drp-rolling-scrollbar-width);
 }
 
-.drp-date-picker__unified-rolling-selector .drp-date-picker__rolling-list::-webkit-scrollbar-track {
+.drp__unified-rolling-selector .drp__rolling-list::-webkit-scrollbar-track {
   background: var(--drp-rolling-bg);
 }
 
-.drp-date-picker__unified-rolling-selector .drp-date-picker__rolling-list::-webkit-scrollbar-thumb {
+.drp__unified-rolling-selector .drp__rolling-list::-webkit-scrollbar-thumb {
   background: var(--drp-rolling-scrollbar-thumb);
   border-radius: 3px;
 }
 
-.drp-date-picker__unified-rolling-selector .drp-date-picker__rolling-list::-webkit-scrollbar-thumb:hover {
+.drp__unified-rolling-selector .drp__rolling-list::-webkit-scrollbar-thumb:hover {
   background: var(--drp-rolling-scrollbar-thumb-hover);
 }
 
 /* Apply rolling item styles to child items in unified selector */
-.drp-date-picker__unified-rolling-selector .drp-date-picker__rolling-item {
+.drp__unified-rolling-selector .drp__rolling-item {
   padding: var(--drp-rolling-item-padding-v) var(--drp-rolling-item-padding-h);
   cursor: pointer;
   font-size: var(--drp-rolling-item-font-size);
@@ -311,28 +311,28 @@
   justify-content: var(--drp-rolling-item-justify-content);
 }
 
-.drp-date-picker__unified-rolling-selector .drp-date-picker__rolling-item:hover {
+.drp__unified-rolling-selector .drp__rolling-item:hover {
   background-color: var(--drp-rolling-item-bg-hover);
 }
 
-.drp-date-picker__unified-rolling-selector .drp-date-picker__rolling-item--selected {
+.drp__unified-rolling-selector .drp__rolling-item--selected {
   background-color: var(--drp-rolling-item-bg-selected);
   color: var(--drp-rolling-item-color-selected);
   font-weight: var(--drp-rolling-item-font-weight-selected);
 }
 
-.drp-date-picker__unified-rolling-selector .drp-date-picker__rolling-item--selected:hover {
+.drp__unified-rolling-selector .drp__rolling-item--selected:hover {
   background-color: var(--drp-rolling-item-bg-selected-hover);
 }
 
-.drp-date-picker__unified-rolling-selector .drp-date-picker__rolling-item--disabled {
+.drp__unified-rolling-selector .drp__rolling-item--disabled {
   color: var(--drp-unified-rolling-disabled-color);
   opacity: 0.4;
   cursor: not-allowed;
 }
 
 /* Text wrapper for ellipsis support in unified selector */
-.drp-date-picker__unified-rolling-selector .drp-date-picker__rolling-item-text {
+.drp__unified-rolling-selector .drp__rolling-item-text {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -342,23 +342,23 @@
 
 /* When unified navigation is enabled, hide individual month headers nav buttons
    but keep the month/year text visible (it becomes static display, not clickable) */
-.drp-date-picker--unified-nav .drp-date-picker__month .drp-date-picker__header .drp-date-picker__nav {
+.drp__picker--unified-nav .drp__month .drp__header .drp__nav {
   display: none;
 }
 
 /* Make month/year display static (not clickable) */
-.drp-date-picker--unified-nav .drp-date-picker__month .drp-date-picker__header .drp-date-picker__month-year {
+.drp__picker--unified-nav .drp__month .drp__header .drp__month-year {
   cursor: default;
   font-size: var(--drp-font-size-base);
   font-weight: var(--drp-font-weight-normal);
   color: var(--drp-unified-month-color);
 }
 
-.drp-date-picker--unified-nav .drp-date-picker__month .drp-date-picker__header .drp-date-picker__month-year:hover {
+.drp__picker--unified-nav .drp__month .drp__header .drp__month-year:hover {
   background-color: transparent;
 }
 
 /* Hide individual month rolling selectors */
-.drp-date-picker--unified-nav .drp-date-picker__month .drp-date-picker__rolling-selector {
+.drp__picker--unified-nav .drp__month .drp__rolling-selector {
   display: none !important;
 }

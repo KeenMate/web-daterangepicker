@@ -69,6 +69,16 @@ class DateRangePicker {
     // back to that step.
     clockStep: 'hours' | 'minutes' = 'hours';
 
+    // Wheel picker (timeDisplay: wheel) — same role as forceTimePickerScroll, but
+    // for the iOS-style barrel columns. Set true by show() so each column re-centers
+    // its focus value on every open even if scrollTop is preserved.
+    forceWheelScroll: boolean = false;
+
+    // Set true while a wheel column is being programmatically scrolled (renderer
+    // or click router calling scrollTo). The scroll listener checks this so an
+    // animated scroll-to-center doesn't keep re-committing on every interim frame.
+    wheelScrollLock: boolean = false;
+
     // State for deferred commit when Apply button is required
     originalInputValue: string | null = null; // Stores input value when calendar opens (for restore on close without Apply)
     committedDate: Date | null = null; // Last committed single date
@@ -452,7 +462,7 @@ class DateRangePicker {
         // For inline mode, render and show the calendar immediately
         if (this.options.positioningMode === 'inline') {
             this.renderCalendar();
-            this.calendar.classList.add('drp-date-picker--visible', 'drp-date-picker--inline');
+            this.calendar.classList.add('drp__picker--visible', 'drp__picker--inline');
             // Don't auto-activate on init — multiple inline pickers on a page would
             // otherwise all be keyboard-active at once. The user clicking or focusing
             // any picker calls setCalendarActive() and deactivates the others.
@@ -492,7 +502,7 @@ class DateRangePicker {
                 }
 
                 // Don't close if a message is visible (user needs to see it)
-                if (this.messageElement?.classList.contains('drp-date-picker__message--visible')) {
+                if (this.messageElement?.classList.contains('drp__message--visible')) {
                     drpLogger.debug('Window scroll detected - NOT closing (message visible)');
                     return;
                 }
@@ -706,7 +716,7 @@ class DateRangePicker {
             // Priority 3: Default to visible (no check needed)
 
             const buttonEl = document.createElement('button');
-            buttonEl.className = `drp-date-picker__button drp-date-picker__button--${button.action}`;
+            buttonEl.className = `drp__button drp__button--${button.action}`;
 
             // Apply CSS classes (priority: callback → static → none)
             const cssClasses = button.getClassCallback
@@ -802,7 +812,7 @@ class DateRangePicker {
 
         const buttons: ActionButton[] = this.options.actionButtons || this.getDefaultButtons();
         const container = this.options.container || document.body;
-        const renderedButtons = this.actionsContainer.querySelectorAll('.drp-date-picker__button');
+        const renderedButtons = this.actionsContainer.querySelectorAll('.drp__button');
 
         renderedButtons.forEach((button: Element, index: number) => {
             const buttonElement = button as HTMLElement;
@@ -983,53 +993,53 @@ class DateRangePicker {
     createCalendar() {
         drpLogger.debug('Creating calendar');
         this.calendar = document.createElement('div');
-        this.calendar.className = 'drp-date-picker';
+        this.calendar.className = 'drp__picker';
 
         // Add unified navigation class if enabled
         if (this.options.unifiedNavigation) {
-            this.calendar.classList.add('drp-date-picker--unified-nav');
+            this.calendar.classList.add('drp__picker--unified-nav');
         }
 
         // Picker-mode modifier class — used by CSS for the time picker layout.
         if (this.options.pickerMode === 'time' || this.options.pickerMode === 'datetime') {
-            this.calendar.classList.add(`drp-date-picker--${this.options.pickerMode}`);
+            this.calendar.classList.add(`drp__picker--${this.options.pickerMode}`);
         }
 
         // Create unified navigation header (if enabled)
         if (this.options.unifiedNavigation) {
             this.unifiedHeader = document.createElement('div');
-            this.unifiedHeader.className = 'drp-date-picker__unified-header';
+            this.unifiedHeader.className = 'drp__unified-header';
 
             // Conditionally make range display interactive
-            const rangeClass = this.options.unifiedHeaderInteractive ? '' : ' drp-date-picker__unified-range--static';
+            const rangeClass = this.options.unifiedHeaderInteractive ? '' : ' drp__unified-range--static';
             const rangeAction = this.options.unifiedHeaderInteractive ? ' data-action="toggle-unified-rolling"' : '';
 
             this.unifiedHeader.innerHTML = `
-                <button class="drp-date-picker__nav drp-date-picker__nav--prev" data-action="unified-prev"></button>
-                <div class="drp-date-picker__unified-range${rangeClass}"${rangeAction}></div>
-                <button class="drp-date-picker__nav drp-date-picker__nav--next" data-action="unified-next"></button>
+                <button class="drp__nav drp__nav--prev" data-action="unified-prev"></button>
+                <div class="drp__unified-range${rangeClass}"${rangeAction}></div>
+                <button class="drp__nav drp__nav--next" data-action="unified-next"></button>
             `;
 
             // Create unified rolling selector
             this.unifiedRollingSelector = document.createElement('div');
-            this.unifiedRollingSelector.className = 'drp-date-picker__unified-rolling-selector';
+            this.unifiedRollingSelector.className = 'drp__unified-rolling-selector';
             this.unifiedRollingSelector.innerHTML = `
-                <div class="drp-date-picker__rolling-list" data-list="years" data-unified="true"></div>
-                <div class="drp-date-picker__rolling-list" data-list="months" data-unified="true"></div>
+                <div class="drp__rolling-list" data-list="years" data-unified="true"></div>
+                <div class="drp__rolling-list" data-list="months" data-unified="true"></div>
             `;
 
             this.calendar.appendChild(this.unifiedHeader);
             this.calendar.appendChild(this.unifiedRollingSelector);
 
             // Store reference to range display element
-            this.unifiedRangeDisplay = this.unifiedHeader.querySelector('.drp-date-picker__unified-range') as HTMLElement;
+            this.unifiedRangeDisplay = this.unifiedHeader.querySelector('.drp__unified-range') as HTMLElement;
         }
 
         // Create container for months
         const monthsContainer = document.createElement('div');
         // Add layout class based on layout option
         if (this.options.monthLayout === 'grid') {
-            monthsContainer.className = 'drp-date-picker__months drp-date-picker__months--grid';
+            monthsContainer.className = 'drp__months drp__months--grid';
             // Set CSS custom properties for grid dimensions
             if (this.options.gridRows) {
                 monthsContainer.style.setProperty('--drp-grid-rows', String(this.options.gridRows));
@@ -1038,7 +1048,7 @@ class DateRangePicker {
                 monthsContainer.style.setProperty('--drp-grid-columns', String(this.options.gridColumns));
             }
         } else {
-            monthsContainer.className = 'drp-date-picker__months drp-date-picker__months--horizontal';
+            monthsContainer.className = 'drp__months drp__months--horizontal';
         }
 
         // Skip month rendering entirely in time-only mode.
@@ -1047,69 +1057,114 @@ class DateRangePicker {
         // Create individual month calendars
         for (let i = 0; !skipMonths && i < this.options.visibleMonthsCount; i++) {
             const monthCalendar = document.createElement('div');
-            monthCalendar.className = 'drp-date-picker__month';
+            monthCalendar.className = 'drp__month';
             monthCalendar.dataset.monthIndex = String(i);
 
             // In unified mode, headers are static (non-interactive)
             // In non-unified mode, headers have navigation and rolling selector
             const headerHtml = this.options.unifiedNavigation
-                ? `<div class="drp-date-picker__header drp-date-picker__header--static">
-                    <div class="drp-date-picker__month-year"></div>
+                ? `<div class="drp__header drp__header--static">
+                    <div class="drp__month-year"></div>
                 </div>`
-                : `<div class="drp-date-picker__header">
-                    <button class="drp-date-picker__nav drp-date-picker__nav--prev" data-action="prev" data-month-index="${i}"></button>
-                    <div class="drp-date-picker__month-year" data-action="toggle-rolling" data-month-index="${i}"></div>
-                    <button class="drp-date-picker__nav drp-date-picker__nav--next" data-action="next" data-month-index="${i}"></button>
+                : `<div class="drp__header">
+                    <button class="drp__nav drp__nav--prev" data-action="prev" data-month-index="${i}"></button>
+                    <div class="drp__month-year" data-action="toggle-rolling" data-month-index="${i}"></div>
+                    <button class="drp__nav drp__nav--next" data-action="next" data-month-index="${i}"></button>
                 </div>`;
 
             monthCalendar.innerHTML = `
                 ${headerHtml}
-                <div class="drp-date-picker__calendar-container">
-                    <div class="drp-date-picker__rolling-selector" data-month-index="${i}">
-                        <div class="drp-date-picker__rolling-list" data-list="years" data-month-index="${i}"></div>
-                        <div class="drp-date-picker__rolling-list" data-list="months" data-month-index="${i}"></div>
+                <div class="drp__calendar-container">
+                    <div class="drp__rolling-selector" data-month-index="${i}">
+                        <div class="drp__rolling-list" data-list="years" data-month-index="${i}"></div>
+                        <div class="drp__rolling-list" data-list="months" data-month-index="${i}"></div>
                     </div>
-                    <div class="drp-date-picker__weekdays"></div>
-                    <div class="drp-date-picker__days" data-month-index="${i}"></div>
+                    <div class="drp__weekdays"></div>
+                    <div class="drp__days" data-month-index="${i}"></div>
                 </div>
             `;
             monthsContainer.appendChild(monthCalendar);
         }
 
         // Time picker DOM (built once, placed differently depending on mode).
-        // Two display strategies share the same wrapper logic: rolls (default,
-        // v1.14) and clock (Material-style face, v1.15). The skeleton differs
-        // but mount placement (no wrapper for time-only, __main for datetime)
-        // is identical.
+        // Four display strategies share the same wrapper logic: rolls (default, v1.14),
+        // clock (Material face, v1.15), wheel (iOS barrel, v1.15), and compact (iOS pills,
+        // v1.15). The inner skeleton differs but mount placement (no wrapper for time-only,
+        // __main for datetime) is identical.
         let timePicker: HTMLDivElement | null = null;
         if (this.options.pickerMode === 'time' || this.options.pickerMode === 'datetime') {
             timePicker = document.createElement('div');
+            const is12h = this.options.hourCycle === 'h12';
+            const showSeconds = !!this.options.showSeconds;
             if (this.options.timeDisplay === 'clock') {
-                timePicker.className = 'drp-date-picker__clock-picker';
+                timePicker.className = 'drp__clock-picker';
                 // Renderer fills .clock-header and .clock-face on every renderCalendar().
                 // AM/PM toggle only emitted for h12 — h24 encodes the half in the hour itself.
                 timePicker.innerHTML = `
-                    <div class="drp-date-picker__clock-header"></div>
-                    <div class="drp-date-picker__clock-face"></div>
-                    ${this.options.hourCycle === 'h12' ? '<div class="drp-date-picker__clock-ampm"></div>' : ''}
+                    <div class="drp__clock-header"></div>
+                    <div class="drp__clock-face"></div>
+                    ${is12h ? '<div class="drp__clock-ampm"></div>' : ''}
                 `;
-            } else {
-                timePicker.className = 'drp-date-picker__time-picker';
-                // Layout: section label, then a row of columns. Each column has a
-                // header (Hours / Minutes / Seconds / AM/PM) above its roll list.
-                const column = (key: string, headerText: string, extraRollClass: string = '') => `
-                    <div class="drp-date-picker__time-column">
-                        <div class="drp-date-picker__time-column-header">${headerText}</div>
-                        <div class="drp-date-picker__rolling-list drp-date-picker__time-roll ${extraRollClass}" data-time-list="${key}"></div>
+            } else if (this.options.timeDisplay === 'wheel') {
+                timePicker.className = 'drp__wheel-picker';
+                // iOS-style barrel: each column is a snap-scrolling list. The center band
+                // and the top/bottom fade gradients are pure CSS pseudo-elements on the
+                // .wheel-rolls wrapper. Renderer fills .wheel-column[data-wheel-list] on
+                // every renderCalendar() and scrolls the focus item to center.
+                const wheelColumn = (key: string, headerText: string, extraClass: string = '') => `
+                    <div class="drp__wheel-column-wrapper">
+                        <div class="drp__wheel-column-header">${headerText}</div>
+                        <div class="drp__wheel-column ${extraClass}" data-wheel-list="${key}"></div>
                     </div>
                 `;
                 timePicker.innerHTML = `
-                    <div class="drp-date-picker__time-label">${this.localeStrings.time}</div>
-                    <div class="drp-date-picker__time-rolls">
+                    <div class="drp__time-label">${this.localeStrings.time}</div>
+                    <div class="drp__wheel-rolls">
+                        <div class="drp__wheel-band" aria-hidden="true"></div>
+                        ${wheelColumn('hours', this.localeStrings.hours)}
+                        ${wheelColumn('minutes', this.localeStrings.minutes)}
+                        ${showSeconds ? wheelColumn('seconds', this.localeStrings.seconds) : ''}
+                        ${is12h ? wheelColumn('ampm', `${this.localeStrings.am}/${this.localeStrings.pm}`, 'drp__wheel-column--ampm') : ''}
+                    </div>
+                `;
+            } else if (this.options.timeDisplay === 'compact') {
+                timePicker.className = 'drp__compact-picker';
+                // iOS 14+ pills: HH : MM [: SS] [AM/PM]. Each pill is a single button that
+                // becomes contentEditable on click; the renderer just updates the displayed
+                // value (no DOM rebuild per render).
+                const sep = `<span class="drp__compact-sep">:</span>`;
+                timePicker.innerHTML = `
+                    <div class="drp__time-label">${this.localeStrings.time}</div>
+                    <div class="drp__compact-row">
+                        <button type="button" class="drp__compact-pill" data-compact-field="hours">--</button>
+                        ${sep}
+                        <button type="button" class="drp__compact-pill" data-compact-field="minutes">--</button>
+                        ${showSeconds ? sep + `<button type="button" class="drp__compact-pill" data-compact-field="seconds">--</button>` : ''}
+                        ${is12h ? `
+                            <div class="drp__compact-ampm">
+                                <button type="button" class="drp__compact-ampm-button" data-compact-ampm="am">${this.localeStrings.am}</button>
+                                <button type="button" class="drp__compact-ampm-button" data-compact-ampm="pm">${this.localeStrings.pm}</button>
+                            </div>
+                        ` : ''}
+                    </div>
+                `;
+            } else {
+                timePicker.className = 'drp__time-picker';
+                // Layout: section label, then a row of columns. Each column has a
+                // header (Hours / Minutes / Seconds / AM/PM) above its roll list.
+                const column = (key: string, headerText: string, extraRollClass: string = '') => `
+                    <div class="drp__time-column">
+                        <div class="drp__time-column-header">${headerText}</div>
+                        <div class="drp__rolling-list drp__time-roll ${extraRollClass}" data-time-list="${key}"></div>
+                    </div>
+                `;
+                timePicker.innerHTML = `
+                    <div class="drp__time-label">${this.localeStrings.time}</div>
+                    <div class="drp__time-rolls">
                         ${column('hours', this.localeStrings.hours)}
                         ${column('minutes', this.localeStrings.minutes)}
-                        ${this.options.showSeconds ? column('seconds', this.localeStrings.seconds) : ''}
-                        ${this.options.hourCycle === 'h12' ? column('ampm', `${this.localeStrings.am}/${this.localeStrings.pm}`, 'drp-date-picker__time-roll--ampm') : ''}
+                        ${showSeconds ? column('seconds', this.localeStrings.seconds) : ''}
+                        ${is12h ? column('ampm', `${this.localeStrings.am}/${this.localeStrings.pm}`, 'drp__time-roll--ampm') : ''}
                     </div>
                 `;
             }
@@ -1118,10 +1173,10 @@ class DateRangePicker {
         // Mount strategy by mode:
         //   date     -> monthsContainer is the direct flex-column child (unchanged).
         //   time     -> timePicker is the direct child; no wrapper, no months.
-        //   datetime -> .drp-date-picker__main wraps months + timePicker side by side.
+        //   datetime -> .drp__main wraps months + timePicker side by side.
         if (this.options.pickerMode === 'datetime') {
             const main = document.createElement('div');
-            main.className = 'drp-date-picker__main';
+            main.className = 'drp__main';
             main.appendChild(monthsContainer);
             main.appendChild(timePicker!);
             this.calendar.appendChild(main);
@@ -1133,23 +1188,23 @@ class DateRangePicker {
 
         // Add message area (for validation feedback, errors, etc.)
         this.messageElement = document.createElement('div');
-        this.messageElement.className = 'drp-date-picker__message';
+        this.messageElement.className = 'drp__message';
         this.messageElement.innerHTML = `
-            <span class="drp-date-picker__message-text"></span>
-            <button class="drp-date-picker__message-close" data-action="close-message">&times;</button>
+            <span class="drp__message-text"></span>
+            <button class="drp__message-close" data-action="close-message">&times;</button>
         `;
         this.calendar.appendChild(this.messageElement);
 
         // Add selection summary (for range mode)
         if (this.options.selectionMode === 'range' && this.options.showSummary !== false) {
             const summary = document.createElement('div');
-            summary.className = 'drp-date-picker__summary drp-date-picker__summary--hidden';
+            summary.className = 'drp__summary drp__summary--hidden';
             this.calendar.appendChild(summary);
         }
 
         // Add actions at the bottom (only if there are buttons to show)
         const actions = document.createElement('div');
-        actions.className = 'drp-date-picker__actions';
+        actions.className = 'drp__actions';
         this.renderButtons(actions);
         // Only append if there are actual buttons rendered
         if (actions.children.length > 0) {
@@ -1161,9 +1216,9 @@ class DateRangePicker {
 
         // Create tooltip for Floating UI
         this.tooltip = document.createElement('div');
-        this.tooltip.className = 'drp-date-picker__tooltip';
+        this.tooltip.className = 'drp__tooltip';
         this.tooltipArrow = document.createElement('div');
-        this.tooltipArrow.className = 'drp-date-picker__tooltip-arrow';
+        this.tooltipArrow.className = 'drp__tooltip-arrow';
         this.tooltip.appendChild(this.tooltipArrow);
         this.containerElement.appendChild(this.tooltip);
 
@@ -1215,7 +1270,7 @@ class DateRangePicker {
         } else if (triggerMode === 'typing') {
             // Open when user starts typing
             this.input.addEventListener('input', (e) => {
-                if (!this.calendar.classList.contains('drp-date-picker--visible') && this.input && this.input.value.length > 0) {
+                if (!this.calendar.classList.contains('drp__picker--visible') && this.input && this.input.value.length > 0) {
                     drpLogger.debug('User started typing - opening calendar');
                     this.show();
                 }
@@ -1230,6 +1285,19 @@ class DateRangePicker {
     }
 
     attachCalendarListeners() {
+        // Delegate focusin for compact pills so Tab into a pill auto-enters edit
+        // mode. Without this, Tab moves focus to the next pill (a plain <button>)
+        // and typing does nothing until the user also clicks. focusin bubbles
+        // (unlike focus), so a single root-level listener catches every pill.
+        this.calendar.addEventListener('focusin', (e) => {
+            const target = e.target as HTMLElement;
+            if (target && target.matches && target.matches('[data-compact-field]')) {
+                if (!target.isContentEditable) {
+                    this.beginCompactEdit(target);
+                }
+            }
+        });
+
         // Delegate all click events
         this.calendar.addEventListener('click', async (e) => {
             const target = e.target as HTMLElement;
@@ -1265,7 +1333,7 @@ class DateRangePicker {
             // Check if navigation button is disabled (respects rollingYearRange/rollingMonthRange boundaries)
             if (action === 'prev' || action === 'next' || action === 'unified-prev' || action === 'unified-next') {
                 const button = target as HTMLButtonElement;
-                if (button.disabled || button.classList.contains('drp-date-picker__nav--disabled')) {
+                if (button.disabled || button.classList.contains('drp__nav--disabled')) {
                     return;
                 }
             }
@@ -1337,13 +1405,34 @@ class DateRangePicker {
                     this.selectAmpm(el.dataset.clockAmpm);
                 }
             }
-            else if (target.closest('.drp-date-picker__day:not(.drp-date-picker__day--disabled)')) {
-                await this.selectDay(target.closest('.drp-date-picker__day') as HTMLElement);
+            // Wheel picker (timeDisplay: 'wheel') — click on any visible row scrolls
+            // it to the center band. The wheel renderer is what actually commits
+            // values when the scroll settles, so these clicks only need to scroll.
+            // Hours / minutes / seconds / am-pm are all the same code path.
+            else if (target.closest('[data-wheel-value]')) {
+                const el = target.closest('[data-wheel-value]') as HTMLElement;
+                this.scrollWheelItemToCenter(el);
+            }
+            // Compact picker (timeDisplay: 'compact') — clicking a pill enters edit
+            // mode; clicking an AM/PM button commits a half. Both routes are thin
+            // wrappers that ultimately call selectHour / selectMinute / selectSecond.
+            else if (target.closest('[data-compact-field]')) {
+                const el = target.closest('[data-compact-field]') as HTMLElement;
+                this.beginCompactEdit(el);
+            }
+            else if (target.closest('[data-compact-ampm]')) {
+                const el = target.closest('[data-compact-ampm]') as HTMLElement;
+                if (el.dataset.compactAmpm === 'am' || el.dataset.compactAmpm === 'pm') {
+                    this.selectAmpm(el.dataset.compactAmpm);
+                }
+            }
+            else if (target.closest('.drp__day:not(.drp__day--disabled)')) {
+                await this.selectDay(target.closest('.drp__day') as HTMLElement);
             }
             else if (target.closest('[data-year]')) {
                 const yearElement = target.closest('[data-year]') as HTMLElement;
                 // Ignore clicks on disabled years
-                if (yearElement.classList.contains('drp-date-picker__rolling-item--disabled')) {
+                if (yearElement.classList.contains('drp__rolling-item--disabled')) {
                     return;
                 }
                 const year = yearElement.dataset.year;
@@ -1363,7 +1452,7 @@ class DateRangePicker {
             else if (target.closest('[data-month]')) {
                 const monthElement = target.closest('[data-month]') as HTMLElement;
                 // Ignore clicks on disabled months
-                if (monthElement.classList.contains('drp-date-picker__rolling-item--disabled')) {
+                if (monthElement.classList.contains('drp__rolling-item--disabled')) {
                     return;
                 }
                 const month = monthElement.dataset.month;
@@ -1383,8 +1472,8 @@ class DateRangePicker {
             else {
                 // Clicked somewhere else in calendar (not a handled element)
                 // Check if click was outside rolling selector elements
-                if (!target.closest('.drp-date-picker__rolling-selector') &&
-                    !target.closest('.drp-date-picker__unified-rolling-selector')) {
+                if (!target.closest('.drp__rolling-selector') &&
+                    !target.closest('.drp__unified-rolling-selector')) {
 
                     let needsRender = false;
 
@@ -1413,8 +1502,8 @@ class DateRangePicker {
         // Tooltip event delegation (for both days and badge cells)
         this.calendar.addEventListener('mouseenter', (e) => {
             const target = e.target as HTMLElement;
-            const day = target.closest('.drp-date-picker__day');
-            const badgeCell = target.closest('.drp-date-picker__badge-cell');
+            const day = target.closest('.drp__day');
+            const badgeCell = target.closest('.drp__badge-cell');
 
             const element = day || badgeCell;
             if (element && element instanceof HTMLElement) {
@@ -1427,8 +1516,8 @@ class DateRangePicker {
 
         this.calendar.addEventListener('mouseleave', (e) => {
             const target = e.target as HTMLElement;
-            const day = target.closest('.drp-date-picker__day');
-            const badgeCell = target.closest('.drp-date-picker__badge-cell');
+            const day = target.closest('.drp__day');
+            const badgeCell = target.closest('.drp__badge-cell');
 
             const element = day || badgeCell;
             if (element && this.currentTooltipTarget === element) {
@@ -1445,7 +1534,7 @@ class DateRangePicker {
             if (this.isDragging) return;
 
             const target = e.target as HTMLElement;
-            const day = target.closest('.drp-date-picker__day') as HTMLElement | null;
+            const day = target.closest('.drp__day') as HTMLElement | null;
             if (!day) return;
 
             const dateAttr = day.dataset.date;
@@ -1476,7 +1565,7 @@ class DateRangePicker {
         // Keyboard navigation
         document.addEventListener('keydown', (e) => {
             // Only respond if calendar is visible AND active (has focus)
-            if (!this.calendar.classList.contains('drp-date-picker--visible')) return;
+            if (!this.calendar.classList.contains('drp__picker--visible')) return;
             if (!this.isCalendarActive) return;
 
             drpLogger.debug('Keydown', e.key, 'Ctrl:', e.ctrlKey, 'Meta:', e.metaKey, 'Shift:', e.shiftKey, 'Alt:', e.altKey);
@@ -1506,12 +1595,12 @@ class DateRangePicker {
                     const currentDayIndex = this.focusedDayIndex;
                     this.prevMonth(this.activeMonthIndex);
                     setTimeout(() => {
-                        const daysContainer = this.calendar.querySelector(`.drp-date-picker__days[data-month-index="${this.activeMonthIndex}"]`);
-                        const newDays = daysContainer?.querySelectorAll('.drp-date-picker__day:not(.drp-date-picker__day--other-month)');
+                        const daysContainer = this.calendar.querySelector(`.drp__days[data-month-index="${this.activeMonthIndex}"]`);
+                        const newDays = daysContainer?.querySelectorAll('.drp__day:not(.drp__day--other-month)');
                         if (newDays) {
                             // Try to maintain same day index, or use last day if month is shorter
                             this.focusedDayIndex = Math.min(currentDayIndex !== null ? currentDayIndex : 0, newDays.length - 1);
-                            newDays[this.focusedDayIndex]?.classList.add('drp-date-picker__day--focused');
+                            newDays[this.focusedDayIndex]?.classList.add('drp__day--focused');
                             newDays[this.focusedDayIndex]?.scrollIntoView({ block: 'nearest' });
                         }
                     }, 0);
@@ -1527,12 +1616,12 @@ class DateRangePicker {
                     const currentDayIndex = this.focusedDayIndex;
                     this.nextMonth(this.activeMonthIndex);
                     setTimeout(() => {
-                        const daysContainer = this.calendar.querySelector(`.drp-date-picker__days[data-month-index="${this.activeMonthIndex}"]`);
-                        const newDays = daysContainer?.querySelectorAll('.drp-date-picker__day:not(.drp-date-picker__day--other-month)');
+                        const daysContainer = this.calendar.querySelector(`.drp__days[data-month-index="${this.activeMonthIndex}"]`);
+                        const newDays = daysContainer?.querySelectorAll('.drp__day:not(.drp__day--other-month)');
                         if (newDays) {
                             // Try to maintain same day index, or use last day if month is shorter
                             this.focusedDayIndex = Math.min(currentDayIndex !== null ? currentDayIndex : 0, newDays.length - 1);
-                            newDays[this.focusedDayIndex]?.classList.add('drp-date-picker__day--focused');
+                            newDays[this.focusedDayIndex]?.classList.add('drp__day--focused');
                             newDays[this.focusedDayIndex]?.scrollIntoView({ block: 'nearest' });
                         }
                     }, 0);
@@ -1544,8 +1633,8 @@ class DateRangePicker {
             else if (e.key === 'Enter') {
                 if (this.focusedDayIndex !== null) {
                     // Select the focused day
-                    const daysContainer = this.calendar.querySelector(`.drp-date-picker__days[data-month-index="${this.activeMonthIndex}"]`);
-                    const days = daysContainer?.querySelectorAll('.drp-date-picker__day:not(.drp-date-picker__day--other-month)');
+                    const daysContainer = this.calendar.querySelector(`.drp__days[data-month-index="${this.activeMonthIndex}"]`);
+                    const days = daysContainer?.querySelectorAll('.drp__day:not(.drp__day--other-month)');
                     const day = days?.[this.focusedDayIndex];
                     if (day) {
                         (day as HTMLElement).click();
@@ -1573,9 +1662,9 @@ class DateRangePicker {
                         this.activeMonthIndex = newMonthIndex;
 
                         // Try to maintain same day index, or clamp to valid range
-                        const newDaysContainer = this.calendar.querySelector(`.drp-date-picker__days[data-month-index="${this.activeMonthIndex}"]`);
+                        const newDaysContainer = this.calendar.querySelector(`.drp__days[data-month-index="${this.activeMonthIndex}"]`);
                         if (newDaysContainer) {
-                            const newDays = newDaysContainer.querySelectorAll('.drp-date-picker__day:not(.drp-date-picker__day--other-month)');
+                            const newDays = newDaysContainer.querySelectorAll('.drp__day:not(.drp__day--other-month)');
                             this.focusedDayIndex = Math.min(currentFocusedIndex, newDays.length - 1);
                             navigationLogger.debug(`Col${this.activeMonthIndex} Tab: set focusedDayIndex to ${this.focusedDayIndex}`);
                         }
@@ -1593,13 +1682,13 @@ class DateRangePicker {
                 this.renderCalendar();
                 // Focus on today's day in the active month
                 setTimeout(() => {
-                    const daysContainer = this.calendar.querySelector(`.drp-date-picker__days[data-month-index="${this.activeMonthIndex}"]`);
-                    const days = daysContainer?.querySelectorAll('.drp-date-picker__day:not(.drp-date-picker__day--other-month)');
+                    const daysContainer = this.calendar.querySelector(`.drp__days[data-month-index="${this.activeMonthIndex}"]`);
+                    const days = daysContainer?.querySelectorAll('.drp__day:not(.drp__day--other-month)');
                     if (days) {
-                        const todayIndex = Array.from(days).findIndex(day => day.classList.contains('drp-date-picker__day--today'));
+                        const todayIndex = Array.from(days).findIndex(day => day.classList.contains('drp__day--today'));
                         if (todayIndex !== -1) {
                             this.focusedDayIndex = todayIndex;
-                            days[todayIndex].classList.add('drp-date-picker__day--focused');
+                            days[todayIndex].classList.add('drp__day--focused');
                             days[todayIndex].scrollIntoView({ block: 'nearest' });
                         }
                     }
@@ -1611,12 +1700,12 @@ class DateRangePicker {
                 const currentDayIndex = this.focusedDayIndex;
                 this.prevMonth(this.activeMonthIndex);
                 setTimeout(() => {
-                    const daysContainer = this.calendar.querySelector(`.drp-date-picker__days[data-month-index="${this.activeMonthIndex}"]`);
-                    const newDays = daysContainer?.querySelectorAll('.drp-date-picker__day:not(.drp-date-picker__day--other-month)');
+                    const daysContainer = this.calendar.querySelector(`.drp__days[data-month-index="${this.activeMonthIndex}"]`);
+                    const newDays = daysContainer?.querySelectorAll('.drp__day:not(.drp__day--other-month)');
                     if (newDays) {
                         // Try to maintain same day index, or use last day if month is shorter
                         this.focusedDayIndex = Math.min(currentDayIndex !== null ? currentDayIndex : 0, newDays.length - 1);
-                        newDays[this.focusedDayIndex]?.classList.add('drp-date-picker__day--focused');
+                        newDays[this.focusedDayIndex]?.classList.add('drp__day--focused');
                         newDays[this.focusedDayIndex]?.scrollIntoView({ block: 'nearest' });
                     }
                 }, 0);
@@ -1627,12 +1716,12 @@ class DateRangePicker {
                 const currentDayIndex = this.focusedDayIndex;
                 this.nextMonth(this.activeMonthIndex);
                 setTimeout(() => {
-                    const daysContainer = this.calendar.querySelector(`.drp-date-picker__days[data-month-index="${this.activeMonthIndex}"]`);
-                    const newDays = daysContainer?.querySelectorAll('.drp-date-picker__day:not(.drp-date-picker__day--other-month)');
+                    const daysContainer = this.calendar.querySelector(`.drp__days[data-month-index="${this.activeMonthIndex}"]`);
+                    const newDays = daysContainer?.querySelectorAll('.drp__day:not(.drp__day--other-month)');
                     if (newDays) {
                         // Try to maintain same day index, or use last day if month is shorter
                         this.focusedDayIndex = Math.min(currentDayIndex !== null ? currentDayIndex : 0, newDays.length - 1);
-                        newDays[this.focusedDayIndex]?.classList.add('drp-date-picker__day--focused');
+                        newDays[this.focusedDayIndex]?.classList.add('drp__day--focused');
                         newDays[this.focusedDayIndex]?.scrollIntoView({ block: 'nearest' });
                     }
                 }, 0);
@@ -1674,11 +1763,11 @@ class DateRangePicker {
                         this.monthDates[this.activeMonthIndex] = newDate;
                         this.renderCalendar();
                         setTimeout(() => {
-                            const daysContainer = this.calendar.querySelector(`.drp-date-picker__days[data-month-index="${this.activeMonthIndex}"]`);
-                            const days = daysContainer?.querySelectorAll('.drp-date-picker__day:not(.drp-date-picker__day--other-month)');
+                            const daysContainer = this.calendar.querySelector(`.drp__days[data-month-index="${this.activeMonthIndex}"]`);
+                            const days = daysContainer?.querySelectorAll('.drp__day:not(.drp__day--other-month)');
                             if (days) {
                                 this.focusedDayIndex = 0;
-                                days[0]?.classList.add('drp-date-picker__day--focused');
+                                days[0]?.classList.add('drp__day--focused');
                                 days[0]?.scrollIntoView({ block: 'nearest' });
                             }
                         }, 0);
@@ -1694,23 +1783,23 @@ class DateRangePicker {
                         navigationLogger.debug('Already on first day, going to previous month');
                         this.prevMonth(this.activeMonthIndex);
                         setTimeout(() => {
-                            const daysContainer = this.calendar.querySelector(`.drp-date-picker__days[data-month-index="${this.activeMonthIndex}"]`);
-                            const days = daysContainer?.querySelectorAll('.drp-date-picker__day:not(.drp-date-picker__day--other-month)');
+                            const daysContainer = this.calendar.querySelector(`.drp__days[data-month-index="${this.activeMonthIndex}"]`);
+                            const days = daysContainer?.querySelectorAll('.drp__day:not(.drp__day--other-month)');
                             if (days) {
                                 this.focusedDayIndex = 0;
-                                this.calendar.querySelectorAll('.drp-date-picker__day--focused').forEach(d => d.classList.remove('drp-date-picker__day--focused'));
-                                days[0]?.classList.add('drp-date-picker__day--focused');
+                                this.calendar.querySelectorAll('.drp__day--focused').forEach(d => d.classList.remove('drp__day--focused'));
+                                days[0]?.classList.add('drp__day--focused');
                                 days[0]?.scrollIntoView({ block: 'nearest' });
                             }
                         }, 0);
                     } else {
                         // Go to first day of current month
                         this.focusedDayIndex = 0;
-                        const daysContainer = this.calendar.querySelector(`.drp-date-picker__days[data-month-index="${this.activeMonthIndex}"]`);
-                        const days = daysContainer?.querySelectorAll('.drp-date-picker__day:not(.drp-date-picker__day--other-month)');
+                        const daysContainer = this.calendar.querySelector(`.drp__days[data-month-index="${this.activeMonthIndex}"]`);
+                        const days = daysContainer?.querySelectorAll('.drp__day:not(.drp__day--other-month)');
                         if (days) {
-                            this.calendar.querySelectorAll('.drp-date-picker__day--focused').forEach(d => d.classList.remove('drp-date-picker__day--focused'));
-                            days[0]?.classList.add('drp-date-picker__day--focused');
+                            this.calendar.querySelectorAll('.drp__day--focused').forEach(d => d.classList.remove('drp__day--focused'));
+                            days[0]?.classList.add('drp__day--focused');
                             days[0]?.scrollIntoView({ block: 'nearest' });
                         }
                     }
@@ -1731,8 +1820,8 @@ class DateRangePicker {
                     const isDecember = currentMonth === 11;
 
                     // Check if we're at the last day
-                    const daysContainer = this.calendar.querySelector(`.drp-date-picker__days[data-month-index="${this.activeMonthIndex}"]`);
-                    const days = daysContainer?.querySelectorAll('.drp-date-picker__day:not(.drp-date-picker__day--other-month)');
+                    const daysContainer = this.calendar.querySelector(`.drp__days[data-month-index="${this.activeMonthIndex}"]`);
+                    const days = daysContainer?.querySelectorAll('.drp__day:not(.drp__day--other-month)');
                     const isLastDay = days && this.focusedDayIndex === days.length - 1;
 
                     let targetYear = currentYear;
@@ -1758,11 +1847,11 @@ class DateRangePicker {
                         this.monthDates[this.activeMonthIndex] = newDate;
                         this.renderCalendar();
                         setTimeout(() => {
-                            const newContainer = this.calendar.querySelector(`.drp-date-picker__days[data-month-index="${this.activeMonthIndex}"]`);
-                            const newDays = newContainer?.querySelectorAll('.drp-date-picker__day:not(.drp-date-picker__day--other-month)');
+                            const newContainer = this.calendar.querySelector(`.drp__days[data-month-index="${this.activeMonthIndex}"]`);
+                            const newDays = newContainer?.querySelectorAll('.drp__day:not(.drp__day--other-month)');
                             if (newDays) {
                                 this.focusedDayIndex = newDays.length - 1;
-                                newDays[this.focusedDayIndex]?.classList.add('drp-date-picker__day--focused');
+                                newDays[this.focusedDayIndex]?.classList.add('drp__day--focused');
                                 newDays[this.focusedDayIndex]?.scrollIntoView({ block: 'nearest' });
                             }
                         }, 0);
@@ -1771,8 +1860,8 @@ class DateRangePicker {
                     navigationLogger.debug('End: Navigate to last day (cycles to next month if already there)');
                     // End: Go to last day of current month
                     // If already on last day, go to last day of next month
-                    const daysContainer = this.calendar.querySelector(`.drp-date-picker__days[data-month-index="${this.activeMonthIndex}"]`);
-                    const days = daysContainer?.querySelectorAll('.drp-date-picker__day:not(.drp-date-picker__day--other-month)');
+                    const daysContainer = this.calendar.querySelector(`.drp__days[data-month-index="${this.activeMonthIndex}"]`);
+                    const days = daysContainer?.querySelectorAll('.drp__day:not(.drp__day--other-month)');
                     if (!days) return;
 
                     const isLastDay = this.focusedDayIndex === days.length - 1;
@@ -1782,20 +1871,20 @@ class DateRangePicker {
                         navigationLogger.debug('Already on last day, going to next month');
                         this.nextMonth(this.activeMonthIndex);
                         setTimeout(() => {
-                            const daysContainer = this.calendar.querySelector(`.drp-date-picker__days[data-month-index="${this.activeMonthIndex}"]`);
-                            const days = daysContainer?.querySelectorAll('.drp-date-picker__day:not(.drp-date-picker__day--other-month)');
+                            const daysContainer = this.calendar.querySelector(`.drp__days[data-month-index="${this.activeMonthIndex}"]`);
+                            const days = daysContainer?.querySelectorAll('.drp__day:not(.drp__day--other-month)');
                             if (days) {
                                 this.focusedDayIndex = days.length - 1;
-                                this.calendar.querySelectorAll('.drp-date-picker__day--focused').forEach(d => d.classList.remove('drp-date-picker__day--focused'));
-                                days[this.focusedDayIndex]?.classList.add('drp-date-picker__day--focused');
+                                this.calendar.querySelectorAll('.drp__day--focused').forEach(d => d.classList.remove('drp__day--focused'));
+                                days[this.focusedDayIndex]?.classList.add('drp__day--focused');
                                 days[this.focusedDayIndex]?.scrollIntoView({ block: 'nearest' });
                             }
                         }, 0);
                     } else {
                         // Go to last day of current month
                         this.focusedDayIndex = days.length - 1;
-                        this.calendar.querySelectorAll('.drp-date-picker__day--focused').forEach(d => d.classList.remove('drp-date-picker__day--focused'));
-                        days[this.focusedDayIndex]?.classList.add('drp-date-picker__day--focused');
+                        this.calendar.querySelectorAll('.drp__day--focused').forEach(d => d.classList.remove('drp__day--focused'));
+                        days[this.focusedDayIndex]?.classList.add('drp__day--focused');
                         days[this.focusedDayIndex]?.scrollIntoView({ block: 'nearest' });
                     }
                 }
@@ -1969,7 +2058,7 @@ class DateRangePicker {
      * Get calendar open state (floating mode only)
      */
     get isOpen(): boolean {
-        return this.calendar.classList.contains('drp-date-picker--visible');
+        return this.calendar.classList.contains('drp__picker--visible');
     }
 
     /**
@@ -2185,6 +2274,9 @@ class DateRangePicker {
     selectClockHour(hour: number, is12Hour: boolean) { return Selection.selectClockHour(this, hour, is12Hour); }
     selectClockMinute(minute: number) { return Selection.selectClockMinute(this, minute); }
     setClockStep(step: 'hours' | 'minutes') { return Selection.setClockStep(this, step); }
+    scrollWheelItemToCenter(el: HTMLElement) { return Selection.scrollWheelItemToCenter(this, el); }
+    commitWheelScroll(col: HTMLElement, listKey: string) { return Selection.commitWheelScroll(this, col, listKey); }
+    beginCompactEdit(el: HTMLElement) { return Selection.beginCompactEdit(this, el); }
     selectNow() { return Selection.selectNow(this); }
 
     // Interaction methods - wrappers for pure functions
@@ -2256,7 +2348,7 @@ class DateRangePicker {
     static areStylesLoaded(): boolean {
         // Check if our custom property exists
         const testElement = document.createElement('div');
-        testElement.className = 'drp-date-picker';
+        testElement.className = 'drp__picker';
         testElement.style.display = 'none';
         document.body.appendChild(testElement);
 

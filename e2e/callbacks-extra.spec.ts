@@ -1,4 +1,4 @@
-import { test, expect, Page, Locator } from '@playwright/test';
+import { test, expect, Page, Locator } from './fixtures';
 
 /**
  * renderDayCallback (full replacement), customStylesCallback,
@@ -15,11 +15,11 @@ function pickerById(page: Page, id: string) {
 }
 
 function calendarOf(p: Locator) {
-    return p.locator('.drp-date-picker');
+    return p.locator('.drp__picker');
 }
 
 function dayByDate(p: Locator, isoDate: string) {
-    return p.locator(`.drp-date-picker__day[data-date="${isoDate}"]`);
+    return p.locator(`.drp__day[data-date="${isoDate}"]`);
 }
 
 async function open(page: Page, id: string) {
@@ -68,10 +68,10 @@ test('customStylesCallback adds a <style class="drp-custom-styles"> inside the s
 test('specialDates with default member names renders badge cells with the configured text', async ({ page }) => {
     const p = await open(page, 'specials');
 
-    // Badges are rendered in .drp-date-picker__badge-cell elements
+    // Badges are rendered in .drp__badge-cell elements
     // sibling-to the day cells, not inside them. We just check that the
     // badge cells exist with the configured text values.
-    const badges = p.locator('.drp-date-picker__badge-cell');
+    const badges = p.locator('.drp__badge-cell');
     await expect(badges.filter({ hasText: 'A' })).toHaveCount(1);
     await expect(badges.filter({ hasText: 'B' })).toHaveCount(1);
 });
@@ -81,7 +81,7 @@ test('specialDates with custom *Member mapping consumes the renamed fields', asy
 
     // dateMember="when", badgeTextMember="tag" — so { when: '2026-06-19', tag: 'X' }
     // produces a badge cell containing "X".
-    const xBadge = p.locator('.drp-date-picker__badge-cell').filter({ hasText: 'X' });
+    const xBadge = p.locator('.drp__badge-cell').filter({ hasText: 'X' });
     await expect(xBadge).toHaveCount(1);
 });
 
@@ -90,7 +90,7 @@ test('*Member mapping configured via HTML attributes (date-member, badge-text-me
 
     // date-member="on", badge-text-member="label" — { on: '2026-06-21', label: 'Z' }
     // produces a badge cell containing "Z".
-    const zBadge = p.locator('.drp-date-picker__badge-cell').filter({ hasText: 'Z' });
+    const zBadge = p.locator('.drp__badge-cell').filter({ hasText: 'Z' });
     await expect(zBadge).toHaveCount(1);
 });
 
@@ -98,7 +98,7 @@ test('all 7 *-member attributes renamed: each renamed field surfaces in the expe
     const p = await open(page, 'specials-all-members');
 
     // badge-text-member="label" — 'M' shows up in the badge cell.
-    const badgeM = p.locator('.drp-date-picker__badge-cell').filter({ hasText: 'M' });
+    const badgeM = p.locator('.drp__badge-cell').filter({ hasText: 'M' });
     await expect(badgeM).toHaveCount(1);
 
     // badge-class-member="badgeCls" — extra class on the badge cell.
@@ -108,7 +108,7 @@ test('all 7 *-member attributes renamed: each renamed field surfaces in the expe
     await expect(badgeM).toHaveAttribute('data-tooltip', 'badge tip text');
 
     // date-member="on" anchors the special date at 2026-06-22.
-    const day = p.locator('.drp-date-picker__day[data-date="2026-06-22"]');
+    const day = p.locator('.drp__day[data-date="2026-06-22"]');
 
     // day-class-member="dayCls" — extra class on the day cell.
     await expect(day).toHaveClass(/my-day-cls/);
@@ -117,7 +117,7 @@ test('all 7 *-member attributes renamed: each renamed field surfaces in the expe
     await expect(day).toHaveAttribute('data-tooltip', 'day tip text');
 
     // is-disabled-member="off" with off: true — day is marked --disabled.
-    await expect(day).toHaveClass(/drp-date-picker__day--disabled/);
+    await expect(day).toHaveClass(/drp__day--disabled/);
 });
 
 // =============================================================================
@@ -127,5 +127,5 @@ test('all 7 *-member attributes renamed: each renamed field surfaces in the expe
 test('getUnifiedHeaderCallback replaces the unified-header range text', async ({ page }) => {
     const p = await open(page, 'unified-header');
 
-    await expect(p.locator('.drp-date-picker__unified-range')).toContainText('June → August');
+    await expect(p.locator('.drp__unified-range')).toContainText('June → August');
 });

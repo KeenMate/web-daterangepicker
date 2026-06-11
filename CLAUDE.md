@@ -32,9 +32,10 @@ The codebase is TypeScript, organized as a core class plus extracted operation m
 - `src/modules/click-events/` and `src/modules/scroll-events/` — small managers that own their own event subscriptions and clean up on destroy.
 
 **CSS** (`src/css/`)
-- `main.css` — partial imports.
-- `_variables.css` — all `--drp-*` custom properties (376 lines, the theming surface).
-- `_base.css`, `_calendar-grid.css`, `_header-navigation.css`, `_summary-actions.css`, `_badges.css`, `_loading.css`, `_message.css`, `_tooltips.css`, `_modifiers.css` — feature partials.
+- `main.css` — entry point. Declares `@layer variables, component, overrides;` and imports every partial into its layer.
+- `variables.css` — all `--drp-*` custom properties (the theming surface).
+- `base.css`, `calendar-grid.css`, `header-navigation.css`, `summary-actions.css`, `badges.css`, `loading.css`, `message.css`, `tooltips.css`, `modifiers.css`, `time-picker.css`, `clock-picker.css`, `wheel-picker.css`, `compact-picker.css`, `modal.css` — feature partials (layer: `component`).
+- `dark-mode.css` — `:host-context()` framework class + `:host([data-theme])` per-instance overrides (layer: `overrides`).
 
 ### Component Features
 
@@ -88,7 +89,7 @@ The codebase is TypeScript, organized as a core class plus extracted operation m
 
 ### Adding New CSS Variables
 
-- Declare in `src/css/_variables.css` with the `--drp-` prefix
+- Declare in `src/css/variables.css` with the `--drp-` prefix
 - Reference from a partial via `var(--drp-x, fallback)` — every theming hook should default to a sensible value so the component works unstyled
 - Don't declare a hook you don't wire — declared-but-unread variables are dead theming surface
 
@@ -111,11 +112,11 @@ Key state properties:
 ### Size System
 
 **Input field — attribute-driven 5-level scale (xs / sm / md / lg / xl):**
-- `input-size` is the only sizing attribute on the web component. It toggles `.drp-input--{size}` and `.drp-date-picker-input--{size}` on the input element. `md` is the unstyled default. Floating/modal modes only — inline mode has no input.
+- `input-size` is the only sizing attribute on the web component. It toggles `.drp__input--{size}` on the input element (and on the surrounding `.drp__input` wrapper). `md` is the unstyled default. Floating/modal modes only — inline mode has no input.
 - Per-size CSS hooks: `--drp-input-size-{size}-font`, `--drp-input-size-{size}-padding-v`, `--drp-input-size-{size}-padding-h`, `--drp-input-size-{size}-height`, `--drp-input-size-{size}-icon-size`.
 
 **Calendar — token-driven, not attribute-driven:**
-Internal partials consume `--drp-spacing-{xs,sm,md,lg,xl}` and `--drp-font-size-{2xs,xs,sm,base,lg,xl,2xl}` from `_variables.css`. These are CSS custom-property tokens for theming, not BEM classes. There is no `spacing` / `font-size` / `cell-size` HTML attribute, and no `.drp-spacing-*` / `.drp-font-*` / `.drp-cell-*` class. To rescale the whole calendar, set `--drp-rem` (default `10px`) on the host element — every size token is `calc(N * var(--drp-rem))`. To override an individual token, set it on the host: `web-daterangepicker { --drp-spacing-md: 20px; }`.
+Internal partials consume `--drp-spacing-{xs,sm,md,lg,xl}` and `--drp-font-size-{2xs,xs,sm,base,lg,xl,2xl}` from `variables.css`. These are CSS custom-property tokens for theming, not BEM classes. There is no `spacing` / `font-size` / `cell-size` HTML attribute, and no `.drp-spacing-*` / `.drp-font-*` / `.drp-cell-*` class. To rescale the whole calendar, set `--drp-rem` (default `10px`) on the host element — every size token is `calc(N * var(--drp-rem))`. To override an individual token, set it on the host: `web-daterangepicker { --drp-spacing-md: 20px; }`.
 
 **Example:**
 ```html

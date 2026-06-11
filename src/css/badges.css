@@ -7,7 +7,7 @@
    BADGE ROWS (GRID-BASED SYSTEM)
    ============================================================================== */
 
-.drp-date-picker__badge-row {
+.drp__badge-row {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
   gap: var(--drp-spacing-xs);
@@ -15,7 +15,7 @@
   min-height: var(--drp-badge-row-height);
 }
 
-.drp-date-picker__badge-cell {
+.drp__badge-cell {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -26,11 +26,11 @@
   max-height: var(--drp-badge-row-height);
 }
 
-.drp-date-picker__badge-cell:empty {
+.drp__badge-cell:empty {
   visibility: hidden;
 }
 
-.drp-date-picker__badge-cell:hover:not(:empty) {
+.drp__badge-cell:hover:not(:empty) {
   transform: scale(1.05);
 }
 
@@ -39,7 +39,7 @@
    ============================================================================== */
 
 /* Number Badge (e.g., day number, count) */
-.drp-date-picker__badge-cell.badge-number {
+.drp__badge-cell.badge-number {
   background-color: var(--drp-badge-number-bg);
   color: var(--drp-badge-number-color);
   font-size: calc(1.12 * var(--drp-rem));   /* 11.2px */
@@ -47,7 +47,7 @@
 }
 
 /* Count Badge (e.g., number of events) */
-.drp-date-picker__badge-cell.badge-count {
+.drp__badge-cell.badge-count {
   background-color: var(--drp-badge-count-bg);
   color: var(--drp-badge-count-color);
   font-size: calc(1.12 * var(--drp-rem));   /* 11.2px */
@@ -58,7 +58,7 @@
    Note: Background colors for specific badge types (holiday, event, birthday, etc.)
    should be defined by the application, not the component library.
    See index.html examples for how to customize badge colors for your use case. */
-.drp-date-picker__badge-cell.badge-text {
+.drp__badge-cell.badge-text {
   background-color: var(--drp-badge-text-bg);
   color: var(--drp-badge-text-color);
   font-size: calc(1.04 * var(--drp-rem));   /* 10.4px */

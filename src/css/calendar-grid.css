@@ -11,14 +11,14 @@
    width. Without it, the weekday labels' min-content (e.g. "WED" at the active
    font-size + padding) pushes the grid past narrow containers and the
    rightmost weekday/day columns get clipped or pushed off-screen. */
-.drp-date-picker__weekdays {
+.drp__weekdays {
   display: grid;
   grid-template-columns: repeat(7, minmax(0, 1fr));
   gap: var(--drp-spacing-xs);
   margin-bottom: var(--drp-spacing-sm);
 }
 
-.drp-date-picker__weekday {
+.drp__weekday {
   text-align: center;
   font-size: var(--drp-font-size-xs);
   font-weight: var(--drp-font-weight-semibold);
@@ -38,7 +38,7 @@
    DAYS GRID
    ============================================================================== */
 
-.drp-date-picker__days {
+.drp__days {
   display: flex;
   flex-direction: column;
   gap: var(--drp-spacing-xs);
@@ -47,7 +47,7 @@
 
 /* Same minmax(0, 1fr) reasoning as the weekday row — lets day cells shrink
    below their min-content width when the container is narrow. */
-.drp-date-picker__date-row {
+.drp__date-row {
   display: grid;
   grid-template-columns: repeat(7, minmax(0, 1fr));
   gap: var(--drp-spacing-xs);
@@ -57,7 +57,7 @@
    DAY CELLS
    ============================================================================== */
 
-.drp-date-picker__day {
+.drp__day {
   aspect-ratio: 1;
   display: flex;
   align-items: center;
@@ -70,7 +70,7 @@
   position: relative; /* For absolute positioning of labels */
 }
 
-.drp-date-picker__day:hover:not(.drp-date-picker__day--disabled):not(.drp-date-picker__day--other-month) {
+.drp__day:hover:not(.drp__day--disabled):not(.drp__day--other-month) {
   background-color: var(--drp-day-bg-hover);
   border-color: var(--drp-day-border-hover);
 }
@@ -78,7 +78,7 @@
 /* --------------------------------------
    Today
    -------------------------------------- */
-.drp-date-picker__day--today {
+.drp__day--today {
   border-color: var(--drp-day-today-border);
   font-weight: var(--drp-font-weight-semibold);
 }
@@ -86,13 +86,13 @@
 /* --------------------------------------
    Selected
    -------------------------------------- */
-.drp-date-picker__day--selected {
+.drp__day--selected {
   background-color: var(--drp-day-selected-bg);
   color: var(--drp-day-selected-color);
   font-weight: var(--drp-font-weight-semibold);
 }
 
-.drp-date-picker__day--selected:hover:not(.drp-date-picker__day--disabled):not(.drp-date-picker__day--other-month) {
+.drp__day--selected:hover:not(.drp__day--disabled):not(.drp__day--other-month) {
   background-color: var(--drp-day-selected-bg-hover);
   color: var(--drp-day-selected-color-hover);
 }
@@ -100,7 +100,7 @@
 /* --------------------------------------
    Focused (keyboard navigation)
    -------------------------------------- */
-.drp-date-picker__day--focused {
+.drp__day--focused {
   outline: var(--drp-day-focused-outline-width) solid var(--drp-day-focused-outline);
   outline-offset: var(--drp-day-focused-outline-offset);
 }
@@ -108,7 +108,7 @@
 /* --------------------------------------
    Disabled
    -------------------------------------- */
-.drp-date-picker__day--disabled {
+.drp__day--disabled {
   color: var(--drp-day-disabled-color);
   opacity: var(--drp-opacity-disabled);
   cursor: not-allowed;
@@ -117,7 +117,7 @@
 }
 
 /* Diagonal hatched pattern overlay */
-.drp-date-picker__day--disabled::before {
+.drp__day--disabled::before {
   content: '';
   position: absolute;
   top: 0;
@@ -135,37 +135,47 @@
   pointer-events: none;
 }
 
-.drp-date-picker__day--disabled:hover {
+.drp__day--disabled:hover {
   background-color: transparent;
   border-color: transparent;
 }
 
 /* Disabled day that is also in range - show range background behind disabled overlay */
-.drp-date-picker__day--disabled.drp-date-picker__day--in-range {
-  background-color: color-mix(in srgb, var(--drp-day-range-bg) calc(var(--drp-day-in-range-bg-opacity) * 100%), transparent);
+.drp__day--disabled.drp__day--in-range {
+  background-color: var(--drp-day-in-range-bg);
 }
 
 /* --------------------------------------
    Other month days (previous/next month)
    -------------------------------------- */
-.drp-date-picker__day--other-month {
+.drp__day--other-month {
   color: var(--drp-day-other-month-color);
   opacity: var(--drp-opacity-other-month);
 }
 
-/* Reset opacity when other-month days are part of range selection */
-.drp-date-picker__day--other-month.drp-date-picker__day--range-start,
-.drp-date-picker__day--other-month.drp-date-picker__day--range-end,
-.drp-date-picker__day--other-month.drp-date-picker__day--in-range,
-.drp-date-picker__day--other-month.drp-date-picker__day--drag-preview {
+/* Reset opacity when other-month days are part of any range-style highlight.
+   Without this, the 50% other-month dim multiplies the already-translucent
+   range/preview backgrounds (e.g. 18% hover-preview × 50% dim → ~9% effective
+   alpha) and the trailing/leading other-month tail of a range becomes barely
+   visible, especially on softer themes. The other-month TEXT color stays muted
+   (handled separately above), which is enough to signal "next/prev month". */
+.drp__day--other-month.drp__day--range-start,
+.drp__day--other-month.drp__day--range-end,
+.drp__day--other-month.drp__day--in-range,
+.drp__day--other-month.drp__day--drag-preview,
+.drp__day--other-month.drp__day--hover-preview,
+.drp__day--other-month.drp__day--hover-preview-invalid,
+.drp__day--other-month.drp__day--invalid-range,
+.drp__day--other-month.drp__day--invalid-range-start,
+.drp__day--other-month.drp__day--invalid-range-end {
   opacity: 1;
 }
 
 /* --------------------------------------
    Range selection states
    -------------------------------------- */
-.drp-date-picker__day--range-start,
-.drp-date-picker__day--range-end {
+.drp__day--range-start,
+.drp__day--range-end {
   background-color: var(--drp-day-range-bg);
   color: var(--drp-day-range-color);
   font-weight: var(--drp-font-weight-semibold);
@@ -173,48 +183,48 @@
   user-select: none;
 }
 
-.drp-date-picker__day--range-start:hover:not(.drp-date-picker__day--disabled):not(.drp-date-picker__day--other-month),
-.drp-date-picker__day--range-end:hover:not(.drp-date-picker__day--disabled):not(.drp-date-picker__day--other-month) {
+.drp__day--range-start:hover:not(.drp__day--disabled):not(.drp__day--other-month),
+.drp__day--range-end:hover:not(.drp__day--disabled):not(.drp__day--other-month) {
   background-color: var(--drp-day-range-bg-hover);
   color: var(--drp-day-range-color-hover);
 }
 
-.drp-date-picker__day--range-start:active,
-.drp-date-picker__day--range-end:active {
+.drp__day--range-start:active,
+.drp__day--range-end:active {
   cursor: grabbing;
 }
 
-.drp-date-picker__day--in-range {
-  background-color: color-mix(in srgb, var(--drp-day-range-bg) calc(var(--drp-day-in-range-bg-opacity) * 100%), transparent);
+.drp__day--in-range {
+  background-color: var(--drp-day-in-range-bg);
 }
 
-.drp-date-picker__day--in-range:hover:not(.drp-date-picker__day--disabled):not(.drp-date-picker__day--other-month) {
-  background-color: color-mix(in srgb, var(--drp-day-range-bg) calc(var(--drp-day-in-range-hover-bg-opacity) * 100%), transparent);
+.drp__day--in-range:hover:not(.drp__day--disabled):not(.drp__day--other-month) {
+  background-color: var(--drp-day-in-range-bg-hover-color);
 }
 
 /* --------------------------------------
    Dragging states
    -------------------------------------- */
-.drp-date-picker__day--dragging {
+.drp__day--dragging {
   cursor: grabbing !important;
   opacity: var(--drp-opacity-dragging);
   transform: scale(var(--drp-day-dragging-scale));
   transition: transform var(--drp-transition-fast) var(--drp-easing-snappy);
 }
 
-.drp-date-picker__day--drag-preview {
-  background-color: color-mix(in srgb, var(--drp-day-range-bg) calc(var(--drp-day-drag-preview-bg-opacity) * 100%), transparent);
+.drp__day--drag-preview {
+  background-color: var(--drp-day-drag-preview-bg);
   border: var(--drp-day-drag-border);
 }
 
-.drp-date-picker__day--drag-preview.drp-date-picker__day--range-start,
-.drp-date-picker__day--drag-preview.drp-date-picker__day--range-end {
-  background-color: color-mix(in srgb, var(--drp-day-range-bg) calc(var(--drp-day-drag-preview-edge-bg-opacity) * 100%), transparent);
+.drp__day--drag-preview.drp__day--range-start,
+.drp__day--drag-preview.drp__day--range-end {
+  background-color: var(--drp-day-drag-preview-edge-bg);
   color: var(--drp-day-range-color);
 }
 
-.drp-date-picker__day--drag-invalid {
-  background-color: color-mix(in srgb, var(--drp-day-drag-invalid-bg) calc(var(--drp-day-drag-invalid-bg-opacity) * 100%), transparent) !important;
+.drp__day--drag-invalid {
+  background-color: var(--drp-day-drag-invalid-bg-mix) !important;
   border-color: var(--drp-day-drag-invalid-bg) !important;
   border-style: dashed !important;
 }
@@ -225,24 +235,24 @@
    end date. Quieter than drag-preview by design: this is exploratory, not
    committed action.
    -------------------------------------- */
-.drp-date-picker__day--hover-preview {
-  background-color: color-mix(in srgb, var(--drp-day-range-bg) calc(var(--drp-day-hover-preview-bg-opacity) * 100%), transparent);
+.drp__day--hover-preview {
+  background-color: var(--drp-day-hover-preview-bg);
 }
 
-.drp-date-picker__day--hover-preview-invalid {
-  background-color: color-mix(in srgb, var(--drp-day-drag-invalid-bg) calc(var(--drp-day-hover-preview-invalid-bg-opacity) * 100%), transparent);
+.drp__day--hover-preview-invalid {
+  background-color: var(--drp-day-hover-preview-invalid-bg);
 }
 
 /* --------------------------------------
    Invalid range states (showInvalidRange)
    Used when beforeDateSelectCallback returns { action: 'restore', showInvalidRange: true }
    -------------------------------------- */
-.drp-date-picker__day--invalid-range {
+.drp__day--invalid-range {
   background-color: color-mix(in srgb, var(--drp-message-error-border) 20%, transparent);
 }
 
-.drp-date-picker__day--invalid-range-start,
-.drp-date-picker__day--invalid-range-end {
+.drp__day--invalid-range-start,
+.drp__day--invalid-range-end {
   background-color: var(--drp-day-invalid-range-bg);
   color: var(--drp-day-invalid-range-color);
   font-weight: var(--drp-font-weight-semibold);
@@ -255,19 +265,19 @@
    Applications should define their own classes with appropriate colors.
    The .holiday and .event classes here use component colors as examples only. */
 
-.drp-date-picker__day.holiday {
+.drp__day.holiday {
   background-color: color-mix(in srgb, var(--drp-holiday-color) calc(var(--drp-holiday-bg-opacity) * 100%), transparent);
 }
 
-.drp-date-picker__day.holiday:hover:not(.drp-date-picker__day--disabled) {
+.drp__day.holiday:hover:not(.drp__day--disabled) {
   background-color: color-mix(in srgb, var(--drp-holiday-color) calc(var(--drp-holiday-hover-bg-opacity) * 100%), transparent);
 }
 
-.drp-date-picker__day.event {
+.drp__day.event {
   background-color: color-mix(in srgb, var(--drp-event-color) calc(var(--drp-event-bg-opacity) * 100%), transparent);
 }
 
-.drp-date-picker__day.event:hover:not(.drp-date-picker__day--disabled) {
+.drp__day.event:hover:not(.drp__day--disabled) {
   background-color: color-mix(in srgb, var(--drp-event-color) calc(var(--drp-event-hover-bg-opacity) * 100%), transparent);
 }
 
@@ -277,7 +287,7 @@
    Styling for disabled years/months in the rolling selector
    (e.g., when outside rollingYearRange/rollingMonthRange or minDate/maxDate) */
 
-.drp-date-picker__rolling-item--disabled {
+.drp__rolling-item--disabled {
   color: var(--drp-unified-rolling-disabled-color);
   opacity: 0.4;
   cursor: not-allowed;
@@ -285,6 +295,6 @@
   text-decoration: line-through;
 }
 
-.drp-date-picker__rolling-item--disabled:hover {
+.drp__rolling-item--disabled:hover {
   background-color: transparent;
 }

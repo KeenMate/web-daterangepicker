@@ -1,4 +1,4 @@
-import { test, expect, Page, Locator } from '@playwright/test';
+import { test, expect, Page, Locator } from './fixtures';
 
 /**
  * inline and modal positioning modes (floating mode lives in the other
@@ -14,11 +14,11 @@ function pickerById(page: Page, id: string) {
 }
 
 function calendarOf(p: Locator) {
-    return p.locator('.drp-date-picker');
+    return p.locator('.drp__picker');
 }
 
 function dayByDate(p: Locator, isoDate: string) {
-    return p.locator(`.drp-date-picker__day[data-date="${isoDate}"]`);
+    return p.locator(`.drp__day[data-date="${isoDate}"]`);
 }
 
 test.beforeEach(async ({ page }) => {
@@ -42,14 +42,14 @@ test.describe('inline mode', () => {
 
     test('calendar root carries the --inline modifier class', async ({ page }) => {
         const p = pickerById(page, 'inline');
-        await expect(calendarOf(p)).toHaveClass(/drp-date-picker--inline/);
+        await expect(calendarOf(p)).toHaveClass(/drp__picker--inline/);
     });
 
     test('selecting a day in inline mode still updates internal state (single mode)', async ({ page }) => {
         const p = pickerById(page, 'inline');
 
         await dayByDate(p, '2026-06-20').click();
-        await expect(dayByDate(p, '2026-06-20')).toHaveClass(/drp-date-picker__day--selected/);
+        await expect(dayByDate(p, '2026-06-20')).toHaveClass(/drp__day--selected/);
     });
 });
 
@@ -63,21 +63,21 @@ test.describe('modal mode', () => {
 
         await p.locator('input').click();
         await expect(calendarOf(p)).toBeVisible();
-        await expect(calendarOf(p)).toHaveClass(/drp-date-picker--modal/);
+        await expect(calendarOf(p)).toHaveClass(/drp__picker--modal/);
     });
 
     test('modal renders a backdrop element when open', async ({ page }) => {
         const p = pickerById(page, 'modal');
 
         await p.locator('input').click();
-        await expect(p.locator('.drp-date-picker__backdrop')).toBeVisible();
+        await expect(p.locator('.drp__backdrop')).toBeVisible();
     });
 
     test('clicking the backdrop closes the modal', async ({ page }) => {
         const p = pickerById(page, 'modal');
 
         await p.locator('input').click();
-        const backdrop = p.locator('.drp-date-picker__backdrop');
+        const backdrop = p.locator('.drp__backdrop');
         await expect(backdrop).toBeVisible();
 
         // Backdrop is behind the calendar; click on it directly (not via the
@@ -96,7 +96,7 @@ test.describe('modal mode', () => {
         expect(duringOpen).toBe('hidden');
 
         // Close via backdrop.
-        await p.locator('.drp-date-picker__backdrop').click({ position: { x: 5, y: 5 } });
+        await p.locator('.drp__backdrop').click({ position: { x: 5, y: 5 } });
         await expect(calendarOf(p)).toBeHidden();
         const afterClose = await page.evaluate(() => document.body.style.overflow);
         expect(afterClose).toBe(before);

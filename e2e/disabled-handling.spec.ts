@@ -1,4 +1,4 @@
-import { test, expect, Page, Locator } from '@playwright/test';
+import { test, expect, Page, Locator } from './fixtures';
 
 /**
  * The five `disabledDatesHandling` strategies. Each picker has
@@ -19,11 +19,11 @@ function pickerById(page: Page, id: string) {
 }
 
 function calendarOf(p: Locator) {
-    return p.locator('.drp-date-picker');
+    return p.locator('.drp__picker');
 }
 
 function dayByDate(p: Locator, isoDate: string) {
-    return p.locator(`.drp-date-picker__day[data-date="${isoDate}"]`);
+    return p.locator(`.drp__day[data-date="${isoDate}"]`);
 }
 
 function inputOf(p: Locator) {
@@ -59,8 +59,8 @@ test.beforeEach(async ({ page }) => {
 
 test('disabledDates property: configured days render with --disabled in every strategy', async ({ page }) => {
     const p = await open(page, 'allow');
-    await expect(dayByDate(p, '2026-06-12')).toHaveClass(/drp-date-picker__day--disabled/);
-    await expect(dayByDate(p, '2026-06-13')).toHaveClass(/drp-date-picker__day--disabled/);
+    await expect(dayByDate(p, '2026-06-12')).toHaveClass(/drp__day--disabled/);
+    await expect(dayByDate(p, '2026-06-13')).toHaveClass(/drp__day--disabled/);
 });
 
 // =============================================================================
@@ -135,8 +135,8 @@ test('highlight-disabled-in-range="false": disabled days inside a range stay un-
     await inputOf(p).click();
 
     // Disabled days inside the range carry --disabled but NOT --in-range.
-    await expect(dayByDate(p, '2026-06-12')).toHaveClass(/drp-date-picker__day--disabled/);
-    await expect(dayByDate(p, '2026-06-12')).not.toHaveClass(/drp-date-picker__day--in-range/);
+    await expect(dayByDate(p, '2026-06-12')).toHaveClass(/drp__day--disabled/);
+    await expect(dayByDate(p, '2026-06-12')).not.toHaveClass(/drp__day--in-range/);
 });
 
 // =============================================================================

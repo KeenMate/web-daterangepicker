@@ -1,0 +1,195 @@
+/* ==============================================================================
+   WHEEL PICKER (timeDisplay: wheel)
+   ==============================================================================
+   iOS UIPickerView aesthetic: snap-scrolling columns, a center selection band,
+   and top/bottom fade gradients that create the "barrel" curve effect.
+
+   Each column is a vertical scroller of equal-height items. The currently-
+   centered item is what's selected — the band visually frames it; the JS
+   commits the value when scrolling settles. There's no per-item highlight
+   (the band IS the selection indicator).
+
+   Layout parents (`.drp__picker--time`, `.drp__main`) are
+   defined in time-picker.css and apply to the wheel picker the same way they
+   apply to the rolls / clock — all three share the `:not(--inline)` wrapper
+   rules. */
+
+.drp__wheel-picker {
+  display: flex;
+  flex-direction: column;
+  gap: var(--drp-spacing-sm);
+  padding: var(--drp-time-picker-padding);
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+/* Time-only mode: wheel-picker is the direct flex-column child of the popover
+   (no __main wrapper). Mirror the padding-inline allowance __main/__months
+   would provide so focus outlines on edge items aren't clipped. */
+.drp__picker--time:not(.drp__picker--inline) > .drp__wheel-picker {
+  padding-inline: 4px;
+}
+
+/* Row of columns. `position: relative` so the band + fade pseudo-elements
+   anchor here (not on individual columns — the band spans the whole row). */
+.drp__wheel-rolls {
+  position: relative;
+  display: flex;
+  flex-direction: row;
+  align-items: stretch;
+  justify-content: center;
+  gap: var(--drp-wheel-column-gap);
+  flex: 1 1 auto;
+  min-height: var(--drp-wheel-min-height);
+  /* Round corners on the whole barrel — gives the row a calm container
+     feel rather than four loose columns floating in space. */
+  background: var(--drp-wheel-bg);
+  border-radius: var(--drp-border-radius);
+  overflow: hidden;
+}
+
+/* Fade gradients above and below the center band. Pure CSS — no JS. The
+   z-index keeps them above the scrolling items but below the band so item
+   text fades smoothly into the background as it moves off-center. */
+.drp__wheel-rolls::before,
+.drp__wheel-rolls::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: var(--drp-wheel-fade-height);
+  pointer-events: none;
+  z-index: 2;
+}
+.drp__wheel-rolls::before {
+  top: 0;
+  background: linear-gradient(to bottom,
+    var(--drp-wheel-bg) 20%,
+    color-mix(in srgb, var(--drp-wheel-bg) 60%, transparent) 70%,
+    transparent);
+}
+.drp__wheel-rolls::after {
+  bottom: 0;
+  background: linear-gradient(to top,
+    var(--drp-wheel-bg) 20%,
+    color-mix(in srgb, var(--drp-wheel-bg) 60%, transparent) 70%,
+    transparent);
+}
+
+/* Center selection band — horizontal rounded rectangle stretching the row
+   width, centered on the COLUMN's snap-center. Sits below the items (z-index 1)
+   so the digits render on top, then the fade gradients (z-index 2) overlay
+   everything.
+
+   Why the offset: .wheel-rolls contains the per-column headers AND the
+   scrolling columns. A naive `top: 50%` puts the band at the row's geometric
+   midpoint, but the snap-center sits below by exactly half the (header + gap)
+   stack. Without the offset the bold selected digit lands one row below the
+   band — see screenshot of v1.15.x for the visible bug. */
+.drp__wheel-band {
+  position: absolute;
+  left: var(--drp-spacing-xs);
+  right: var(--drp-spacing-xs);
+  top: calc(50% + (var(--drp-wheel-header-height) + var(--drp-spacing-xs)) / 2);
+  transform: translateY(-50%);
+  height: var(--drp-wheel-item-height);
+  background: var(--drp-wheel-band-bg);
+  border-radius: var(--drp-border-radius-sm);
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* Column wrapper holds the header + the scrollable column. */
+.drp__wheel-column-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: var(--drp-spacing-xs);
+  flex: 1 1 0;
+  min-width: var(--drp-wheel-column-min-width);
+  /* The header sits ABOVE the scrolling barrel, so wrappers shouldn't bake the
+     header into the band. Wrapper handles header in its own row, then the
+     column owns the barrel's vertical extent. */
+}
+
+.drp__wheel-column-header {
+  font-size: var(--drp-time-picker-label-font-size);
+  font-weight: var(--drp-time-picker-label-font-weight);
+  color: var(--drp-time-picker-label-color);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  text-align: center;
+  position: relative;
+  z-index: 3;
+  /* Same wheel background so the header reads as part of the barrel; without
+     this the header would sit on the popover bg while the column sits on the
+     wheel bg, creating a visible seam at narrow widths. */
+  background: var(--drp-wheel-bg);
+  /* Locked height (paired with --drp-wheel-header-height in variables.css) lets
+     the selection band offset itself by a known amount instead of measuring at
+     runtime. Flex-centered instead of relying on padding/line-height heuristics. */
+  height: var(--drp-wheel-header-height);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.drp__wheel-column {
+  flex: 1 1 0;
+  min-height: 0;
+  overflow-y: auto;
+  scroll-snap-type: y mandatory;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  text-align: center;
+  position: relative;
+  z-index: 3;
+  /* Top/bottom padding so the first and last items can sit inside the center
+     band. Computed as (column height − item height) / 2 — but column height
+     varies, so we use a generous calc. The fade gradients above this height
+     hide partial items at the edges. */
+  padding-block: calc((var(--drp-wheel-min-height) - var(--drp-wheel-item-height)) / 2);
+  scroll-behavior: smooth;
+}
+
+.drp__wheel-column::-webkit-scrollbar {
+  display: none;
+}
+
+.drp__wheel-item {
+  height: var(--drp-wheel-item-height);
+  line-height: var(--drp-wheel-item-height);
+  scroll-snap-align: center;
+  font-size: var(--drp-wheel-item-font-size);
+  font-variant-numeric: tabular-nums;
+  color: var(--drp-wheel-item-color);
+  cursor: pointer;
+  user-select: none;
+  /* Smooth color transition as items roll past the center band — feels closer
+     to the iOS curved-barrel effect than hard color jumps. */
+  transition: color 120ms ease;
+}
+
+.drp__wheel-item:hover {
+  color: var(--drp-wheel-item-color-hover);
+}
+
+.drp__wheel-item--selected {
+  color: var(--drp-wheel-item-color-selected);
+  font-weight: var(--drp-font-weight-semibold);
+}
+
+/* AM/PM column is narrow — just two items, no need for the wide flex share.
+   The HORIZONTAL narrowing is owned by the WRAPPER rule below (the column-wrapper
+   is a child of .wheel-rolls's row-flex, so its flex applies horizontally). We
+   deliberately keep the inner column at the base `flex: 1 1 0` (which here applies
+   VERTICALLY because the wrapper is column-flex) so the column still stretches to
+   fill the wrapper's vertical space — otherwise the column would shrink to its
+   intrinsic height (2 items + 144px padding = 216px), overflow the wrapper, fall
+   below the band, and never engage scroll-snap (because there's no overflow). */
+.drp__wheel-column--ampm {
+  min-width: var(--drp-wheel-ampm-min-width);
+}
+.drp__wheel-column-wrapper:has(.drp__wheel-column--ampm) {
+  flex: 0 0 auto;
+}

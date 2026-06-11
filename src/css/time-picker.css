@@ -1,7 +1,7 @@
 /* ==============================================================================
    TIME PICKER (pickerMode: time / datetime)
    ==============================================================================
-   Layout for the time roll(s) panel and the .drp-date-picker__main wrapper
+   Layout for the time roll(s) panel and the .drp__main wrapper
    that holds months + time picker side by side in datetime mode. */
 
 /* Datetime needs room for one month + 3-4 time-roll columns next to each
@@ -13,14 +13,14 @@
    the inner months column would be squeezed below its 280px intrinsic
    minimum, clipping the SUN column. Viewport-based @media queries are used
    instead for the stacked-layout breakpoint below. */
-.drp-date-picker--datetime:not(.drp-date-picker--inline) {
+.drp__picker--datetime:not(.drp__picker--inline) {
   min-width: var(--drp-datetime-min-width);
 }
 
 /* Wrapper appears only in datetime mode (months + time picker side by side).
    Time-only mode mounts the time picker directly as the flex-column child of
    the popover, so none of these rules apply there. */
-.drp-date-picker__main {
+.drp__main {
   display: flex;
   flex-direction: row;
   gap: var(--drp-time-picker-main-gap);
@@ -36,7 +36,7 @@
 }
 
 /* Months inside __main need their own vertical scroll. The corresponding rule
-   in _base.css uses a direct-child selector against .drp-date-picker, so it
+   in base.css uses a direct-child selector against .drp__picker, so it
    doesn't apply when __main sits in between. Mirror the essentials here,
    including the padding-inline allowance for the leftmost day's focused
    outline (2px offset + 2px width = 4px) — without it the outline is
@@ -45,8 +45,8 @@
    propagate so the popover grows to fit instead of clipping the SUN column.
    Explicit `overflow-x: hidden` keeps the spec's one-axis coercion from
    bringing the horizontal scrollbar back. */
-.drp-date-picker__main > .drp-date-picker__months,
-.drp-date-picker__main > .drp-date-picker__months--grid {
+.drp__main > .drp__months,
+.drp__main > .drp__months--grid {
   flex: 1 1 auto;
   min-height: 0;
   overflow-y: auto;
@@ -64,21 +64,21 @@
    datetime min-width: on a phone-width viewport the 560px floor would force
    horizontal scrolling at the page level. */
 @media (max-width: 600px) {
-  .drp-date-picker--datetime:not(.drp-date-picker--inline) {
+  .drp__picker--datetime:not(.drp__picker--inline) {
     min-width: 0;
   }
-  .drp-date-picker__main {
+  .drp__main {
     flex-direction: column;
     overflow-x: hidden;
     overflow-y: auto;
   }
-  .drp-date-picker__main > .drp-date-picker__months,
-  .drp-date-picker__main > .drp-date-picker__months--grid {
+  .drp__main > .drp__months,
+  .drp__main > .drp__months--grid {
     overflow-y: visible;
   }
 }
 
-.drp-date-picker__time-picker {
+.drp__time-picker {
   display: flex;
   flex-direction: column;
   gap: var(--drp-spacing-sm);
@@ -93,13 +93,13 @@
 }
 
 /* Time-only mode: the time picker IS the popover content. Mounted directly as
-   a flex-column child of .drp-date-picker (no __main wrapper), so it gets the
+   a flex-column child of .drp__picker (no __main wrapper), so it gets the
    same padding-inline allowance __main would have provided. */
-.drp-date-picker--time:not(.drp-date-picker--inline) > .drp-date-picker__time-picker {
+.drp__picker--time:not(.drp__picker--inline) > .drp__time-picker {
   padding-inline: 4px;
 }
 
-.drp-date-picker__time-label {
+.drp__time-label {
   font-size: var(--drp-time-picker-label-font-size);
   font-weight: var(--drp-time-picker-label-font-weight);
   color: var(--drp-time-picker-label-color);
@@ -107,7 +107,7 @@
   letter-spacing: 0.05em;
 }
 
-.drp-date-picker__time-rolls {
+.drp__time-rolls {
   display: flex;
   flex-direction: row;
   align-items: stretch;
@@ -121,7 +121,7 @@
 /* Each column wraps a header + its roll list. Columns flex-grow equally so
    they spread out to fill the popover width (matches the year/month picker
    layout). AM/PM is the exception — only two items, stays compact. */
-.drp-date-picker__time-column {
+.drp__time-column {
   display: flex;
   flex-direction: column;
   gap: var(--drp-spacing-xs);
@@ -130,11 +130,11 @@
   min-height: 0;
 }
 
-.drp-date-picker__time-column:has(.drp-date-picker__time-roll--ampm) {
+.drp__time-column:has(.drp__time-roll--ampm) {
   flex: 0 0 auto;
 }
 
-.drp-date-picker__time-column-header {
+.drp__time-column-header {
   font-size: var(--drp-time-picker-label-font-size);
   font-weight: var(--drp-time-picker-label-font-weight);
   color: var(--drp-time-picker-label-color);
@@ -143,7 +143,7 @@
   text-align: center;
 }
 
-/* Roll lists inherit border + scrolling from .drp-date-picker__rolling-list.
+/* Roll lists inherit border + scrolling from .drp__rolling-list.
    `flex: 1 1 0` (basis 0, not auto) is the key: with basis: auto the roll's
    intrinsic content height (24 hours × ~40px ≈ 960px) becomes the flex basis
    and propagates up the chain, making __main — and therefore the popover —
@@ -157,13 +157,13 @@
    intrinsic height anywhere) and the roll renders empty. The token defaults
    to ~18rem so ~5-6 items are visible at every scale; in datetime mode the
    calendar is taller so this floor is invisible (roll stretches past it). */
-.drp-date-picker__time-roll {
+.drp__time-roll {
   flex: 1 1 0;
   min-height: var(--drp-time-picker-roll-min-height);
 }
 
 /* AM/PM has only two items — let the column hug them instead of stretching. */
-.drp-date-picker__time-roll--ampm {
+.drp__time-roll--ampm {
   max-height: none;
   min-height: calc(8 * var(--drp-rem));
   min-width: calc(6 * var(--drp-rem));
@@ -175,6 +175,6 @@
    `width: 100%` (for month-name ellipsis), so its text falls back to the
    default left alignment. For time rolls the labels are short numbers — center
    them. */
-.drp-date-picker__time-roll .drp-date-picker__rolling-item-text {
+.drp__time-roll .drp__rolling-item-text {
   text-align: center;
 }

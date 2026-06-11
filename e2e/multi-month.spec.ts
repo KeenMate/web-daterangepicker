@@ -1,4 +1,4 @@
-import { test, expect, Page, Locator } from '@playwright/test';
+import { test, expect, Page, Locator } from './fixtures';
 
 /**
  * Multi-month rendering: visible-months-count, horizontal / grid layout,
@@ -14,23 +14,23 @@ function pickerById(page: Page, id: string) {
 }
 
 function calendarOf(p: Locator) {
-    return p.locator('.drp-date-picker');
+    return p.locator('.drp__picker');
 }
 
 function months(p: Locator) {
-    return p.locator('.drp-date-picker__month');
+    return p.locator('.drp__month');
 }
 
 function monthHeaderTextAt(p: Locator, index: number) {
-    return p.locator('.drp-date-picker__month-year').nth(index);
+    return p.locator('.drp__month-year').nth(index);
 }
 
 function nextNavAt(p: Locator, index: number) {
-    return p.locator(`.drp-date-picker__nav--next[data-month-index="${index}"]`);
+    return p.locator(`.drp__nav--next[data-month-index="${index}"]`);
 }
 
 function prevNavAt(p: Locator, index: number) {
-    return p.locator(`.drp-date-picker__nav--prev[data-month-index="${index}"]`);
+    return p.locator(`.drp__nav--prev[data-month-index="${index}"]`);
 }
 
 async function open(page: Page, id: string) {
@@ -62,8 +62,8 @@ test('default multi-month: first column shows the initial month, second shows ne
 
 test('horizontal layout uses the non-grid months container', async ({ page }) => {
     const p = await open(page, 'two-month');
-    await expect(p.locator('.drp-date-picker__months')).toBeVisible();
-    await expect(p.locator('.drp-date-picker__months--grid')).toHaveCount(0);
+    await expect(p.locator('.drp__months')).toBeVisible();
+    await expect(p.locator('.drp__months--grid')).toHaveCount(0);
 });
 
 // =============================================================================
@@ -99,7 +99,7 @@ test('collision prevention: pushing column 0 next into column 1\'s month shifts 
 test('grid layout: 2×3 renders 6 month columns inside the --grid container', async ({ page }) => {
     const p = await open(page, 'grid');
 
-    await expect(p.locator('.drp-date-picker__months--grid')).toBeVisible();
+    await expect(p.locator('.drp__months--grid')).toBeVisible();
     await expect(months(p)).toHaveCount(6);
 });
 
@@ -119,15 +119,15 @@ test('unified navigation: renders a single header row (no per-column prev/next)'
     const p = await open(page, 'unified');
 
     // Unified header element is present.
-    await expect(p.locator('.drp-date-picker__unified-header')).toBeVisible();
+    await expect(p.locator('.drp__unified-header')).toBeVisible();
     // Per-column prev/next buttons (those tagged with data-month-index) are
     // suppressed in unified mode; only the unified header carries nav buttons.
-    await expect(p.locator('.drp-date-picker__nav[data-month-index]')).toHaveCount(0);
+    await expect(p.locator('.drp__nav[data-month-index]')).toHaveCount(0);
 });
 
 test('unified navigation: month headers are static (no toggle-rolling on individual columns)', async ({ page }) => {
     const p = await open(page, 'unified');
 
     // Static-header variant has the --static modifier.
-    await expect(p.locator('.drp-date-picker__header--static').first()).toBeVisible();
+    await expect(p.locator('.drp__header--static').first()).toBeVisible();
 });

@@ -99,7 +99,7 @@ Callbacks CANNOT be set via HTML attributes. Set them as JavaScript properties:
 
   // Custom styles injected to shadow DOM
   picker.customStylesCallback = () => `
-    .drp-date-picker__day--weekend {
+    .drp__day--weekend {
       background-color: #f0f9ff;
     }
   `;

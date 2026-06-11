@@ -1,9 +1,9 @@
 /* ==============================================================================
-   DATE RANGE PICKER - LOADING
+   LOADING — overlay + spinner for async validation
    ==============================================================================
-   Loading overlay and spinner for async validation */
+   Spinner uses the `drp-spin` keyframe declared in `animations.css`. */
 
-.drp-date-picker__loading-overlay {
+.drp__loading-overlay {
   position: absolute;
   top: 0;
   left: 0;
@@ -17,20 +17,11 @@
   border-radius: var(--drp-border-radius-lg);
 }
 
-.drp-date-picker__loading-spinner {
+.drp__loading-spinner {
   width: var(--drp-loading-spinner-size);
   height: var(--drp-loading-spinner-size);
   border: var(--drp-loading-spinner-border-width) solid var(--drp-loading-spinner-color);
   border-top-color: var(--drp-loading-spinner-accent);
   border-radius: 50%;
   animation: drp-spin 0.8s linear infinite;
-}
-
-@keyframes drp-spin {
-  0% {
-    transform: rotate(0deg);
-  }
-  100% {
-    transform: rotate(360deg);
-  }
 }

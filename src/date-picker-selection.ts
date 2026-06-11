@@ -126,12 +126,12 @@ function moveFocusToDate(picker: any, target: Date): void {
         picker.activeMonthIndex = colIndex;
 
         const daysContainer = picker.calendar.querySelector(
-            `.drp-date-picker__days[data-month-index="${colIndex}"]`
+            `.drp__days[data-month-index="${colIndex}"]`
         );
         if (!daysContainer) return;
 
         const days = daysContainer.querySelectorAll(
-            '.drp-date-picker__day:not(.drp-date-picker__day--other-month)'
+            '.drp__day:not(.drp__day--other-month)'
         );
         const dayIndex = Array.from(days).findIndex((day: Element) => {
             const dateAttr = (day as HTMLElement).dataset.date;
@@ -143,8 +143,8 @@ function moveFocusToDate(picker: any, target: Date): void {
         if (dayIndex === -1) return;
 
         picker.focusedDayIndex = dayIndex;
-        days.forEach((day: Element) => day.classList.remove('drp-date-picker__day--focused'));
-        (days[dayIndex] as HTMLElement | undefined)?.classList.add('drp-date-picker__day--focused');
+        days.forEach((day: Element) => day.classList.remove('drp__day--focused'));
+        (days[dayIndex] as HTMLElement | undefined)?.classList.add('drp__day--focused');
         return;
     }
 }
@@ -247,7 +247,7 @@ export async function validateRangeAsync(
 }
 
 export async function selectDay(picker: any, dayElement: HTMLElement) {
-    if (dayElement.classList.contains('drp-date-picker__day--disabled')) return;
+    if (dayElement.classList.contains('drp__day--disabled')) return;
 
     // Validate that we have a valid day element with data-date
     if (!dayElement.dataset || !dayElement.dataset.date) {
@@ -263,15 +263,15 @@ export async function selectDay(picker: any, dayElement: HTMLElement) {
     let singleModeAdjustedDate: Date | null = null;
 
     // Check if this is an "other month" day
-    const isOtherMonth = dayElement.classList.contains('drp-date-picker__day--other-month');
+    const isOtherMonth = dayElement.classList.contains('drp__day--other-month');
 
     // Determine which column this click happened in
-    const daysContainer = dayElement.closest('.drp-date-picker__days');
+    const daysContainer = dayElement.closest('.drp__days');
     if (daysContainer && daysContainer instanceof HTMLElement) {
         picker.activeMonthIndex = parseInt(daysContainer.dataset.monthIndex || '0') || 0;
         selectionLogger.debug(`Col${picker.activeMonthIndex} selectDay - activeMonthIndex:`, picker.activeMonthIndex);
         // For all days (including other-month), set focused index for keyboard navigation
-        const days = daysContainer.querySelectorAll('.drp-date-picker__day:not(.drp-date-picker__day--other-month)');
+        const days = daysContainer.querySelectorAll('.drp__day:not(.drp__day--other-month)');
         picker.focusedDayIndex = Array.from(days).indexOf(dayElement);
         selectionLogger.debug(`Col${picker.activeMonthIndex} selectDay - set focusedDayIndex to:`, picker.focusedDayIndex);
     }
@@ -594,6 +594,265 @@ export function selectClockMinute(picker: any, minute: number) {
 export function setClockStep(picker: any, step: 'hours' | 'minutes') {
     picker.clockStep = step;
     picker.renderCalendar();
+}
+
+/**
+ * Wheel picker — center the clicked row in its column. The wheel column listens
+ * to its own `scroll` event and commits when the centroid settles, so this
+ * function doesn't need to call selectHour/selectMinute directly: it just
+ * scrolls, and the existing scroll handler does the rest.
+ *
+ * `wheelScrollLock` is held across the animation frame so the scroll listener
+ * (which would otherwise commit on every intermediate scroll position during a
+ * smooth scroll) ignores the programmatic scroll. The lock is released as soon
+ * as the user touches the wheel again.
+ */
+export function scrollWheelItemToCenter(picker: any, el: HTMLElement) {
+    const col = el.closest('.drp__wheel-column') as HTMLElement | null;
+    if (!col) return;
+    const item = el.closest('[data-wheel-value]') as HTMLElement | null;
+    if (!item) return;
+    const listKey = col.dataset.wheelList;
+    const itemH = item.offsetHeight || 36;
+    const target = item.offsetTop - (col.clientHeight - itemH) / 2;
+    picker.wheelScrollLock = true;
+    col.scrollTo({ top: Math.max(0, target), behavior: 'smooth' });
+    // After the scroll settles, run a single commit so the click → commit path
+    // works even if the smooth-scroll dampens before crossing a snap point.
+    window.setTimeout(() => {
+        picker.wheelScrollLock = false;
+        if (listKey) commitWheelScroll(picker, col, listKey);
+    }, 220);
+}
+
+/**
+ * Wheel picker — called from the column's scroll listener (and from the click
+ * handler above) once a scroll has settled. Reads the row currently centered
+ * in the column and commits its value via the same select* helpers the rolls
+ * use. No-op if the centered value already matches the committed selection,
+ * so cross-render scrollTo() doesn't loop.
+ */
+export function commitWheelScroll(picker: any, col: HTMLElement, listKey: string) {
+    const items = Array.from(col.querySelectorAll('[data-wheel-value]')) as HTMLElement[];
+    if (items.length === 0) return;
+    const itemH = items[0].offsetHeight || 36;
+    // Subtract the column's top padding (encoded in items[0].offsetTop). Without
+    // this, idx counts the padding rows as items and commits a value N positions
+    // past the one actually centered — N being padding-top / item-height (typically
+    // two). Symptom: user scrolls to e.g. minute 33, sees it briefly, then the
+    // wheel re-snaps to 35 once the debounce fires.
+    const firstItemTop = items[0].offsetTop;
+    const centerOffset = col.scrollTop + col.clientHeight / 2;
+    const rawIdx = (centerOffset - firstItemTop - itemH / 2) / itemH;
+    const idx = Math.max(0, Math.min(items.length - 1, Math.round(rawIdx)));
+    console.log('[wheel] commit', {
+        listKey,
+        scrollTop: col.scrollTop,
+        clientHeight: col.clientHeight,
+        firstItemTop,
+        firstItemOffsetHeight: items[0].offsetHeight,
+        itemH,
+        itemCount: items.length,
+        centerOffset,
+        rawIdx: rawIdx.toFixed(4),
+        idx,
+        centeredValue: items[idx]?.dataset.wheelValue,
+    });
+    const raw = items[idx].dataset.wheelValue;
+    if (raw === undefined) return;
+    if (listKey === 'ampm') {
+        if (raw === 'am' || raw === 'pm') selectAmpm(picker, raw);
+        return;
+    }
+    const value = parseInt(raw, 10);
+    if (isNaN(value)) return;
+    const is12h = picker.options.hourCycle === 'h12';
+    const time = picker.selectedTime || { hour: null, minute: null, second: null, ampm: null };
+    if (listKey === 'hours') {
+        if (is12h) {
+            const currentDisplay = time.hour !== null ? picker.toDisplayHour(time.hour) : -1;
+            if (currentDisplay === value) return;
+            selectHour(picker, value, true);
+        } else {
+            if (time.hour === value) return;
+            selectHour(picker, value, false);
+        }
+    } else if (listKey === 'minutes') {
+        if (time.minute === value) return;
+        selectMinute(picker, value);
+    } else if (listKey === 'seconds') {
+        if (time.second === value) return;
+        selectSecond(picker, value);
+    }
+}
+
+/**
+ * Compact pills picker — start editing a HH / MM / SS pill. Stores which field
+ * is being edited on the picker, switches the pill into contentEditable mode,
+ * selects its text so typing replaces, and wires Enter / Escape / blur for
+ * commit. The commit clamps to the field's range and snaps minutes/seconds to
+ * `timeStep` before routing through selectHour / selectMinute / selectSecond.
+ */
+export function beginCompactEdit(picker: any, el: HTMLElement) {
+    const field = el.dataset.compactField as 'hours' | 'minutes' | 'seconds' | undefined;
+    if (!field) return;
+    if (el.isContentEditable) return;
+    // Stash the original text so Escape can restore it (the next render won't,
+    // because it skips pills that are still contentEditable).
+    const originalText = el.textContent || '';
+    let aborted = false;
+
+    el.contentEditable = 'true';
+    el.focus();
+    // Select all so a single typed digit replaces the current value.
+    const range = document.createRange();
+    range.selectNodeContents(el);
+    const sel = window.getSelection();
+    if (sel) {
+        sel.removeAllRanges();
+        sel.addRange(range);
+    }
+
+    const teardown = () => {
+        el.contentEditable = 'false';
+        el.removeEventListener('blur', commit);
+        el.removeEventListener('keydown', onKey);
+        el.removeEventListener('input', onInput);
+    };
+
+    // Find the next pill in tab order (only HH / MM / SS — not the AM/PM
+    // buttons, which are toggles, not text inputs). Returns null when this is
+    // the last input pill (commit-without-advance behavior).
+    const findNextPill = (): HTMLElement | null => {
+        const row = el.closest('.drp__compact-row');
+        if (!row) return null;
+        const pills = Array.from(row.querySelectorAll('[data-compact-field]')) as HTMLElement[];
+        const idx = pills.indexOf(el);
+        return idx >= 0 && idx + 1 < pills.length ? pills[idx + 1] : null;
+    };
+
+    // Field-specific max so we know when a 1-digit value can't possibly grow
+    // into a valid 2-digit value (e.g., '3' in hours h12 → no '3X' is valid →
+    // commit + advance immediately). Matches the native <input type="time"> UX.
+    const is12h = picker.options.hourCycle === 'h12';
+    const fieldMax = field === 'hours' ? (is12h ? 12 : 23) : 59;
+
+    // input fires AFTER the character has been inserted, so el.textContent is
+    // the post-edit string. Advance when either (a) we have 2 digits, or
+    // (b) we have 1 digit and 1×10 > fieldMax (no possible 2-digit value
+    // starting with that digit fits in range). Single source of truth for
+    // "field is complete enough to commit."
+    const onInput = () => {
+        const text = (el.textContent || '').replace(/\D/g, '');
+        if (text.length === 0) return;
+        const first = parseInt(text, 10);
+        if (isNaN(first)) return;
+        const shouldAdvance = text.length >= 2 || (text.length === 1 && first * 10 > fieldMax);
+        if (!shouldAdvance) return;
+        const next = findNextPill();
+        if (next) {
+            // Moving focus to another element synchronously dispatches blur on
+            // `el` (which runs commit + teardown, including renderCalendar),
+            // then focus on `next` (which the calendar-level focusin listener
+            // promotes into edit mode + select-all).
+            next.focus();
+        } else {
+            // Last input pill — just commit. blur triggers the commit handler.
+            el.blur();
+        }
+    };
+
+    const commit = () => {
+        if (aborted) { teardown(); picker.renderCalendar(); return; }
+        teardown();
+        const raw = el.textContent || '';
+        const digits = raw.replace(/\D/g, '');
+        if (digits === '') {
+            // Nothing typed — re-render to restore the displayed value.
+            picker.renderCalendar();
+            return;
+        }
+        let value = parseInt(digits, 10);
+        if (isNaN(value)) {
+            picker.renderCalendar();
+            return;
+        }
+        // is12h is declared once below (used by both this commit path and the
+        // auto-advance threshold computation).
+        const step = picker.options.timeStep || 1;
+        if (field === 'hours') {
+            if (is12h) {
+                value = Math.max(1, Math.min(12, value));
+                selectHour(picker, value, true);
+            } else {
+                value = Math.max(0, Math.min(23, value));
+                selectHour(picker, value, false);
+            }
+        } else if (field === 'minutes') {
+            value = Math.max(0, Math.min(59, value));
+            value = (Math.round(value / step) * step) % 60;
+            selectMinute(picker, value);
+        } else if (field === 'seconds') {
+            value = Math.max(0, Math.min(59, value));
+            value = (Math.round(value / step) * step) % 60;
+            selectSecond(picker, value);
+        }
+    };
+    const onKey = (e: KeyboardEvent) => {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            el.blur();
+        } else if (e.key === 'Escape') {
+            e.preventDefault();
+            // Revert text, mark aborted, then blur — the blur handler sees the
+            // flag and bypasses the commit path. Renderer can repaint normally
+            // once contentEditable is back to false.
+            el.textContent = originalText;
+            aborted = true;
+            el.blur();
+        } else if (e.key === 'Tab') {
+            // Let the browser handle Tab focus movement naturally; blur fires
+            // and the commit path runs. The focusin listener on the calendar
+            // then promotes the next pill into edit mode (see attachCalendarListeners).
+            // No preventDefault — we WANT default Tab behavior.
+            return;
+        } else if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
+            // Quick increment/decrement: read current digits, bump by step (1 for
+            // hours, timeStep for minutes/seconds). Keeps the pill in edit mode
+            // for further bumps. No clamping here — commit clamps on blur.
+            e.preventDefault();
+            const dir = e.key === 'ArrowUp' ? 1 : -1;
+            const step = field === 'hours' ? 1 : (picker.options.timeStep || 1);
+            const cur = parseInt((el.textContent || '').replace(/\D/g, ''), 10) || 0;
+            const next = cur + dir * step;
+            el.textContent = String(next);
+            const r = document.createRange();
+            r.selectNodeContents(el);
+            const s = window.getSelection();
+            if (s) { s.removeAllRanges(); s.addRange(r); }
+        } else if (e.key.length === 1) {
+            // Single-character key (printable). Two rules:
+            //   1. Non-digit characters are rejected — pills are numeric only.
+            //   2. Digits beyond the 2nd are rejected (unless replacing a selection
+            //      that's actually inside this pill).
+            if (!/^\d$/.test(e.key)) {
+                e.preventDefault();
+                return;
+            }
+            const sel = window.getSelection();
+            const hasSelectionInPill = !!(
+                sel && sel.toString().length > 0 &&
+                sel.anchorNode && el.contains(sel.anchorNode)
+            );
+            const currentLen = (el.textContent || '').length;
+            if (!hasSelectionInPill && currentLen >= 2) {
+                e.preventDefault();
+            }
+        }
+    };
+    el.addEventListener('blur', commit);
+    el.addEventListener('keydown', onKey);
+    el.addEventListener('input', onInput);
 }
 
 export function selectNow(picker: any) {

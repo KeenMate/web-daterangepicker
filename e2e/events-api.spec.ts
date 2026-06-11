@@ -1,4 +1,4 @@
-import { test, expect, Page, Locator } from '@playwright/test';
+import { test, expect, Page, Locator } from './fixtures';
 
 /**
  * Public events (`change`, `custom-action`) and the programmatic property API
@@ -16,7 +16,7 @@ function pickerById(page: Page, id: string) {
 }
 
 function calendarOf(p: Locator) {
-    return p.locator('.drp-date-picker');
+    return p.locator('.drp__picker');
 }
 
 function inputOf(p: Locator) {
@@ -24,7 +24,7 @@ function inputOf(p: Locator) {
 }
 
 function dayByDate(p: Locator, isoDate: string) {
-    return p.locator(`.drp-date-picker__day[data-date="${isoDate}"]`);
+    return p.locator(`.drp__day[data-date="${isoDate}"]`);
 }
 
 async function captureEvent(picker: Locator, name: string) {
@@ -84,7 +84,7 @@ test('custom-action event fires when the custom action button is clicked', async
     await expect(calendarOf(p)).toBeVisible();
 
     // The custom button (action: 'custom', text: 'Reset') is the second action button.
-    await p.locator('.drp-date-picker__button[data-action="custom"]').click();
+    await p.locator('.drp__button[data-action="custom"]').click();
 
     const events = await getCaptured(p, 'custom-action');
     // The picker dispatches a single composed+bubbling event on the

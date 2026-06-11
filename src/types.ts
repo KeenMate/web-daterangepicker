@@ -153,7 +153,7 @@ export interface ActionButton {
 }
 
 export type PickerMode = 'date' | 'time' | 'datetime';
-export type TimeDisplay = 'rolls' | 'clock';
+export type TimeDisplay = 'rolls' | 'clock' | 'wheel' | 'compact';
 
 export interface DatePickerOptions {
   selectionMode?: 'single' | 'range' | 'multiple';
@@ -185,6 +185,13 @@ export interface DatePickerOptions {
    * - 'clock': Material-style two-step clock face (hours then minutes). h24 uses a dual ring
    *   (outer 1-12, inner 13-24). Seconds are ignored and `time-step` must divide 60 evenly;
    *   non-divisor steps fall back to 1 with a console warning.
+   * - 'wheel': iOS-style barrel/wheel picker. Snap-scroll columns for hours, minutes,
+   *   (optional seconds), and AM/PM (h12 only) with a centered selection band and
+   *   top/bottom fade gradients. Supports any `time-step`. Click any visible row to
+   *   center it.
+   * - 'compact': iOS 14+ pill picker. Tappable HH and MM (and optional SS) pills with a
+   *   ':' separator; tap a pill to type a value directly. Optional AM/PM toggle (h12).
+   *   Calmest of the four — basically inline numeric inputs styled as pills.
    *
    * Ignored when `pickerMode === 'date'`.
    */

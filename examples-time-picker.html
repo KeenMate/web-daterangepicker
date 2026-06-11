@@ -23,8 +23,8 @@
   <div class="container">
     <header>
       <a href="index.html" class="back-link">&larr; Back to Examples</a>
-      <h1>&#9201; Time / Datetime Picker (v1.14)</h1>
-      <p class="subtitle">picker-mode="time" and picker-mode="datetime" with rolling-list UI for hours/minutes/[seconds]/[AM-PM]</p>
+      <h1>&#9201; Time / Datetime Picker (v1.14&ndash;1.15)</h1>
+      <p class="subtitle">picker-mode="time" and picker-mode="datetime" with four time-display UIs: <code>rolls</code> (default), <code>clock</code>, <code>wheel</code>, <code>compact</code>.</p>
     </header>
 
     <div class="card">
@@ -211,6 +211,163 @@
         <div class="out" id="c5-out">Calendar + clock face in one popover</div>
       </div>
     </div>
+
+    <header style="margin-top: 3rem;">
+      <h2>Wheel barrel (v1.15) &mdash; <code>time-display="wheel"</code></h2>
+      <p class="subtitle">iOS UIPickerView aesthetic: snap-scrolling columns with a center selection band and top/bottom fade. Scroll a column or click any visible row to center it.</p>
+    </header>
+
+    <div class="card">
+      <h2>Wheel &mdash; defaults (HH:mm, 24h)</h2>
+      <div class="form-group">
+        <label>time-display="wheel"</label>
+        <web-daterangepicker
+          id="w1"
+          picker-mode="time"
+          time-display="wheel"
+          placeholder="HH:mm">
+        </web-daterangepicker>
+        <div class="out" id="w1-out">No selection yet</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Wheel &mdash; h12 with AM/PM</h2>
+      <div class="form-group">
+        <label>time-display="wheel" time-format-mask="hh:mm a"</label>
+        <web-daterangepicker
+          id="w2"
+          picker-mode="time"
+          time-display="wheel"
+          time-format-mask="hh:mm a"
+          placeholder="hh:mm AM/PM">
+        </web-daterangepicker>
+        <div class="out" id="w2-out">No selection yet</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Wheel &mdash; with seconds (HH:mm:ss)</h2>
+      <div class="form-group">
+        <label>time-display="wheel" time-format-mask="HH:mm:ss"</label>
+        <web-daterangepicker
+          id="w3"
+          picker-mode="time"
+          time-display="wheel"
+          time-format-mask="HH:mm:ss"
+          placeholder="HH:mm:ss">
+        </web-daterangepicker>
+        <div class="out" id="w3-out">Wheel supports seconds (clock does not)</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Wheel &mdash; 5-minute step</h2>
+      <div class="form-group">
+        <label>time-display="wheel" time-step="5"</label>
+        <web-daterangepicker
+          id="w4"
+          picker-mode="time"
+          time-display="wheel"
+          time-step="5"
+          placeholder="HH:mm">
+        </web-daterangepicker>
+        <div class="out" id="w4-out">Minute column shows :00 :05 :10 ... :55</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Wheel &mdash; datetime side-by-side</h2>
+      <div class="form-group">
+        <label>picker-mode="datetime" time-display="wheel"</label>
+        <web-daterangepicker
+          id="w5"
+          picker-mode="datetime"
+          time-display="wheel"
+          placeholder="YYYY-MM-DD HH:mm">
+        </web-daterangepicker>
+        <div class="out" id="w5-out">Calendar + wheel in one popover</div>
+      </div>
+    </div>
+
+    <header style="margin-top: 3rem;">
+      <h2>Compact pills (v1.15) &mdash; <code>time-display="compact"</code></h2>
+      <p class="subtitle">iOS 14+ aesthetic: tap a pill to type a value. Enter commits, Escape reverts, &uarr;/&darr; nudge by step. Calmest of the four time UIs.</p>
+    </header>
+
+    <div class="card">
+      <h2>Compact &mdash; defaults (HH:mm, 24h)</h2>
+      <div class="form-group">
+        <label>time-display="compact"</label>
+        <web-daterangepicker
+          id="p1"
+          picker-mode="time"
+          time-display="compact"
+          placeholder="HH:mm">
+        </web-daterangepicker>
+        <div class="out" id="p1-out">No selection yet &mdash; tap a pill and type</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Compact &mdash; h12 with AM/PM</h2>
+      <div class="form-group">
+        <label>time-display="compact" time-format-mask="hh:mm a"</label>
+        <web-daterangepicker
+          id="p2"
+          picker-mode="time"
+          time-display="compact"
+          time-format-mask="hh:mm a"
+          placeholder="hh:mm AM/PM">
+        </web-daterangepicker>
+        <div class="out" id="p2-out">No selection yet</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Compact &mdash; with seconds (HH:mm:ss)</h2>
+      <div class="form-group">
+        <label>time-display="compact" time-format-mask="HH:mm:ss"</label>
+        <web-daterangepicker
+          id="p3"
+          picker-mode="time"
+          time-display="compact"
+          time-format-mask="HH:mm:ss"
+          placeholder="HH:mm:ss">
+        </web-daterangepicker>
+        <div class="out" id="p3-out">Third pill appears for seconds</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Compact &mdash; 15-minute step</h2>
+      <div class="form-group">
+        <label>time-display="compact" time-step="15" &mdash; typed value snaps to nearest multiple</label>
+        <web-daterangepicker
+          id="p4"
+          picker-mode="time"
+          time-display="compact"
+          time-step="15"
+          placeholder="HH:mm">
+        </web-daterangepicker>
+        <div class="out" id="p4-out">Type :22 &rarr; commits to :15; arrow keys jump by 15</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Compact &mdash; datetime side-by-side</h2>
+      <div class="form-group">
+        <label>picker-mode="datetime" time-display="compact" hour-cycle="h12"</label>
+        <web-daterangepicker
+          id="p5"
+          picker-mode="datetime"
+          time-display="compact"
+          hour-cycle="h12"
+          placeholder="YYYY-MM-DD hh:mm">
+        </web-daterangepicker>
+        <div class="out" id="p5-out">Calendar + compact pills in one popover</div>
+      </div>
+    </div>
   </div>
 
   <script type="module">
@@ -223,7 +380,12 @@
         out.textContent = `value: ${el.value}  |  detail.date: ${e.detail.date}`;
       });
     };
-    ['t1','t2','t3','t4','d1','d2','d3','d4','c1','c2','c3','c4','c5'].forEach(wireOutput);
+    [
+      't1','t2','t3','t4','d1','d2','d3','d4',
+      'c1','c2','c3','c4','c5',
+      'w1','w2','w3','w4','w5',
+      'p1','p2','p3','p4','p5'
+    ].forEach(wireOutput);
   </script>
 </body>
 </html>

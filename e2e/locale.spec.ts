@@ -1,4 +1,4 @@
-import { test, expect, Page, Locator } from '@playwright/test';
+import { test, expect, Page, Locator } from './fixtures';
 
 /**
  * locale, customStrings, monthNames override, week-start-day.
@@ -13,7 +13,7 @@ function pickerById(page: Page, id: string) {
 }
 
 function calendarOf(p: Locator) {
-    return p.locator('.drp-date-picker');
+    return p.locator('.drp__picker');
 }
 
 function inputOf(p: Locator) {
@@ -37,14 +37,14 @@ test.beforeEach(async ({ page }) => {
 
 test('locale="de" uses German month names ("Juni 2026")', async ({ page }) => {
     const p = await open(page, 'de');
-    await expect(p.locator('.drp-date-picker__month-year').first()).toContainText('Juni 2026');
+    await expect(p.locator('.drp__month-year').first()).toContainText('Juni 2026');
 });
 
 test('locale="de" uses German weekday headers (Mo Di Mi Do Fr Sa So)', async ({ page }) => {
     const p = await open(page, 'de');
     // Weekday header row text. Don't pin exact spacing/order — just spot
     // a few German abbreviations.
-    const weekdays = await p.locator('.drp-date-picker__weekdays').first().innerText();
+    const weekdays = await p.locator('.drp__weekdays').first().innerText();
     expect(weekdays).toMatch(/Mo/i);
     expect(weekdays).toMatch(/Di/i);
     expect(weekdays).toMatch(/Fr/i);
@@ -57,7 +57,7 @@ test('locale="de" uses German weekday headers (Mo Di Mi Do Fr Sa So)', async ({ 
 test('customStrings overrides individual button labels (Today → "Jump")', async ({ page }) => {
     const p = await open(page, 'custom-strings');
 
-    const todayBtn = p.locator('.drp-date-picker__button--today');
+    const todayBtn = p.locator('.drp__button--today');
     await expect(todayBtn).toHaveText('Jump');
 });
 
@@ -69,7 +69,7 @@ test('monthNames override replaces the localized month names with the supplied a
     const p = await open(page, 'numeric-months');
 
     // June (index 5) → '06'
-    await expect(p.locator('.drp-date-picker__month-year').first()).toContainText('06 2026');
+    await expect(p.locator('.drp__month-year').first()).toContainText('06 2026');
 });
 
 // =============================================================================
@@ -79,13 +79,13 @@ test('monthNames override replaces the localized month names with the supplied a
 test('week-start-day="0": first weekday header column is Sunday', async ({ page }) => {
     const p = await open(page, 'sunday');
 
-    const firstWeekday = p.locator('.drp-date-picker__weekdays > *').first();
+    const firstWeekday = p.locator('.drp__weekdays > *').first();
     await expect(firstWeekday).toContainText(/Sun|Sun\.|Sunday|Su/i);
 });
 
 test('week-start-day="1": first weekday header column is Monday', async ({ page }) => {
     const p = await open(page, 'monday');
 
-    const firstWeekday = p.locator('.drp-date-picker__weekdays > *').first();
+    const firstWeekday = p.locator('.drp__weekdays > *').first();
     await expect(firstWeekday).toContainText(/Mon|Mon\.|Monday|Mo/i);
 });

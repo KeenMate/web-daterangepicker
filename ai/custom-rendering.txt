@@ -84,15 +84,15 @@ getDateMetadata: (date) => {
 
 // CSS (inject into shadow DOM)
 picker.customStylesCallback = () => `
-  .drp-date-picker__badge.full {
+  .drp__badge.full {
     background: #ef4444 !important;
     color: white !important;
   }
-  .drp-date-picker__badge.limited {
+  .drp__badge.limited {
     background: #f59e0b !important;
     color: white !important;
   }
-  .drp-date-picker__badge.available {
+  .drp__badge.available {
     background: #10b981 !important;
     color: white !important;
   }
@@ -115,11 +115,11 @@ const picker = new DateRangePicker(input, {
 
 // CSS
 picker.customStylesCallback = () => `
-  .drp-date-picker__day.status-booked {
+  .drp__day.status-booked {
     background: #fee2e2 !important;
     color: #991b1b !important;
   }
-  .drp-date-picker__day.status-available {
+  .drp__day.status-available {
     background: #d1fae5 !important;
     color: #065f46 !important;
   }
@@ -178,15 +178,15 @@ const picker = new DateRangePicker(input, {
 
 // Styling
 picker.customStylesCallback = () => `
-  .drp-date-picker__badge.full {
+  .drp__badge.full {
     background: #ef4444 !important;
     color: white !important;
   }
-  .drp-date-picker__badge.limited {
+  .drp__badge.limited {
     background: #f59e0b !important;
     color: white !important;
   }
-  .drp-date-picker__badge.available {
+  .drp__badge.available {
     background: #10b981 !important;
     color: white !important;
   }
@@ -414,20 +414,20 @@ const picker = new DateRangePicker(input, {
   customStylesCallback: (picker) => {
     return `
       /* Custom badge styles */
-      .drp-date-picker__badge.premium {
+      .drp__badge.premium {
         background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
         color: white !important;
         font-weight: bold !important;
       }
 
       /* Custom day styles */
-      .drp-date-picker__day.special {
+      .drp__day.special {
         border: 2px solid #10b981 !important;
         font-weight: bold !important;
       }
 
       /* Tooltip styles */
-      .drp-date-picker__tooltip {
+      .drp__tooltip {
         max-width: 300px !important;
         white-space: pre-wrap !important;
       }

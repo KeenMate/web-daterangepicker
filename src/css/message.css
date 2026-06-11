@@ -6,7 +6,7 @@
    ============================================================================== */
 
 /* Message container - hidden by default */
-.drp-date-picker__message {
+.drp__message {
   display: none;
   align-items: center;
   gap: var(--drp-spacing-sm);
@@ -19,17 +19,17 @@
 }
 
 /* Visible state */
-.drp-date-picker__message--visible {
+.drp__message--visible {
   display: flex;
 }
 
 /* Message text - fills available space */
-.drp-date-picker__message-text {
+.drp__message-text {
   flex: 1;
 }
 
 /* Close button */
-.drp-date-picker__message-close {
+.drp__message-close {
   flex-shrink: 0;
   display: flex;
   align-items: center;
@@ -46,7 +46,7 @@
   transition: opacity var(--drp-transition-fast) var(--drp-easing-snappy);
 }
 
-.drp-date-picker__message-close:hover {
+.drp__message-close:hover {
   opacity: 1;
 }
 
@@ -55,51 +55,51 @@
    ========================================================================== */
 
 /* Error - red */
-.drp-date-picker__message--error {
+.drp__message--error {
   background-color: var(--drp-message-error-bg);
   color: var(--drp-message-error-color);
   border: 1px solid var(--drp-message-error-border);
 }
 
-.drp-date-picker__message--error .drp-date-picker__message-close {
+.drp__message--error .drp__message-close {
   color: var(--drp-message-error-color);
 }
 
 /* Warning - orange/amber */
-.drp-date-picker__message--warning {
+.drp__message--warning {
   background-color: var(--drp-message-warning-bg);
   color: var(--drp-message-warning-color);
   border: 1px solid var(--drp-message-warning-border);
 }
 
-.drp-date-picker__message--warning .drp-date-picker__message-close {
+.drp__message--warning .drp__message-close {
   color: var(--drp-message-warning-color);
 }
 
 /* Info - blue */
-.drp-date-picker__message--info {
+.drp__message--info {
   background-color: var(--drp-message-info-bg);
   color: var(--drp-message-info-color);
   border: 1px solid var(--drp-message-info-border);
 }
 
-.drp-date-picker__message--info .drp-date-picker__message-close {
+.drp__message--info .drp__message-close {
   color: var(--drp-message-info-color);
 }
 
 /* Success - green */
-.drp-date-picker__message--success {
+.drp__message--success {
   background-color: var(--drp-message-success-bg);
   color: var(--drp-message-success-color);
   border: 1px solid var(--drp-message-success-border);
 }
 
-.drp-date-picker__message--success .drp-date-picker__message-close {
+.drp__message--success .drp__message-close {
   color: var(--drp-message-success-color);
 }
 
 /* Custom - no styling, full user control via HTML content */
-.drp-date-picker__message--custom {
+.drp__message--custom {
   /* No styling - programmer controls everything via HTML content */
   background: transparent;
   border: none;
@@ -108,7 +108,7 @@
   margin-bottom: var(--drp-spacing-sm);
 }
 
-.drp-date-picker__message--custom .drp-date-picker__message-close {
+.drp__message--custom .drp__message-close {
   /* Hide close button for custom messages - user controls everything */
   display: none;
 }

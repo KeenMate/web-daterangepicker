@@ -1,4 +1,4 @@
-import { test, expect, Page, Locator } from '@playwright/test';
+import { test, expect, Page, Locator } from './fixtures';
 
 /**
  * Day-cell tooltip (Floating UI), action-button tooltip, and the
@@ -15,15 +15,15 @@ function pickerById(page: Page, id: string) {
 }
 
 function calendarOf(p: Locator) {
-    return p.locator('.drp-date-picker');
+    return p.locator('.drp__picker');
 }
 
 function dayByDate(p: Locator, isoDate: string) {
-    return p.locator(`.drp-date-picker__day[data-date="${isoDate}"]`);
+    return p.locator(`.drp__day[data-date="${isoDate}"]`);
 }
 
 function dayTooltip(p: Locator) {
-    return p.locator('.drp-date-picker__tooltip');
+    return p.locator('.drp__tooltip');
 }
 
 async function open(page: Page, id: string) {
@@ -47,7 +47,7 @@ test('day-cell tooltip becomes --visible when hovering a day that has tooltip te
     await dayByDate(p, '2026-06-15').hover();
 
     const tip = dayTooltip(p);
-    await expect(tip).toHaveClass(/drp-date-picker__tooltip--visible/);
+    await expect(tip).toHaveClass(/drp__tooltip--visible/);
     await expect(tip).toContainText('Special day 15');
 });
 
@@ -63,7 +63,7 @@ test('hovering a day without tooltip text does not show the tooltip element', as
     const p = await open(page, 'day-tip');
 
     await dayByDate(p, '2026-06-14').hover();
-    await expect(dayTooltip(p)).not.toHaveClass(/drp-date-picker__tooltip--visible/);
+    await expect(dayTooltip(p)).not.toHaveClass(/drp__tooltip--visible/);
 });
 
 // =============================================================================
@@ -73,13 +73,13 @@ test('hovering a day without tooltip text does not show the tooltip element', as
 test('action-button tooltip appears on hover of a button with a configured tooltip', async ({ page }) => {
     const p = await open(page, 'action-tip');
 
-    await p.locator('.drp-date-picker__button--today').hover();
+    await p.locator('.drp__button--today').hover();
 
-    // Action button tooltips share .drp-date-picker__tooltip with the day
+    // Action button tooltips share .drp__tooltip with the day
     // tooltip; the action tooltip has a 300ms showDelay (Tooltip default).
     // Wait for ANY tooltip in the shadow root to become --visible and to
     // contain the configured text.
-    const visibleTip = p.locator('.drp-date-picker__tooltip--visible');
+    const visibleTip = p.locator('.drp__tooltip--visible');
     await expect(visibleTip).toContainText('Jump to today', { timeout: 2000 });
 });
 
@@ -94,7 +94,7 @@ test('day tooltip extends past an overflow:auto ancestor when positioned at a hi
     await dayByDate(p, '2026-06-28').hover();
 
     const tip = dayTooltip(p);
-    await expect(tip).toHaveClass(/drp-date-picker__tooltip--visible/);
+    await expect(tip).toHaveClass(/drp__tooltip--visible/);
 
     const clipBox = await page.locator('#clip').boundingBox();
     const tipBox = await tip.boundingBox();

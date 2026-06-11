@@ -4,6 +4,22 @@ A lightweight, accessible date picker web component with excellent keyboard navi
 
 > **⚠️ Security Notice:** This component intentionally allows raw HTML in rendering callbacks and message content to give developers full control over content display. If you display user-generated content, you must sanitize it yourself. See [HTML Injection (XSS) Notice](#html-injection-xss-notice) for the complete list of affected callbacks and methods.
 
+## What's New in v1.14.0-rc01
+
+- **Three new time-display UIs — clock, wheel, compact** — `time-display` now accepts four values: `rolls` (default, unchanged), `clock` (Material-style two-step face for hours then minutes, with h12 / h24 dual-ring support), `wheel` (iOS UIPickerView snap-scrolling columns with center selection band), and `compact` (iOS 14+ tappable pills with `contentEditable` typing and Arrow-key increments). All three work in `picker-mode="time"` and `picker-mode="datetime"`; `rolls` stays the default so existing time pickers are unchanged. See `examples-time-picker.html` for the demo gallery.
+- **OS-aware light/dark defaults via `light-dark()`** — set `color-scheme: dark` on your page (`:root`, `body`, etc.) and the picker picks readable dark text/background colors automatically. No more enumerating ~15 `--base-*` overrides just to get usable defaults on a dark theme.
+- **Drift-detection warning for calendar positioning** — if an exotic ancestor CSS property (e.g. `contain: paint`, or `container-type` in certain shadow-DOM layouts) makes the calendar land somewhere other than where the library told the browser to put it, a `console.warn` fires once with the likely culprit element and an actionable fix suggestion.
+- **Calendar no longer stranded to the side when an ancestor uses `container-type`** — Floating UI was walking up to a `container-type: inline-size` ancestor (notably pure-admin's `.pa-layout__main`), but the browser wouldn't actually anchor the fixed calendar there. The library now uses a custom `getOffsetParent` that only walks up properties browsers reliably honor for fixed positioning. Same fix applied to day-cell tooltips.
+- **`--base-*` taxonomy aligned with KeenMate cross-component naming** (theming change — see CHANGELOG migration table): `--drp-primary-bg` now reads `--base-hover-bg` (was `--base-main-bg`); `--drp-primary-bg-hover` now reads `--base-active-bg` (was `--base-hover-bg`). `--base-dropdown-bg` and `--base-tooltip-bg` continue to work; new chain fallbacks to `--base-elevated-bg` / `--base-inverse-bg`. Mirrors web-multiselect v1.11.0 so multi-component theming stays coherent.
+- **Day hover stays visible on dark themes** — `--drp-primary-bg` now mixes 8% of the text color into the main background by default, so the hover is always a visible step toward the text. No more invisible hover when the consumer forgets to override `--base-hover-bg`.
+- **Message colors (`--drp-message-*`) got dark-mode companions** — error/warning/info/success palettes now resolve via `light-dark()` instead of hardcoded bright pastels, so feedback messages stay readable on dark surfaces without overrides.
+- **New dark-mode e2e suite** — 4 specs verifying WCAG-AA day-cell contrast on a dark page across fully-themed, minimal-override, and pure OS-inheritance configurations.
+- **Framework-class + per-instance dark/light overrides** — set `data-theme="dark"`, `data-bs-theme="dark"` (Bootstrap 5.3+), or `class="dark"` (Tailwind) on any ancestor and the picker switches to its dark palette. Set it on the `<web-daterangepicker>` element itself to theme one instance independently of the page. Symmetric `light` selectors restore the light palette so a single widget can be forced light on a dark page.
+- **CSS cascade layers** — `main.css` declares `@layer variables, component, overrides;`. Consumer-side: any unlayered `web-daterangepicker { … }` rule beats every internal rule without `!important`, and any `:root { --base-X: … }` declaration beats the variables layer.
+- **CSS file naming refresh** — partials under `src/css/` no longer carry the SASS-style underscore prefix (`_variables.css` → `variables.css`, etc.). The two package-exports paths (`./css/variables`, `./css/base`) keep their public names. Consumers importing internal files directly via `./src/css/_*.css` must update their import paths.
+- **Canonical Tier-2 file set.** New stylesheets `controls.css`, `floating.css`, `states.css`, `animations.css` matching the cross-component guideline. The old `tooltips.css` and `modifiers.css` partials were merged into the new files and removed.
+- **BEM short-prefix class names.** Internal classes were migrated from the long `.drp-date-picker__*` form to the canonical short `.drp__*` form (`.drp__day`, `.drp__month`, `.drp__rolling-item`, etc.). The root container `.drp-date-picker` is now `.drp__picker`; `.drp-input` and the legacy `.drp-date-picker-input` aliases are unified under `.drp__input`. Public variable-only theming (`web-daterangepicker { --drp-X: ... }`) is unaffected — only consumers using `customStylesCallback` to inject CSS into the shadow root need to update their selectors. See CHANGELOG v1.16.0 for the full migration table.
+
 ## What's New in v1.14.0
 
 - **Time picker and datetime mode** — new `picker-mode` attribute with values `date` (default, unchanged), `time` (rolls-only popover for hours/minutes), and `datetime` (calendar grid + time rolls side-by-side in one popover). Orthogonal to the existing `selection-mode` so date-mode behavior is untouched. v1 supports time/datetime in `single` mode only; `range`/`multiple` silently falls back with a console warning (datetime range lands in v1.15).
@@ -14,17 +30,6 @@ A lightweight, accessible date picker web component with excellent keyboard navi
 - **New locale strings** — `time`, `now`, `am`, `pm` added to `LocaleStrings` and hardcoded for the four bundled locales (en/de/fr/es). `customStrings` override still works.
 - **CSS surface** — new `_time-picker.css` partial with `--drp-time-picker-*` variables. New BEM classes `.drp-date-picker__main`, `.drp-date-picker__time-picker`, `.drp-date-picker__time-rolls`, `.drp-date-picker__time-roll`, `.drp-date-picker__time-separator`, `.drp-date-picker__time-label`, plus root modifiers `.drp-date-picker--time` and `.drp-date-picker--datetime`. Container query collapses the date|time row to vertical at narrow widths (mobile / modal).
 - **v1 scope limitations** (documented, not bugs): time/datetime + range/multiple falls back; datetime + `month-layout="grid"` forces horizontal (warning); input mask only parses dates (committed H/M/S survive reopens because the picker's selection is authoritative); per-hour disabling not supported (`disabledDates` is whole-day only); keyboard navigation short-circuited in time mode for v1; `min-time` / `max-time` deferred.
-
-## What's New in v1.13.0
-
-- **Live hover preview in range mode** — after the first click sets a start date, hovering over candidate end days now paints the would-be range live so users can see what a commit would produce *before* they click. Behavior is mode-aware per `disabled-dates-handling`: `allow` paints the full range with disabled-day overlays on top; `prevent` flips to a red `--hover-preview-invalid` tint when the click would be rejected (telegraphs the rejection); `block` snaps backward to the last enabled day before a disabled gap (teaches the snap behaviour in advance); `split` leaves disabled days bare so the visual gaps communicate the upcoming sub-range split. Auto-swaps direction when hovering before the committed start. Cleanup wired on commit, mouseleave, drag-start, hide, and destroy. Two new CSS hooks: `--drp-day-hover-preview-bg-opacity` and `--drp-day-hover-preview-invalid-bg-opacity` (both default `0.18`). 10 specs in `e2e/hover-preview.spec.ts`.
-- **Property setters for `customStrings` and `monthNames` on the web component** — previously reachable only via `picker.updateOptions(...)` (which leaked the internal `picker` instance) or the dedicated `setMonthNames()` method. Both now work like the other ~35 property setters: `el.customStrings = { today: 'Jump' }` or `el.monthNames = ['Enero', ...]`. `setMonthNames()` kept as a deprecated alias that forwards to the new setter.
-- **Eight new HTML attributes for declarative parity with complex-data properties** — `disabled-dates` (comma-separated ISO dates; whitespace tolerated; invalid entries silently dropped) plus the seven `*-member` mappings (`date-member`, `badge-text-member`, `badge-class-member`, `day-class-member`, `badge-tooltip-member`, `day-tooltip-member`, `is-disabled-member`). Same property-wins precedence as the other dual-path options — the JS property wins when both paths are populated.
-- **Weekend / per-weekday CSS hooks on day cells** — `.drp-date-picker__day--weekend` modifier class on Saturday/Sunday plus `data-weekday="0..6"` (matching `Date.prototype.getDay()`) on every cell. No default styling shipped — pure theming surface. `[data-weekday="5"]` targets Friday only, `--weekend` covers the standard Sat/Sun pair.
-- **Range typing separator changed to `" - "`** — auto-injected separator after a complete start date now matches the committed range format (`"YYYY-MM-DD - YYYY-MM-DD"`); the keydown whitelist accepts `-` and space instead of the English-only `t`/`o`. Compact pasted form `2026-06-10-2026-06-15` is also accepted now via position-based fallback (anything past `maxLength` is the end side, with leading dashes/spaces stripped). **Migration:** anyone relying on literal `" to "` typing needs to switch to `-`.
-- **`displayFormatMask` doubles as the input placeholder** when no explicit `placeholder` is set (explicit `placeholder=` still wins). Closes the loop on the option's documented purpose: localized format hint (`tt.mm.jjjj`, `dd.mm.rrrr`, `dd/mm/aaaa`) shown to users in their language without requiring a separate placeholder attribute.
-- **Pre-upgrade property assignment now works for all 35+ setters** — `actionButtons` and the other complex-data setters previously required `customElements.whenDefined()` because properties assigned to a not-yet-upgraded element became own-properties that permanently shadowed the class accessors. New `_liftPreUpgradeProperties()` in `connectedCallback` walks the prototype chain for `set` descriptors and re-routes any matching own-properties through their accessors. Consumers can drop `whenDefined()` calls before setting complex data.
-- **Playwright e2e harness — 172 specs** covering selection, triggers, multi-month, keyboard, input behavior, date restrictions, disabled-handling, visual states, positioning, locale, theming, callbacks, tooltips, and the hover preview. Run with `npm run test:e2e` or `make test-e2e`.
 
 ## Features
 
@@ -796,8 +801,9 @@ KeenMate components support a **two-layer theming architecture**:
 :root {
   /* Base layer - single source of truth */
   --base-accent-color: #3b82f6;
-  --base-primary-bg: #ffffff;
-  --base-text-primary: #111827;
+  --base-main-bg: #ffffff;
+  --base-hover-bg: #f3f4f6;   /* drives hover surfaces across components */
+  --base-text-color-1: #111827;
 
   /* Components reference base layer */
   --ms-accent-color: var(--base-accent-color);
@@ -830,6 +836,39 @@ import manifest from '@keenmate/web-daterangepicker/component-variables.manifest
 // manifest.baseVariables - list of --base-* variables the component responds to
 // manifest.componentVariables - list of --drp-* component-specific variables
 ```
+
+#### CSS Cascade Layers
+
+The component's stylesheet declares three cascade layers:
+
+```css
+@layer variables, component, overrides;
+```
+
+| Layer | Holds | Priority |
+|-------|-------|----------|
+| `variables` | `:host { --drp-* }` declarations | lowest |
+| `component` | Base rules + every feature partial | middle |
+| `overrides` | Framework-class + per-instance `data-theme` blocks | highest |
+
+**Consumer override contract:**
+- Any unlayered consumer rule beats every rule in the component — no `!important` needed.
+- Any `:root { --base-X: … }` declaration beats the `variables` layer trivially.
+- To override the dark-mode blocks (the `overrides` layer), use your own `@layer overrides { … }` or any unlayered rule.
+
+#### Dark Mode
+
+The picker reacts to five separate dark-mode signals — set any one and the dropdown, text, borders, tooltip, and input flip to their dark palette. No JavaScript involved.
+
+| Signal | How to trigger |
+|--------|----------------|
+| **OS preference** | `<html style="color-scheme: light dark">` on the consumer page — `light-dark()` then picks the OS branch |
+| **Page-level scheme** | `<body style="color-scheme: dark">` |
+| **Framework class on an ancestor** | `<html data-theme="dark">`, `<html data-bs-theme="dark">` (Bootstrap 5.3+), or `<html class="dark">` (Tailwind) |
+| **Per-instance attribute** | `<web-daterangepicker data-theme="dark">` on a single component |
+| **Explicit light override** | `data-theme="light"`, `data-bs-theme="light"`, or `.light` to force one widget back to light on an otherwise-dark page |
+
+`color-scheme` is deliberately NOT declared on `:host` — that would block the page's setting from inheriting into the shadow DOM. See the comment block at the top of `src/css/variables.css` for the rationale.
 
 ### CSS Custom Properties
 

@@ -46,8 +46,8 @@ export class Tooltip {
             hideDelay: opts.hideDelay ?? 100,
             placement: opts.placement ?? 'top',
             offsetDistance: opts.offsetDistance ?? 8,
-            className: opts.className ?? 'drp-date-picker__tooltip',
-            visibleClassName: opts.visibleClassName ?? 'drp-date-picker__tooltip--visible',
+            className: opts.className ?? 'drp__tooltip',
+            visibleClassName: opts.visibleClassName ?? 'drp__tooltip--visible',
         };
 
         this.element = document.createElement('div');

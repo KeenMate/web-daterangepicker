@@ -16,6 +16,27 @@
 :host,
 :root {
   /* ==========================================================================
+     COLOR SCHEME
+     ==========================================================================
+     `color-scheme` is INHERITED on this element — we deliberately do NOT
+     declare it on `:host`. Reason: every hardcoded color fallback below is
+     wrapped in `light-dark(<light>, <dark>)`, which picks one of the two
+     based on the host's used color-scheme. Declaring `color-scheme: light dark`
+     here would *override* whatever the consumer's app declared on <html>,
+     <body>, or an ancestor — flipping forced-dark apps back to "follow OS",
+     and breaking visual coherence with the surrounding page.
+     By letting it inherit:
+       - apps that set `body { color-scheme: dark }` propagate it into our
+         shadow DOM unchanged, and `light-dark()` resolves to dark.
+       - apps that set `html { color-scheme: light dark }` get OS-preference
+         switching, end-to-end.
+       - apps that declare nothing get the historical default (light), same
+         as before this fallback set was introduced — no behavior change.
+     Consumers who want explicit per-picker control can still set
+     `style="color-scheme: dark"` on the <web-daterangepicker> element.
+     ========================================================================== */
+
+  /* ==========================================================================
      BASE REM UNIT
      ==========================================================================
      Internal 10px-based unit for clean math. Override to scale the component.
@@ -75,30 +96,49 @@
        2. Base theme value: var(--base-accent-color)
        3. Hardcoded default fallback */
 
-  /* Core Colors */
-  --drp-dropdown-bg: var(--base-dropdown-bg, #ffffff);
-  --drp-border-color: var(--base-border-color, #e5e7eb);
+  /* Core Colors
+     Dropdown / popover backgrounds primarily read --base-dropdown-bg; the new
+     --base-elevated-bg is a second-tier fallback in the cross-component taxonomy
+     so consumers themeing several KeenMate components can declare one shared
+     elevated surface. */
+  --drp-dropdown-bg: var(--base-dropdown-bg, var(--base-elevated-bg, light-dark(#ffffff, #1a1a1a)));
+  --drp-border-color: var(--base-border-color, light-dark(#e5e7eb, #3a3a3a));
   /* Full border string - inherits from theme-designer --base-border */
   --drp-border: var(--base-border, var(--drp-border-width-base) solid var(--drp-border-color));
-  --drp-primary-bg: var(--base-main-bg, #f3f4f6);
-  --drp-primary-bg-hover: var(--base-hover-bg, #e5e7eb);
+  /* Hover / active surface backgrounds. --drp-primary-bg paints hover states
+     (day cell hover, nav-button hover, header hover, rolling-list hover);
+     --drp-primary-bg-hover is one step stronger (active/pressed states). The
+     color-mix fallback keeps the hover visible on dark themes — a flat
+     `var(--base-main-bg)` substrate used to make hover collapse onto the panel
+     background. Mixes 8% / 14% of --drp-text-primary into --base-main-bg, so the
+     highlight is always a visible step toward the text color in both modes. */
+  --drp-primary-bg: var(--base-hover-bg, color-mix(in srgb, var(--drp-text-primary) 8%, var(--base-main-bg, light-dark(#ffffff, #1a1a1a))));
+  --drp-primary-bg-hover: var(--base-active-bg, color-mix(in srgb, var(--drp-text-primary) 14%, var(--base-main-bg, light-dark(#ffffff, #1a1a1a))));
 
   /* Accent Colors */
   --drp-accent-color: var(--base-accent-color, #3b82f6);
   --drp-accent-color-hover: var(--base-accent-color-hover, #2563eb);
 
-  /* Text Colors */
-  --drp-text-primary: var(--base-text-color-1, #111827);
-  --drp-text-secondary: var(--base-text-color-3, #6b7280);
+  /* Text Colors
+     Light mode = the original dark-on-light palette. Dark mode = the same
+     hierarchy inverted (#f5f5f5 / #a3a3a3) so primary/secondary keep the same
+     relative contrast steps. text-color-on-accent stays white in both modes —
+     the accent color is the same blue in both, and white-on-blue reads in both. */
+  --drp-text-primary: var(--base-text-color-1, light-dark(#111827, #f5f5f5));
+  --drp-text-secondary: var(--base-text-color-3, light-dark(#6b7280, #a3a3a3));
   --drp-text-color-on-accent: var(--base-text-color-on-accent, #ffffff);
   --drp-button-accent-text-color: var(--drp-text-color-on-accent);
 
-  /* Tooltip Colors */
-  --drp-tooltip-bg: var(--base-tooltip-bg, #111827);
-  --drp-tooltip-text-color: var(--base-tooltip-text-color, #ffffff);
+  /* Tooltip Colors
+     Tooltips invert relative to the page: dark tooltip on light page, light
+     tooltip on dark page. New --base-inverse-bg is a second-tier fallback so
+     consumers theming multiple KeenMate components can declare one shared
+     inverse surface. */
+  --drp-tooltip-bg: var(--base-tooltip-bg, var(--base-inverse-bg, light-dark(#111827, #f5f5f5)));
+  --drp-tooltip-text-color: var(--base-tooltip-text-color, light-dark(#ffffff, #1a1a1a));
 
   /* Loading Overlay */
-  --drp-loading-overlay-bg: rgba(255, 255, 255, 0.8);
+  --drp-loading-overlay-bg: light-dark(rgba(255, 255, 255, 0.8), rgba(26, 26, 26, 0.8));
   --drp-loading-spinner-size: 40px;
   --drp-loading-spinner-border-width: 4px;
   --drp-loading-spinner-color: var(--drp-border-color);
@@ -137,11 +177,11 @@
   --drp-modal-transition: 150ms ease-out;             /* fade-in/out timing for backdrop + calendar */
 
   /* Modal widths per breakpoint. Aligned with the same 480/768/1200 viewport
-     breakpoints already used in `_base.css` (grid columns) and in the
+     breakpoints already used in `base.css` (grid columns) and in the
      Responsive Sizing demo (`--drp-rem` scaling). Override any of these to
-     retheme; see `_modal.css` for the breakpoint @media rules.
+     retheme; see `modal.css` for the breakpoint @media rules.
      Note: media queries can't read CSS variables in CSS, so the breakpoints
-     themselves are hardcoded — to shift them, edit `_modal.css` directly.
+     themselves are hardcoded — to shift them, edit `modal.css` directly.
      Tiers:
        xs: viewport ≤ 480px           (small phones)
        sm: 481px ≤ viewport ≤ 768px   (large phones / small tablets)
@@ -170,7 +210,7 @@
   /* ==========================================================================
      INPUT FIELD SEMANTIC VARIABLES
      ========================================================================== */
-  --drp-input-bg: var(--base-input-bg, var(--drp-dropdown-bg));
+  --drp-input-bg: var(--base-input-bg, var(--drp-dropdown-bg, light-dark(#ffffff, #1a1a1a)));
   --drp-input-color: var(--base-input-color, var(--drp-text-primary));
   /* Input field borders - uses theme-designer --base-input-border (full border) */
   --drp-input-border: var(--base-input-border, var(--drp-border));
@@ -256,7 +296,7 @@
   --drp-datetime-min-width: calc(56 * var(--drp-rem));
 
   /* Clock Picker (timeDisplay: clock) — Material-style two-step face.
-     The face width is capped at the container (see _clock-picker.css), and
+     The face width is capped at the container (see clock-picker.css), and
      every dial dimension is declared as a percentage of the FACE so the whole
      dial — radii, buttons, hand — scales coherently when the container forces
      it narrower than the declared size. */
@@ -271,8 +311,13 @@
   --drp-clock-number-color: var(--drp-text-primary);
   /* Hover preview: semi-transparent accent fill, same recipe as the range-mode
      day hover-preview so the two interactions feel coherent. Opacity reuses the
-     day token (--drp-day-hover-preview-bg-opacity, default 0.18). */
-  --drp-clock-number-bg-hover: color-mix(in srgb, var(--drp-accent-color) calc(var(--drp-day-hover-preview-bg-opacity) * 100%), transparent);
+     day tokens (--drp-day-hover-preview-bg-opacity / -opacity-dark) and switches
+     branches via light-dark() — see the rationale in the "Day Range Opacity
+     Values" block below. */
+  --drp-clock-number-bg-hover: light-dark(
+    color-mix(in srgb, var(--drp-accent-color) calc(var(--drp-day-hover-preview-bg-opacity) * 100%), transparent),
+    color-mix(in srgb, var(--drp-accent-color) calc(var(--drp-day-hover-preview-bg-opacity-dark) * 100%), transparent)
+  );
   /* Selected: a rim (inset box-shadow so it doesn't change layout) instead of a
      solid fill — the selection circle frames the value rather than masking it. */
   --drp-clock-number-rim-color: var(--drp-accent-color);
@@ -287,6 +332,46 @@
   --drp-clock-ampm-color: var(--drp-text-secondary);
   --drp-clock-ampm-color-selected: var(--drp-text-color-on-accent);
   --drp-clock-ampm-bg-selected: var(--drp-accent-color);
+
+  /* Wheel Picker (timeDisplay: wheel) — iOS UIPickerView aesthetic.
+     Item height drives every other vertical measurement: the center band sits
+     at exactly one item-height, the column padding-block is computed to allow
+     the first/last items to center in the band, and the fade height covers
+     the rows immediately above/below the band. */
+  --drp-wheel-bg: var(--drp-rolling-bg);
+  --drp-wheel-band-bg: color-mix(in srgb, var(--drp-accent-color) 8%, transparent);
+  --drp-wheel-item-height: calc(3.6 * var(--drp-rem));            /* 36px @ default rem */
+  --drp-wheel-item-font-size: var(--drp-font-size-lg);
+  --drp-wheel-item-color: var(--drp-text-secondary);
+  --drp-wheel-item-color-hover: var(--drp-text-primary);
+  --drp-wheel-item-color-selected: var(--drp-accent-color);
+  --drp-wheel-column-gap: var(--drp-spacing-xs);
+  --drp-wheel-column-min-width: calc(5 * var(--drp-rem));         /* 50px floor per column */
+  --drp-wheel-ampm-min-width: calc(6 * var(--drp-rem));
+  --drp-wheel-min-height: calc(18 * var(--drp-rem));              /* 180px — matches rolls */
+  --drp-wheel-fade-height: calc(var(--drp-wheel-item-height) * 1.8);
+  /* Locked header height so the band's vertical offset can rely on a known value.
+     Without this the band would center on the row's geometric midpoint, which sits
+     above the column's snap-center by exactly half the header height — visible as a
+     one-row offset between the selection band and the bold selected digit. */
+  --drp-wheel-header-height: calc(var(--drp-time-picker-label-font-size) * 1.4 + var(--drp-spacing-xs) * 2);
+
+  /* Compact Picker (timeDisplay: compact) — iOS 14+ pill aesthetic. Pills
+     borrow the accent color at a soft opacity so they feel tappable; selected
+     AM/PM uses solid accent for stronger visual weight. */
+  --drp-compact-pill-bg: color-mix(in srgb, var(--drp-accent-color) 12%, transparent);
+  --drp-compact-pill-bg-hover: color-mix(in srgb, var(--drp-accent-color) 20%, transparent);
+  --drp-compact-pill-color: var(--drp-accent-color);
+  --drp-compact-pill-color-uncommitted: var(--drp-text-secondary);
+  --drp-compact-pill-font-size: var(--drp-font-size-2xl);
+  --drp-compact-pill-padding-v: var(--drp-spacing-xs);
+  --drp-compact-pill-padding-h: var(--drp-spacing-md);
+  --drp-compact-pill-focus-ring: var(--drp-accent-color);
+  --drp-compact-sep-color: var(--drp-text-secondary);
+  --drp-compact-ampm-bg: transparent;
+  --drp-compact-ampm-bg-selected: var(--drp-accent-color);
+  --drp-compact-ampm-color: var(--drp-text-secondary);
+  --drp-compact-ampm-color-selected: var(--drp-text-color-on-accent);
 
   /* Rolling Selector */
   --drp-rolling-bg: var(--drp-primary-bg);
@@ -336,13 +421,56 @@
   --drp-day-focused-outline-width: 2px;
   --drp-day-focused-outline-offset: 2px;
 
-  /* Day Range Opacity Values */
+  /* Day Range Opacity Values — paired light/dark for adaptive contrast.
+     The mix recipe `color-mix(accent X%, transparent)` produces accent×X + bg×(1-X)
+     when composited. The light-mode percentages (0.15, 0.18, 0.30…) were calibrated
+     on white panels where the accent is darker than bg, so a small mix produces a
+     pastel shift that reads clearly. On dark themes the accent is typically LIGHTER
+     than bg (tokyo-night, dracula, etc.) and the same percentages produce a barely-
+     perceptible step on the panel. The -dark companion values lift the mix high
+     enough that the cell reads as accent-tinted on dark surfaces too. The composed
+     --drp-day-*-bg colors below pick the right value via `light-dark()` when the
+     consumer declares `color-scheme: dark`. Override either side to fine-tune. */
   --drp-day-in-range-bg-opacity: 0.15;
+  --drp-day-in-range-bg-opacity-dark: 0.28;
   --drp-day-in-range-hover-bg-opacity: 0.25;
+  --drp-day-in-range-hover-bg-opacity-dark: 0.40;
   --drp-day-drag-preview-bg-opacity: 0.30;
+  --drp-day-drag-preview-bg-opacity-dark: 0.45;
   --drp-day-drag-preview-edge-bg-opacity: 0.60;
+  --drp-day-drag-preview-edge-bg-opacity-dark: 0.75;
   --drp-day-hover-preview-bg-opacity: 0.18;
+  --drp-day-hover-preview-bg-opacity-dark: 0.32;
   --drp-day-hover-preview-invalid-bg-opacity: 0.18;
+  --drp-day-hover-preview-invalid-bg-opacity-dark: 0.32;
+
+  /* Composed background tokens — partials reference these by name. Consumers can
+     override the composed color directly for a fully custom recipe, or nudge the
+     opacity values above for a lighter-touch tweak. */
+  --drp-day-in-range-bg: light-dark(
+    color-mix(in srgb, var(--drp-day-range-bg) calc(var(--drp-day-in-range-bg-opacity) * 100%), transparent),
+    color-mix(in srgb, var(--drp-day-range-bg) calc(var(--drp-day-in-range-bg-opacity-dark) * 100%), transparent)
+  );
+  --drp-day-in-range-bg-hover-color: light-dark(
+    color-mix(in srgb, var(--drp-day-range-bg) calc(var(--drp-day-in-range-hover-bg-opacity) * 100%), transparent),
+    color-mix(in srgb, var(--drp-day-range-bg) calc(var(--drp-day-in-range-hover-bg-opacity-dark) * 100%), transparent)
+  );
+  --drp-day-drag-preview-bg: light-dark(
+    color-mix(in srgb, var(--drp-day-range-bg) calc(var(--drp-day-drag-preview-bg-opacity) * 100%), transparent),
+    color-mix(in srgb, var(--drp-day-range-bg) calc(var(--drp-day-drag-preview-bg-opacity-dark) * 100%), transparent)
+  );
+  --drp-day-drag-preview-edge-bg: light-dark(
+    color-mix(in srgb, var(--drp-day-range-bg) calc(var(--drp-day-drag-preview-edge-bg-opacity) * 100%), transparent),
+    color-mix(in srgb, var(--drp-day-range-bg) calc(var(--drp-day-drag-preview-edge-bg-opacity-dark) * 100%), transparent)
+  );
+  --drp-day-hover-preview-bg: light-dark(
+    color-mix(in srgb, var(--drp-day-range-bg) calc(var(--drp-day-hover-preview-bg-opacity) * 100%), transparent),
+    color-mix(in srgb, var(--drp-day-range-bg) calc(var(--drp-day-hover-preview-bg-opacity-dark) * 100%), transparent)
+  );
+  --drp-day-hover-preview-invalid-bg: light-dark(
+    color-mix(in srgb, var(--drp-day-drag-invalid-bg) calc(var(--drp-day-hover-preview-invalid-bg-opacity) * 100%), transparent),
+    color-mix(in srgb, var(--drp-day-drag-invalid-bg) calc(var(--drp-day-hover-preview-invalid-bg-opacity-dark) * 100%), transparent)
+  );
 
   /* Invalid Range (showInvalidRange callback) */
   --drp-day-invalid-range-bg: var(--drp-message-error-border);
@@ -357,6 +485,13 @@
   --drp-day-drag-border: var(--drp-day-border-width) var(--drp-day-drag-preview-border-style) var(--drp-day-range-bg);
   --drp-day-drag-invalid-bg: #ef4444;
   --drp-day-drag-invalid-bg-opacity: 0.20;
+  --drp-day-drag-invalid-bg-opacity-dark: 0.32;
+  /* Composed paint color for the invalid-drag highlight. Red contrasts well in both
+     modes already, so the dark boost is gentler than the accent-tinted previews. */
+  --drp-day-drag-invalid-bg-mix: light-dark(
+    color-mix(in srgb, var(--drp-day-drag-invalid-bg) calc(var(--drp-day-drag-invalid-bg-opacity) * 100%), transparent),
+    color-mix(in srgb, var(--drp-day-drag-invalid-bg) calc(var(--drp-day-drag-invalid-bg-opacity-dark) * 100%), transparent)
+  );
 
   /* Special Date Colors (examples) */
   --drp-holiday-color: #ef4444;
@@ -425,27 +560,30 @@
   /* ==========================================================================
      MESSAGE AREA COLORS
      ==========================================================================
-     Four type variants for feedback messages: error, warning, info, success */
+     Four type variants for feedback messages: error, warning, info, success.
+     Dark-mode companions are muted, accent-tinted dark surfaces so the message
+     stays visually distinct from the surrounding popover without screaming for
+     attention. Text picks the lighter tone of its hue so it still reads. */
 
   /* Error - red */
-  --drp-message-error-bg: #fef2f2;
-  --drp-message-error-color: #991b1b;
-  --drp-message-error-border: #fecaca;
+  --drp-message-error-bg: light-dark(#fef2f2, #3f1a1a);
+  --drp-message-error-color: light-dark(#991b1b, #fecaca);
+  --drp-message-error-border: light-dark(#fecaca, #7f2a2a);
 
   /* Warning - orange/amber */
-  --drp-message-warning-bg: #fffbeb;
-  --drp-message-warning-color: #92400e;
-  --drp-message-warning-border: #fde68a;
+  --drp-message-warning-bg: light-dark(#fffbeb, #3a2a10);
+  --drp-message-warning-color: light-dark(#92400e, #fde68a);
+  --drp-message-warning-border: light-dark(#fde68a, #7a5a1a);
 
   /* Info - blue */
-  --drp-message-info-bg: #eff6ff;
-  --drp-message-info-color: #1e40af;
-  --drp-message-info-border: #bfdbfe;
+  --drp-message-info-bg: light-dark(#eff6ff, #1e3a5f);
+  --drp-message-info-color: light-dark(#1e40af, #bfdbfe);
+  --drp-message-info-border: light-dark(#bfdbfe, #2a4a7a);
 
   /* Success - green */
-  --drp-message-success-bg: #f0fdf4;
-  --drp-message-success-color: #166534;
-  --drp-message-success-border: #bbf7d0;
+  --drp-message-success-bg: light-dark(#f0fdf4, #1a3a25);
+  --drp-message-success-color: light-dark(#166534, #bbf7d0);
+  --drp-message-success-border: light-dark(#bbf7d0, #2a5a3a);
 
   /* ==========================================================================
      CALENDAR DIMENSIONS

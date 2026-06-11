@@ -411,6 +411,106 @@
     </div>
   </div>
 
+  <!-- Wheel Picker Scaling -->
+  <div class="card">
+    <h2>Wheel Picker &mdash; Scaling</h2>
+    <p><code>time-display="wheel"</code> is an iOS-style barrel of snap-scrolling
+      columns. The center band height, item height, and fade gradients all derive
+      from <code>--drp-rem</code>, so all three sizes feel identical at their
+      respective scales.</p>
+
+    <div class="grid-wide">
+      <div class="form-group">
+        <label>Small (--drp-rem: 8px) &mdash; h12</label>
+        <web-daterangepicker
+          class="scale-sm"
+          picker-mode="time"
+          time-display="wheel"
+          time-format-mask="hh:mm a"
+          positioning-mode="inline"></web-daterangepicker>
+      </div>
+
+      <div class="form-group">
+        <label>Medium (--drp-rem: 10px, default) &mdash; h24</label>
+        <web-daterangepicker
+          class="scale-md"
+          picker-mode="time"
+          time-display="wheel"
+          positioning-mode="inline"></web-daterangepicker>
+      </div>
+
+      <div class="form-group">
+        <label>Large (--drp-rem: 15px) &mdash; h24 with seconds</label>
+        <web-daterangepicker
+          class="scale-lg"
+          picker-mode="time"
+          time-display="wheel"
+          time-format-mask="HH:mm:ss"
+          positioning-mode="inline"></web-daterangepicker>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label>Datetime + wheel @ Medium &mdash; h24</label>
+      <web-daterangepicker
+        class="scale-md"
+        picker-mode="datetime"
+        time-display="wheel"
+        positioning-mode="inline"></web-daterangepicker>
+      <small>Calendar + wheel barrel side by side</small>
+    </div>
+  </div>
+
+  <!-- Compact Picker Scaling -->
+  <div class="card">
+    <h2>Compact Picker &mdash; Scaling</h2>
+    <p><code>time-display="compact"</code> is iOS 14+ pills. The pill size,
+      padding, and AM/PM toggle scale with <code>--drp-rem</code> so the row
+      stays proportionate to the surrounding input.</p>
+
+    <div class="grid-wide">
+      <div class="form-group">
+        <label>Small (--drp-rem: 8px) &mdash; h12</label>
+        <web-daterangepicker
+          class="scale-sm"
+          picker-mode="time"
+          time-display="compact"
+          time-format-mask="hh:mm a"
+          positioning-mode="inline"></web-daterangepicker>
+      </div>
+
+      <div class="form-group">
+        <label>Medium (--drp-rem: 10px, default) &mdash; h24</label>
+        <web-daterangepicker
+          class="scale-md"
+          picker-mode="time"
+          time-display="compact"
+          positioning-mode="inline"></web-daterangepicker>
+      </div>
+
+      <div class="form-group">
+        <label>Large (--drp-rem: 15px) &mdash; h24 with seconds</label>
+        <web-daterangepicker
+          class="scale-lg"
+          picker-mode="time"
+          time-display="compact"
+          time-format-mask="HH:mm:ss"
+          positioning-mode="inline"></web-daterangepicker>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label>Datetime + compact @ Large &mdash; h12</label>
+      <web-daterangepicker
+        class="scale-lg"
+        picker-mode="datetime"
+        time-display="compact"
+        hour-cycle="h12"
+        positioning-mode="inline"></web-daterangepicker>
+      <small>Calendar + compact pills side by side</small>
+    </div>
+  </div>
+
   <!-- Interactive Demo -->
   <div class="card">
     <h2>Interactive Scale Demo</h2>

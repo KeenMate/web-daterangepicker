@@ -245,8 +245,8 @@ When false:
 - Less visual noise
 
 CSS classes applied:
-.drp-date-picker__day--in-range
-.drp-date-picker__day--in-range-disabled
+.drp__day--in-range
+.drp__day--in-range-disabled
 
 COMPARISON TABLE
 ----------------

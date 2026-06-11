@@ -67,10 +67,16 @@ export function renderCalendar(picker: any) {
     // Time picker (time / datetime modes). Lives outside the month loop —
     // datetime mode also runs the loop below to draw the calendar grid.
     // Dispatch on timeDisplay: 'rolls' (default) → renderTimePicker,
-    // 'clock' → renderClockPicker (Material-style two-step face, v1.15).
+    // 'clock' → renderClockPicker (Material-style two-step face, v1.15),
+    // 'wheel' → renderWheelPicker (iOS-style barrel, v1.15),
+    // 'compact' → renderCompactPicker (iOS 14+ pills, v1.15).
     if (picker.options.pickerMode === 'time' || picker.options.pickerMode === 'datetime') {
         if (picker.options.timeDisplay === 'clock') {
             renderClockPicker(picker);
+        } else if (picker.options.timeDisplay === 'wheel') {
+            renderWheelPicker(picker);
+        } else if (picker.options.timeDisplay === 'compact') {
+            renderCompactPicker(picker);
         } else {
             renderTimePicker(picker);
         }
@@ -90,11 +96,11 @@ export function renderCalendar(picker: any) {
     // Re-apply focused day class after rendering (keyboard navigation state)
     // This is necessary because renderDays() rebuilds the DOM with innerHTML
     if (picker.focusedDayIndex !== null) {
-        const daysContainer = picker.calendar.querySelector(`.drp-date-picker__days[data-month-index="${picker.activeMonthIndex}"]`);
+        const daysContainer = picker.calendar.querySelector(`.drp__days[data-month-index="${picker.activeMonthIndex}"]`);
         if (daysContainer) {
-            const days = daysContainer.querySelectorAll('.drp-date-picker__day:not(.drp-date-picker__day--other-month)');
+            const days = daysContainer.querySelectorAll('.drp__day:not(.drp__day--other-month)');
             if (days[picker.focusedDayIndex]) {
-                days[picker.focusedDayIndex].classList.add('drp-date-picker__day--focused');
+                days[picker.focusedDayIndex].classList.add('drp__day--focused');
             }
         }
     }
@@ -112,12 +118,12 @@ export function renderCalendar(picker: any) {
 
 export function renderNormalView(picker: any, monthIndex: number) {
     renderingLogger.debug(`[DatePicker Col${monthIndex} 19] renderNormalView called for month`, monthIndex);
-    const monthContainer = picker.calendar.querySelector(`.drp-date-picker__month[data-month-index="${monthIndex}"]`);
+    const monthContainer = picker.calendar.querySelector(`.drp__month[data-month-index="${monthIndex}"]`);
     if (!monthContainer) return;
 
     // Hide rolling selector for picker month
-    const rollingSelector = monthContainer.querySelector('.drp-date-picker__rolling-selector');
-    rollingSelector?.classList.remove('drp-date-picker__rolling-selector--visible');
+    const rollingSelector = monthContainer.querySelector('.drp__rolling-selector');
+    rollingSelector?.classList.remove('drp__rolling-selector--visible');
 
     // Get picker month's date
     const date = picker.monthDates[monthIndex];
@@ -126,7 +132,7 @@ export function renderNormalView(picker: any, monthIndex: number) {
     const monthName = picker.monthNames[month];
 
     // Update month/year display with custom header support
-    const monthYear = monthContainer.querySelector('.drp-date-picker__month-year');
+    const monthYear = monthContainer.querySelector('.drp__month-year');
     if (monthYear) {
         // Priority order:
         // 1. monthHeaders from beforeMonthChangedCallback result
@@ -158,7 +164,7 @@ export function renderNormalView(picker: any, monthIndex: number) {
     if (picker.options.unifiedNavigation && monthIndex === 0 && picker.unifiedRangeDisplay) {
         // Hide unified rolling selector (only if it's not supposed to be showing)
         if (picker.unifiedRollingSelector && !picker.showingUnifiedRollingSelector) {
-            picker.unifiedRollingSelector.classList.remove('drp-date-picker__unified-rolling-selector--visible');
+            picker.unifiedRollingSelector.classList.remove('drp__unified-rolling-selector--visible');
         }
 
         // Update unified range display
@@ -196,30 +202,30 @@ export function renderNormalView(picker: any, monthIndex: number) {
             // Check if previous month has enabled days
             const prevYear = firstMonth.getMonth() === 0 ? firstMonth.getFullYear() - 1 : firstMonth.getFullYear();
             const prevMonth = firstMonth.getMonth() === 0 ? 11 : firstMonth.getMonth() - 1;
-            const prevButton = unifiedHeader.querySelector('.drp-date-picker__nav--prev');
+            const prevButton = unifiedHeader.querySelector('.drp__nav--prev');
             if (prevButton) {
                 const hasPrevEnabled = hasEnabledDaysInMonth(picker, prevYear, prevMonth);
                 if (hasPrevEnabled) {
                     prevButton.removeAttribute('disabled');
-                    prevButton.classList.remove('drp-date-picker__nav--disabled');
+                    prevButton.classList.remove('drp__nav--disabled');
                 } else {
                     prevButton.setAttribute('disabled', 'true');
-                    prevButton.classList.add('drp-date-picker__nav--disabled');
+                    prevButton.classList.add('drp__nav--disabled');
                 }
             }
 
             // Check if next month has enabled days (check the month after the last visible month)
             const nextYear = lastMonth.getMonth() === 11 ? lastMonth.getFullYear() + 1 : lastMonth.getFullYear();
             const nextMonth = lastMonth.getMonth() === 11 ? 0 : lastMonth.getMonth() + 1;
-            const nextButton = unifiedHeader.querySelector('.drp-date-picker__nav--next');
+            const nextButton = unifiedHeader.querySelector('.drp__nav--next');
             if (nextButton) {
                 const hasNextEnabled = hasEnabledDaysInMonth(picker, nextYear, nextMonth);
                 if (hasNextEnabled) {
                     nextButton.removeAttribute('disabled');
-                    nextButton.classList.remove('drp-date-picker__nav--disabled');
+                    nextButton.classList.remove('drp__nav--disabled');
                 } else {
                     nextButton.setAttribute('disabled', 'true');
-                    nextButton.classList.add('drp-date-picker__nav--disabled');
+                    nextButton.classList.add('drp__nav--disabled');
                 }
             }
         }
@@ -232,42 +238,42 @@ export function renderNormalView(picker: any, monthIndex: number) {
     // Check previous month
     const prevMonth = currentMonth === 0 ? 11 : currentMonth - 1;
     const prevYear = currentMonth === 0 ? currentYear - 1 : currentYear;
-    const prevButton = monthContainer.querySelector('.drp-date-picker__nav--prev');
+    const prevButton = monthContainer.querySelector('.drp__nav--prev');
     if (prevButton) {
         const hasPrevEnabled = hasEnabledDaysInMonth(picker, prevYear, prevMonth);
         if (hasPrevEnabled) {
             prevButton.removeAttribute('disabled');
-            prevButton.classList.remove('drp-date-picker__nav--disabled');
+            prevButton.classList.remove('drp__nav--disabled');
         } else {
             prevButton.setAttribute('disabled', 'true');
-            prevButton.classList.add('drp-date-picker__nav--disabled');
+            prevButton.classList.add('drp__nav--disabled');
         }
     }
 
     // Check next month
     const nextMonth = currentMonth === 11 ? 0 : currentMonth + 1;
     const nextYear = currentMonth === 11 ? currentYear + 1 : currentYear;
-    const nextButton = monthContainer.querySelector('.drp-date-picker__nav--next');
+    const nextButton = monthContainer.querySelector('.drp__nav--next');
     if (nextButton) {
         const hasNextEnabled = hasEnabledDaysInMonth(picker, nextYear, nextMonth);
         if (hasNextEnabled) {
             nextButton.removeAttribute('disabled');
-            nextButton.classList.remove('drp-date-picker__nav--disabled');
+            nextButton.classList.remove('drp__nav--disabled');
         } else {
             nextButton.setAttribute('disabled', 'true');
-            nextButton.classList.add('drp-date-picker__nav--disabled');
+            nextButton.classList.add('drp__nav--disabled');
         }
     }
 
     // Render weekdays (respecting week start day)
-    const weekdays = monthContainer.querySelector('.drp-date-picker__weekdays');
+    const weekdays = monthContainer.querySelector('.drp__weekdays');
     const reorderedWeekdays = [
         ...picker.weekdayNames.slice(picker.weekStartDay),
         ...picker.weekdayNames.slice(0, picker.weekStartDay)
     ];
     if (weekdays) {
         weekdays.innerHTML = reorderedWeekdays
-            .map(day => `<div class="drp-date-picker__weekday">${day}</div>`).join('');
+            .map(day => `<div class="drp__weekday">${day}</div>`).join('');
     }
 
     // Render days
@@ -276,10 +282,10 @@ export function renderNormalView(picker: any, monthIndex: number) {
 
 export function renderDays(picker: any, monthIndex: number, date: Date) {
     renderingLogger.debug(`[DatePicker Col${monthIndex} 20] renderDays called for month`, monthIndex);
-    const monthContainer = picker.calendar.querySelector(`.drp-date-picker__month[data-month-index="${monthIndex}"]`);
+    const monthContainer = picker.calendar.querySelector(`.drp__month[data-month-index="${monthIndex}"]`);
     if (!monthContainer) return;
 
-    const daysContainer = monthContainer.querySelector('.drp-date-picker__days');
+    const daysContainer = monthContainer.querySelector('.drp__days');
     const year = date.getFullYear();
     const month = date.getMonth();
     renderingLogger.debug(`[DatePicker Col${monthIndex} 21] Rendering days for:`, year, month + 1);
@@ -405,27 +411,27 @@ export function renderDays(picker: any, monthIndex: number, date: Date) {
 
         // Generate badge row if any day has a badge
         if (hasAnyBadge) {
-            html += '<div class="drp-date-picker__badge-row">';
+            html += '<div class="drp__badge-row">';
             for (const badge of weekBadges) {
                 if (badge.text) {
                     const tooltipAttr = badge.tooltip ? ` data-tooltip="${badge.tooltip.replace(/"/g, '&quot;')}"` : '';
                     const classes = badge.class ? ` ${badge.class}` : '';
-                    html += `<div class="drp-date-picker__badge-cell${classes}"${tooltipAttr}>${badge.text}</div>`;
+                    html += `<div class="drp__badge-cell${classes}"${tooltipAttr}>${badge.text}</div>`;
                 } else {
-                    html += '<div class="drp-date-picker__badge-cell"></div>';
+                    html += '<div class="drp__badge-cell"></div>';
                 }
             }
             html += '</div>';
         }
 
         // Generate date row
-        html += '<div class="drp-date-picker__date-row">';
+        html += '<div class="drp__date-row">';
         for (const dayData of week) {
-            const classes = ['drp-date-picker__day'];
-            if (dayData.isOtherMonth) classes.push('drp-date-picker__day--other-month');
+            const classes = ['drp__day'];
+            if (dayData.isOtherMonth) classes.push('drp__day--other-month');
 
             const weekday = dayData.date.getDay();
-            if (weekday === 0 || weekday === 6) classes.push('drp-date-picker__day--weekend');
+            if (weekday === 0 || weekday === 6) classes.push('drp__day--weekend');
 
             // Check for special date info (for styling classes and disabled state)
             const dateInfo = picker.getDateInfoInternal(dayData.date);
@@ -436,7 +442,7 @@ export function renderDays(picker: any, monthIndex: number, date: Date) {
                 : picker.isDateDisabledInternal(dayData.date);
 
             if (isDisabled) {
-                classes.push('drp-date-picker__day--disabled');
+                classes.push('drp__day--disabled');
             }
 
             // Apply custom day class if available
@@ -445,7 +451,7 @@ export function renderDays(picker: any, monthIndex: number, date: Date) {
             }
 
             // Today
-            if (picker.isToday(dayData.date)) classes.push('drp-date-picker__day--today');
+            if (picker.isToday(dayData.date)) classes.push('drp__day--today');
 
             // Selected (single mode or multiple mode individual dates)
             let isSelected = false;
@@ -457,7 +463,7 @@ export function renderDays(picker: any, monthIndex: number, date: Date) {
             }
 
             if (isSelected) {
-                classes.push('drp-date-picker__day--selected');
+                classes.push('drp__day--selected');
             }
 
             // Range
@@ -470,12 +476,12 @@ export function renderDays(picker: any, monthIndex: number, date: Date) {
                 isEndDate = picker.isSameDay(dayData.date, picker.selectedEndDate);
                 isInRange = picker.isInRange(dayData.date);
 
-                if (isStartDate) classes.push('drp-date-picker__day--range-start');
-                if (isEndDate) classes.push('drp-date-picker__day--range-end');
+                if (isStartDate) classes.push('drp__day--range-start');
+                if (isEndDate) classes.push('drp__day--range-end');
                 if (isInRange) {
                     // Only highlight if not disabled, or if highlightDisabledInRange is true
                     if (!isDisabled || picker.options.highlightDisabledInRange) {
-                        classes.push('drp-date-picker__day--in-range');
+                        classes.push('drp__day--in-range');
                     }
                 }
 
@@ -485,26 +491,26 @@ export function renderDays(picker: any, monthIndex: number, date: Date) {
                     const isInvalidEnd = picker.isSameDay(dayData.date, picker.invalidRangeEnd);
                     const isInInvalidRange = dayData.date > picker.invalidRangeStart && dayData.date < picker.invalidRangeEnd;
 
-                    if (isInvalidStart) classes.push('drp-date-picker__day--invalid-range-start');
-                    if (isInvalidEnd) classes.push('drp-date-picker__day--invalid-range-end');
-                    if (isInInvalidRange) classes.push('drp-date-picker__day--invalid-range');
+                    if (isInvalidStart) classes.push('drp__day--invalid-range-start');
+                    if (isInvalidEnd) classes.push('drp__day--invalid-range-end');
+                    if (isInInvalidRange) classes.push('drp__day--invalid-range');
                 }
             } else if (picker.options.selectionMode === 'multiple') {
                 // Check if this date is in any of the selectedRanges
                 for (const range of picker.selectedRanges) {
                     if (picker.isSameDay(dayData.date, range.start)) {
                         isStartDate = true;
-                        classes.push('drp-date-picker__day--range-start');
+                        classes.push('drp__day--range-start');
                     }
                     if (picker.isSameDay(dayData.date, range.end)) {
                         isEndDate = true;
-                        classes.push('drp-date-picker__day--range-end');
+                        classes.push('drp__day--range-end');
                     }
                     // Check if date is within this range
                     if (dayData.date >= range.start && dayData.date <= range.end) {
                         isInRange = true;
                         if (!isDisabled || picker.options.highlightDisabledInRange) {
-                            classes.push('drp-date-picker__day--in-range');
+                            classes.push('drp__day--in-range');
                         }
                     }
                 }
@@ -570,7 +576,7 @@ function processRenderCallbacks(picker: any, monthIndex: number, daysContainer: 
     }
 
     // Get all day cells (not badge cells)
-    const dayCells = daysContainer.querySelectorAll('.drp-date-picker__day');
+    const dayCells = daysContainer.querySelectorAll('.drp__day');
 
     dayCells.forEach((dayCell: Element) => {
         const element = dayCell as HTMLElement;
@@ -673,9 +679,9 @@ function renderRollingItems(opts: {
 }): string {
     let html = '';
     for (const item of opts.items) {
-        const selected = item.value === opts.currentValue ? 'drp-date-picker__rolling-item--selected' : '';
-        const disabled = !item.enabled ? 'drp-date-picker__rolling-item--disabled' : '';
-        html += `<div class="drp-date-picker__rolling-item ${selected} ${disabled}" ${opts.valueAttr}="${item.value}" ${opts.extraAttrs}><span class="drp-date-picker__rolling-item-text">${item.label}</span></div>`;
+        const selected = item.value === opts.currentValue ? 'drp__rolling-item--selected' : '';
+        const disabled = !item.enabled ? 'drp__rolling-item--disabled' : '';
+        html += `<div class="drp__rolling-item ${selected} ${disabled}" ${opts.valueAttr}="${item.value}" ${opts.extraAttrs}><span class="drp__rolling-item-text">${item.label}</span></div>`;
     }
     return html;
 }
@@ -712,11 +718,11 @@ function renderRollingLists(picker: any, container: Element | null | undefined, 
 }
 
 export function renderRollingSelector(picker: any, monthIndex: number) {
-    const monthContainer = picker.calendar.querySelector(`.drp-date-picker__month[data-month-index="${monthIndex}"]`);
+    const monthContainer = picker.calendar.querySelector(`.drp__month[data-month-index="${monthIndex}"]`);
     if (!monthContainer) return;
 
-    const selector = monthContainer.querySelector('.drp-date-picker__rolling-selector');
-    selector?.classList.add('drp-date-picker__rolling-selector--visible');
+    const selector = monthContainer.querySelector('.drp__rolling-selector');
+    selector?.classList.add('drp__rolling-selector--visible');
 
     const date = picker.monthDates[monthIndex];
     renderRollingLists(picker, selector, {
@@ -731,7 +737,7 @@ export function renderRollingSelector(picker: any, monthIndex: number) {
 export function renderUnifiedRollingSelector(picker: any) {
     if (!picker.options.unifiedNavigation || !picker.unifiedRollingSelector) return;
 
-    picker.unifiedRollingSelector.classList.add('drp-date-picker__unified-rolling-selector--visible');
+    picker.unifiedRollingSelector.classList.add('drp__unified-rolling-selector--visible');
 
     const anchorIndex = picker.options.unifiedNavigationAnchorIndex ?? 0;
     const date = picker.monthDates[anchorIndex];
@@ -747,7 +753,7 @@ export function renderUnifiedRollingSelector(picker: any) {
 /**
  * Populate the four possible time rolls (hours / minutes / [seconds] / [ampm]).
  * The DOM scaffolding is built once in createCalendar; this function only fills
- * the inner `.drp-date-picker__rolling-list` containers with items.
+ * the inner `.drp__rolling-list` containers with items.
  *
  * Reads from `picker.selectedTime` — each field is independently nullable. Null
  * fields don't get a highlight (so picking only the hour leaves the minute roll
@@ -755,7 +761,7 @@ export function renderUnifiedRollingSelector(picker: any) {
  * centroid stays useful instead of snapping to 00).
  */
 export function renderTimePicker(picker: any) {
-    const root = picker.calendar.querySelector('.drp-date-picker__time-picker');
+    const root = picker.calendar.querySelector('.drp__time-picker');
     if (!root) return;
 
     const time = picker.selectedTime || { hour: null, minute: null, second: null, ampm: null };
@@ -779,10 +785,10 @@ export function renderTimePicker(picker: any) {
     const items = (range: number[], focusValue: number, selectedValue: number | null, valueAttr: string) => {
         let html = '';
         for (const v of range) {
-            const selected = selectedValue !== null && v === selectedValue ? 'drp-date-picker__rolling-item--selected' : '';
+            const selected = selectedValue !== null && v === selectedValue ? 'drp__rolling-item--selected' : '';
             const focusMark = v === focusValue ? 'data-time-focus="true"' : '';
             const label = String(v).padStart(2, '0');
-            html += `<div class="drp-date-picker__rolling-item ${selected}" ${valueAttr}="${v}" ${focusMark}><span class="drp-date-picker__rolling-item-text">${label}</span></div>`;
+            html += `<div class="drp__rolling-item ${selected}" ${valueAttr}="${v}" ${focusMark}><span class="drp__rolling-item-text">${label}</span></div>`;
         }
         return html;
     };
@@ -869,11 +875,11 @@ export function renderTimePicker(picker: any) {
     if (is12h) {
         const ampmContainer = root.querySelector('[data-time-list="ampm"]');
         if (ampmContainer) {
-            const amSelected = time.ampm === 'am' ? 'drp-date-picker__rolling-item--selected' : '';
-            const pmSelected = time.ampm === 'pm' ? 'drp-date-picker__rolling-item--selected' : '';
+            const amSelected = time.ampm === 'am' ? 'drp__rolling-item--selected' : '';
+            const pmSelected = time.ampm === 'pm' ? 'drp__rolling-item--selected' : '';
             ampmContainer.innerHTML = `
-                <div class="drp-date-picker__rolling-item ${amSelected}" data-ampm="am"><span class="drp-date-picker__rolling-item-text">${picker.localeStrings.am}</span></div>
-                <div class="drp-date-picker__rolling-item ${pmSelected}" data-ampm="pm"><span class="drp-date-picker__rolling-item-text">${picker.localeStrings.pm}</span></div>
+                <div class="drp__rolling-item ${amSelected}" data-ampm="am"><span class="drp__rolling-item-text">${picker.localeStrings.am}</span></div>
+                <div class="drp__rolling-item ${pmSelected}" data-ampm="pm"><span class="drp__rolling-item-text">${picker.localeStrings.pm}</span></div>
             `;
         }
     }
@@ -893,7 +899,7 @@ export function renderTimePicker(picker: any) {
  * sizes, and hover/selected styling.
  */
 export function renderClockPicker(picker: any) {
-    const root = picker.calendar.querySelector('.drp-date-picker__clock-picker');
+    const root = picker.calendar.querySelector('.drp__clock-picker');
     if (!root) return;
 
     const time = picker.selectedTime || { hour: null, minute: null, second: null, ampm: null };
@@ -908,31 +914,31 @@ export function renderClockPicker(picker: any) {
     const clockStep: 'hours' | 'minutes' = picker.clockStep || 'hours';
 
     // ---- Header (HH : MM [AM/PM]) ----
-    const headerEl = root.querySelector('.drp-date-picker__clock-header');
+    const headerEl = root.querySelector('.drp__clock-header');
     if (headerEl) {
         const displayHour = is12h ? picker.toDisplayHour(focusHour) : focusHour;
         const hourLabel = String(displayHour).padStart(2, '0');
         const minuteLabel = String(focusMinute).padStart(2, '0');
-        const hoursActive = clockStep === 'hours' ? 'drp-date-picker__clock-header-digit--active' : '';
-        const minutesActive = clockStep === 'minutes' ? 'drp-date-picker__clock-header-digit--active' : '';
+        const hoursActive = clockStep === 'hours' ? 'drp__clock-header-digit--active' : '';
+        const minutesActive = clockStep === 'minutes' ? 'drp__clock-header-digit--active' : '';
         // h12 only: surface AM/PM next to the digits so the current half is
         // legible from the header alone (the toggle buttons below still drive it).
         // Fall back to focusHour-derived half when the user hasn't committed ampm yet.
         let ampmIndicator = '';
         if (is12h) {
             const ampm = time.ampm ?? (focusHour >= 12 ? 'pm' : 'am');
-            ampmIndicator = `<span class="drp-date-picker__clock-header-ampm">${ampm === 'pm' ? picker.localeStrings.pm : picker.localeStrings.am}</span>`;
+            ampmIndicator = `<span class="drp__clock-header-ampm">${ampm === 'pm' ? picker.localeStrings.pm : picker.localeStrings.am}</span>`;
         }
         headerEl.innerHTML = `
-            <button type="button" class="drp-date-picker__clock-header-digit ${hoursActive}" data-clock-step="hours">${hourLabel}</button>
-            <span class="drp-date-picker__clock-header-sep">:</span>
-            <button type="button" class="drp-date-picker__clock-header-digit ${minutesActive}" data-clock-step="minutes">${minuteLabel}</button>
+            <button type="button" class="drp__clock-header-digit ${hoursActive}" data-clock-step="hours">${hourLabel}</button>
+            <span class="drp__clock-header-sep">:</span>
+            <button type="button" class="drp__clock-header-digit ${minutesActive}" data-clock-step="minutes">${minuteLabel}</button>
             ${ampmIndicator}
         `;
     }
 
     // ---- Dial face ----
-    const faceEl = root.querySelector('.drp-date-picker__clock-face') as HTMLElement | null;
+    const faceEl = root.querySelector('.drp__clock-face') as HTMLElement | null;
     if (faceEl) {
         // Read radii as resolved pixel lengths. Important: `getPropertyValue` on
         // an unregistered custom property returns the literal token sequence
@@ -1001,9 +1007,9 @@ export function renderClockPicker(picker: any) {
                     // Outer ring shows 1..12. Inner ring handles 0/13..23.
                     selected = markerHour === n;
                 }
-                const sel = selected ? 'drp-date-picker__clock-number--selected' : '';
+                const sel = selected ? 'drp__clock-number--selected' : '';
                 const attr = is12h ? `data-clock-hour12="${n}"` : `data-clock-hour="${n}"`;
-                html += `<button type="button" class="drp-date-picker__clock-number ${sel}" ${attr} style="left:${pos.left}%;top:${pos.top}%">${n}</button>`;
+                html += `<button type="button" class="drp__clock-number ${sel}" ${attr} style="left:${pos.left}%;top:${pos.top}%">${n}</button>`;
             }
 
             // Inner ring (h24 only): values 13..24 with 24 at the top (replacing 12).
@@ -1018,8 +1024,8 @@ export function renderClockPicker(picker: any) {
                     // Canonical hour-of-day for this label: 24 ↔ 0, 13..23 ↔ themselves.
                     const canonical = n === 24 ? 0 : n;
                     const selected = markerHour === canonical;
-                    const sel = selected ? 'drp-date-picker__clock-number--selected' : '';
-                    html += `<button type="button" class="drp-date-picker__clock-number drp-date-picker__clock-number--inner ${sel}" data-clock-hour="${canonical}" style="left:${pos.left}%;top:${pos.top}%">${n}</button>`;
+                    const sel = selected ? 'drp__clock-number--selected' : '';
+                    html += `<button type="button" class="drp__clock-number drp__clock-number--inner ${sel}" data-clock-hour="${canonical}" style="left:${pos.left}%;top:${pos.top}%">${n}</button>`;
                 }
             }
         } else {
@@ -1038,9 +1044,9 @@ export function renderClockPicker(picker: any) {
                 const angle = i * (360 / labelCount) - 90;
                 const pos = pointAt(minutePct, angle);
                 const selected = snappedMarker === value;
-                const sel = selected ? 'drp-date-picker__clock-number--selected' : '';
+                const sel = selected ? 'drp__clock-number--selected' : '';
                 const label = String(value).padStart(2, '0');
-                html += `<button type="button" class="drp-date-picker__clock-number ${sel}" data-clock-minute="${value}" style="left:${pos.left}%;top:${pos.top}%">${label}</button>`;
+                html += `<button type="button" class="drp__clock-number ${sel}" data-clock-minute="${value}" style="left:${pos.left}%;top:${pos.top}%">${label}</button>`;
             }
         }
 
@@ -1053,7 +1059,7 @@ export function renderClockPicker(picker: any) {
         // so the chain stays in CSS. The tip also resizes from --inner so it
         // doesn't overflow the smaller h24 inner-ring buttons.
         let handAngle = 0;
-        let handRingClass = 'drp-date-picker__clock-hand--outer';
+        let handRingClass = 'drp__clock-hand--outer';
         if (clockStep === 'hours') {
             if (is12h) {
                 const dh = picker.toDisplayHour(focusHour); // 1..12
@@ -1063,19 +1069,19 @@ export function renderClockPicker(picker: any) {
                 if (focusHour === 0 || focusHour > 12) {
                     const ringPos = focusHour === 0 ? 12 : focusHour - 12;
                     handAngle = (ringPos % 12) * 30;
-                    handRingClass = 'drp-date-picker__clock-hand--inner';
+                    handRingClass = 'drp__clock-hand--inner';
                 } else {
                     handAngle = (focusHour % 12) * 30;
                 }
             }
         } else {
             handAngle = focusMinute * 6;
-            handRingClass = 'drp-date-picker__clock-hand--minute';
+            handRingClass = 'drp__clock-hand--minute';
         }
         // No tip element — the --selected highlight on the number IS the marker.
         // The hand modifier shortens the line by half a button so it terminates
         // at the selection circle's near edge instead of running into its center.
-        html += `<div class="drp-date-picker__clock-hand ${handRingClass}" style="transform:rotate(${handAngle}deg)"></div>`;
+        html += `<div class="drp__clock-hand ${handRingClass}" style="transform:rotate(${handAngle}deg)"></div>`;
 
         faceEl.innerHTML = html;
         faceEl.dataset.clockMode = clockStep;
@@ -1083,27 +1089,234 @@ export function renderClockPicker(picker: any) {
 
     // ---- AM/PM toggle (h12 only) ----
     if (is12h) {
-        const ampmEl = root.querySelector('.drp-date-picker__clock-ampm');
+        const ampmEl = root.querySelector('.drp__clock-ampm');
         if (ampmEl) {
             // Same fallback as the header indicator: when ampm isn't committed,
             // derive from focusHour so the highlighted button matches the
             // displayed half. Otherwise the header would read "12:12 PM" while
             // neither button is selected, which looks broken.
             const effectiveAmpm = time.ampm ?? (focusHour >= 12 ? 'pm' : 'am');
-            const amSelected = effectiveAmpm === 'am' ? 'drp-date-picker__clock-ampm-button--selected' : '';
-            const pmSelected = effectiveAmpm === 'pm' ? 'drp-date-picker__clock-ampm-button--selected' : '';
+            const amSelected = effectiveAmpm === 'am' ? 'drp__clock-ampm-button--selected' : '';
+            const pmSelected = effectiveAmpm === 'pm' ? 'drp__clock-ampm-button--selected' : '';
             ampmEl.innerHTML = `
-                <button type="button" class="drp-date-picker__clock-ampm-button ${amSelected}" data-clock-ampm="am">${picker.localeStrings.am}</button>
-                <button type="button" class="drp-date-picker__clock-ampm-button ${pmSelected}" data-clock-ampm="pm">${picker.localeStrings.pm}</button>
+                <button type="button" class="drp__clock-ampm-button ${amSelected}" data-clock-ampm="am">${picker.localeStrings.am}</button>
+                <button type="button" class="drp__clock-ampm-button ${pmSelected}" data-clock-ampm="pm">${picker.localeStrings.pm}</button>
             `;
         }
+    }
+}
+
+/**
+ * Wheel-style time picker (timeDisplay: 'wheel').
+ *
+ * iOS UIPickerView aesthetic: snap-scrolling columns with a center selection band
+ * and top/bottom fade gradients (the "barrel" effect). Each column is a vertical
+ * list of values; the value currently centered in its column is what's selected.
+ *
+ * Structure mirrors renderTimePicker (same focus semantics, same per-field reads)
+ * but the rendered items are flat divs without rolling-item selected highlights —
+ * the center band IS the selection indicator. Click-to-center is handled by the
+ * router (scrollWheelItemToCenter) and the scroll listener wired up on first
+ * render commits values as the user spins each column.
+ */
+export function renderWheelPicker(picker: any) {
+    const root = picker.calendar.querySelector('.drp__wheel-picker');
+    if (!root) return;
+
+    const time = picker.selectedTime || { hour: null, minute: null, second: null, ampm: null };
+    const snapshot: Date = picker.timePickerOpenSnapshot || new Date();
+    const focusHour = time.hour !== null ? time.hour : snapshot.getHours();
+    const focusMinute = time.minute !== null ? time.minute : snapshot.getMinutes();
+    const focusSecond = time.second !== null ? time.second : snapshot.getSeconds();
+    const focusAmpm: 'am' | 'pm' = time.ampm ?? (focusHour >= 12 ? 'pm' : 'am');
+    const step = picker.options.timeStep || 1;
+    const is12h = picker.options.hourCycle === 'h12';
+
+    // Consume the one-shot force-scroll flag set by show() / first render. Without
+    // this, an already-centered value (preserved scrollTop) would skip recentering
+    // and the user would land on a stale row from the previous open.
+    const forceScroll = !!picker.forceWheelScroll;
+    picker.forceWheelScroll = false;
+
+    // Wire scroll listeners exactly once per column. Each commit attempts are
+    // debounced via requestAnimationFrame so we only act on the final settled
+    // position rather than every interim scrollTop.
+    const wireColumn = (col: HTMLElement, listKey: string) => {
+        if ((col as any)._wheelWired) return;
+        (col as any)._wheelWired = true;
+        let t: number | null = null;
+        col.addEventListener('scroll', () => {
+            if (picker.wheelScrollLock) return;
+            if (t !== null) window.clearTimeout(t);
+            t = window.setTimeout(() => {
+                t = null;
+                picker.commitWheelScroll(col, listKey);
+            }, 120);
+        }, { passive: true });
+    };
+
+    const renderColumn = (
+        listKey: string,
+        items: Array<{ value: string; label: string; selected: boolean }>,
+        focusValue: string
+    ) => {
+        const col = root.querySelector(`[data-wheel-list="${listKey}"]`) as HTMLElement | null;
+        if (!col) return;
+        let html = '';
+        for (const item of items) {
+            const sel = item.selected ? ' drp__wheel-item--selected' : '';
+            const focus = item.value === focusValue ? ' data-wheel-focus="true"' : '';
+            html += `<div class="drp__wheel-item${sel}" data-wheel-value="${item.value}"${focus}>${item.label}</div>`;
+        }
+        col.innerHTML = html;
+        wireColumn(col, listKey);
+
+        // Center the focus item. Skip if already centered (same logic as the
+        // rolls), unless forceScroll is true (open / first render).
+        requestAnimationFrame(() => {
+            const focused = col.querySelector('[data-wheel-focus="true"]') as HTMLElement | null;
+            if (!focused) return;
+            const itemH = focused.offsetHeight || 36;
+            const target = focused.offsetTop - (col.clientHeight - itemH) / 2;
+            const desired = Math.max(0, target);
+            const skip = !forceScroll && Math.abs(col.scrollTop - desired) < 2;
+            console.log('[wheel] render-center', {
+                listKey,
+                focusValue,
+                focusedOffsetTop: focused.offsetTop,
+                focusedOffsetHeight: focused.offsetHeight,
+                itemH,
+                clientHeight: col.clientHeight,
+                target,
+                desired,
+                currentScrollTop: col.scrollTop,
+                forceScroll,
+                skip,
+            });
+            if (skip) return;
+            picker.wheelScrollLock = true;
+            col.scrollTo({ top: desired, behavior: 'auto' });
+            // Release the lock on the next frame — `behavior: 'auto'` is synchronous
+            // but the scroll event may still fire after layout settles.
+            window.setTimeout(() => { picker.wheelScrollLock = false; }, 50);
+        });
+    };
+
+    // Hours
+    if (is12h) {
+        const items: Array<{ value: string; label: string; selected: boolean }> = [];
+        const focusDisplay = picker.toDisplayHour(focusHour);
+        const selectedDisplay = time.hour !== null ? picker.toDisplayHour(time.hour) : null;
+        for (let h = 1; h <= 12; h++) {
+            items.push({
+                value: String(h),
+                label: String(h).padStart(2, '0'),
+                selected: selectedDisplay !== null && selectedDisplay === h,
+            });
+        }
+        renderColumn('hours', items, String(focusDisplay));
+    } else {
+        const items: Array<{ value: string; label: string; selected: boolean }> = [];
+        for (let h = 0; h < 24; h++) {
+            items.push({
+                value: String(h),
+                label: String(h).padStart(2, '0'),
+                selected: time.hour !== null && time.hour === h,
+            });
+        }
+        renderColumn('hours', items, String(focusHour));
+    }
+
+    // Minutes
+    {
+        const items: Array<{ value: string; label: string; selected: boolean }> = [];
+        const snappedFocusMinute = Math.floor(focusMinute / step) * step;
+        const selectedMinute = time.minute !== null ? Math.floor(time.minute / step) * step : null;
+        for (let m = 0; m < 60; m += step) {
+            items.push({
+                value: String(m),
+                label: String(m).padStart(2, '0'),
+                selected: selectedMinute !== null && selectedMinute === m,
+            });
+        }
+        renderColumn('minutes', items, String(snappedFocusMinute));
+    }
+
+    // Seconds (optional)
+    if (picker.options.showSeconds) {
+        const items: Array<{ value: string; label: string; selected: boolean }> = [];
+        const snappedFocusSecond = Math.floor(focusSecond / step) * step;
+        const selectedSecond = time.second !== null ? Math.floor(time.second / step) * step : null;
+        for (let s = 0; s < 60; s += step) {
+            items.push({
+                value: String(s),
+                label: String(s).padStart(2, '0'),
+                selected: selectedSecond !== null && selectedSecond === s,
+            });
+        }
+        renderColumn('seconds', items, String(snappedFocusSecond));
+    }
+
+    // AM/PM (h12 only)
+    if (is12h) {
+        const items = [
+            { value: 'am', label: picker.localeStrings.am, selected: time.ampm === 'am' },
+            { value: 'pm', label: picker.localeStrings.pm, selected: time.ampm === 'pm' },
+        ];
+        renderColumn('ampm', items, focusAmpm);
+    }
+}
+
+/**
+ * Compact pills time picker (timeDisplay: 'compact').
+ *
+ * iOS 14+ aesthetic: HH : MM [: SS] [AM/PM] with each unit a pill-shaped button
+ * that becomes contentEditable when tapped. The DOM skeleton is built once
+ * (mount step) — this renderer only updates the displayed values + selected
+ * states without rebuilding nodes, so an in-progress contentEditable session
+ * isn't blown away by a sibling field's commit triggering a re-render.
+ */
+export function renderCompactPicker(picker: any) {
+    const root = picker.calendar.querySelector('.drp__compact-picker');
+    if (!root) return;
+
+    const time = picker.selectedTime || { hour: null, minute: null, second: null, ampm: null };
+    const snapshot: Date = picker.timePickerOpenSnapshot || new Date();
+    const focusHour = time.hour !== null ? time.hour : snapshot.getHours();
+    const focusMinute = time.minute !== null ? time.minute : snapshot.getMinutes();
+    const focusSecond = time.second !== null ? time.second : snapshot.getSeconds();
+    const is12h = picker.options.hourCycle === 'h12';
+
+    const setPill = (field: 'hours' | 'minutes' | 'seconds', value: number, committed: boolean) => {
+        const pill = root.querySelector(`[data-compact-field="${field}"]`) as HTMLElement | null;
+        if (!pill) return;
+        // Don't clobber a pill the user is currently typing into.
+        if (pill.isContentEditable) return;
+        const label = String(value).padStart(2, '0');
+        if (pill.textContent !== label) pill.textContent = label;
+        pill.classList.toggle('drp__compact-pill--committed', committed);
+    };
+
+    const displayHour = is12h ? picker.toDisplayHour(focusHour) : focusHour;
+    setPill('hours', displayHour, time.hour !== null);
+    setPill('minutes', focusMinute, time.minute !== null);
+    if (picker.options.showSeconds) setPill('seconds', focusSecond, time.second !== null);
+
+    if (is12h) {
+        const effectiveAmpm = time.ampm ?? (focusHour >= 12 ? 'pm' : 'am');
+        const buttons = root.querySelectorAll('[data-compact-ampm]');
+        buttons.forEach((b) => {
+            const el = b as HTMLElement;
+            const isSel = el.dataset.compactAmpm === effectiveAmpm;
+            el.classList.toggle('drp__compact-ampm-button--selected', isSel);
+        });
     }
 }
 
 export function updateSummary(picker: any) {
     if (picker.options.selectionMode !== 'range') return;
 
-    const summary = picker.calendar.querySelector('.drp-date-picker__summary');
+    const summary = picker.calendar.querySelector('.drp__summary');
     if (!summary) return;
 
     if (picker.selectedStartDate && picker.selectedEndDate) {
@@ -1154,7 +1367,7 @@ export function updateSummary(picker: any) {
 
         const nights = days > 0 ? days - 1 : 0; // Nights = days - 1
 
-        summary.className = 'drp-date-picker__summary drp-date-picker__summary--visible';
+        summary.className = 'drp__summary drp__summary--visible';
 
         // Check if custom formatter exists
         if (picker.options.formatSummaryCallback) {
@@ -1179,13 +1392,13 @@ export function updateSummary(picker: any) {
         } else {
             // Default format
             summary.innerHTML = `
-                <span class="drp-date-picker__summary-count">${days} ${days === 1 ? picker.localeStrings.day : picker.localeStrings.days}</span>
+                <span class="drp__summary-count">${days} ${days === 1 ? picker.localeStrings.day : picker.localeStrings.days}</span>
                 <span>, </span>
-                <span class="drp-date-picker__summary-count">${nights} ${nights === 1 ? picker.localeStrings.night : picker.localeStrings.nights}</span>
+                <span class="drp__summary-count">${nights} ${nights === 1 ? picker.localeStrings.night : picker.localeStrings.nights}</span>
             `;
         }
     } else {
-        summary.className = 'drp-date-picker__summary drp-date-picker__summary--hidden';
+        summary.className = 'drp__summary drp__summary--hidden';
         summary.innerHTML = '';
     }
 }
@@ -1193,7 +1406,7 @@ export function updateSummary(picker: any) {
 export function updateSummaryWithPreview(picker: any) {
     if (picker.options.selectionMode !== 'range') return;
 
-    const summary = picker.calendar.querySelector('.drp-date-picker__summary');
+    const summary = picker.calendar.querySelector('.drp__summary');
     if (!summary) return;
 
     if (picker.dragPreviewStart && picker.dragPreviewEnd) {
@@ -1243,7 +1456,7 @@ export function updateSummaryWithPreview(picker: any) {
 
         const nights = days > 0 ? days - 1 : 0;
 
-        summary.className = 'drp-date-picker__summary drp-date-picker__summary--visible';
+        summary.className = 'drp__summary drp__summary--visible';
 
         // Check if custom formatter exists
         if (picker.options.formatSummaryCallback) {
@@ -1269,9 +1482,9 @@ export function updateSummaryWithPreview(picker: any) {
             // Default format with preview label
             summary.innerHTML = `
                 <span style="opacity: 0.7;">${picker.localeStrings.preview}: </span>
-                <span class="drp-date-picker__summary-count">${days} ${days === 1 ? picker.localeStrings.day : picker.localeStrings.days}</span>
+                <span class="drp__summary-count">${days} ${days === 1 ? picker.localeStrings.day : picker.localeStrings.days}</span>
                 <span>, </span>
-                <span class="drp-date-picker__summary-count">${nights} ${nights === 1 ? picker.localeStrings.night : picker.localeStrings.nights}</span>
+                <span class="drp__summary-count">${nights} ${nights === 1 ? picker.localeStrings.night : picker.localeStrings.nights}</span>
             `;
         }
     }
@@ -1290,11 +1503,11 @@ export function updateSummaryWithPreview(picker: any) {
  */
 export function updateHoverPreview(picker: any) {
     picker.calendar.querySelectorAll(
-        '.drp-date-picker__day--hover-preview, .drp-date-picker__day--hover-preview-invalid'
+        '.drp__day--hover-preview, .drp__day--hover-preview-invalid'
     ).forEach((day: Element) => {
         day.classList.remove(
-            'drp-date-picker__day--hover-preview',
-            'drp-date-picker__day--hover-preview-invalid'
+            'drp__day--hover-preview',
+            'drp__day--hover-preview-invalid'
         );
     });
 
@@ -1306,11 +1519,11 @@ export function updateHoverPreview(picker: any) {
     if (end < start) [start, end] = [end, start];
 
     const mode = picker.options.disabledDatesHandling;
-    let cls = 'drp-date-picker__day--hover-preview';
+    let cls = 'drp__day--hover-preview';
     let skipDisabled = false;
 
     if (mode === 'prevent' && picker.hasDisabledDatesInRange(start, end)) {
-        cls = 'drp-date-picker__day--hover-preview-invalid';
+        cls = 'drp__day--hover-preview-invalid';
     } else if (mode === 'block' && picker.hasDisabledDatesInRange(start, end)) {
         end = picker.findLastEnabledBeforeGap(start, end);
         if (end < start) return; // snap landed before start — nothing to paint
@@ -1324,7 +1537,7 @@ export function updateHoverPreview(picker: any) {
     // visually mismatched (white-on-pale). Skip it.
     const committedStartTime = picker.selectedStartDate.getTime();
 
-    const allDays = picker.calendar.querySelectorAll('.drp-date-picker__day');
+    const allDays = picker.calendar.querySelectorAll('.drp__day');
     allDays.forEach((day: Element) => {
         const dateAttr = (day as HTMLElement).dataset.date;
         if (!dateAttr) return;
@@ -1334,7 +1547,7 @@ export function updateHoverPreview(picker: any) {
 
         if (date >= start && date <= end) {
             if (date.getTime() === committedStartTime) return;
-            if (skipDisabled && day.classList.contains('drp-date-picker__day--disabled')) return;
+            if (skipDisabled && day.classList.contains('drp__day--disabled')) return;
             day.classList.add(cls);
         }
     });
@@ -1342,8 +1555,8 @@ export function updateHoverPreview(picker: any) {
 
 export function updateDragPreview(picker: any) {
     // Remove existing preview classes
-    picker.calendar.querySelectorAll('.drp-date-picker__day--drag-preview, .drp-date-picker__day--drag-invalid').forEach((day: Element) => {
-        day.classList.remove('drp-date-picker__day--drag-preview', 'drp-date-picker__day--drag-invalid');
+    picker.calendar.querySelectorAll('.drp__day--drag-preview, .drp__day--drag-invalid').forEach((day: Element) => {
+        day.classList.remove('drp__day--drag-preview', 'drp__day--drag-invalid');
     });
 
     if (!picker.dragPreviewStart || !picker.dragPreviewEnd) return;
@@ -1353,7 +1566,7 @@ export function updateDragPreview(picker: any) {
     const hasDisabledInRange = isBlockMode && picker.hasDisabledDatesInRange(picker.dragPreviewStart, picker.dragPreviewEnd);
 
     // Add preview classes to days in the preview range (including other-month days)
-    const allDays = picker.calendar.querySelectorAll('.drp-date-picker__day');
+    const allDays = picker.calendar.querySelectorAll('.drp__day');
     allDays.forEach((day: Element) => {
         const dateAttr = (day as HTMLElement).dataset.date;
         if (!dateAttr) return;
@@ -1362,9 +1575,9 @@ export function updateDragPreview(picker: any) {
         const date = new Date(year, month - 1, dayNum); // month is 1-based in data-date, but Date constructor expects 0-based
 
         if (date >= picker.dragPreviewStart! && date <= picker.dragPreviewEnd!) {
-            day.classList.add('drp-date-picker__day--drag-preview');
+            day.classList.add('drp__day--drag-preview');
             if (hasDisabledInRange) {
-                day.classList.add('drp-date-picker__day--drag-invalid');
+                day.classList.add('drp__day--drag-invalid');
             }
         }
     });

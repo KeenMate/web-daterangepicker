@@ -9,7 +9,7 @@
     /* Page-specific styles only - common styles moved to examples-shared.css */
 
     /* Custom input styles for date picker */
-    .drp-input {
+    .drp__input {
       width: 100%;
       padding: 0.5rem 0.75rem;
       border: 1px solid #d1d5db;
@@ -18,13 +18,13 @@
       transition: border-color 150ms;
     }
 
-    .drp-input:focus {
+    .drp__input:focus {
       outline: none;
       border-color: #3b82f6;
       box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
     }
 
-    .drp-input:disabled {
+    .drp__input:disabled {
       background: #f3f4f6;
       cursor: not-allowed;
     }
@@ -1412,7 +1412,7 @@ picker.addEventListener('date-select', (e) => {
 
   <style>
     /* Custom styling for booked dates in cottage demo */
-    .drp-date-picker__day.booked {
+    .drp__day.booked {
       background-color: rgba(239, 68, 68, 0.15);
       text-decoration: line-through;
     }

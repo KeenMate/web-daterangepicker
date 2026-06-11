@@ -108,7 +108,7 @@
     <!-- 3. Modal width tiers -->
     <div class="card">
       <h2>3. Modal Width Tiers</h2>
-      <p>The modal's outer width adapts to viewport size, picking from four CSS variables. Breakpoints align with the rest of the codebase (480 / 768 / 1200, same as <code>_base.css</code> and the Responsive Sizing demo's <code>--drp-rem</code> scaling).</p>
+      <p>The modal's outer width adapts to viewport size, picking from four CSS variables. Breakpoints align with the rest of the codebase (480 / 768 / 1200, same as <code>base.css</code> and the Responsive Sizing demo's <code>--drp-rem</code> scaling).</p>
 
       <table class="tier-table">
         <thead>
@@ -147,7 +147,7 @@
         </tbody>
       </table>
 
-      <p>Override per-instance via the host element. The breakpoints themselves are hardcoded in <code>_modal.css</code> because CSS media queries cannot read CSS variables — only the widths inside each rule are variable-driven.</p>
+      <p>Override per-instance via the host element. The breakpoints themselves are hardcoded in <code>modal.css</code> because CSS media queries cannot read CSS variables — only the widths inside each rule are variable-driven.</p>
 
       <div class="code-block"><code><span class="comment">/* Custom widths per tier */</span>
 <span class="selector">web-daterangepicker</span> {

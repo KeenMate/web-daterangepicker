@@ -7,11 +7,11 @@
    (computed in JS from angle + radius); the hand is a vertical bar transformed
    with `rotate()` around the dial center.
 
-   Layout parents (`.drp-date-picker--time`, `.drp-date-picker__main`) are
-   defined in _time-picker.css and apply to the clock picker the same way they
+   Layout parents (`.drp__picker--time`, `.drp__main`) are
+   defined in time-picker.css and apply to the clock picker the same way they
    apply to the rolls — both share the `:not(--inline)` wrapper rules. */
 
-.drp-date-picker__clock-picker {
+.drp__clock-picker {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -24,20 +24,20 @@
 /* Time-only mode: clock-picker is the direct flex-column child of the popover
    (no __main wrapper). Mirror the padding-inline allowance that __main/__months
    would otherwise provide so focus outlines on the AM/PM buttons aren't clipped. */
-.drp-date-picker--time:not(.drp-date-picker--inline) > .drp-date-picker__clock-picker {
+.drp__picker--time:not(.drp__picker--inline) > .drp__clock-picker {
   padding-inline: 4px;
 }
 
 /* ---- Header: HH : MM big digits ---- */
 
-.drp-date-picker__clock-header {
+.drp__clock-header {
   display: flex;
   align-items: baseline;
   gap: var(--drp-spacing-xs);
   font-variant-numeric: tabular-nums; /* digits keep equal width when switching values */
 }
 
-.drp-date-picker__clock-header-digit {
+.drp__clock-header-digit {
   font-size: var(--drp-clock-header-digit-font-size);
   font-weight: var(--drp-font-weight-semibold);
   color: var(--drp-clock-header-digit-color);
@@ -52,16 +52,16 @@
   transition: color 120ms ease, border-color 120ms ease;
 }
 
-.drp-date-picker__clock-header-digit:hover {
+.drp__clock-header-digit:hover {
   color: var(--drp-clock-header-digit-color-active);
 }
 
-.drp-date-picker__clock-header-digit--active {
+.drp__clock-header-digit--active {
   color: var(--drp-clock-header-digit-color-active);
   border-bottom-color: var(--drp-clock-header-digit-color-active);
 }
 
-.drp-date-picker__clock-header-sep {
+.drp__clock-header-sep {
   font-size: var(--drp-clock-header-digit-font-size);
   font-weight: var(--drp-font-weight-semibold);
   color: var(--drp-clock-header-sep-color);
@@ -71,7 +71,7 @@
 /* Passive AM/PM indicator next to the HH:MM digits (h12 only). The toggle
    buttons below the dial are still the click target — this just makes the
    current half legible from the header alone. */
-.drp-date-picker__clock-header-ampm {
+.drp__clock-header-ampm {
   margin-left: var(--drp-spacing-xs);
   font-size: var(--drp-font-size-base);
   font-weight: var(--drp-font-weight-semibold);
@@ -87,7 +87,7 @@
    layout) doesn't clip the dial. aspect-ratio keeps the face square as the
    container forces a width smaller than --drp-clock-size. Every dial dimension
    inside is a percentage of the face, so the whole thing shrinks coherently. */
-.drp-date-picker__clock-face {
+.drp__clock-face {
   position: relative;
   width: min(var(--drp-clock-size), 100%);
   aspect-ratio: 1;
@@ -96,7 +96,7 @@
 
 /* Circular background filling the square. ::before so the .clock-face element
    itself stays the click/positioning surface for the absolute children. */
-.drp-date-picker__clock-face::before {
+.drp__clock-face::before {
   content: '';
   position: absolute;
   inset: 0;
@@ -106,7 +106,7 @@
 
 /* Number buttons. Inline `style="left: X%; top: Y%"` set by the renderer; the
    translate(-50%, -50%) centers the round button on the computed point. */
-.drp-date-picker__clock-number {
+.drp__clock-number {
   position: absolute;
   width: var(--drp-clock-number-size);
   height: var(--drp-clock-number-size);
@@ -130,20 +130,20 @@
   transition: background-color 120ms ease, color 120ms ease;
 }
 
-.drp-date-picker__clock-number--inner {
+.drp__clock-number--inner {
   width: var(--drp-clock-number-size-inner);
   height: var(--drp-clock-number-size-inner);
   font-size: calc(var(--drp-clock-number-font-size) * 0.85);
 }
 
-.drp-date-picker__clock-number:hover {
+.drp__clock-number:hover {
   background: var(--drp-clock-number-bg-hover);
 }
 
 /* Selected = rim (inset box-shadow, so the button's size and the number's
    position don't shift compared to its unselected sibling). The hover-preview
    fill still applies on top when the user hovers the selected value. */
-.drp-date-picker__clock-number--selected {
+.drp__clock-number--selected {
   box-shadow: inset 0 0 0 var(--drp-clock-number-rim-width) var(--drp-clock-number-rim-color);
 }
 
@@ -155,7 +155,7 @@
    (--outer / --inner / --minute) instead of a chained inline custom property,
    because var()-inside-var() through an inline-set property is unreliable
    across browsers and was producing the wrong height at non-default --drp-rem. */
-.drp-date-picker__clock-hand {
+.drp__clock-hand {
   position: absolute;
   left: 50%;
   bottom: 50%;
@@ -172,13 +172,13 @@
    before the selected number instead of running through its center. The tip
    then sits at the line's far end, butting up against (but not overlapping)
    the number — keeps the value legible and the hand visually distinct. */
-.drp-date-picker__clock-hand--outer  { height: calc(var(--drp-clock-radius-outer)  - var(--drp-clock-number-size) / 2); }
-.drp-date-picker__clock-hand--inner  { height: calc(var(--drp-clock-radius-inner)  - var(--drp-clock-number-size-inner) / 2); }
-.drp-date-picker__clock-hand--minute { height: calc(var(--drp-clock-radius-minute) - var(--drp-clock-number-size) / 2); }
+.drp__clock-hand--outer  { height: calc(var(--drp-clock-radius-outer)  - var(--drp-clock-number-size) / 2); }
+.drp__clock-hand--inner  { height: calc(var(--drp-clock-radius-inner)  - var(--drp-clock-number-size-inner) / 2); }
+.drp__clock-hand--minute { height: calc(var(--drp-clock-radius-minute) - var(--drp-clock-number-size) / 2); }
 
 /* Center pivot dot. Placed on the face itself (not the hand) so it doesn't
    rotate with it. */
-.drp-date-picker__clock-face::after {
+.drp__clock-face::after {
   content: '';
   position: absolute;
   left: 50%;
@@ -193,12 +193,12 @@
 
 /* ---- AM/PM toggle (h12 only) ---- */
 
-.drp-date-picker__clock-ampm {
+.drp__clock-ampm {
   display: flex;
   gap: var(--drp-spacing-xs);
 }
 
-.drp-date-picker__clock-ampm-button {
+.drp__clock-ampm-button {
   padding: var(--drp-rolling-item-padding-v) var(--drp-rolling-item-padding-h);
   border: var(--drp-rolling-border);
   border-radius: var(--drp-border-radius-lg);
@@ -211,12 +211,12 @@
   transition: background-color 120ms ease, color 120ms ease;
 }
 
-.drp-date-picker__clock-ampm-button:hover {
+.drp__clock-ampm-button:hover {
   background: var(--drp-rolling-item-bg-hover);
 }
 
-.drp-date-picker__clock-ampm-button--selected,
-.drp-date-picker__clock-ampm-button--selected:hover {
+.drp__clock-ampm-button--selected,
+.drp__clock-ampm-button--selected:hover {
   background: var(--drp-clock-ampm-bg-selected);
   color: var(--drp-clock-ampm-color-selected);
 }

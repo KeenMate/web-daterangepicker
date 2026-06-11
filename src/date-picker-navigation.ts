@@ -583,26 +583,26 @@ export function findNextEnabledDayIndex(picker: any, startIndex: number, offset:
 export function moveFocus(picker: any, offset: number) {
     // Only get days from the active month column
     navigationLogger.debug(`moveFocus(${offset}) Col${picker.activeMonthIndex} - focusedDayIndex:`, picker.focusedDayIndex);
-    const daysContainer = picker.calendar.querySelector(`.drp-date-picker__days[data-month-index="${picker.activeMonthIndex}"]`);
+    const daysContainer = picker.calendar.querySelector(`.drp__days[data-month-index="${picker.activeMonthIndex}"]`);
     if (!daysContainer) {
         navigationLogger.debug(`moveFocus() Col${picker.activeMonthIndex} - ERROR: daysContainer not found!`);
         return;
     }
 
-    const days = daysContainer.querySelectorAll('.drp-date-picker__day:not(.drp-date-picker__day--other-month)');
+    const days = daysContainer.querySelectorAll('.drp__day:not(.drp__day--other-month)');
     navigationLogger.debug(`moveFocus() Col${picker.activeMonthIndex} - found ${days.length} days in column`);
     if (days.length === 0) return;
 
     // Initialize focus if not set
     if (picker.focusedDayIndex === null) {
         // Find today's day in the calendar as the starting point
-        const todayIndex = Array.from(days).findIndex(day => (day as Element).classList.contains('drp-date-picker__day--today'));
+        const todayIndex = Array.from(days).findIndex(day => (day as Element).classList.contains('drp__day--today'));
         picker.focusedDayIndex = todayIndex !== -1 ? todayIndex : 0;
         navigationLogger.debug(`moveFocus() Col${picker.activeMonthIndex} - initialized focusedDayIndex to ${picker.focusedDayIndex} (today or first day), will move by offset ${offset}`);
     }
 
     // Remove old focus (if any)
-    days[picker.focusedDayIndex]?.classList.remove('drp-date-picker__day--focused');
+    days[picker.focusedDayIndex]?.classList.remove('drp__day--focused');
 
     // Calculate new index
     const newIndex = picker.focusedDayIndex + offset;
@@ -617,15 +617,15 @@ export function moveFocus(picker: any, offset: number) {
             navigationLogger.debug(`moveFocus() Col${savedMonthIndex} - edge navigation LEFT: going to last enabled day of prev month`);
             prevMonth(picker, picker.activeMonthIndex);
             setTimeout(() => {
-                const newContainer = picker.calendar.querySelector(`.drp-date-picker__month[data-month-index="${savedMonthIndex}"] .drp-date-picker__days`);
+                const newContainer = picker.calendar.querySelector(`.drp__month[data-month-index="${savedMonthIndex}"] .drp__days`);
                 if (!newContainer) return;
-                const newDays = newContainer.querySelectorAll('.drp-date-picker__day:not(.drp-date-picker__day--other-month)');
+                const newDays = newContainer.querySelectorAll('.drp__day:not(.drp__day--other-month)');
 
                 // Find last enabled day
                 const result = findNextEnabledDayIndex(picker, newDays.length - 1, -1, newDays, savedMonthIndex);
                 if (result.index !== null) {
                     picker.focusedDayIndex = result.index;
-                    newDays[picker.focusedDayIndex]?.classList.add('drp-date-picker__day--focused');
+                    newDays[picker.focusedDayIndex]?.classList.add('drp__day--focused');
                     newDays[picker.focusedDayIndex]?.scrollIntoView({ block: 'nearest' });
                 }
             }, 0);
@@ -641,9 +641,9 @@ export function moveFocus(picker: any, offset: number) {
                 navigationLogger.debug(`moveFocus() Col${savedMonthIndex} - edge navigation UP: current day ${day} is weekday ${targetWeekday}, going to prev month`);
                 prevMonth(picker, picker.activeMonthIndex);
                 setTimeout(() => {
-                    const newContainer = picker.calendar.querySelector(`.drp-date-picker__month[data-month-index="${savedMonthIndex}"] .drp-date-picker__days`);
+                    const newContainer = picker.calendar.querySelector(`.drp__month[data-month-index="${savedMonthIndex}"] .drp__days`);
                     if (!newContainer) return;
-                    const newDays = newContainer.querySelectorAll('.drp-date-picker__day:not(.drp-date-picker__day--other-month)');
+                    const newDays = newContainer.querySelectorAll('.drp__day:not(.drp__day--other-month)');
 
                     const lastDayElement = newDays[newDays.length - 1] as HTMLElement;
                     const lastDateAttr = lastDayElement.dataset.date;
@@ -655,7 +655,7 @@ export function moveFocus(picker: any, offset: number) {
                         picker.focusedDayIndex = newDays.length - 1 - offsetDays;
 
                         navigationLogger.debug(`moveFocus() Col${savedMonthIndex} - last day weekday ${lastWeekday}, target ${targetWeekday}, focusing on day ${picker.focusedDayIndex+1}`);
-                        newDays[picker.focusedDayIndex]?.classList.add('drp-date-picker__day--focused');
+                        newDays[picker.focusedDayIndex]?.classList.add('drp__day--focused');
                         newDays[picker.focusedDayIndex]?.scrollIntoView({ block: 'nearest' });
                     }
                 }, 0);
@@ -671,15 +671,15 @@ export function moveFocus(picker: any, offset: number) {
             navigationLogger.debug(`moveFocus() Col${savedMonthIndex} - edge navigation RIGHT: going to first enabled day of next month`);
             nextMonth(picker, picker.activeMonthIndex);
             setTimeout(() => {
-                const newContainer = picker.calendar.querySelector(`.drp-date-picker__month[data-month-index="${savedMonthIndex}"] .drp-date-picker__days`);
+                const newContainer = picker.calendar.querySelector(`.drp__month[data-month-index="${savedMonthIndex}"] .drp__days`);
                 if (!newContainer) return;
-                const newDays = newContainer.querySelectorAll('.drp-date-picker__day:not(.drp-date-picker__day--other-month)');
+                const newDays = newContainer.querySelectorAll('.drp__day:not(.drp__day--other-month)');
 
                 // Find first enabled day
                 const result = findNextEnabledDayIndex(picker, 0, 1, newDays, savedMonthIndex);
                 if (result.index !== null) {
                     picker.focusedDayIndex = result.index;
-                    newDays[picker.focusedDayIndex]?.classList.add('drp-date-picker__day--focused');
+                    newDays[picker.focusedDayIndex]?.classList.add('drp__day--focused');
                     newDays[picker.focusedDayIndex]?.scrollIntoView({ block: 'nearest' });
                 }
             }, 0);
@@ -695,9 +695,9 @@ export function moveFocus(picker: any, offset: number) {
                 navigationLogger.debug(`moveFocus() Col${savedMonthIndex} - edge navigation DOWN: current day ${day} is weekday ${targetWeekday}, going to next month`);
                 nextMonth(picker, picker.activeMonthIndex);
                 setTimeout(() => {
-                    const newContainer = picker.calendar.querySelector(`.drp-date-picker__month[data-month-index="${savedMonthIndex}"] .drp-date-picker__days`);
+                    const newContainer = picker.calendar.querySelector(`.drp__month[data-month-index="${savedMonthIndex}"] .drp__days`);
                     if (!newContainer) return;
-                    const newDays = newContainer.querySelectorAll('.drp-date-picker__day:not(.drp-date-picker__day--other-month)');
+                    const newDays = newContainer.querySelectorAll('.drp__day:not(.drp__day--other-month)');
 
                     const firstDayElement = newDays[0] as HTMLElement;
                     const firstDateAttr = firstDayElement.dataset.date;
@@ -709,7 +709,7 @@ export function moveFocus(picker: any, offset: number) {
                         picker.focusedDayIndex = offsetDays;
 
                         navigationLogger.debug(`moveFocus() Col${savedMonthIndex} - first day weekday ${firstWeekday}, target ${targetWeekday}, focusing on day ${picker.focusedDayIndex+1}`);
-                        newDays[picker.focusedDayIndex]?.classList.add('drp-date-picker__day--focused');
+                        newDays[picker.focusedDayIndex]?.classList.add('drp__day--focused');
                         newDays[picker.focusedDayIndex]?.scrollIntoView({ block: 'nearest' });
                     }
                 }, 0);
@@ -732,9 +732,9 @@ export function moveFocus(picker: any, offset: number) {
         }
 
         setTimeout(() => {
-            const newContainer = picker.calendar.querySelector(`.drp-date-picker__month[data-month-index="${savedMonthIndex}"] .drp-date-picker__days`);
+            const newContainer = picker.calendar.querySelector(`.drp__month[data-month-index="${savedMonthIndex}"] .drp__days`);
             if (!newContainer) return;
-            const newDays = newContainer.querySelectorAll('.drp-date-picker__day:not(.drp-date-picker__day--other-month)');
+            const newDays = newContainer.querySelectorAll('.drp__day:not(.drp__day--other-month)');
 
             // Find first/last enabled day in new month
             const searchResult = findNextEnabledDayIndex(
@@ -747,7 +747,7 @@ export function moveFocus(picker: any, offset: number) {
 
             if (searchResult.index !== null) {
                 picker.focusedDayIndex = searchResult.index;
-                newDays[picker.focusedDayIndex]?.classList.add('drp-date-picker__day--focused');
+                newDays[picker.focusedDayIndex]?.classList.add('drp__day--focused');
                 newDays[picker.focusedDayIndex]?.scrollIntoView({ block: 'nearest' });
             }
         }, 0);
@@ -756,12 +756,12 @@ export function moveFocus(picker: any, offset: number) {
 
     if (result.index !== null) {
         picker.focusedDayIndex = result.index;
-        days[picker.focusedDayIndex]?.classList.add('drp-date-picker__day--focused');
+        days[picker.focusedDayIndex]?.classList.add('drp__day--focused');
         days[picker.focusedDayIndex]?.scrollIntoView({ block: 'nearest' });
     } else {
         // No enabled day found, don't move
         navigationLogger.debug('moveFocus() - no enabled day found in search range');
-        days[picker.focusedDayIndex]?.classList.add('drp-date-picker__day--focused');
+        days[picker.focusedDayIndex]?.classList.add('drp__day--focused');
     }
 }
 
