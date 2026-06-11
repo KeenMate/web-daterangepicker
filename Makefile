@@ -1,4 +1,4 @@
-.PHONY: help setup dev build package publish publish-dry clean test test-e2e test-e2e-ui test-e2e-headed test-e2e-install lint
+.PHONY: help setup dev build package publish publish-rc publish-dry clean test test-e2e test-e2e-ui test-e2e-headed test-e2e-install lint
 
 # Use bash-compatible commands for Git Bash on Windows
 SHELL := /bin/bash
@@ -31,13 +31,22 @@ publish-dry: build ## Publish to npm (dry run)
 	npm publish --dry-run
 	@echo "Dry-run complete - Review the output above"
 
-publish: clean-dist build ## Publish to npm
-	@echo "WARNING: This will publish to npm registry"
+publish: clean-dist build ## Publish to npm (latest tag)
+	@echo "WARNING: This will publish to npm registry as 'latest'"
 	@echo "Press Enter to continue (Ctrl+C to cancel)..."
 	@read -r
 	@echo "Publishing to npm..."
 	npm publish
 	@echo "Published successfully"
+
+publish-rc: clean-dist build ## Publish to npm under the 'rc' dist-tag (keeps 'latest' untouched)
+	@echo "WARNING: This will publish to npm registry under the 'rc' dist-tag"
+	@echo "(consumers running 'npm install' will NOT pick this up; they opt in via @rc)"
+	@echo "Press Enter to continue (Ctrl+C to cancel)..."
+	@read -r
+	@echo "Publishing to npm with --tag rc..."
+	npm publish --tag rc
+	@echo "Published successfully under the 'rc' dist-tag"
 
 clean: ## Clean build artifacts and node_modules
 	@echo "Cleaning build artifacts..."

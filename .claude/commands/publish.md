@@ -181,9 +181,9 @@ Report back with:
   - For `rc` (publishing a pre-release):
     ```
     npm login          # if not already logged in
-    npm publish --tag rc
+    make publish-rc    # or: npm publish --tag rc
     ```
-    The `--tag rc` is critical — without it npm assigns the `latest` dist-tag, which would make the pre-release the default install for everyone running `npm install @keenmate/web-daterangepicker`. With `--tag rc`, the `latest` tag stays put and consumers opt in via `@rc` or pinning the exact version.
+    `make publish-rc` is the canonical command — it rebuilds (clean → vite → tsc), prompts for confirmation, then runs `npm publish --tag rc`. The `--tag rc` is critical — without it npm assigns the `latest` dist-tag, which would make the pre-release the default install for everyone running `npm install @keenmate/web-daterangepicker`. With `--tag rc`, the `latest` tag stays put and consumers opt in via `@rc` or pinning the exact version.
   - For `release` / `patch` / `minor` / `major` (publishing a stable release):
     ```
     npm login          # if not already logged in

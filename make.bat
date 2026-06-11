@@ -12,6 +12,7 @@ if "%1"=="build" goto :build
 if "%1"=="package" goto :package
 if "%1"=="publish-dry" goto :publish-dry
 if "%1"=="publish" goto :publish
+if "%1"=="publish-rc" goto :publish-rc
 if "%1"=="clean" goto :clean
 if "%1"=="clean-dist" goto :clean-dist
 if "%1"=="preview" goto :preview
@@ -31,7 +32,8 @@ echo   dev           - Start development server
 echo   build         - Build for production
 echo   package       - Create npm package
 echo   publish-dry   - Publish dry-run
-echo   publish       - Publish to npm
+echo   publish       - Publish to npm (latest tag)
+echo   publish-rc    - Publish to npm under the 'rc' dist-tag
 echo   clean         - Clean all build artifacts
 echo   clean-dist    - Clean only dist folder
 echo   preview       - Preview production build
@@ -77,11 +79,20 @@ echo Dry-run complete!
 goto :end
 
 :publish
-echo WARNING: This will publish to npm registry!
+echo WARNING: This will publish to npm registry as 'latest'!
 set /p confirm="Press Enter to continue or Ctrl+C to cancel..."
 echo Publishing to npm...
 call npm publish
 echo Published successfully!
+goto :end
+
+:publish-rc
+echo WARNING: This will publish to npm registry under the 'rc' dist-tag!
+echo (consumers running 'npm install' will NOT pick this up; they opt in via @rc)
+set /p confirm="Press Enter to continue or Ctrl+C to cancel..."
+echo Publishing to npm with --tag rc...
+call npm publish --tag rc
+echo Published successfully under the 'rc' dist-tag!
 goto :end
 
 :clean
