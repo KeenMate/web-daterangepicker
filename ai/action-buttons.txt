@@ -16,17 +16,17 @@ Control visibility:
 <!-- Web Component -->
 <web-daterangepicker
   selection-mode="range"
-  show-today-button="true"
-  show-clear-button="true"
-  show-apply-button="true">
+  is-today-button-shown="true"
+  is-clear-button-shown="true"
+  is-apply-button-shown="true">
 </web-daterangepicker>
 
 // JavaScript API
 const picker = new DateRangePicker(input, {
   selectionMode: 'range',
-  showTodayButton: true,
-  showClearButton: true,
-  showApplyButton: true
+  isTodayButtonShown: true,
+  isClearButtonShown: true,
+  isApplyButtonShown: true
 });
 
 AUTO-CLOSE CONTROL

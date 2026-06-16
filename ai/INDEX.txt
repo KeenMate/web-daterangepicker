@@ -77,7 +77,7 @@ ACTION BUTTONS
 --------------
 custom buttons, preset buttons → action-buttons.txt
 today button, clear button, apply button → action-buttons.txt
-show-today-button, show-clear-button, show-apply-button → action-buttons.txt
+is-today-button-shown, is-clear-button-shown, is-apply-button-shown → action-buttons.txt
 actionButtons property → action-buttons.txt
 button visibility, conditional buttons → action-buttons.txt
 disabled buttons, button state → action-buttons.txt
@@ -187,9 +187,9 @@ disabled-dates-handling → disabled-dates-handling.txt
 date-format-mask → basic-usage.txt
 positioning-mode → basic-usage.txt
 calendar-placement → basic-usage.txt
-show-today-button → action-buttons.txt
-show-clear-button → action-buttons.txt
-show-apply-button → action-buttons.txt
+is-today-button-shown → action-buttons.txt
+is-clear-button-shown → action-buttons.txt
+is-apply-button-shown → action-buttons.txt
 auto-close → action-buttons.txt
 locale → basic-usage.txt
 input-size → basic-usage.txt

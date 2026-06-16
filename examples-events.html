@@ -563,9 +563,9 @@ picker.addEventListener('custom-action', (e) => {
           month-layout="grid"
           grid-rows="2"
           grid-columns="3"
-          unified-navigation="true"
+          is-unified-navigation-enabled="true"
           unified-navigation-anchor-index="2"
-          unified-header-interactive="true">
+          is-unified-header-interactive="true">
         </web-daterangepicker>
         <small>Anchor month at index 2 (top-right). Navigation loads all 6 months at once. Try navigating beyond ±3 months to see blocking.</small>
         <div id="log-unified-grid" class="event-log" style="max-height: 200px;">
@@ -633,7 +633,7 @@ picker.addEventListener('custom-action', (e) => {
           id="header-grid"
           selection-mode="range"
           visible-months-count="3"
-          unified-navigation="true"
+          is-unified-navigation-enabled="true"
         ></web-daterangepicker>
         <small>Headers show occupancy rates with icons</small>
         <div id="log-header-grid" class="event-log" style="max-height: 150px;">

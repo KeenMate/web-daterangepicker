@@ -233,7 +233,7 @@
   background-color: var(--drp-unified-range-bg-active);
 }
 
-/* Non-interactive state (when unifiedHeaderInteractive is false) */
+/* Non-interactive state (when isUnifiedHeaderInteractive is false) */
 .drp__unified-range--static {
   cursor: default !important;
 }

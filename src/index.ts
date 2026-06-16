@@ -14,7 +14,7 @@ export { WebDaterangepickerElement } from './web-component';
 export { DateRangePicker } from './date-picker';
 
 // Export types
-export type { DatePickerOptions, DateRange, FormatInfo, MonthDisplay, DatePickerEventDetail } from './types';
+export type { DatePickerOptions, DateRange, FormatOptions, MonthDisplay, DatePickerEventDetail } from './types';
 
 // ==============================================================================
 // GLOBAL API INTERFACE

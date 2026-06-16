@@ -89,12 +89,12 @@ export interface BeforeMonthChangeResult {
   /**
    * Bulk metadata for all dates in the visible range
    * Key: YYYY-MM-DD string
-   * Value: DateInfo with styling/disabled state
+   * Value: DayMetadata with styling/disabled state
    *
    * When provided, these values are cached and used instead of calling
    * getDateMetadataCallback for individual dates during rendering
    */
-  metadata?: Map<string, DateInfo>;
+  metadata?: Map<string, DayMetadata>;
 
   /**
    * Custom header text for each month
@@ -176,9 +176,9 @@ export interface DatePickerOptions {
   /** 'h24' for 0-23, 'h12' for 1-12 + AM/PM roll. Default: derived from timeFormatMask (h12 if `a` token present, else h24). */
   hourCycle?: 'h12' | 'h24';
   /** Show a third roll for seconds. Default: derived from timeFormatMask (true if `s` token present). */
-  showSeconds?: boolean;
-  /** Show a "Now" button in time/datetime modes (parallel to showTodayButton). Default: true. Ignored in date mode. */
-  showNowButton?: boolean;
+  isSecondsShown?: boolean;
+  /** Show a "Now" button in time/datetime modes (parallel to isTodayButtonShown). Default: true. Ignored in date mode. */
+  isNowButtonShown?: boolean;
   /**
    * Which UI to use for picking the time portion (time/datetime modes):
    * - 'rolls' (default): scrollable rolling lists for hours/minutes/seconds/AM-PM (v1.14 default).
@@ -219,16 +219,16 @@ export interface DatePickerOptions {
    * - false: Keep open on scroll
    *
    * Note: Even when true, scroll won't close if:
-   * - Apply button is required (showApplyButton: true)
+   * - Apply button is required (isApplyButtonShown: true)
    * - A message is currently visible (validation error, etc.)
    */
-  closeOnScroll?: boolean;
+  shouldCloseOnScroll?: boolean;
 
   // Calendar layout
   monthLayout?: 'horizontal' | 'grid'; // Layout mode: 'horizontal' = flex row (default), 'grid' = CSS grid
   gridRows?: number; // Number of rows for grid layout (e.g., 2 for 2x3 grid)
   gridColumns?: number; // Number of columns for grid layout (e.g., 3 for 2x3 grid)
-  unifiedNavigation?: boolean; // When true, shows single navigation header above all months (for multi-month calendars). Individual month headers show only month/year text without nav buttons. Default: false
+  isUnifiedNavigationEnabled?: boolean; // When true, shows single navigation header above all months (for multi-month calendars). Individual month headers show only month/year text without nav buttons. Default: false
   /**
    * Which month column serves as the anchor for unified navigation (0-based index)
    * Default: 0 (first month)
@@ -236,16 +236,16 @@ export interface DatePickerOptions {
    * Example: For a 3×3 grid (9 months), set to 4 to use the center month as anchor
    * When navigating, the anchor month moves and all other months are calculated relative to it
    *
-   * Only applies when unifiedNavigation is true
+   * Only applies when isUnifiedNavigationEnabled is true
    */
   unifiedNavigationAnchorIndex?: number;
   /**
    * When true, clicking the unified header range display shows month/year selector
    * Default: false (header is static text only)
    *
-   * Only applies when unifiedNavigation is true
+   * Only applies when isUnifiedNavigationEnabled is true
    */
-  unifiedHeaderInteractive?: boolean;
+  isUnifiedHeaderInteractive?: boolean;
 
   // Week start configuration
   weekStartDay?: 'auto' | 0 | 1 | 2 | 3 | 4 | 5 | 6; // 'auto' = detect from locale, 0 = Sunday, 1 = Monday, etc.
@@ -267,8 +267,8 @@ export interface DatePickerOptions {
   specialDates?: DecoratedDate[];
 
   // Property mapping for specialDates array items
-  // Specify which properties in your data objects map to DateInfo fields
-  // If not specified, defaults to DateInfo property names
+  // Specify which properties in your data objects map to DayMetadata fields
+  // If not specified, defaults to DayMetadata property names
   dateMember?: string;              // Property containing the date value (default: 'date')
   badgeTextMember?: string;         // Property containing badge text (default: 'badgeText')
   badgeClassMember?: string;        // Property containing badge CSS class (default: 'badgeClass')
@@ -278,7 +278,7 @@ export interface DatePickerOptions {
   isDisabledMember?: string;        // Property containing disabled flag (default: 'isDisabled')
 
   // Advanced callbacks
-  getDateMetadataCallback?: (date: Date) => DateInfo | null; // Custom styling/labels
+  getDateMetadataCallback?: (date: Date) => DayMetadata | null; // Custom styling/labels
 
   // Custom rendering
   customStylesCallback?: () => string; // Return CSS string to inject into Shadow DOM for use with renderDayCallback classes
@@ -301,8 +301,8 @@ export interface DatePickerOptions {
   renderDayContentCallback?: (data: DayRenderData) => HTMLElement | string | null;
 
   // Tooltips (HTML support)
-  badgeTooltipCallback?: (data: DayRenderData) => string | null; // Return HTML string for badge hover tooltip (overrides DateInfo.badgeTooltip)
-  dayTooltipCallback?: (data: DayRenderData) => string | null; // Return HTML string for day cell hover tooltip (overrides DateInfo.dayTooltip)
+  badgeTooltipCallback?: (data: DayRenderData) => string | null; // Return HTML string for badge hover tooltip (overrides DayMetadata.badgeTooltip)
+  dayTooltipCallback?: (data: DayRenderData) => string | null; // Return HTML string for day cell hover tooltip (overrides DayMetadata.dayTooltip)
 
   // Range selection behavior over disabled dates
   disabledDatesHandling?: 'allow' | 'prevent' | 'block' | 'split' | 'individual';
@@ -313,23 +313,23 @@ export interface DatePickerOptions {
   // - 'individual': Return flat array of enabled dates (event formatting only)
 
   // Visual highlighting of disabled dates in selected range
-  highlightDisabledInRange?: boolean; // Default: true. Set to false to only highlight enabled dates in range.
+  shouldHighlightDisabledInRange?: boolean; // Default: true. Set to false to only highlight enabled dates in range.
 
   // Action button configuration
   /** Array of custom action buttons to display. If not provided, uses default buttons based on selectionMode */
   actionButtons?: ActionButton[];
 
   /** Show Today button (default: true) */
-  showTodayButton?: boolean;
+  isTodayButtonShown?: boolean;
 
   /** Show Clear button (default: true) */
-  showClearButton?: boolean;
+  isClearButtonShown?: boolean;
 
   /** Show Apply button (default: true for range/multiple modes, false for single mode) */
-  showApplyButton?: boolean;
+  isApplyButtonShown?: boolean;
 
   /** Show selection summary (range mode only — days/nights count). Default: true. Set to false to omit the summary block entirely. */
-  showSummary?: boolean;
+  isSummaryShown?: boolean;
 
   // Internationalization
   locale?: string | 'auto'; // Locale for UI strings and date formatting ('auto' = detect from browser, 'en', 'de', 'fr', 'es', etc.)
@@ -343,7 +343,7 @@ export interface DatePickerOptions {
    * SECURITY: Return value is spliced into innerHTML without escaping. Callers are responsible
    * for sanitizing any user-controlled data in the returned string.
    */
-  formatSummaryCallback?: (data: SummaryCallbackData) => string;
+  formatSummaryCallback?: (data: SummaryDetail) => string;
 
   /**
    * Callback to customize unified header range display text
@@ -505,7 +505,7 @@ export interface DateRange {
   end: Date;
 }
 
-export interface FormatInfo {
+export interface FormatOptions {
   format: string;
   separator: string;
   parts: {
@@ -532,10 +532,10 @@ export interface SelectedTime {
 }
 
 /**
- * Parsed time format mask, parallel to FormatInfo for the date side.
+ * Parsed time format mask, parallel to FormatOptions for the date side.
  * Used by time/datetime modes. Tokens recognised: HH/H (24h), hh/h (12h), mm/m, ss/s, a (am/pm).
  */
-export interface TimeFormatInfo {
+export interface TimeFormatOptions {
   format: string;
   separator: string;
   parts: {
@@ -577,7 +577,7 @@ export interface DatePickerEventDetail {
 // Users can pass their own data structures and use *Member properties to map fields
 export type DecoratedDate = Record<string, any>;
 
-export interface DateInfo {
+export interface DayMetadata {
   isDisabled?: boolean;      // Override disabled state for this date
   badgeClass?: string;       // CSS class applied to badge cell
   dayClass?: string;         // CSS class applied to day cell
@@ -586,7 +586,7 @@ export interface DateInfo {
   dayTooltip?: string;       // Plain text hover tooltip for day cell
 }
 
-export interface SummaryCallbackData {
+export interface SummaryDetail {
   // Basic counts
   days: number;           // Total days selected
   nights: number;         // Total nights (days - 1)

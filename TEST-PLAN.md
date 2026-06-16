@@ -27,7 +27,7 @@ Open `http://localhost:<port>/verify-phase4.html` in a browser.
 
 The page programmatically:
 - sets a known range selection
-- toggles `locale`, `min-date`, `formatSummaryCallback`, `disabledDates`, `show-today-button`
+- toggles `locale`, `min-date`, `formatSummaryCallback`, `disabledDates`, `is-today-button-shown`
 - asserts selection survives each change
 - toggles `visible-months-count` (structural) and asserts the picker is rebuilt
 
@@ -44,7 +44,7 @@ In a fresh `examples-basic.html`, with the picker open:
 | `el = document.querySelector('web-daterangepicker'); el.setAttribute('min-date', '2026-05-01')` | Days before May 1 grey out. **Selection (if any) is unchanged.** Calendar position, focused day, rolling-selector state all survive. |
 | `el.setAttribute('locale', 'de')` | Weekday + month names switch to German. **Selection unchanged.** |
 | `el.setAttribute('locale', 'en')` | Switches back. **Selection unchanged.** |
-| `el.setAttribute('show-today-button', 'false')` | Today button vanishes. **Selection unchanged.** |
+| `el.setAttribute('is-today-button-shown', 'false')` | Today button vanishes. **Selection unchanged.** |
 | `el.setAttribute('disabled-dates-handling', 'block')` | Range-snap behavior changes for new ranges. **Existing selection unchanged.** |
 | `el.disabledDates = ['2026-05-15']` | May 15 greys out. **Selection unchanged.** |
 | `el.formatSummaryCallback = (d) => d.days + ' days'` (range mode) | Summary text changes. **Selection unchanged.** |
@@ -112,7 +112,7 @@ In `examples-basic.html`:
 2. **Expected:** scrollable list of years (current highlighted) and months. Years/months outside `rollingYearRange`/`rollingMonthRange` (or before `min-date` / after `max-date`) are greyed out.
 3. Pick a different year/month from the list. **Expected:** calendar jumps to that month.
 
-For a unified-navigation grid layout (`unified-navigation` attribute set):
+For a is-unified-navigation-enabled grid layout (`is-unified-navigation-enabled` attribute set):
 1. Click the unified header. **Expected:** rolling selector shows the same year/month ranges, with `data-unified="true"` on items (inspect element).
 
 ### 3.4 `commitInputValue` — input field updates
@@ -120,7 +120,7 @@ For a unified-navigation grid layout (`unified-navigation` attribute set):
 In single mode:
 1. Click a date. **Expected:** input shows the formatted date.
 
-In single mode with Apply button (`show-apply-button="true"`):
+In single mode with Apply button (`is-apply-button-shown="true"`):
 1. Click a date. **Expected:** input does NOT update yet.
 2. Click Apply. **Expected:** input updates.
 
@@ -244,7 +244,7 @@ These exercise feature areas the refactor *touched* but shouldn't have changed s
 ### Multi-month + grid layouts
 - `visible-months-count="2"` horizontal — two columns, navigate independently or with collision
 - `month-layout="grid" grid-rows="2" grid-columns="3"` — 6 months in a grid
-- `unified-navigation` — single arrow set steps the whole grid
+- `is-unified-navigation-enabled` — single arrow set steps the whole grid
 
 ### Min/max + disabled
 - `min-date="2026-05-01"` — earlier days greyed and unselectable

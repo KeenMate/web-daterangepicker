@@ -157,7 +157,7 @@
    `.drp__picker--modal .drp__months--grid` rule above
    handles N × `minmax(--drp-month-min-width, 1fr)`) */
 
-/* Note: the unified-navigation header stays visible — its prev/next buttons
+/* Note: the is-unified-navigation-enabled header stays visible — its prev/next buttons
    are the only way to navigate when per-month headers are static (unified
    mode). Its range display ("May 2026 - October 2026") will look slightly
    off when only some of the configured months are visible, but navigation
@@ -180,12 +180,12 @@
 }
 
 /* Optional fade-in for the calendar itself when transitions are enabled.
-   When .drp-transitions-enabled is set on the calendar, modal mode also
-   fades the calendar in/out alongside the backdrop. */
-.drp__picker--modal.drp-transitions-enabled {
+   When .drp__picker--transitions-enabled is set on the calendar, modal mode
+   also fades the calendar in/out alongside the backdrop. */
+.drp__picker--modal.drp__picker--transitions-enabled {
   transition: opacity var(--drp-modal-transition);
 }
 
-.drp__picker--modal.drp-transitions-enabled:not(.drp__picker--visible) {
+.drp__picker--modal.drp__picker--transitions-enabled:not(.drp__picker--visible) {
   opacity: 0;
 }

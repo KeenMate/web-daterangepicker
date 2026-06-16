@@ -477,6 +477,117 @@ picker.dayTooltipCallback = (data) => {
     </div>
   </div>
 
+  <!-- Consumer-data classifier convention -->
+  <div class="card">
+    <h2>Consumer-Data Classifier Classes (built-in and custom)</h2>
+    <p>
+      The picker reads <code>dayClass</code> / <code>badgeClass</code> from your <code>specialDates</code>
+      data and applies whatever string you hand it as a literal class on the day cell or badge cell.
+      You drive the styling from data — the component itself never decides what a date "means".
+    </p>
+
+    <div class="info-box">
+      <strong>Built-in conventions:</strong> the shipped CSS includes default styling for five
+      common consumer-data class names so you get something polished without writing CSS:
+      <ul style="margin: 0.5rem 0 0 1.5rem;">
+        <li><code>dayClass: 'holiday'</code> — tints the whole day cell red (consumes <code>--drp-holiday-color</code>)</li>
+        <li><code>dayClass: 'event'</code> — tints the whole day cell green (consumes <code>--drp-event-color</code>)</li>
+        <li><code>badgeClass: 'badge-number'</code> — accent-colored numeric badge (consumes <code>--drp-badge-number-bg</code> / <code>--drp-badge-number-color</code>)</li>
+        <li><code>badgeClass: 'badge-count'</code> — red count badge (consumes <code>--drp-badge-count-bg</code> / <code>--drp-badge-count-color</code>)</li>
+        <li><code>badgeClass: 'badge-text'</code> — gray uppercase text badge (consumes <code>--drp-badge-text-bg</code> / <code>--drp-badge-text-color</code>)</li>
+      </ul>
+      Any other string (e.g., <code>'salsa'</code>, <code>'rumba'</code>) is rendered as-is — you
+      ship the matching CSS via <code>customStylesCallback</code>.
+    </div>
+
+    <h3>Demo 1 — Built-in <code>dayClass</code> tints</h3>
+    <div class="grid">
+      <div class="form-group">
+        <label>Calendar with holidays + events (no custom CSS)</label>
+        <web-daterangepicker id="dayclass-builtin-demo" visible-months-count="2" placeholder="YYYY-MM-DD"></web-daterangepicker>
+        <small>Shipped <code>.drp__day.holiday</code> / <code>.drp__day.event</code> rules fire automatically.</small>
+      </div>
+    </div>
+
+    <pre><code>const picker = document.getElementById('dayclass-builtin-demo');
+picker.specialDates = [
+  { date: dayOffset(-7), dayClass: 'holiday', dayTooltip: 'Office closed' },
+  { date: dayOffset(-3), dayClass: 'event',   dayTooltip: 'Team offsite' },
+  { date: dayOffset(2),  dayClass: 'event',   dayTooltip: 'Product launch' },
+  { date: dayOffset(7),  dayClass: 'holiday', dayTooltip: 'Public holiday' },
+];</code></pre>
+
+    <h3>Demo 2 — Built-in <code>badgeClass</code> badge types</h3>
+    <div class="grid">
+      <div class="form-group">
+        <label>Numbers, counts, and labels (no custom CSS)</label>
+        <web-daterangepicker id="badgeclass-builtin-demo" visible-months-count="2" placeholder="YYYY-MM-DD"></web-daterangepicker>
+        <small>Three shipped badge styles: <code>badge-number</code>, <code>badge-count</code>, <code>badge-text</code>.</small>
+      </div>
+    </div>
+
+    <pre><code>const picker = document.getElementById('badgeclass-builtin-demo');
+picker.specialDates = [
+  { date: dayOffset(-5), badgeClass: 'badge-number', badgeText: '12',  badgeTooltip: 'Slot number' },
+  { date: dayOffset(-2), badgeClass: 'badge-count',  badgeText: '3',   badgeTooltip: '3 alerts' },
+  { date: dayOffset(1),  badgeClass: 'badge-text',   badgeText: 'NEW', badgeTooltip: 'New offering' },
+  { date: dayOffset(4),  badgeClass: 'badge-number', badgeText: '7',   badgeTooltip: 'Capacity' },
+  { date: dayOffset(8),  badgeClass: 'badge-count',  badgeText: '15',  badgeTooltip: '15 bookings' },
+];</code></pre>
+
+    <h3>Demo 3 — Custom classifiers (your own vocabulary)</h3>
+    <p>
+      When you need domain-specific classes (a fitness studio's schedule, a venue's class types, etc.),
+      use whatever strings make sense and ship the matching CSS via <code>customStylesCallback</code>.
+      The callback returns a CSS string that's injected into the picker's shadow DOM, so it can target
+      <code>.drp__day.&lt;your-class&gt;</code> directly.
+    </p>
+
+    <div class="grid">
+      <div class="form-group">
+        <label>Studio schedule</label>
+        <web-daterangepicker id="custom-classifier-demo" visible-months-count="2" placeholder="YYYY-MM-DD"></web-daterangepicker>
+        <small>Three custom <code>dayClass</code> values: <code>salsa</code>, <code>rumba</code>, <code>pilates</code>.</small>
+      </div>
+    </div>
+
+    <pre><code>const picker = document.getElementById('custom-classifier-demo');
+
+// 1. Ship the CSS for your class names — injected into the picker's shadow DOM.
+picker.customStylesCallback = () => `
+  .drp__day.salsa {
+    background: color-mix(in srgb, #fb7185 18%, transparent);
+    border-color: #fb7185;
+  }
+  .drp__day.rumba {
+    background: color-mix(in srgb, #f59e0b 18%, transparent);
+    border-color: #f59e0b;
+  }
+  .drp__day.pilates {
+    background: color-mix(in srgb, #6366f1 18%, transparent);
+    border-color: #6366f1;
+  }
+`;
+
+// 2. Hand the picker your data with those class names.
+picker.specialDates = [
+  { date: dayOffset(-6), dayClass: 'salsa',   dayTooltip: 'Salsa basics' },
+  { date: dayOffset(-3), dayClass: 'rumba',   dayTooltip: 'Rumba intermediate' },
+  { date: dayOffset(0),  dayClass: 'pilates', dayTooltip: 'Pilates flow' },
+  { date: dayOffset(3),  dayClass: 'salsa',   dayTooltip: 'Salsa advanced' },
+  { date: dayOffset(6),  dayClass: 'pilates', dayTooltip: 'Pilates flow' },
+  { date: dayOffset(10), dayClass: 'rumba',   dayTooltip: 'Rumba show night' },
+];</code></pre>
+
+    <div class="info-box">
+      <strong>Why <code>customStylesCallback</code> instead of a regular stylesheet?</strong>
+      The picker lives inside a shadow DOM, so document-level CSS can't reach
+      <code>.drp__day</code>. Either inject your styles via this callback (recommended for component-scoped
+      rules), or theme via <code>--drp-*</code> CSS variables on the host element (which DO cross the
+      shadow boundary). See the <a href="examples-theming.html">Theming examples</a> for the variable approach.
+    </div>
+  </div>
+
   <!-- Tooltip Best Practices -->
   <div class="card">
     <h2>Tooltip Best Practices</h2>
@@ -1150,6 +1261,60 @@ picker.dayTooltipCallback = (data) => {
 
         return null;
       };
+    }
+
+    // ========================================
+    // Consumer-data classifier convention — three demos
+    // ========================================
+
+    // Demo 1 — built-in dayClass tints (.drp__day.holiday / .drp__day.event)
+    const dayclassBuiltinDemo = document.getElementById('dayclass-builtin-demo');
+    if (dayclassBuiltinDemo) {
+      dayclassBuiltinDemo.specialDates = [
+        { date: dayOffset(-7), dayClass: 'holiday', dayTooltip: 'Office closed' },
+        { date: dayOffset(-3), dayClass: 'event',   dayTooltip: 'Team offsite' },
+        { date: dayOffset(2),  dayClass: 'event',   dayTooltip: 'Product launch' },
+        { date: dayOffset(7),  dayClass: 'holiday', dayTooltip: 'Public holiday' },
+      ];
+    }
+
+    // Demo 2 — built-in badgeClass types (.drp__badge-cell.badge-number / -count / -text)
+    const badgeclassBuiltinDemo = document.getElementById('badgeclass-builtin-demo');
+    if (badgeclassBuiltinDemo) {
+      badgeclassBuiltinDemo.specialDates = [
+        { date: dayOffset(-5), badgeClass: 'badge-number', badgeText: '12',  badgeTooltip: 'Slot number' },
+        { date: dayOffset(-2), badgeClass: 'badge-count',  badgeText: '3',   badgeTooltip: '3 alerts' },
+        { date: dayOffset(1),  badgeClass: 'badge-text',   badgeText: 'NEW', badgeTooltip: 'New offering' },
+        { date: dayOffset(4),  badgeClass: 'badge-number', badgeText: '7',   badgeTooltip: 'Capacity' },
+        { date: dayOffset(8),  badgeClass: 'badge-count',  badgeText: '15',  badgeTooltip: '15 bookings' },
+      ];
+    }
+
+    // Demo 3 — custom classifier names (salsa / rumba / pilates) with shadow-DOM CSS injection
+    const customClassifierDemo = document.getElementById('custom-classifier-demo');
+    if (customClassifierDemo) {
+      customClassifierDemo.customStylesCallback = () => `
+        .drp__day.salsa {
+          background: color-mix(in srgb, #fb7185 18%, transparent);
+          border-color: #fb7185;
+        }
+        .drp__day.rumba {
+          background: color-mix(in srgb, #f59e0b 18%, transparent);
+          border-color: #f59e0b;
+        }
+        .drp__day.pilates {
+          background: color-mix(in srgb, #6366f1 18%, transparent);
+          border-color: #6366f1;
+        }
+      `;
+      customClassifierDemo.specialDates = [
+        { date: dayOffset(-6), dayClass: 'salsa',   dayTooltip: 'Salsa basics' },
+        { date: dayOffset(-3), dayClass: 'rumba',   dayTooltip: 'Rumba intermediate' },
+        { date: dayOffset(0),  dayClass: 'pilates', dayTooltip: 'Pilates flow' },
+        { date: dayOffset(3),  dayClass: 'salsa',   dayTooltip: 'Salsa advanced' },
+        { date: dayOffset(6),  dayClass: 'pilates', dayTooltip: 'Pilates flow' },
+        { date: dayOffset(10), dayClass: 'rumba',   dayTooltip: 'Rumba show night' },
+      ];
     }
   </script>
 </body>

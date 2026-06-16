@@ -52,57 +52,57 @@
     <div class="grid">
       <div class="form-group">
         <label>No Buttons (Manual Close Only)</label>
-        <small>show-today-button="false" show-clear-button="false" show-apply-button="false"</small>
+        <small>is-today-button-shown="false" is-clear-button-shown="false" is-apply-button-shown="false"</small>
         <web-daterangepicker
           selection-mode="range"
-          show-today-button="false"
-          show-clear-button="false"
-          show-apply-button="false">
+          is-today-button-shown="false"
+          is-clear-button-shown="false"
+          is-apply-button-shown="false">
         </web-daterangepicker>
       </div>
 
       <div class="form-group">
         <label>Only Clear Button</label>
-        <small>show-today-button="false" show-apply-button="false"</small>
+        <small>is-today-button-shown="false" is-apply-button-shown="false"</small>
         <web-daterangepicker
           selection-mode="range"
-          show-today-button="false"
-          show-apply-button="false">
+          is-today-button-shown="false"
+          is-apply-button-shown="false">
         </web-daterangepicker>
       </div>
 
       <div class="form-group">
         <label>Only Apply Button</label>
-        <small>auto-close="apply" show-today-button="false" show-clear-button="false"</small>
+        <small>auto-close="apply" is-today-button-shown="false" is-clear-button-shown="false"</small>
         <web-daterangepicker
           selection-mode="range"
           auto-close="apply"
-          show-today-button="false"
-          show-clear-button="false">
+          is-today-button-shown="false"
+          is-clear-button-shown="false">
         </web-daterangepicker>
       </div>
 
       <div class="form-group">
         <label>No Summary (Range Mode)</label>
-        <small>show-summary="false" — hides the days/nights count line entirely (no empty-div jump)</small>
+        <small>is-summary-shown="false" — hides the days/nights count line entirely (no empty-div jump)</small>
         <web-daterangepicker
           selection-mode="range"
-          show-summary="false">
+          is-summary-shown="false">
         </web-daterangepicker>
       </div>
     </div>
 
     <div class="code-block"><code><span class="comment">// HTML attributes control built-in button visibility</span>
 <span class="keyword">&lt;web-daterangepicker</span>
-  <span class="property">show-today-button</span>=<span class="string">"false"</span>
-  <span class="property">show-clear-button</span>=<span class="string">"false"</span>
-  <span class="property">show-apply-button</span>=<span class="string">"false"</span><span class="keyword">&gt;</span>
+  <span class="property">is-today-button-shown</span>=<span class="string">"false"</span>
+  <span class="property">is-clear-button-shown</span>=<span class="string">"false"</span>
+  <span class="property">is-apply-button-shown</span>=<span class="string">"false"</span><span class="keyword">&gt;</span>
 <span class="keyword">&lt;/web-daterangepicker&gt;</span>
 
 <span class="comment">// Range mode: hide the days/nights summary block entirely</span>
 <span class="keyword">&lt;web-daterangepicker</span>
   <span class="property">selection-mode</span>=<span class="string">"range"</span>
-  <span class="property">show-summary</span>=<span class="string">"false"</span><span class="keyword">&gt;&lt;/web-daterangepicker&gt;</span></code></div>
+  <span class="property">is-summary-shown</span>=<span class="string">"false"</span><span class="keyword">&gt;&lt;/web-daterangepicker&gt;</span></code></div>
   </div>
 
   <!-- 1b. Modal Display Mode -->
@@ -145,7 +145,7 @@
           month-layout="grid"
           grid-rows="2"
           grid-columns="3"
-          unified-navigation="true">
+          is-unified-navigation-enabled="true">
         </web-daterangepicker>
         <button onclick="document.querySelector('#modal-grid').isOpen = true" style="margin-top: 0.5rem;">Open modal</button>
       </div>
@@ -192,9 +192,9 @@
             id="autoclose-never"
             selection-mode="range"
             auto-close="never"
-            show-today-button="false"
-            show-clear-button="false"
-            show-apply-button="true">
+            is-today-button-shown="false"
+            is-clear-button-shown="false"
+            is-apply-button-shown="true">
           </web-daterangepicker>
           <button class="clear-btn" onclick="clearPicker('autoclose-never')" title="Clear selection">&times;</button>
         </div>

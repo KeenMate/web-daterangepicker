@@ -1,5 +1,5 @@
 import { DateRangePicker } from './date-picker';
-import type { DatePickerOptions, DateRange, DecoratedDate, DateInfo, DayRenderData, BeforeSelectResult, ActionButton, LocaleStrings } from './types';
+import type { DatePickerOptions, DateRange, DecoratedDate, DayMetadata, DayRenderData, BeforeSelectResult, ActionButton, LocaleStrings } from './types';
 import styles from './css/main.css?inline';
 
 // =============================================================================
@@ -30,7 +30,7 @@ const parseBoolPresence: AttrParser = (el, attr) => el.hasAttribute(attr);
 /** Tri-state boolean: missing → undefined, present with "true"/"false" → typed boolean. */
 const parseTriStateBool: AttrParser = (el, attr) =>
     el.hasAttribute(attr) ? el.getAttribute(attr) === 'true' : undefined;
-/** "close-on-scroll" semantics: presence flips on, but explicit "false" wins. */
+/** "should-close-on-scroll" semantics: presence flips on, but explicit "false" wins. */
 const parseTriStateBoolDefaultTrue: AttrParser = (el, attr) =>
     el.hasAttribute(attr) ? el.getAttribute(attr) !== 'false' : undefined;
 const parseEnum = <T extends string>(values: readonly T[]): AttrParser =>
@@ -92,9 +92,9 @@ const ATTRIBUTE_TABLE: AttributeEntry[] = [
     { attr: 'month-layout',                    key: 'monthLayout',                    parser: parseEnum(MONTH_LAYOUTS) },
     { attr: 'grid-rows',                       key: 'gridRows',                       parser: parsePositiveIntOrUndefined },
     { attr: 'grid-columns',                    key: 'gridColumns',                    parser: parsePositiveIntOrUndefined },
-    { attr: 'unified-navigation',              key: 'unifiedNavigation',              parser: parseBoolPresence },
+    { attr: 'is-unified-navigation-enabled',              key: 'isUnifiedNavigationEnabled',              parser: parseBoolPresence },
     { attr: 'unified-navigation-anchor-index', key: 'unifiedNavigationAnchorIndex',   parser: parseIntOrUndefined },
-    { attr: 'unified-header-interactive',      key: 'unifiedHeaderInteractive',       parser: parseBoolPresence },
+    { attr: 'is-unified-header-interactive',      key: 'isUnifiedHeaderInteractive',       parser: parseBoolPresence },
     { attr: 'calendar-placement',              key: 'calendarPlacement',              parser: parseStringOrUndefined },
     { attr: 'positioning-mode',                key: 'positioningMode',                parser: parseEnum(POSITIONING_MODES) },
     { attr: 'week-start-day',                  key: 'weekStartDay',                   parser: parseWeekStartDay },
@@ -111,25 +111,25 @@ const ATTRIBUTE_TABLE: AttributeEntry[] = [
     { attr: 'day-tooltip-member',              key: 'dayTooltipMember',               parser: parseStringOrUndefined },
     { attr: 'is-disabled-member',              key: 'isDisabledMember',               parser: parseStringOrUndefined },
     { attr: 'disabled-dates-handling',         key: 'disabledDatesHandling',          parser: parseEnum(DISABLED_HANDLING) },
-    { attr: 'highlight-disabled-in-range',     key: 'highlightDisabledInRange',       parser: parseTriStateBool },
+    { attr: 'should-highlight-disabled-in-range',     key: 'shouldHighlightDisabledInRange',       parser: parseTriStateBool },
     { attr: 'locale',                          key: 'locale',                         parser: parseStringWithDefault('auto') },
     { attr: 'display-format-mask',             key: 'displayFormatMask',              parser: parseStringOrUndefined },
     { attr: 'show-debug-info',                 key: 'showDebugInfo',                  parser: parseBoolPresence },
     { attr: 'rolling-year-range',              key: 'rollingYearRange',               parser: parseStringOrUndefined },
     { attr: 'rolling-month-range',             key: 'rollingMonthRange',              parser: parseStringOrUndefined },
     { attr: 'auto-close',                      key: 'autoClose',                      parser: parseEnum(AUTO_CLOSE) },
-    { attr: 'close-on-scroll',                 key: 'closeOnScroll',                  parser: parseTriStateBoolDefaultTrue },
-    { attr: 'show-today-button',               key: 'showTodayButton',                parser: parseTriStateBool },
-    { attr: 'show-clear-button',               key: 'showClearButton',                parser: parseTriStateBool },
-    { attr: 'show-apply-button',               key: 'showApplyButton',                parser: parseTriStateBool },
-    { attr: 'show-summary',                    key: 'showSummary',                    parser: parseTriStateBool },
+    { attr: 'should-close-on-scroll',                 key: 'shouldCloseOnScroll',                  parser: parseTriStateBoolDefaultTrue },
+    { attr: 'is-today-button-shown',               key: 'isTodayButtonShown',                parser: parseTriStateBool },
+    { attr: 'is-clear-button-shown',               key: 'isClearButtonShown',                parser: parseTriStateBool },
+    { attr: 'is-apply-button-shown',               key: 'isApplyButtonShown',                parser: parseTriStateBool },
+    { attr: 'is-summary-shown',                    key: 'isSummaryShown',                    parser: parseTriStateBool },
     { attr: 'picker-mode',                     key: 'pickerMode',                     parser: parseEnum(PICKER_MODES) },
     { attr: 'time-format-mask',                key: 'timeFormatMask',                 parser: parseStringWithDefault('HH:mm') },
     { attr: 'display-time-format-mask',        key: 'displayTimeFormatMask',          parser: parseStringOrUndefined },
     { attr: 'time-step',                       key: 'timeStep',                       parser: parsePositiveIntOrUndefined },
     { attr: 'hour-cycle',                      key: 'hourCycle',                      parser: parseEnum(HOUR_CYCLES) },
-    { attr: 'show-seconds',                    key: 'showSeconds',                    parser: parseTriStateBool },
-    { attr: 'show-now-button',                 key: 'showNowButton',                  parser: parseTriStateBool },
+    { attr: 'is-seconds-shown',                    key: 'isSecondsShown',                    parser: parseTriStateBool },
+    { attr: 'is-now-button-shown',                 key: 'isNowButtonShown',                  parser: parseTriStateBool },
     { attr: 'time-display',                    key: 'timeDisplay',                    parser: parseEnum(TIME_DISPLAYS) },
 ];
 
@@ -174,7 +174,7 @@ export class WebDaterangepickerElement extends HTMLElement {
     // Properties for complex data (not attributes)
     private _specialDates?: DecoratedDate[];
     private _disabledDates?: (Date | string)[];
-    private _getDateMetadataCallback?: (date: Date) => DateInfo | null;
+    private _getDateMetadataCallback?: (date: Date) => DayMetadata | null;
     private _badgeTooltipCallback?: (data: DayRenderData) => string | null;
     private _dayTooltipCallback?: (data: DayRenderData) => string | null;
     private _customStylesCallback?: () => string;
@@ -235,9 +235,9 @@ export class WebDaterangepickerElement extends HTMLElement {
 
         // Handle transitions (opt-in for performance)
         if (enableTransitions) {
-            calendar.classList.add('drp-transitions-enabled');
+            calendar.classList.add('drp__picker--transitions-enabled');
         } else {
-            calendar.classList.remove('drp-transitions-enabled');
+            calendar.classList.remove('drp__picker--transitions-enabled');
         }
     }
 
@@ -887,29 +887,29 @@ export class WebDaterangepickerElement extends HTMLElement {
         }
     }
 
-    get showSeconds(): boolean | undefined {
-        if (!this.hasAttribute('show-seconds')) return undefined;
-        return this.getAttribute('show-seconds') === 'true';
+    get isSecondsShown(): boolean | undefined {
+        if (!this.hasAttribute('is-seconds-shown')) return undefined;
+        return this.getAttribute('is-seconds-shown') === 'true';
     }
 
-    set showSeconds(value: boolean | undefined) {
+    set isSecondsShown(value: boolean | undefined) {
         if (value === undefined) {
-            this.removeAttribute('show-seconds');
+            this.removeAttribute('is-seconds-shown');
         } else {
-            this.setAttribute('show-seconds', value ? 'true' : 'false');
+            this.setAttribute('is-seconds-shown', value ? 'true' : 'false');
         }
     }
 
-    get showNowButton(): boolean | undefined {
-        if (!this.hasAttribute('show-now-button')) return undefined;
-        return this.getAttribute('show-now-button') === 'true';
+    get isNowButtonShown(): boolean | undefined {
+        if (!this.hasAttribute('is-now-button-shown')) return undefined;
+        return this.getAttribute('is-now-button-shown') === 'true';
     }
 
-    set showNowButton(value: boolean | undefined) {
+    set isNowButtonShown(value: boolean | undefined) {
         if (value === undefined) {
-            this.removeAttribute('show-now-button');
+            this.removeAttribute('is-now-button-shown');
         } else {
-            this.setAttribute('show-now-button', value ? 'true' : 'false');
+            this.setAttribute('is-now-button-shown', value ? 'true' : 'false');
         }
     }
 
@@ -942,11 +942,11 @@ export class WebDaterangepickerElement extends HTMLElement {
 
 
 
-    get getDateMetadataCallback(): ((date: Date) => DateInfo | null) | undefined {
+    get getDateMetadataCallback(): ((date: Date) => DayMetadata | null) | undefined {
         return this._getDateMetadataCallback;
     }
 
-    set getDateMetadataCallback(value: ((date: Date) => DateInfo | null) | undefined) {
+    set getDateMetadataCallback(value: ((date: Date) => DayMetadata | null) | undefined) {
         this._getDateMetadataCallback = value;
         this.applyOptionUpdate('getDateMetadataCallback', value);
     }

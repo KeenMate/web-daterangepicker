@@ -60,7 +60,7 @@ export function renderCalendar(picker: any) {
     renderingLogger.debug('[DatePicker 18] monthDates array:', picker.monthDates.map((d: Date, i: number) => `Col${i}: ${d.getFullYear()}-${d.getMonth()+1}`).join(', '));
 
     // Handle unified rolling selector (if enabled)
-    if (picker.options.unifiedNavigation && picker.showingUnifiedRollingSelector) {
+    if (picker.options.isUnifiedNavigationEnabled && picker.showingUnifiedRollingSelector) {
         renderUnifiedRollingSelector(picker);
     }
 
@@ -161,7 +161,7 @@ export function renderNormalView(picker: any, monthIndex: number) {
     }
 
     // Update unified navigation (if enabled and this is the first month change)
-    if (picker.options.unifiedNavigation && monthIndex === 0 && picker.unifiedRangeDisplay) {
+    if (picker.options.isUnifiedNavigationEnabled && monthIndex === 0 && picker.unifiedRangeDisplay) {
         // Hide unified rolling selector (only if it's not supposed to be showing)
         if (picker.unifiedRollingSelector && !picker.showingUnifiedRollingSelector) {
             picker.unifiedRollingSelector.classList.remove('drp__unified-rolling-selector--visible');
@@ -369,7 +369,7 @@ export function renderDays(picker: any, monthIndex: number, date: Date) {
     for (const week of weeks) {
         // Check if any day in picker week has a badge
         const weekBadges = week.map(dayData => {
-            const dateInfo = picker.getDateInfoInternal(dayData.date);
+            const dateInfo = picker.getDayMetadataInternal(dayData.date);
 
             // Get base tooltip from dateInfo
             let badgeTooltip = dateInfo?.badgeTooltip || '';
@@ -434,7 +434,7 @@ export function renderDays(picker: any, monthIndex: number, date: Date) {
             if (weekday === 0 || weekday === 6) classes.push('drp__day--weekend');
 
             // Check for special date info (for styling classes and disabled state)
-            const dateInfo = picker.getDateInfoInternal(dayData.date);
+            const dateInfo = picker.getDayMetadataInternal(dayData.date);
 
             // Check if date is disabled - use dateInfo.isDisabled if available, otherwise standard validation
             const isDisabled = (dateInfo && dateInfo.isDisabled !== undefined)
@@ -479,8 +479,8 @@ export function renderDays(picker: any, monthIndex: number, date: Date) {
                 if (isStartDate) classes.push('drp__day--range-start');
                 if (isEndDate) classes.push('drp__day--range-end');
                 if (isInRange) {
-                    // Only highlight if not disabled, or if highlightDisabledInRange is true
-                    if (!isDisabled || picker.options.highlightDisabledInRange) {
+                    // Only highlight if not disabled, or if shouldHighlightDisabledInRange is true
+                    if (!isDisabled || picker.options.shouldHighlightDisabledInRange) {
                         classes.push('drp__day--in-range');
                     }
                 }
@@ -509,7 +509,7 @@ export function renderDays(picker: any, monthIndex: number, date: Date) {
                     // Check if date is within this range
                     if (dayData.date >= range.start && dayData.date <= range.end) {
                         isInRange = true;
-                        if (!isDisabled || picker.options.highlightDisabledInRange) {
+                        if (!isDisabled || picker.options.shouldHighlightDisabledInRange) {
                             classes.push('drp__day--in-range');
                         }
                     }
@@ -735,7 +735,7 @@ export function renderRollingSelector(picker: any, monthIndex: number) {
 }
 
 export function renderUnifiedRollingSelector(picker: any) {
-    if (!picker.options.unifiedNavigation || !picker.unifiedRollingSelector) return;
+    if (!picker.options.isUnifiedNavigationEnabled || !picker.unifiedRollingSelector) return;
 
     picker.unifiedRollingSelector.classList.add('drp__unified-rolling-selector--visible');
 
@@ -859,7 +859,7 @@ export function renderTimePicker(picker: any) {
     }
 
     // Seconds (optional)
-    if (picker.options.showSeconds) {
+    if (picker.options.isSecondsShown) {
         const secondsContainer = root.querySelector('[data-time-list="seconds"]');
         if (secondsContainer) {
             const seconds: number[] = [];
@@ -1243,7 +1243,7 @@ export function renderWheelPicker(picker: any) {
     }
 
     // Seconds (optional)
-    if (picker.options.showSeconds) {
+    if (picker.options.isSecondsShown) {
         const items: Array<{ value: string; label: string; selected: boolean }> = [];
         const snappedFocusSecond = Math.floor(focusSecond / step) * step;
         const selectedSecond = time.second !== null ? Math.floor(time.second / step) * step : null;
@@ -1300,7 +1300,7 @@ export function renderCompactPicker(picker: any) {
     const displayHour = is12h ? picker.toDisplayHour(focusHour) : focusHour;
     setPill('hours', displayHour, time.hour !== null);
     setPill('minutes', focusMinute, time.minute !== null);
-    if (picker.options.showSeconds) setPill('seconds', focusSecond, time.second !== null);
+    if (picker.options.isSecondsShown) setPill('seconds', focusSecond, time.second !== null);
 
     if (is12h) {
         const effectiveAmpm = time.ampm ?? (focusHour >= 12 ? 'pm' : 'am');

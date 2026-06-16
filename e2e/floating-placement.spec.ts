@@ -2,7 +2,7 @@ import { test, expect, Page, Locator } from './fixtures';
 
 /**
  * Default placement (below input), explicit calendar-placement, and the
- * close-on-scroll behavior (default true / explicit false).
+ * should-close-on-scroll behavior (default true / explicit false).
  *
  * Fixture: test/floating-placement.html
  */
@@ -61,10 +61,10 @@ test('calendar-placement="top-start" places the calendar above the input', async
 });
 
 // =============================================================================
-// close-on-scroll
+// should-close-on-scroll
 // =============================================================================
 
-test('default close-on-scroll: scrolling the ancestor closes the picker', async ({ page }) => {
+test('default should-close-on-scroll: scrolling the ancestor closes the picker', async ({ page }) => {
     const p = await open(page, 'scroll-default');
 
     await expect(calendarOf(p)).toBeVisible();
@@ -72,7 +72,7 @@ test('default close-on-scroll: scrolling the ancestor closes the picker', async 
     await expect(calendarOf(p)).toBeHidden();
 });
 
-test('close-on-scroll="false": scrolling the ancestor keeps the picker open', async ({ page }) => {
+test('should-close-on-scroll="false": scrolling the ancestor keeps the picker open', async ({ page }) => {
     const p = await open(page, 'scroll-stay');
 
     await expect(calendarOf(p)).toBeVisible();

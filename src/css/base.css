@@ -6,6 +6,20 @@
    `floating.css`. */
 
 /* ==============================================================================
+   FOUC PREVENTION
+   ==============================================================================
+   Reserve the input's footprint while the custom element is undefined so the
+   page doesn't flash an unstyled inline node, then shift layout after the
+   `customElements.define(...)` upgrade. The min-height matches the default
+   input height (--drp-input-size-md-height ≈ 35px at --drp-rem: 10px). */
+web-daterangepicker:not(:defined) {
+  display: inline-block;
+  min-height: calc(3.5 * var(--drp-rem, 10px));
+  color: transparent !important;
+  background: transparent;
+}
+
+/* ==============================================================================
    CALENDAR POPUP CONTAINER (root)
    ============================================================================== */
 

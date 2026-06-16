@@ -124,10 +124,10 @@ test('block: clicking an end past a disabled gap snaps the range end to the last
 });
 
 // =============================================================================
-// highlight-disabled-in-range
+// should-highlight-disabled-in-range
 // =============================================================================
 
-test('highlight-disabled-in-range="false": disabled days inside a range stay un-highlighted', async ({ page }) => {
+test('should-highlight-disabled-in-range="false": disabled days inside a range stay un-highlighted', async ({ page }) => {
     const p = await open(page, 'no-highlight');
 
     await dayByDate(p, '2026-06-10').click();

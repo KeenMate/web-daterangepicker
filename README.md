@@ -4,6 +4,16 @@ A lightweight, accessible date picker web component with excellent keyboard navi
 
 > **⚠️ Security Notice:** This component intentionally allows raw HTML in rendering callbacks and message content to give developers full control over content display. If you display user-generated content, you must sanitize it yourself. See [HTML Injection (XSS) Notice](#html-injection-xss-notice) for the complete list of affected callbacks and methods.
 
+## What's New in v1.14.0-rc02
+
+- **Breaking — 10 boolean attribute renames** (BlissFramework `is*`/`should*` prefix per C-NC-3): `show-seconds` → `is-seconds-shown`, `close-on-scroll` → `should-close-on-scroll`, `unified-navigation` → `is-unified-navigation-enabled`, `highlight-disabled-in-range` → `should-highlight-disabled-in-range`, plus the four `show-*-button` and `show-summary` attributes. JS property names follow the kebab→camel rule. No backward-compat aliases — update markup and code at upgrade time. Full migration table in CHANGELOG.
+- **Breaking — 4 TS type renames** (closed-set suffix compliance per C-CST-8 / C-NC-11): `FormatInfo` → `FormatOptions`, `TimeFormatInfo` → `TimeFormatOptions`, `DateInfo` → `DayMetadata`, `SummaryCallbackData` → `SummaryDetail`. Affects `getDateMetadataCallback` return type and `formatSummaryCallback` argument type, both inferred at consumer call sites.
+- **Fixed — sibling-picker overlap on focus switch** — clicking from input A to input B while picker A was open showed both popovers stacked for ~150–300ms before A closed. The existing inter-picker activation broadcast now also triggers `hide()` on the inactive picker, collapsing the overlap to a single paint frame.
+- **FOUC prevention rule** — the picker no longer flashes as an unstyled inline element between page parse and `customElements.define(...)`. A `web-daterangepicker:not(:defined)` rule reserves the input footprint until the element upgrades.
+- **`:host { display: block }`** — the custom element now defaults to block layout instead of the browser's inline default, so input width and popover positioning math hold without consumer overrides.
+- **New classifier convention demos** — `examples-badges-tooltips.html` now shows the built-in `dayClass: 'event' | 'holiday'` tints and `badgeClass: 'badge-number' | 'badge-count' | 'badge-text'` styles, plus a custom-classifier example (`'salsa' | 'rumba' | 'pilates'`) via `customStylesCallback`. `examples-theming.html` adds a Test 9 panel showing how to recolor the built-in classifiers by overriding `--drp-event-color` / `--drp-holiday-color` / `--drp-badge-*` on the host.
+- **Internal — BEM rename `drp-transitions-enabled` → `drp__picker--transitions-enabled`** — only affects consumers using `customStylesCallback` to inject CSS targeting the transitions class. The `enable-transitions` HTML attribute is unchanged.
+
 ## What's New in v1.14.0-rc01
 
 - **Three new time-display UIs — clock, wheel, compact** — `time-display` now accepts four values: `rolls` (default, unchanged), `clock` (Material-style two-step face for hours then minutes, with h12 / h24 dual-ring support), `wheel` (iOS UIPickerView snap-scrolling columns with center selection band), and `compact` (iOS 14+ tappable pills with `contentEditable` typing and Arrow-key increments). All three work in `picker-mode="time"` and `picker-mode="datetime"`; `rolls` stays the default so existing time pickers are unchanged. See `examples-time-picker.html` for the demo gallery.
@@ -19,17 +29,6 @@ A lightweight, accessible date picker web component with excellent keyboard navi
 - **CSS file naming refresh** — partials under `src/css/` no longer carry the SASS-style underscore prefix (`_variables.css` → `variables.css`, etc.). The two package-exports paths (`./css/variables`, `./css/base`) keep their public names. Consumers importing internal files directly via `./src/css/_*.css` must update their import paths.
 - **Canonical Tier-2 file set.** New stylesheets `controls.css`, `floating.css`, `states.css`, `animations.css` matching the cross-component guideline. The old `tooltips.css` and `modifiers.css` partials were merged into the new files and removed.
 - **BEM short-prefix class names.** Internal classes were migrated from the long `.drp-date-picker__*` form to the canonical short `.drp__*` form (`.drp__day`, `.drp__month`, `.drp__rolling-item`, etc.). The root container `.drp-date-picker` is now `.drp__picker`; `.drp-input` and the legacy `.drp-date-picker-input` aliases are unified under `.drp__input`. Public variable-only theming (`web-daterangepicker { --drp-X: ... }`) is unaffected — only consumers using `customStylesCallback` to inject CSS into the shadow root need to update their selectors. See CHANGELOG v1.16.0 for the full migration table.
-
-## What's New in v1.14.0
-
-- **Time picker and datetime mode** — new `picker-mode` attribute with values `date` (default, unchanged), `time` (rolls-only popover for hours/minutes), and `datetime` (calendar grid + time rolls side-by-side in one popover). Orthogonal to the existing `selection-mode` so date-mode behavior is untouched. v1 supports time/datetime in `single` mode only; `range`/`multiple` silently falls back with a console warning (datetime range lands in v1.15).
-- **Rolling-list time UI reuses the year/month picker pattern** — two-to-four roll columns (hours, minutes, optional seconds, optional AM/PM) sharing the existing `.drp-date-picker__rolling-list` + `.drp-date-picker__rolling-item` classes, so all existing `--drp-rolling-*` theming hooks apply. Click an item to commit; the highlighted item snaps to the current selection.
-- **Time config attributes** — `time-format-mask` (tokens `HH`/`H`/`hh`/`h`/`mm`/`m`/`ss`/`s`/`a`, default `HH:mm`), `display-time-format-mask` (localized placeholder parallel to `display-format-mask`), `time-step` (minute/second increment in the rolls, default `1`), `hour-cycle` (`h12`/`h24`, auto-derived from the mask), `show-seconds` (auto-derived from the `s` token), `show-now-button` (defaults true in time/datetime, parallel to `show-today-button`).
-- **`autoClose` defaults to `'apply'` in time/datetime modes** so each roll-click updates the pending selection rather than slamming the popover shut between hour and minute. User-supplied `auto-close` still wins.
-- **`normalizeDate()` gained a `preserveTime` flag** (default `false`, so every existing caller is unchanged). `initialDate` parsing flips it on in time/datetime, so `initial-date="2026-05-23T14:30"` survives both the parse and ISO string handling. Disabled-dates / range-validation helpers stay midnight by design.
-- **New locale strings** — `time`, `now`, `am`, `pm` added to `LocaleStrings` and hardcoded for the four bundled locales (en/de/fr/es). `customStrings` override still works.
-- **CSS surface** — new `_time-picker.css` partial with `--drp-time-picker-*` variables. New BEM classes `.drp-date-picker__main`, `.drp-date-picker__time-picker`, `.drp-date-picker__time-rolls`, `.drp-date-picker__time-roll`, `.drp-date-picker__time-separator`, `.drp-date-picker__time-label`, plus root modifiers `.drp-date-picker--time` and `.drp-date-picker--datetime`. Container query collapses the date|time row to vertical at narrow widths (mobile / modal).
-- **v1 scope limitations** (documented, not bugs): time/datetime + range/multiple falls back; datetime + `month-layout="grid"` forces horizontal (warning); input mask only parses dates (committed H/M/S survive reopens because the picker's selection is authoritative); per-hour disabling not supported (`disabledDates` is whole-day only); keyboard navigation short-circuited in time mode for v1; `min-time` / `max-time` deferred.
 
 ## Features
 
@@ -171,12 +170,12 @@ See the [JavaScript Instantiation Examples](examples-javascript-instantiation.ht
 | `disabled-dates` | `string` | - | Comma-separated ISO dates to disable (e.g., `"2026-06-13, 2026-06-14, 2026-12-25"`). The `disabledDates` property still wins if both paths are set. |
 | `disabled-dates-handling` | `'allow' \| 'prevent' \| 'block' \| 'split' \| 'individual'` | `'allow'` | How to handle range selections over disabled dates (see [Range Selection Modes](#range-selection-modes)) |
 | `display-format-mask` | `string` | Same as `date-format-mask` | Localized format hint shown to users (e.g., `'dd/mm/aaaa'` Spanish, `'tt.mm.jjjj'` German). Used as the input placeholder when no explicit `placeholder` is set. Validation still uses `date-format-mask`. |
-| `highlight-disabled-in-range` | `boolean` | `true` | Whether to visually highlight disabled dates within a selected range. Set to `false` to only highlight enabled dates. |
+| `should-highlight-disabled-in-range` | `boolean` | `true` | Whether to visually highlight disabled dates within a selected range. Set to `false` to only highlight enabled dates. |
 | `auto-close` | `'never' \| 'selection' \| 'apply'` | `'selection'` | When to close calendar (selection = after picking, apply = after Apply button, never = manual) |
 | `positioning-mode` | `'inline' \| 'floating' \| 'modal'` | `'floating'` | Calendar positioning (inline = embedded, floating = popup anchored to input, modal = centered overlay with backdrop) |
 | `mobile-modal-breakpoint` | CSS length (e.g., `"640px"`, `"40em"`) | — | When configured mode is `floating`, auto-switch to `modal` below this viewport width. |
 | `mobile-modal-min-height` | CSS length | — | Same idea but for viewport height — modal engages when viewport height is below the threshold. ORs with `mobile-modal-breakpoint`. |
-| `show-summary` | `boolean` | `true` | Show range-mode days/nights summary block. Set to `false` to omit entirely (no empty-div jump). |
+| `is-summary-shown` | `boolean` | `true` | Show range-mode days/nights summary block. Set to `false` to omit entirely (no empty-div jump). |
 | `input-size` | `'xs' \| 'sm' \| 'md' \| 'lg' \| 'xl'` | `'md'` | Input field size (floating/modal modes only) |
 | `enable-transitions` | `boolean` | `false` | Enable CSS transitions/animations |
 | `date-member` | `string` | `'date'` | Field name on `specialDates` objects holding the date. Lets you reuse existing data shapes without renaming keys. |
@@ -742,7 +741,7 @@ picker.addEventListener('date-select', (e) => {
 
 ### Visual Highlighting Control
 
-By default, when you select a range that includes disabled dates, all dates (both enabled and disabled) within the range are visually highlighted. You can change this behavior with the `highlight-disabled-in-range` attribute:
+By default, when you select a range that includes disabled dates, all dates (both enabled and disabled) within the range are visually highlighted. You can change this behavior with the `should-highlight-disabled-in-range` attribute:
 
 ```html
 <!-- Default: highlights all dates in range, including disabled weekends -->
@@ -757,11 +756,11 @@ By default, when you select a range that includes disabled dates, all dates (bot
   selection-mode="range"
   disabled-weekdays="0,6"
   disabled-dates-handling="split"
-  highlight-disabled-in-range="false">
+  should-highlight-disabled-in-range="false">
 </web-daterangepicker>
 ```
 
-**When to use `highlight-disabled-in-range="false"`:**
+**When to use `should-highlight-disabled-in-range="false"`:**
 - Selecting working weeks where you only want to see Monday-Friday highlighted
 - Visual clarity when disabled dates are not relevant to the selection
 - Any scenario where showing gaps in the range is clearer than showing continuous highlighting
@@ -1048,6 +1047,22 @@ The following callbacks and methods allow **raw HTML injection** and are intenti
 - `getDateMetadataCallback` (isDisabled, dayClass, badgeClass - CSS class names only)
 
 **If displaying user-generated content**, sanitize it before passing to these callbacks or methods.
+
+## Known Limitations
+
+### Consumer-data class convention — `.holiday` / `.event` / `.badge-{count,number,text}`
+
+The shipped CSS includes default styles for a small set of class names the picker doesn't emit itself — they're applied by your code via the `dayClassMember` / `badgeClassMember` callbacks (or the equivalent `getDateMetadataCallback` return shape). The component ships compound selectors (`.drp__day.holiday`, `.drp__day.event`, `.drp__badge-cell.badge-count`, `.drp__badge-cell.badge-number`, `.drp__badge-cell.badge-text`) as ready-to-use hooks for these common conventions so the most frequent decoration cases work without writing any CSS.
+
+This means a few CSS classes inside the shadow root don't follow strict BEM (`.<prefix>__element--modifier`) — they're consumer-data values used as discriminators next to a BEM block, not component-emitted modifiers. The BEM block (`.drp__day`, `.drp__badge-cell`) carries the component scope; the discriminator carries the data convention.
+
+If your data uses different class names, just supply them via the callback and provide your own CSS — the defaults won't fight you. To retheme the existing defaults without rewriting the CSS, override the backing variables:
+
+- **Holiday cell:** `--drp-holiday-color`, `--drp-holiday-bg-opacity`, `--drp-holiday-hover-bg-opacity`
+- **Event cell:** `--drp-event-color`, `--drp-event-bg-opacity`, `--drp-event-hover-bg-opacity`
+- **Badge types:** `--drp-badge-number-{bg,color}`, `--drp-badge-count-{bg,color}`, `--drp-badge-text-{bg,color}`
+
+These variables are part of the public theming surface (added in v1.6.0; see CHANGELOG).
 
 ## Changelog
 

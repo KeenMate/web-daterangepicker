@@ -52,7 +52,7 @@ export async function handleInitialMonthLoad(picker: any): Promise<void> {
     try {
         picker.isMonthChanging = true;
 
-        if (picker.options.unifiedNavigation) {
+        if (picker.options.isUnifiedNavigationEnabled) {
             // UNIFIED MODE: One callback for all visible months together
             const anchorIndex = picker.options.unifiedNavigationAnchorIndex ?? 0;
             const anchorMonth = picker.monthDates[anchorIndex];
@@ -251,7 +251,7 @@ export async function handleBeforeMonthChange(
         let firstVisibleDate: Date;
         let lastVisibleDate: Date;
 
-        if (picker.options.unifiedNavigation) {
+        if (picker.options.isUnifiedNavigationEnabled) {
             // Calculate range for ALL visible months in unified mode
             // Report the actual min/max dates across all visible months, not just anchor month
 
@@ -774,7 +774,7 @@ export function moveFocus(picker: any, offset: number) {
  * Navigate forward one month in unified mode (affects all visible months)
  */
 export async function unifiedNextMonth(picker: any) {
-    if (!picker.options.unifiedNavigation) return;
+    if (!picker.options.isUnifiedNavigationEnabled) return;
 
     const anchorIndex = picker.options.unifiedNavigationAnchorIndex ?? 0;
     const anchorMonth = picker.monthDates[anchorIndex];
@@ -803,7 +803,7 @@ export async function unifiedNextMonth(picker: any) {
  * Navigate backward one month in unified mode (affects all visible months)
  */
 export async function unifiedPrevMonth(picker: any) {
-    if (!picker.options.unifiedNavigation) return;
+    if (!picker.options.isUnifiedNavigationEnabled) return;
 
     const anchorIndex = picker.options.unifiedNavigationAnchorIndex ?? 0;
     const anchorMonth = picker.monthDates[anchorIndex];
@@ -833,7 +833,7 @@ export async function unifiedPrevMonth(picker: any) {
  * Updates the anchor month to the selected month, all others follow
  */
 export async function setUnifiedMonth(picker: any, month: number) {
-    if (!picker.options.unifiedNavigation) return;
+    if (!picker.options.isUnifiedNavigationEnabled) return;
 
     const anchorIndex = picker.options.unifiedNavigationAnchorIndex ?? 0;
     const currentYear = picker.monthDates[anchorIndex].getFullYear();
@@ -858,7 +858,7 @@ export async function setUnifiedMonth(picker: any, month: number) {
  * Toggle unified rolling selector visibility
  */
 export function toggleUnifiedRollingSelector(picker: any) {
-    if (!picker.options.unifiedNavigation) {
+    if (!picker.options.isUnifiedNavigationEnabled) {
         return;
     }
 
@@ -872,7 +872,7 @@ export function toggleUnifiedRollingSelector(picker: any) {
  * Updates the anchor month to the selected year, keeping the same month
  */
 export async function setUnifiedYear(picker: any, year: number) {
-    if (!picker.options.unifiedNavigation) return;
+    if (!picker.options.isUnifiedNavigationEnabled) return;
 
     const anchorIndex = picker.options.unifiedNavigationAnchorIndex ?? 0;
     const currentMonth = picker.monthDates[anchorIndex].getMonth();

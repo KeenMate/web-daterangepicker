@@ -87,7 +87,7 @@ All attributes can be set directly on the `<web-daterangepicker>` HTML element.
 | `max-date` | `string` | `undefined` | Maximum selectable date (YYYY-MM-DD format) |
 | `disabled-weekdays` | `string` | `undefined` | Comma-separated days of week to disable (e.g., `"0,6"` for weekends) |
 | `range-disabled-handling` | `'allow' \| 'block' \| 'split' \| 'individual'` | `'allow'` | How to handle disabled dates within ranges (see below) |
-| `highlight-disabled-in-range` | `boolean` | `true` | Whether to visually highlight disabled dates within selected range |
+| `should-highlight-disabled-in-range` | `boolean` | `true` | Whether to visually highlight disabled dates within selected range |
 | `positioning-mode` | `'inline' \| 'floating'` | `'floating'` | Display mode: `'inline'` (always visible) or `'floating'` (popup) |
 | `month-layout` | `'horizontal' \| 'grid'` | `'horizontal'` | Layout mode for multiple months |
 | `grid-rows` | `number` | `undefined` | Number of rows for grid layout (e.g., `2` for 2×3 grid) |
@@ -106,8 +106,8 @@ All attributes can be set directly on the `<web-daterangepicker>` HTML element.
 | `display-time-format-mask` | `string` | falls back to `time-format-mask` | Localized time placeholder, parallel to `display-format-mask`. |
 | `time-step` | `number` | `1` | Minute/second increment shown in the rolls (e.g., `15` shows `00/15/30/45`). |
 | `hour-cycle` | `'h12' \| 'h24'` | derived from mask | Force 12-hour (adds AM/PM column) or 24-hour. Auto-derives `h12` when the `a` token is present in `time-format-mask`. |
-| `show-seconds` | `boolean` | derived from mask | Add a seconds roll. Auto-true when the `s` token is present in `time-format-mask`. |
-| `show-now-button` | `boolean` | `true` (in time/datetime) | Add a "Now" button to the action bar. Ignored in date mode. |
+| `is-seconds-shown` | `boolean` | derived from mask | Add a seconds roll. Auto-true when the `s` token is present in `time-format-mask`. |
+| `is-now-button-shown` | `boolean` | `true` (in time/datetime) | Add a "Now" button to the action bar. Ignored in date mode. |
 
 **Smart default positioning:**
 - Grid layouts: `'bottom'` (centered)
@@ -210,7 +210,7 @@ When instantiating `PureDatePicker` directly (not using web component), pass the
 | `isDisabledMember` | `string` | `'isDisabled'` | Property name in `specialDates` objects containing disabled flag |
 | `getDateMetadataCallback` | `(date: Date) => DateInfo \| null` | `undefined` | Custom function to provide date styling/labels |
 | `rangeDisabledHandling` | `'allow' \| 'block' \| 'split' \| 'individual'` | `'allow'` | Range behavior over disabled dates |
-| `highlightDisabledInRange` | `boolean` | `true` | Highlight disabled dates in range |
+| `shouldHighlightDisabledInRange` | `boolean` | `true` | Highlight disabled dates in range |
 | `locale` | `string \| 'auto'` | `'auto'` | Locale for UI strings and Intl date formatting. Built-in: `'en'`, `'de'`, `'fr'`, `'es'` |
 | `displayFormatMask` | `string` | Same as `dateFormatMask` | Localized format mask for display (e.g., `'dd/mm/aaaa'` for Spanish) |
 | `customStrings` | `Partial<LocaleStrings>` | `undefined` | Override built-in UI strings (Today, Clear, Apply, etc.) |
@@ -979,7 +979,7 @@ interface DatePickerOptions {
 
   getDateInfo?: (date: Date) => DateInfo | null;
   rangeDisabledMode?: 'allow' | 'block' | 'split' | 'individual';
-  highlightDisabledInRange?: boolean;
+  shouldHighlightDisabledInRange?: boolean;
 
   // Internationalization
   locale?: string | 'auto';

@@ -5,6 +5,85 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.14.0-rc02] - 2026-06-16 [PUBLISHED]
+
+Naming-alignment pass against the BlissFramework web-component guidelines plus one behavior fix and a handful of structural polish items. Closes five auto-script flags by renaming TS types, boolean public attributes, two internal handler methods, one internal type alias, and a CSS modifier class; adds three CSS-level structural fixes (FOUC, `:host` display, `--drp-font-family` declaration) and a discovery aid for the consumer-data classifier convention. **Breaking change** for any consumer that depends on the old names — see migration table below.
+
+### Added — structural CSS fixes
+
+- **FOUC prevention** — `src/css/base.css` now declares `web-daterangepicker:not(:defined)` reserving the input footprint (`inline-block`, min-height matching the default 35px input) while the custom element is undefined. Eliminates the flash + layout shift between page parse and `customElements.define(...)` upgrade. Ships in light DOM via `dist/style.css`.
+- **`:host { display: block }`** in `src/css/variables.css`. Custom elements default to `display: inline`; the explicit declaration prevents the picker from collapsing to inline-level layout and breaking input width / popover offset math.
+- **`--drp-font-family` declared on `:host`** with the `var(--base-font-family, inherit)` chain. Consumers can now override `--drp-font-family` on the host element and have it actually take effect — previously the variable was read but never declared, so overrides were ignored.
+
+### Added — classifier convention discovery examples
+
+- **`examples-badges-tooltips.html`** gained a "Consumer-Data Classifier Classes" section with three demos: built-in `dayClass: 'event' | 'holiday'` tints (consume `--drp-event-color` / `--drp-holiday-color`); built-in `badgeClass: 'badge-number' | 'badge-count' | 'badge-text'` styles (consume `--drp-badge-*-bg` / `--drp-badge-*-color`); a custom-classifier demo (`'salsa' | 'rumba' | 'pilates'`) showing how to ship classifier CSS into the shadow DOM via `customStylesCallback`.
+- **`examples-theming.html`** Test 9 panel — three pickers with identical data, only `--drp-*` overrides differ. Shows that recoloring the built-in classifier conventions doesn't require a CSS rewrite.
+
+### Renamed — TS types (closed-set suffix compliance)
+
+| Old name | New name | Used at |
+|---|---|---|
+| `FormatInfo` | `FormatOptions` | `import { FormatOptions } from '@keenmate/web-daterangepicker'` |
+| `TimeFormatInfo` | `TimeFormatOptions` | Internal; surfaced via time-mode callbacks |
+| `DateInfo` | `DayMetadata` | Return type of `getDateMetadataCallback` |
+| `SummaryCallbackData` | `SummaryDetail` | Argument to `formatSummaryCallback` |
+| `ClickEventType` | `ClickEventName` | Internal-only; not exported from package barrel |
+
+### Renamed — boolean public attributes (is/should/has/can prefix per C-NC-3)
+
+| Old HTML attribute | New HTML attribute | Old JS key | New JS key |
+|---|---|---|---|
+| `show-seconds` | `is-seconds-shown` | `showSeconds` | `isSecondsShown` |
+| `show-now-button` | `is-now-button-shown` | `showNowButton` | `isNowButtonShown` |
+| `close-on-scroll` | `should-close-on-scroll` | `closeOnScroll` | `shouldCloseOnScroll` |
+| `unified-navigation` | `is-unified-navigation-enabled` | `unifiedNavigation` | `isUnifiedNavigationEnabled` |
+| `unified-header-interactive` | `is-unified-header-interactive` | `unifiedHeaderInteractive` | `isUnifiedHeaderInteractive` |
+| `highlight-disabled-in-range` | `should-highlight-disabled-in-range` | `highlightDisabledInRange` | `shouldHighlightDisabledInRange` |
+| `show-today-button` | `is-today-button-shown` | `showTodayButton` | `isTodayButtonShown` |
+| `show-clear-button` | `is-clear-button-shown` | `showClearButton` | `isClearButtonShown` |
+| `show-apply-button` | `is-apply-button-shown` | `showApplyButton` | `isApplyButtonShown` |
+| `show-summary` | `is-summary-shown` | `showSummary` | `isSummaryShown` |
+
+`unified-navigation-anchor-index` / `unifiedNavigationAnchorIndex` was NOT renamed — it's a numeric index, not a boolean, and the prefix rule doesn't apply.
+
+### Renamed — internal handler methods (C-NC-9)
+
+| Old | New |
+|---|---|
+| `DateRangePicker.startDrag(...)` | `DateRangePicker.handleStartDrag(...)` |
+| `DateRangePicker.onDragMove(...)` | `DateRangePicker.handleDragMove(...)` |
+
+The pure-function namespace (`Interaction.startDrag`, `Interaction.onDragMove`) keeps its original names — those are Service-layer collaborators, not handler methods.
+
+### Renamed — CSS modifier class (BEM compliance)
+
+| Old | New |
+|---|---|
+| `.drp-transitions-enabled` (single hyphen) | `.drp__picker--transitions-enabled` (full BEM block-modifier) |
+
+The `enable-transitions` HTML attribute name is unchanged; only the internal class flipped. This was part of the v1.14.0-rc01 → rc02 BEM cleanup.
+
+### Removed — no backwards-compat aliases
+
+This release ships **no `@deprecated` aliases**. Old names will produce TypeScript compile errors and HTML attribute reads will return `null`. Consumers must update their integration code at upgrade time. If you need a transitional window, pin to `1.14.0-rc01`.
+
+### Migration recipe
+
+Find-and-replace (case-sensitive) for each row above. The `unified-navigation` rename has a substring collision with `unified-navigation-anchor-index` — rename the longer name first (or use word-boundary regex) so it survives the rename pass.
+
+### Fixed — sibling-picker overlap on focus switch
+
+Clicking from input A to input B while picker A's popover was open showed both popovers stacked for ~150–300ms before A closed. The `outsideClick`-driven hide on A only fires at the document `click` event, which is several event-loop ticks after picker B's `pointerdown` listener fires `show()`. The visible gap was the natural mousedown → click delay, not a CSS transition.
+
+The existing `drp-picker-activated` custom event (dispatched by `setCalendarActive()` on every `show()`) already broadcasts to sibling pickers — previously they only used it to flip `isCalendarActive = false` for keyboard-focus tracking. The handler at `src/date-picker.ts:111-119` now also calls `hide()` when the receiving picker's popover is currently visible, collapsing the overlap window to a single paint frame. `hide()` is a no-op for inline-mode pickers, so they're untouched.
+
+### Validator status after this release
+
+Closes C-CST-8, C-NC-3, C-NC-6 (documented), C-NC-9, C-NC-11. C-CSS-7 / C-NC-8 remain ⚠️ Exception (consumer-data discriminator classes — see `README.md → ## Known Limitations`). README migration (8 C-RS-* checks) is the next outstanding work item.
+
+---
+
 ## [1.14.0-rc01] - 2026-06-11 [PUBLISHED]
 
 Release candidate consolidating three waves of work since v1.13.0: foundational time/datetime picker (originally drafted as v1.14.0), three new time-display UIs — clock + wheel + compact (v1.15.0), and the dark-mode + positioning + cross-component theming alignment work (v1.16.0). Mirrors web-multiselect v1.11.0 so KeenMate components stay coherent. Published under the `rc` dist-tag; `latest` stays at v1.13.0 until the rc is promoted.

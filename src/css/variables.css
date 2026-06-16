@@ -13,6 +13,13 @@
      }
    ============================================================================== */
 
+/* Custom elements default to `display: inline`; without this the picker
+   collapses to inline-level layout and breaks input width and popover offset
+   math. Declared on :host only — `display` on :root is a no-op. */
+:host {
+  display: block;
+}
+
 :host,
 :root {
   /* ==========================================================================
@@ -51,7 +58,8 @@
   /* ==========================================================================
      FONT FAMILY (set at :host so all shadow DOM content inherits)
      ========================================================================== */
-  font-family: var(--drp-font-family, var(--base-font-family, inherit));
+  --drp-font-family: var(--base-font-family, inherit);
+  font-family: var(--drp-font-family);
 
   /* ==========================================================================
      SPACING SCALE

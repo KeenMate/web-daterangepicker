@@ -478,7 +478,7 @@
           visible-months-count="2"
           disabled-weekdays="0,6"
           disabled-dates-handling="split"
-          highlight-disabled-in-range="false"
+          should-highlight-disabled-in-range="false"
           placeholder="Select range"></web-daterangepicker>
         <small>Returns multiple ranges split by disabled dates. Weekends not highlighted.</small>
         <div id="mode-split-output" style="margin-top: 8px; font-size: 0.875rem; color: #666;"></div>
@@ -492,7 +492,7 @@
           visible-months-count="2"
           disabled-weekdays="0,6"
           disabled-dates-handling="individual"
-          highlight-disabled-in-range="false"
+          should-highlight-disabled-in-range="false"
           placeholder="Select range"></web-daterangepicker>
         <small>Returns flat array of individual enabled dates. Weekends not highlighted.</small>
         <div id="mode-individual-output" style="margin-top: 8px; font-size: 0.875rem; color: #666;"></div>
@@ -622,7 +622,7 @@
           month-layout="grid"
           grid-rows="2"
           grid-columns="3"
-          unified-navigation>
+          is-unified-navigation-enabled>
         </web-daterangepicker>
         <small>One navigation header controls all 6 months. Click the date range to open month/year selector.</small>
         <div id="inline-unified-grid-output" style="margin-top: 8px; font-size: 0.875rem; color: #666;"></div>
@@ -637,7 +637,7 @@
           selection-mode="range"
           positioning-mode="inline"
           visible-months-count="3"
-          unified-navigation>
+          is-unified-navigation-enabled>
         </web-daterangepicker>
         <small>Three months side-by-side with unified controls. Individual month headers show only static month/year labels.</small>
         <div id="inline-unified-horizontal-output" style="margin-top: 8px; font-size: 0.875rem; color: #666;"></div>
@@ -655,7 +655,7 @@
           month-layout="grid"
           grid-rows="3"
           grid-columns="3"
-          unified-navigation
+          is-unified-navigation-enabled
           unified-navigation-anchor-index="4">
         </web-daterangepicker>
         <small>Navigation uses the CENTER month (May) as anchor. Click prev/next to see all months shift around it.</small>
@@ -674,8 +674,8 @@
           month-layout="grid"
           grid-rows="2"
           grid-columns="3"
-          unified-navigation
-          unified-header-interactive>
+          is-unified-navigation-enabled
+          is-unified-header-interactive>
         </web-daterangepicker>
         <small>Click the unified header range display to open month/year selector (rolling list).</small>
         <div id="inline-unified-interactive-output" style="margin-top: 8px; font-size: 0.875rem; color: #666;"></div>
@@ -693,8 +693,8 @@
           month-layout="grid"
           grid-rows="3"
           grid-columns="3"
-          unified-navigation
-          unified-header-interactive
+          is-unified-navigation-enabled
+          is-unified-header-interactive
           rolling-year-range="2026-2027"
           rolling-month-range="6-8">
         </web-daterangepicker>
@@ -714,7 +714,7 @@
           month-layout="grid"
           grid-rows="3"
           grid-columns="3"
-          unified-navigation
+          is-unified-navigation-enabled
           unified-navigation-anchor-index="4">
         </web-daterangepicker>
         <small>Uses getUnifiedHeaderCallback to display only the center (anchor) month instead of full range.</small>

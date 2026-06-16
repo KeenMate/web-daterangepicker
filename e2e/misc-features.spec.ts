@@ -4,7 +4,7 @@ import { test, expect, Page, Locator } from './fixtures';
  * Round-out for several smaller features:
  *   - badge tooltip via specialDates.badgeTooltip
  *   - invalid-range error styling (showInvalidRange:true on restore)
- *   - unified-header-interactive opens unified rolling selector
+ *   - is-unified-header-interactive opens unified rolling selector
  *   - mobile-modal-breakpoint auto-engages modal mode on narrow viewports
  *
  * Fixture: test/misc-features.html
@@ -69,10 +69,10 @@ test('showInvalidRange:true on restore keeps the invalid range visible with --in
 });
 
 // =============================================================================
-// unified-header-interactive
+// is-unified-header-interactive
 // =============================================================================
 
-test('unified-header-interactive: clicking the unified range header opens the unified rolling selector', async ({ page }) => {
+test('is-unified-header-interactive: clicking the unified range header opens the unified rolling selector', async ({ page }) => {
     const p = await open(page, 'unified-click');
 
     await p.locator('.drp__unified-range').click();

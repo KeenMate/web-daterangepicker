@@ -13,7 +13,7 @@
  * Dependencies: @floating-ui/dom
  */
 
-import type { DatePickerOptions, DateRange, FormatInfo, TimeFormatInfo, SelectedTime, MonthDisplay, DecoratedDate, DateInfo, LocaleStrings, ActionButton } from './types';
+import type { DatePickerOptions, DateRange, FormatOptions, TimeFormatOptions, SelectedTime, MonthDisplay, DecoratedDate, DayMetadata, LocaleStrings, ActionButton } from './types';
 import * as Validation from './date-picker-validation';
 import * as Rendering from './date-picker-rendering';
 import * as Navigation from './date-picker-navigation';
@@ -33,9 +33,9 @@ class DateRangePicker {
     private static stylesInjected: boolean = false;
     input: HTMLInputElement | null;
     options: Required<DatePickerOptions>;
-    formatInfo: FormatInfo;
+    formatInfo: FormatOptions;
     /** Parsed time format mask, only populated when pickerMode is 'time' or 'datetime'. */
-    timeFormatInfo!: TimeFormatInfo;
+    timeFormatOptions!: TimeFormatOptions;
     _previousInputValue: string;
     currentDate: Date;
     monthDates: Date[];
@@ -109,7 +109,16 @@ class DateRangePicker {
     private calendarContentWidth?: number; // Store calendar width for rolling selector
     isCalendarActive: boolean = false; // Track if this calendar is the keyboard-active one
     private readonly onAnotherPickerActivated = (e: Event) => {
-        if ((e as CustomEvent).detail !== this) this.isCalendarActive = false;
+        if ((e as CustomEvent).detail === this) return;
+        this.isCalendarActive = false;
+        // Close this picker's popover when another one opens so the user
+        // doesn't see two calendars overlap during the click sequence
+        // (pointerdown on the other input opens B, document click closes A
+        // — without this, the ~150-300ms gap between those two events shows
+        // both popovers stacked). `hide()` is a no-op for inline mode.
+        if (this.calendar?.classList.contains('drp__picker--visible')) {
+            this.hide();
+        }
     };
 
     // Async validation state
@@ -118,7 +127,7 @@ class DateRangePicker {
 
     // Month change callback state
     private isMonthChanging: boolean = false;
-    bulkMetadataCache: Map<string, DateInfo> | null = null;
+    bulkMetadataCache: Map<string, DayMetadata> | null = null;
     monthHeadersCache: Map<string, string> | null = null;
 
     // Unified navigation state
@@ -174,9 +183,9 @@ class DateRangePicker {
             monthLayout: options.monthLayout || 'horizontal',
             gridRows: options.gridRows,
             gridColumns: options.gridColumns,
-            unifiedNavigation: options.unifiedNavigation || false,
+            isUnifiedNavigationEnabled: options.isUnifiedNavigationEnabled || false,
             unifiedNavigationAnchorIndex: options.unifiedNavigationAnchorIndex ?? 0,
-            unifiedHeaderInteractive: options.unifiedHeaderInteractive || false,
+            isUnifiedHeaderInteractive: options.isUnifiedHeaderInteractive || false,
             getUnifiedHeaderCallback: options.getUnifiedHeaderCallback,
             getMonthHeaderCallback: options.getMonthHeaderCallback,
             weekStartDay: options.weekStartDay !== undefined ? options.weekStartDay : 'auto',
@@ -188,7 +197,7 @@ class DateRangePicker {
             specialDates: options.specialDates,
             getDateMetadataCallback: options.getDateMetadataCallback,
             disabledDatesHandling: options.disabledDatesHandling || 'allow',
-            highlightDisabledInRange: options.highlightDisabledInRange !== undefined ? options.highlightDisabledInRange : true,
+            shouldHighlightDisabledInRange: options.shouldHighlightDisabledInRange !== undefined ? options.shouldHighlightDisabledInRange : true,
             locale: options.locale || 'auto',
             displayFormatMask: options.displayFormatMask,
             customStrings: options.customStrings,
@@ -212,19 +221,19 @@ class DateRangePicker {
             dayTooltipMember: options.dayTooltipMember,
             isDisabledMember: options.isDisabledMember,
             autoClose: options.autoClose || 'selection',
-            closeOnScroll: options.closeOnScroll !== undefined ? options.closeOnScroll : true,
+            shouldCloseOnScroll: options.shouldCloseOnScroll !== undefined ? options.shouldCloseOnScroll : true,
             actionButtons: options.actionButtons,
-            showTodayButton: options.showTodayButton !== undefined ? options.showTodayButton : true,
-            showClearButton: options.showClearButton !== undefined ? options.showClearButton : true,
-            showApplyButton: options.showApplyButton !== undefined ? options.showApplyButton : (options.selectionMode === 'range' || options.selectionMode === 'multiple'),
-            showSummary: options.showSummary !== undefined ? options.showSummary : true,
+            isTodayButtonShown: options.isTodayButtonShown !== undefined ? options.isTodayButtonShown : true,
+            isClearButtonShown: options.isClearButtonShown !== undefined ? options.isClearButtonShown : true,
+            isApplyButtonShown: options.isApplyButtonShown !== undefined ? options.isApplyButtonShown : (options.selectionMode === 'range' || options.selectionMode === 'multiple'),
+            isSummaryShown: options.isSummaryShown !== undefined ? options.isSummaryShown : true,
             pickerMode: options.pickerMode || 'date',
             timeFormatMask: options.timeFormatMask || 'HH:mm',
             displayTimeFormatMask: options.displayTimeFormatMask,
             timeStep: options.timeStep && options.timeStep > 0 ? options.timeStep : 1,
             hourCycle: options.hourCycle,
-            showSeconds: options.showSeconds,
-            showNowButton: options.showNowButton !== undefined ? options.showNowButton : true,
+            isSecondsShown: options.isSecondsShown,
+            isNowButtonShown: options.isNowButtonShown !== undefined ? options.isNowButtonShown : true,
             timeDisplay: options.timeDisplay || 'rolls'
         };
 
@@ -235,7 +244,7 @@ class DateRangePicker {
             console.warn(`[web-daterangepicker] pickerMode="${this.options.pickerMode}" does not support selectionMode="${this.options.selectionMode}" yet. Falling back to "single".`);
             this.options.selectionMode = 'single';
             this.options.visibleMonthsCount = 1;
-            this.options.showApplyButton = options.showApplyButton !== undefined ? options.showApplyButton : true;
+            this.options.isApplyButtonShown = options.isApplyButtonShown !== undefined ? options.isApplyButtonShown : true;
         }
         // pickerMode 'datetime' + monthLayout 'grid' — the time picker fights the grid for width.
         if (this.options.pickerMode === 'datetime' && this.options.monthLayout === 'grid') {
@@ -253,19 +262,19 @@ class DateRangePicker {
             console.warn(`[web-daterangepicker] timeDisplay="clock" requires (60 % timeStep === 0). Got timeStep=${this.options.timeStep}. Falling back to 1.`);
             this.options.timeStep = 1;
         }
-        if (clockActive && this.options.showSeconds) {
-            console.warn('[web-daterangepicker] timeDisplay="clock" does not support showSeconds; seconds will always be 00. Set timeDisplay="rolls" to pick seconds.');
-            this.options.showSeconds = false;
+        if (clockActive && this.options.isSecondsShown) {
+            console.warn('[web-daterangepicker] timeDisplay="clock" does not support isSecondsShown; seconds will always be 00. Set timeDisplay="rolls" to pick seconds.');
+            this.options.isSecondsShown = false;
         }
         // For time/datetime modes, default autoClose to 'apply' so each roll-click
         // doesn't auto-commit. Honors an explicit user-supplied autoClose value.
-        // The matching showApplyButton flip is required — otherwise Apply is gated
+        // The matching isApplyButtonShown flip is required — otherwise Apply is gated
         // on but the button never renders and the user has no way to commit.
         if (this.options.pickerMode !== 'date' && options.autoClose === undefined) {
             this.options.autoClose = 'apply';
         }
-        if (this.options.pickerMode !== 'date' && options.showApplyButton === undefined) {
-            this.options.showApplyButton = true;
+        if (this.options.pickerMode !== 'date' && options.isApplyButtonShown === undefined) {
+            this.options.isApplyButtonShown = true;
         }
 
         // Enable/disable logging based on showDebugInfo option
@@ -276,7 +285,7 @@ class DateRangePicker {
         }
 
         // Validate anchor index is within bounds
-        if (this.options.unifiedNavigation && this.options.unifiedNavigationAnchorIndex !== undefined) {
+        if (this.options.isUnifiedNavigationEnabled && this.options.unifiedNavigationAnchorIndex !== undefined) {
             const maxIndex = this.options.visibleMonthsCount - 1;
             if (this.options.unifiedNavigationAnchorIndex < 0 || this.options.unifiedNavigationAnchorIndex > maxIndex) {
                 console.warn(`unifiedNavigationAnchorIndex (${this.options.unifiedNavigationAnchorIndex}) out of bounds. Using 0.`);
@@ -305,13 +314,13 @@ class DateRangePicker {
 
         // Parse time format for time / datetime modes. Always parse (even in date mode)
         // so the field is populated for any later picker-mode flip via updateOptions.
-        this.timeFormatInfo = this.parseTimeFormat(this.options.timeFormatMask);
-        // Derive hourCycle and showSeconds from the time mask if not explicitly set.
+        this.timeFormatOptions = this.parseTimeFormat(this.options.timeFormatMask);
+        // Derive hourCycle and isSecondsShown from the time mask if not explicitly set.
         if (this.options.hourCycle === undefined) {
-            this.options.hourCycle = this.timeFormatInfo.is12Hour ? 'h12' : 'h24';
+            this.options.hourCycle = this.timeFormatOptions.is12Hour ? 'h12' : 'h24';
         }
-        if (this.options.showSeconds === undefined) {
-            this.options.showSeconds = this.timeFormatInfo.hasSeconds;
+        if (this.options.isSecondsShown === undefined) {
+            this.options.isSecondsShown = this.timeFormatOptions.hasSeconds;
         }
 
         // Track previous input value for deletion detection
@@ -485,7 +494,7 @@ class DateRangePicker {
         const windowScrollSub = this.scrollEvents.subscribe('window', () => {
             if (this.options.positioningMode === 'floating' && this.isOpen) {
                 // Check if scroll close is disabled globally
-                if (this.options.closeOnScroll === false) {
+                if (this.options.shouldCloseOnScroll === false) {
                     return;
                 }
 
@@ -614,12 +623,12 @@ class DateRangePicker {
             'monthLayout',
             'gridRows',
             'gridColumns',
-            'unifiedNavigation',
+            'isUnifiedNavigationEnabled',
             'unifiedNavigationAnchorIndex',
             'calendarOpenTrigger',
-            'showSummary',
+            'isSummaryShown',
             'pickerMode',
-            'showSeconds',
+            'isSecondsShown',
             'hourCycle',
         ];
         const has = (k: keyof DatePickerOptions) => Object.prototype.hasOwnProperty.call(partial, k);
@@ -767,7 +776,7 @@ class DateRangePicker {
         const buttons: ActionButton[] = [];
 
         // Today button — date and datetime modes only. Time-only has no day to navigate to.
-        if (this.options.showTodayButton && this.options.pickerMode !== 'time') {
+        if (this.options.isTodayButtonShown && this.options.pickerMode !== 'time') {
             buttons.push({
                 action: 'today',
                 text: this.localeStrings.today
@@ -775,7 +784,7 @@ class DateRangePicker {
         }
 
         // Now button — time and datetime modes only.
-        if (this.options.showNowButton && this.options.pickerMode !== 'date') {
+        if (this.options.isNowButtonShown && this.options.pickerMode !== 'date') {
             buttons.push({
                 action: 'now',
                 text: this.localeStrings.now
@@ -783,7 +792,7 @@ class DateRangePicker {
         }
 
         // Clear button
-        if (this.options.showClearButton) {
+        if (this.options.isClearButtonShown) {
             buttons.push({
                 action: 'clear',
                 text: this.localeStrings.clear
@@ -791,7 +800,7 @@ class DateRangePicker {
         }
 
         // Apply button (for range and multiple modes)
-        if (this.options.showApplyButton) {
+        if (this.options.isApplyButtonShown) {
             buttons.push({
                 action: 'apply',
                 text: this.localeStrings.apply
@@ -875,7 +884,7 @@ class DateRangePicker {
      * Get additional info for a date (special styling, labels, etc.)
      * Priority: bulkMetadataCache > callback > specialDates
      */
-    getDateInfoInternal(date: Date): DateInfo | null {
+    getDayMetadataInternal(date: Date): DayMetadata | null {
         const dateKey = Validation.formatDateKey(date);
 
         // 1. Check bulk metadata cache FIRST (highest priority - from beforeMonthChangedCallback)
@@ -996,7 +1005,7 @@ class DateRangePicker {
         this.calendar.className = 'drp__picker';
 
         // Add unified navigation class if enabled
-        if (this.options.unifiedNavigation) {
+        if (this.options.isUnifiedNavigationEnabled) {
             this.calendar.classList.add('drp__picker--unified-nav');
         }
 
@@ -1006,13 +1015,13 @@ class DateRangePicker {
         }
 
         // Create unified navigation header (if enabled)
-        if (this.options.unifiedNavigation) {
+        if (this.options.isUnifiedNavigationEnabled) {
             this.unifiedHeader = document.createElement('div');
             this.unifiedHeader.className = 'drp__unified-header';
 
             // Conditionally make range display interactive
-            const rangeClass = this.options.unifiedHeaderInteractive ? '' : ' drp__unified-range--static';
-            const rangeAction = this.options.unifiedHeaderInteractive ? ' data-action="toggle-unified-rolling"' : '';
+            const rangeClass = this.options.isUnifiedHeaderInteractive ? '' : ' drp__unified-range--static';
+            const rangeAction = this.options.isUnifiedHeaderInteractive ? ' data-action="toggle-unified-rolling"' : '';
 
             this.unifiedHeader.innerHTML = `
                 <button class="drp__nav drp__nav--prev" data-action="unified-prev"></button>
@@ -1062,7 +1071,7 @@ class DateRangePicker {
 
             // In unified mode, headers are static (non-interactive)
             // In non-unified mode, headers have navigation and rolling selector
-            const headerHtml = this.options.unifiedNavigation
+            const headerHtml = this.options.isUnifiedNavigationEnabled
                 ? `<div class="drp__header drp__header--static">
                     <div class="drp__month-year"></div>
                 </div>`
@@ -1095,7 +1104,7 @@ class DateRangePicker {
         if (this.options.pickerMode === 'time' || this.options.pickerMode === 'datetime') {
             timePicker = document.createElement('div');
             const is12h = this.options.hourCycle === 'h12';
-            const showSeconds = !!this.options.showSeconds;
+            const isSecondsShown = !!this.options.isSecondsShown;
             if (this.options.timeDisplay === 'clock') {
                 timePicker.className = 'drp__clock-picker';
                 // Renderer fills .clock-header and .clock-face on every renderCalendar().
@@ -1123,7 +1132,7 @@ class DateRangePicker {
                         <div class="drp__wheel-band" aria-hidden="true"></div>
                         ${wheelColumn('hours', this.localeStrings.hours)}
                         ${wheelColumn('minutes', this.localeStrings.minutes)}
-                        ${showSeconds ? wheelColumn('seconds', this.localeStrings.seconds) : ''}
+                        ${isSecondsShown ? wheelColumn('seconds', this.localeStrings.seconds) : ''}
                         ${is12h ? wheelColumn('ampm', `${this.localeStrings.am}/${this.localeStrings.pm}`, 'drp__wheel-column--ampm') : ''}
                     </div>
                 `;
@@ -1139,7 +1148,7 @@ class DateRangePicker {
                         <button type="button" class="drp__compact-pill" data-compact-field="hours">--</button>
                         ${sep}
                         <button type="button" class="drp__compact-pill" data-compact-field="minutes">--</button>
-                        ${showSeconds ? sep + `<button type="button" class="drp__compact-pill" data-compact-field="seconds">--</button>` : ''}
+                        ${isSecondsShown ? sep + `<button type="button" class="drp__compact-pill" data-compact-field="seconds">--</button>` : ''}
                         ${is12h ? `
                             <div class="drp__compact-ampm">
                                 <button type="button" class="drp__compact-ampm-button" data-compact-ampm="am">${this.localeStrings.am}</button>
@@ -1163,7 +1172,7 @@ class DateRangePicker {
                     <div class="drp__time-rolls">
                         ${column('hours', this.localeStrings.hours)}
                         ${column('minutes', this.localeStrings.minutes)}
-                        ${showSeconds ? column('seconds', this.localeStrings.seconds) : ''}
+                        ${isSecondsShown ? column('seconds', this.localeStrings.seconds) : ''}
                         ${is12h ? column('ampm', `${this.localeStrings.am}/${this.localeStrings.pm}`, 'drp__time-roll--ampm') : ''}
                     </div>
                 `;
@@ -1196,7 +1205,7 @@ class DateRangePicker {
         this.calendar.appendChild(this.messageElement);
 
         // Add selection summary (for range mode)
-        if (this.options.selectionMode === 'range' && this.options.showSummary !== false) {
+        if (this.options.selectionMode === 'range' && this.options.isSummaryShown !== false) {
             const summary = document.createElement('div');
             summary.className = 'drp__summary drp__summary--hidden';
             this.calendar.appendChild(summary);
@@ -1896,13 +1905,13 @@ class DateRangePicker {
     }
 
     /**
-     * Parse a time format mask into a TimeFormatInfo. Tokens: HH/H (24h hours),
+     * Parse a time format mask into a TimeFormatOptions. Tokens: HH/H (24h hours),
      * hh/h (12h hours), mm/m, ss/s, a (am/pm). Separators between fields are
      * preserved literally (typically `:`). The `a` token, when present, switches
      * 12-hour mode on regardless of the hour token used.
      */
-    parseTimeFormat(formatString: string): TimeFormatInfo {
-        const parts: TimeFormatInfo['parts'] = {};
+    parseTimeFormat(formatString: string): TimeFormatOptions {
+        const parts: TimeFormatOptions['parts'] = {};
         let separator = ':';
         if (formatString.includes(':')) separator = ':';
         else if (formatString.includes('.')) separator = '.';
@@ -1944,10 +1953,10 @@ class DateRangePicker {
     }
 
     // Helper methods
-    parseFormat(formatString: string): FormatInfo {
+    parseFormat(formatString: string): FormatOptions {
         // Parse format string like "YYYY-MM-DD" or "DD.MM.YYYY"
         // Returns structure with positions and separator
-        const parts: FormatInfo['parts'] = {};
+        const parts: FormatOptions['parts'] = {};
         let separator = '';
 
         // Detect separator
@@ -2011,12 +2020,12 @@ class DateRangePicker {
     }
 
     /**
-     * Format `selectedTime` parts using `timeFormatInfo`. Null fields render as 00
+     * Format `selectedTime` parts using `timeFormatOptions`. Null fields render as 00
      * (or 12 for the hours roll in h12 mode, since the hour token is 1-12 there).
      * Only used when pickerMode is 'time' or 'datetime'.
      */
     formatTime(time: SelectedTime | null): string {
-        const info = this.timeFormatInfo;
+        const info = this.timeFormatOptions;
         const h24 = time?.hour ?? 0;
         const m = time?.minute ?? 0;
         const s = time?.second ?? 0;
@@ -2281,8 +2290,8 @@ class DateRangePicker {
 
     // Interaction methods - wrappers for pure functions
     initDragListeners() { return Interaction.initDragListeners(this); }
-    startDrag(event: MouseEvent, type: 'start' | 'end', dayElement: HTMLElement) { return Interaction.startDrag(this, event, type, dayElement); }
-    onDragMove(event: MouseEvent) { return Interaction.onDragMove(this, event); }
+    handleStartDrag(event: MouseEvent, type: 'start' | 'end', dayElement: HTMLElement) { return Interaction.startDrag(this, event, type, dayElement); }
+    handleDragMove(event: MouseEvent) { return Interaction.onDragMove(this, event); }
     async onDragEnd(event: MouseEvent) { return await Interaction.onDragEnd(this, event); }
     findNearestEnabledDate(targetDate: Date, preferredDirection: string = 'forward') { return Interaction.findNearestEnabledDate(this, targetDate, preferredDirection); }
     handleInputMask(event: Event) { return Interaction.handleInputMask(this, event); }

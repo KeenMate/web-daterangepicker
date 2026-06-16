@@ -75,10 +75,10 @@
   assert('disabledDates set preserves selectedStartDate', picker.selectedStartDate?.toISOString() === startISO);
   assert('disabledDates set preserves selectedEndDate',   picker.selectedEndDate?.toISOString()   === endISO);
 
-  // 5. show-today-button toggle — selection MUST survive.
-  el.setAttribute('show-today-button', 'false');
+  // 5. is-today-button-shown toggle — selection MUST survive.
+  el.setAttribute('is-today-button-shown', 'false');
   await new Promise(r => requestAnimationFrame(r));
-  assert('show-today-button toggle preserves selection',
+  assert('is-today-button-shown toggle preserves selection',
          picker.selectedStartDate?.toISOString() === startISO &&
          picker.selectedEndDate?.toISOString()   === endISO);
 

@@ -155,9 +155,9 @@ test('updateOptions on a non-structural key preserves the existing selection', a
     await dayByDate(p, '2026-06-15').click();
     await expect(inputOf(p)).toHaveValue('2026-06-10 - 2026-06-15');
 
-    // Now toggle a non-structural option (highlight-disabled-in-range).
+    // Now toggle a non-structural option (should-highlight-disabled-in-range).
     const applied = await p.evaluate((el: any) =>
-        el.picker.updateOptions({ highlightDisabledInRange: false })
+        el.picker.updateOptions({ shouldHighlightDisabledInRange: false })
     );
     expect(applied).toBe(true);
 

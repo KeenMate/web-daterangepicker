@@ -35,7 +35,7 @@ When a row is marked `✓`/`△`, the **Spec** column points at the file under
 | `floating`: escapes `overflow:auto` ancestor (SPFx fix)       | ✓      | `floating-overflow.spec.ts`  | `floating-overflow.html`  |
 | `floating`: anchor stable when calendar content grows         | ✓      | `anchor-stability.spec.ts`   | `anchor-stability.html`   |
 | `floating`: closes on viewport resize                         | ✓      | `anchor-stability.spec.ts`   | `anchor-stability.html`   |
-| `floating`: `close-on-scroll` (default true / false)          | ✓      | `floating-placement.spec.ts` | `floating-placement.html` |
+| `floating`: `should-close-on-scroll` (default true / false)          | ✓      | `floating-placement.spec.ts` | `floating-placement.html` |
 | `inline` mode: renders in-place, never hidden                 | ✓      | `positioning-modes.spec.ts`  | `positioning-modes.html`  |
 | `modal` mode: centered overlay + backdrop                     | ✓      | `positioning-modes.spec.ts`  | `positioning-modes.html`  |
 | `modal` mode: backdrop click closes                           | ✓      | `positioning-modes.spec.ts`  | `positioning-modes.html`  |
@@ -65,9 +65,9 @@ When a row is marked `✓`/`△`, the **Spec** column points at the file under
 | Grid layout (`grid-rows` × `grid-columns`)                    | ✓      | `multi-month.spec.ts`        | `multi-month.html`        |
 | Collision prevention: adjacent columns can't show same month  | ✓      | `multi-month.spec.ts`        | `multi-month.html`        |
 | Per-column independent navigation                             | ✓      | `multi-month.spec.ts`        | `multi-month.html`        |
-| `unified-navigation`: single header drives all columns        | △      | `multi-month.spec.ts`        | `multi-month.html`        |
+| `is-unified-navigation-enabled`: single header drives all columns        | △      | `multi-month.spec.ts`        | `multi-month.html`        |
 | `unified-navigation-anchor-index`                             | ✗      |      |         |
-| `unified-header-interactive` opens unified rolling selector   | ✓      | `misc-features.spec.ts`      | `misc-features.html`      |
+| `is-unified-header-interactive` opens unified rolling selector   | ✓      | `misc-features.spec.ts`      | `misc-features.html`      |
 | Always-6-week rendering (stable height in modal)              | ✗      |      |         |
 
 ## 5. Navigation
@@ -115,7 +115,7 @@ When a row is marked `✓`/`△`, the **Spec** column points at the file under
 | `'block'`: snaps to last enabled before disabled gap          | ✓      | `disabled-handling.spec.ts`  | `disabled-handling.html`  |
 | `'split'`: yields multiple ranges in event detail             | ✓      | `disabled-handling.spec.ts`  | `disabled-handling.html`  |
 | `'individual'`: yields flat enabled-dates array               | ✓      | `disabled-handling.spec.ts`  | `disabled-handling.html`  |
-| `highlight-disabled-in-range` toggles styling                 | ✓      | `disabled-handling.spec.ts`  | `disabled-handling.html`  |
+| `should-highlight-disabled-in-range` toggles styling                 | ✓      | `disabled-handling.spec.ts`  | `disabled-handling.html`  |
 
 ## 9. Action buttons & summary
 
@@ -124,10 +124,10 @@ When a row is marked `✓`/`△`, the **Spec** column points at the file under
 | Today button jumps + selects today                            | ✓      | `action-buttons.spec.ts`     | `action-buttons.html`     |
 | Clear button clears selection + input                         | ✓      | `action-buttons.spec.ts`     | `action-buttons.html`     |
 | Apply commits pending selection, closes picker                | ✓      | `selection-modes.spec.ts`    | `selection-modes.html`    |
-| `show-today-button` / `show-clear-button` / `show-apply-button` | ✓    | `action-buttons.spec.ts`     | `action-buttons.html`     |
+| `is-today-button-shown` / `is-clear-button-shown` / `is-apply-button-shown` | ✓    | `action-buttons.spec.ts`     | `action-buttons.html`     |
 | Custom `actionButtons` array (incl. `custom-action` event)    | ✓      | `events-api.spec.ts`         | `events-api.html`         |
 | Action-button tooltip on hover                                | ✓      | `tooltips.spec.ts`           | `tooltips.html`           |
-| `show-summary="false"` omits summary block entirely           | ✓      | `action-buttons.spec.ts`     | `action-buttons.html`     |
+| `is-summary-shown="false"` omits summary block entirely           | ✓      | `action-buttons.spec.ts`     | `action-buttons.html`     |
 | Actions `border-top` only when summary is visible             | ✓      | `summary-actions.spec.ts`    | `summary-actions.html`    |
 | Visible summary has `margin-top` (gap from months)            | ✓      | `summary-actions.spec.ts`    | `summary-actions.html`    |
 | Range summary text reflects selected days/nights              | △      | `selection-modes.spec.ts`    | `selection-modes.html`    |

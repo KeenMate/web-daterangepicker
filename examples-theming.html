@@ -140,6 +140,29 @@
       --drp-primary-bg-hover: #fdba74;
       --drp-text-color-on-accent: #ffffff;
     }
+
+    /* Classifier retheming — recolor the built-in dayClass/badgeClass conventions.
+       The picker ships .drp__day.holiday / .drp__day.event / .drp__badge-cell.badge-*
+       rules that read these variables, so an override on the host repaints every
+       day/badge consuming that classifier — no CSS rewrite needed. */
+    web-daterangepicker.theme-classifier-corporate {
+      --drp-holiday-color: #475569;          /* slate instead of red */
+      --drp-event-color: #0ea5e9;            /* sky blue instead of green */
+      --drp-badge-number-bg: #0ea5e9;
+      --drp-badge-count-bg: #475569;
+      --drp-badge-text-bg: #64748b;
+    }
+
+    web-daterangepicker.theme-classifier-festival {
+      --drp-holiday-color: #c026d3;          /* fuchsia */
+      --drp-event-color: #facc15;            /* amber */
+      --drp-holiday-bg-opacity: 0.18;        /* stronger tint */
+      --drp-event-bg-opacity: 0.22;
+      --drp-badge-number-bg: #c026d3;
+      --drp-badge-count-bg: #f97316;
+      --drp-badge-text-bg: #facc15;
+      --drp-badge-text-color: #1e293b;       /* dark text on amber */
+    }
   </style>
 </head>
 <body>
@@ -525,6 +548,66 @@ web-daterangepicker.theme-selection-hover {
   </div>
 
   <div class="test-section">
+    <h2>&check; Test 9: Classifier Retheming (dayClass / badgeClass conventions)</h2>
+    <p>
+      The picker ships default styling for five consumer-data class names
+      (<code>dayClass: 'holiday' | 'event'</code> and <code>badgeClass: 'badge-number' | 'badge-count' | 'badge-text'</code>),
+      each backed by overridable CSS variables. Set <code>dayClass</code> / <code>badgeClass</code> on your data;
+      override the variables on the host to recolor every day or badge using that classifier.
+      No <code>customStylesCallback</code> required &mdash; the rules already exist in shipped CSS.
+    </p>
+
+    <label>Default (red holidays, green events):</label>
+    <web-daterangepicker
+      id="classifier-default"
+      visible-months-count="2"
+      placeholder="Default classifier theme">
+    </web-daterangepicker>
+
+    <label style="margin-top: 1rem;">Corporate (slate holidays, sky-blue events):</label>
+    <web-daterangepicker
+      id="classifier-corporate"
+      class="theme-classifier-corporate"
+      visible-months-count="2"
+      placeholder="Corporate classifier theme">
+    </web-daterangepicker>
+
+    <label style="margin-top: 1rem;">Festival (fuchsia + amber, stronger tints):</label>
+    <web-daterangepicker
+      id="classifier-festival"
+      class="theme-classifier-festival"
+      visible-months-count="2"
+      placeholder="Festival classifier theme">
+    </web-daterangepicker>
+
+    <div class="success">
+      &check; All three pickers receive the same <code>specialDates</code> data; only the variable overrides differ.
+    </div>
+
+    <div class="code-block">/* Override on the host element — every day/badge using that classifier repaints. */
+web-daterangepicker.theme-classifier-corporate {
+  --drp-holiday-color: #475569;          /* slate instead of red */
+  --drp-event-color:   #0ea5e9;          /* sky blue instead of green */
+  --drp-badge-number-bg: #0ea5e9;
+  --drp-badge-count-bg:  #475569;
+  --drp-badge-text-bg:   #64748b;
+}
+
+/* All twelve classifier variables you can override: */
+--drp-holiday-color, --drp-holiday-bg-opacity, --drp-holiday-hover-bg-opacity
+--drp-event-color,   --drp-event-bg-opacity,   --drp-event-hover-bg-opacity
+--drp-badge-number-bg, --drp-badge-number-color
+--drp-badge-count-bg,  --drp-badge-count-color
+--drp-badge-text-bg,   --drp-badge-text-color</div>
+
+    <div class="info" style="margin-top: 1rem;">
+      <strong>Custom classifier names</strong> (e.g., <code>dayClass: 'salsa'</code>) live outside this convention &mdash;
+      you ship the CSS via <code>customStylesCallback</code> instead. See the
+      <a href="examples-badges-tooltips.html">Badges &amp; Tooltips examples</a> for the custom-classifier demo.
+    </div>
+  </div>
+
+  <div class="test-section">
     <h2>Available CSS Custom Properties</h2>
     <p>All variables you can override with <code>--drp-</code> prefix:</p>
 
@@ -750,6 +833,24 @@ function switchTheme(newTheme) {
     }
 
     document.querySelectorAll('web-daterangepicker[data-rich-demo]').forEach(setupRichDemo);
+
+    // ----- Test 9: classifier retheming -----
+    // Same data, three pickers — only the host variable overrides differ.
+    // dayClass: 'holiday' / 'event' fires the shipped .drp__day.{holiday,event} rules
+    // (consume --drp-holiday-color / --drp-event-color).
+    // badgeClass: 'badge-number' / 'badge-count' / 'badge-text' fires the shipped
+    // .drp__badge-cell.badge-* rules (consume --drp-badge-*-bg / -color).
+    const CLASSIFIER_SPECIAL_DATES = [
+      { date: dayOffset(-7), dayClass: 'holiday', badgeClass: 'badge-text',   badgeText: 'OFF',  badgeTooltip: 'Office closed' },
+      { date: dayOffset(-3), dayClass: 'event',   badgeClass: 'badge-number', badgeText: '12',   badgeTooltip: 'Slot 12' },
+      { date: dayOffset(2),  dayClass: 'event',   badgeClass: 'badge-count',  badgeText: '3',    badgeTooltip: '3 attendees' },
+      { date: dayOffset(7),  dayClass: 'holiday', badgeClass: 'badge-text',   badgeText: 'OFF',  badgeTooltip: 'Public holiday' },
+      { date: dayOffset(11), dayClass: 'event',   badgeClass: 'badge-number', badgeText: '7',    badgeTooltip: 'Slot 7' },
+    ];
+    ['classifier-default', 'classifier-corporate', 'classifier-festival'].forEach((id) => {
+      const picker = document.getElementById(id);
+      if (picker) picker.specialDates = CLASSIFIER_SPECIAL_DATES;
+    });
 
     // switchTheme is referenced from inline onclick attrs, so it must live on window.
     // Re-applying setupRichDemo after the class swap is cheap insurance — class changes

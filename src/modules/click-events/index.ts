@@ -8,7 +8,7 @@
 // - 'outsideClick': Click outside calendar and input - close floating calendar
 // - 'calendarClick': Click inside calendar element (for active state tracking)
 
-export type ClickEventType =
+export type ClickEventName =
 	| 'outsideClick'    // Document click outside the calendar and input
 	| 'calendarClick'   // Click inside the calendar element
 
@@ -33,7 +33,7 @@ export interface ClickEventManager {
 	 * @param handler - Callback function, return true to stop other handlers
 	 * @returns Subscription object with unsubscribe method
 	 */
-	subscribe(type: ClickEventType, handler: ClickHandler): ClickSubscription
+	subscribe(type: ClickEventName, handler: ClickHandler): ClickSubscription
 
 	/**
 	 * Initialize click listeners
@@ -58,7 +58,7 @@ export interface ClickEventManager {
  * Create a click event manager for a DateRangePicker instance
  */
 export function createClickEventManager(): ClickEventManager {
-	const handlers: Record<ClickEventType, Set<ClickHandler>> = {
+	const handlers: Record<ClickEventName, Set<ClickHandler>> = {
 		outsideClick: new Set(),
 		calendarClick: new Set()
 	}
@@ -73,7 +73,7 @@ export function createClickEventManager(): ClickEventManager {
 	let insideCalendarClickInProgress = false
 
 	// Dispatch to handlers, stop if any returns true
-	const dispatch = (type: ClickEventType, ctx: ClickContext): boolean => {
+	const dispatch = (type: ClickEventName, ctx: ClickContext): boolean => {
 		for (const handler of handlers[type]) {
 			if (handler(ctx) === true) {
 				return true // Handler requested stop
@@ -143,7 +143,7 @@ export function createClickEventManager(): ClickEventManager {
 	}
 
 	return {
-		subscribe(type: ClickEventType, handler: ClickHandler): ClickSubscription {
+		subscribe(type: ClickEventName, handler: ClickHandler): ClickSubscription {
 			handlers[type].add(handler)
 
 			return {
