@@ -160,7 +160,7 @@ objects:
 The C-NC-6 auto-script expects each `*Member` to pair with a
 per-field `get*Callback` (e.g., `getBadgeClassCallback`). For this
 component the programmatic peer is the **unified
-`getDateMetadataCallback`**, which returns a `DateInfo` containing
+`getDateMetadataCallback`**, which returns a `DayMetadata` containing
 all seven values in one call per day. The pattern is intentional:
 per-field callbacks would force seven function calls per day cell
 (quadratic in date-range pickers with many visible days) and would
@@ -170,3 +170,42 @@ component.
 
 The auto-script flags the absence of the per-field callbacks; the
 unified callback satisfies the spirit of the check.
+
+---
+
+## C-BV-1 / C-BV-4 / theme-designer integration — `--base-input-size-*-height` taxonomy alignment
+
+The picker reads five `--base-input-size-{xs,sm,md,lg,xl}-height`
+variables in `src/css/variables.css:235-259` to drive the input-size
+scale (per `input-size="xs|sm|md|lg|xl"` attribute). The validator
+cross-cuts this against the BlissFramework canonical `--base-*`
+taxonomy because cross-component reads must be on the agreed list —
+otherwise consumers using the Theme Designer or pure-admin to
+override them silently get no effect.
+
+**Verified 2026-06-16 against all four sources of truth:**
+
+- `C:\Git\BlissFramework\guidelines\web-components\base-variables.md:232-236`
+  — all five rows present in the "Canonical `--base-*` taxonomy" table.
+- `C:\Git\BlissFramework\guidelines\web-components\base-variables.decisions.md:63`
+  — listed in the design-decisions checklist for components with
+  multiple input-size variants.
+- `C:\Git\KM\theme-designer\src\generators\base.ts:142-146` — emitted
+  by the Theme Designer generator with default values 3.1 / 3.3 / 3.5
+  / 3.8 / 4.1 (matching the picker's fallback values).
+- `C:\Git\KM\pure-admin\packages\core\base-variables.manifest.json:61-65`
+  — listed in pure-admin's manifest (md flagged `required: true`,
+  others `required: false`).
+- `C:\Git\KM\web-multiselect\component-variables.manifest.json:52-56`
+  — sibling component reads the same five variables (cross-component
+  consumption is the test of cross-component canonicalness).
+
+The full chain is intact: pure-admin SCSS sources → Theme Designer
+generator → `--base-*` CSS custom properties → both `web-multiselect`
+and `web-daterangepicker` read them. A single
+`:root { --base-input-size-md-height: 4.0 }` declaration recolors
+input heights across every KeenMate component on the page.
+
+No action required on subsequent validation runs unless the
+upstream taxonomy table changes; revisit if the BlissFramework
+guidelines drop these rows or the Theme Designer stops emitting them.
