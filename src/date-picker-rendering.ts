@@ -376,7 +376,7 @@ export function renderDays(picker: any, monthIndex: number, date: Date) {
 
             // Override with badgeTooltipCallback if provided
             if (picker.options.badgeTooltipCallback && dateInfo?.badgeText) {
-                // Build DayRenderData for callback (minimal version for badge context)
+                // Build DayRenderContext for callback (minimal version for badge context)
                 const dayRenderData = {
                     date: dayData.date,
                     dateString: Validation.formatDateKey(dayData.date),
@@ -524,7 +524,7 @@ export function renderDays(picker: any, monthIndex: number, date: Date) {
 
             // Override with dayTooltipCallback if provided
             if (picker.options.dayTooltipCallback) {
-                // Build DayRenderData for callback
+                // Build DayRenderContext for callback
                 const dayRenderData = {
                     date: dayData.date,
                     dateString: dateStr,
@@ -598,7 +598,7 @@ function processRenderCallbacks(picker: any, monthIndex: number, daysContainer: 
             return;
         }
 
-        // Build DayRenderData object
+        // Build DayRenderContext object
         const isDisabled = picker.isDateDisabledInternal(date);
         const isToday = picker.isToday(date);
         const isWeekend = date.getDay() === 0 || date.getDay() === 6;

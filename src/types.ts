@@ -290,7 +290,7 @@ export interface DatePickerOptions {
    * Callers are responsible for sanitizing any user-controlled data interpolated into the
    * returned string. Prefer returning an HTMLElement when content depends on untrusted input.
    */
-  renderDayCallback?: (data: DayRenderData) => HTMLElement | string | null;
+  renderDayCallback?: (data: DayRenderContext) => HTMLElement | string | null;
 
   /**
    * Augmentation — return element or HTML string to add to default day cell.
@@ -298,11 +298,11 @@ export interface DatePickerOptions {
    * SECURITY: Same caveat as renderDayCallback — string return values are appended to
    * innerHTML unescaped. Sanitize untrusted data or return an HTMLElement.
    */
-  renderDayContentCallback?: (data: DayRenderData) => HTMLElement | string | null;
+  renderDayContentCallback?: (data: DayRenderContext) => HTMLElement | string | null;
 
   // Tooltips (HTML support)
-  badgeTooltipCallback?: (data: DayRenderData) => string | null; // Return HTML string for badge hover tooltip (overrides DayMetadata.badgeTooltip)
-  dayTooltipCallback?: (data: DayRenderData) => string | null; // Return HTML string for day cell hover tooltip (overrides DayMetadata.dayTooltip)
+  badgeTooltipCallback?: (data: DayRenderContext) => string | null; // Return HTML string for badge hover tooltip (overrides DayMetadata.badgeTooltip)
+  dayTooltipCallback?: (data: DayRenderContext) => string | null; // Return HTML string for day cell hover tooltip (overrides DayMetadata.dayTooltip)
 
   // Range selection behavior over disabled dates
   disabledDatesHandling?: 'allow' | 'prevent' | 'block' | 'split' | 'individual';
@@ -618,7 +618,7 @@ export interface SummaryDetail {
  * Data passed to renderDay and renderDayContent callbacks
  * Provides complete context about the day being rendered
  */
-export interface DayRenderData {
+export interface DayRenderContext {
   // Date information
   date: Date;                  // JavaScript Date object for this day
   dateString: string;          // ISO format YYYY-MM-DD

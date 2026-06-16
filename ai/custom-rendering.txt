@@ -255,7 +255,7 @@ CRITICAL: JavaScript API ONLY
 
 const picker = new DateRangePicker(input, {
   renderDayContent: (data) => {
-    // data: DayRenderData interface
+    // data: DayRenderContext interface
     // Return HTMLElement or null
 
     const wrapper = document.createElement('div');

@@ -1,5 +1,5 @@
 import { DateRangePicker } from './date-picker';
-import type { DatePickerOptions, DateRange, DecoratedDate, DayMetadata, DayRenderData, BeforeSelectResult, ActionButton, LocaleStrings } from './types';
+import type { DatePickerOptions, DateRange, DecoratedDate, DayMetadata, DayRenderContext, BeforeSelectResult, ActionButton, LocaleStrings } from './types';
 import styles from './css/main.css?inline';
 
 // =============================================================================
@@ -175,11 +175,11 @@ export class WebDaterangepickerElement extends HTMLElement {
     private _specialDates?: DecoratedDate[];
     private _disabledDates?: (Date | string)[];
     private _getDateMetadataCallback?: (date: Date) => DayMetadata | null;
-    private _badgeTooltipCallback?: (data: DayRenderData) => string | null;
-    private _dayTooltipCallback?: (data: DayRenderData) => string | null;
+    private _badgeTooltipCallback?: (data: DayRenderContext) => string | null;
+    private _dayTooltipCallback?: (data: DayRenderContext) => string | null;
     private _customStylesCallback?: () => string;
-    private _renderDayCallback?: (data: DayRenderData) => HTMLElement | string | null;
-    private _renderDayContentCallback?: (data: DayRenderData) => HTMLElement | string | null;
+    private _renderDayCallback?: (data: DayRenderContext) => HTMLElement | string | null;
+    private _renderDayContentCallback?: (data: DayRenderContext) => HTMLElement | string | null;
     private _beforeDateSelectCallback?: (selection: Date | DateRange) => Promise<BeforeSelectResult> | BeforeSelectResult;
     private _beforeMonthChangedCallback?: (context: any) => Promise<any> | any;
     private _formatSummaryCallback?: (data: any) => string;
@@ -951,20 +951,20 @@ export class WebDaterangepickerElement extends HTMLElement {
         this.applyOptionUpdate('getDateMetadataCallback', value);
     }
 
-    get badgeTooltipCallback(): ((data: DayRenderData) => string | null) | undefined {
+    get badgeTooltipCallback(): ((data: DayRenderContext) => string | null) | undefined {
         return this._badgeTooltipCallback;
     }
 
-    set badgeTooltipCallback(value: ((data: DayRenderData) => string | null) | undefined) {
+    set badgeTooltipCallback(value: ((data: DayRenderContext) => string | null) | undefined) {
         this._badgeTooltipCallback = value;
         this.applyOptionUpdate('badgeTooltipCallback', value);
     }
 
-    get dayTooltipCallback(): ((data: DayRenderData) => string | null) | undefined {
+    get dayTooltipCallback(): ((data: DayRenderContext) => string | null) | undefined {
         return this._dayTooltipCallback;
     }
 
-    set dayTooltipCallback(value: ((data: DayRenderData) => string | null) | undefined) {
+    set dayTooltipCallback(value: ((data: DayRenderContext) => string | null) | undefined) {
         this._dayTooltipCallback = value;
         this.applyOptionUpdate('dayTooltipCallback', value);
     }
@@ -981,20 +981,20 @@ export class WebDaterangepickerElement extends HTMLElement {
         this.scheduleReinit();
     }
 
-    get renderDayCallback(): ((data: DayRenderData) => HTMLElement | string | null) | undefined {
+    get renderDayCallback(): ((data: DayRenderContext) => HTMLElement | string | null) | undefined {
         return this._renderDayCallback;
     }
 
-    set renderDayCallback(value: ((data: DayRenderData) => HTMLElement | string | null) | undefined) {
+    set renderDayCallback(value: ((data: DayRenderContext) => HTMLElement | string | null) | undefined) {
         this._renderDayCallback = value;
         this.applyOptionUpdate('renderDayCallback', value);
     }
 
-    get renderDayContentCallback(): ((data: DayRenderData) => HTMLElement | string | null) | undefined {
+    get renderDayContentCallback(): ((data: DayRenderContext) => HTMLElement | string | null) | undefined {
         return this._renderDayContentCallback;
     }
 
-    set renderDayContentCallback(value: ((data: DayRenderData) => HTMLElement | string | null) | undefined) {
+    set renderDayContentCallback(value: ((data: DayRenderContext) => HTMLElement | string | null) | undefined) {
         this._renderDayContentCallback = value;
         this.applyOptionUpdate('renderDayContentCallback', value);
     }

@@ -28,6 +28,7 @@ Naming-alignment pass against the BlissFramework web-component guidelines plus o
 | `TimeFormatInfo` | `TimeFormatOptions` | Internal; surfaced via time-mode callbacks |
 | `DateInfo` | `DayMetadata` | Return type of `getDateMetadataCallback` |
 | `SummaryCallbackData` | `SummaryDetail` | Argument to `formatSummaryCallback` |
+| `DayRenderData` | `DayRenderContext` | Argument to `renderDayCallback` / `renderDayContentCallback` |
 | `ClickEventType` | `ClickEventName` | Internal-only; not exported from package barrel |
 
 ### Renamed — boolean public attributes (is/should/has/can prefix per C-NC-3)

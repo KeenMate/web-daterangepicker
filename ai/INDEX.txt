@@ -144,7 +144,7 @@ renderCalendar → basic-usage.txt
 INTERFACES & TYPES
 ------------------
 DateInfo interface → custom-rendering.txt, date-restrictions.txt
-DayRenderData interface → custom-rendering.txt
+DayRenderContext interface → custom-rendering.txt
 ActionButton interface → action-buttons.txt
 event detail structure → events-callbacks.txt
 
