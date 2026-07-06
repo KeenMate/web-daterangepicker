@@ -501,6 +501,30 @@
   </div>
 
   <div class="card">
+    <h2>Week-Snapping Selection (<code>adjustedRanges</code>)</h2>
+    <p style="color:#666; font-size:0.9rem; margin-top:-8px;">
+      A <code>beforeDateSelectCallback</code> that rewrites the raw selection into
+      whole weeks. For every week the selection touches, it counts the selected
+      <strong>work days (Mon–Fri)</strong>: if <strong>2 or more</strong> land in
+      that week the <strong>entire week (Mon–Sun) is selected</strong>; if fewer
+      than 2, that week contributes <strong>0 days</strong> and is dropped. The
+      surviving weeks are returned as <code>adjustedRanges</code> — one range per
+      week — so the grid, summary, and <code>onSelect</code> all reflect the snap.
+    </p>
+    <div class="form-group">
+      <label>Select a span across a few weeks</label>
+      <web-daterangepicker
+        id="week-snap"
+        selection-mode="range"
+        visible-months-count="2"
+        week-start-day="1"
+        placeholder="Select range"></web-daterangepicker>
+      <small>Select Mon–Tue of a week → snaps to the full week. Select a lone Friday → dropped (0 days).</small>
+      <div id="week-snap-output" style="margin-top: 8px; font-size: 0.875rem; color: #666;"></div>
+    </div>
+  </div>
+
+  <div class="card">
     <h2>Custom Summary Formatting</h2>
     <p>Use the <code>formatSummaryCallback</code> option to completely customize the summary display below the calendar.</p>
     <div class="grid">
@@ -591,23 +615,34 @@
     <div class="grid">
       <div class="form-group">
         <label>Inline with Special Dates</label>
+        <small>Shows holidays and events</small>
         <web-daterangepicker
           id="inline-holidays"
           selection-mode="single"
           positioning-mode="inline"></web-daterangepicker>
-        <small>Shows holidays and events</small>
         <div id="inline-holidays-output" style="margin-top: 8px; font-size: 0.875rem; color: #666;"></div>
       </div>
 
       <div class="form-group">
         <label>Inline with Smart Messages</label>
+        <small>Select a range that includes a <strong>Friday/weekend or ≥5 nights</strong> to trigger a message — weekday-only ranges show none. Uses <code>custom-action</code> event for message buttons.</small>
         <web-daterangepicker
           id="inline-messages"
           selection-mode="range"
           positioning-mode="inline"
           visible-months-count="2"></web-daterangepicker>
-        <small>Select dates to see traffic alerts and pricing suggestions. Uses <code>custom-action</code> event for message buttons.</small>
         <div id="inline-messages-output" style="margin-top: 8px; font-size: 0.875rem; color: #666;"></div>
+      </div>
+
+      <div class="form-group">
+        <label>Inline with Async Price (summary loader)</label>
+        <small>Select a range — a spinner shows in the <strong>summary</strong> block via <code>showLoader('summary')</code>, then the price is written with <code>showSummary()</code>. Re-selecting cancels the in-flight request (AbortController).</small>
+        <web-daterangepicker
+          id="inline-async-price"
+          selection-mode="range"
+          positioning-mode="inline"
+          visible-months-count="2"></web-daterangepicker>
+        <div id="inline-async-price-output" style="margin-top: 8px; font-size: 0.875rem; color: #666;"></div>
       </div>
     </div>
 
@@ -1073,6 +1108,70 @@ picker.addEventListener('date-select', (e) => {
         });
       }
 
+      // Week-snapping selection via adjustedRanges:
+      //   count selected work days (Mon–Fri) per week →
+      //     >= 2  ⇒ select the whole week (Mon–Sun)
+      //     <  2  ⇒ drop that week
+      const weekSnap = document.getElementById('week-snap');
+      if (weekSnap) {
+        const MS_DAY = 1000 * 60 * 60 * 24;
+        const atMidnight = (d) => new Date(d.getFullYear(), d.getMonth(), d.getDate());
+        // Monday of the week containing d (getDay: 0=Sun..6=Sat)
+        const mondayOf = (d) => {
+          const x = atMidnight(d);
+          const dow = x.getDay();
+          x.setDate(x.getDate() + (dow === 0 ? -6 : 1 - dow));
+          return x;
+        };
+        const addDays = (d, n) => { const x = new Date(d); x.setDate(x.getDate() + n); return x; };
+        const isWorkday = (d) => d.getDay() >= 1 && d.getDay() <= 5;
+
+        weekSnap.beforeDateSelectCallback = (ctx) => {
+          if (!ctx.range) return { action: 'accept' };
+          const start = atMidnight(ctx.range.start);
+          const end = atMidnight(ctx.range.end);
+
+          const weeks = [];
+          for (let mon = mondayOf(start); mon <= end; mon = addDays(mon, 7)) {
+            const sun = addDays(mon, 6);
+            // Count the week's work days that fall inside the raw selection.
+            let workDaysSelected = 0;
+            for (let i = 0; i < 5; i++) {           // Mon..Fri
+              const day = addDays(mon, i);
+              if (isWorkday(day) && day >= start && day <= end) workDaysSelected++;
+            }
+            if (workDaysSelected >= 2) {
+              weeks.push({ start: new Date(mon), end: sun, workDaysSelected });
+            }
+          }
+
+          if (weeks.length === 0) {
+            // No week qualified — nothing gets selected.
+            return { action: 'clear', message: 'Fewer than 2 work days in every week — nothing selected' };
+          }
+
+          return {
+            action: 'adjust',
+            message: `${weeks.length} full week${weeks.length !== 1 ? 's' : ''} selected`,
+            adjustedRanges: weeks.map(w => ({ start: w.start, end: w.end }))
+          };
+        };
+
+        weekSnap.addEventListener('date-select', () => {
+          const output = document.getElementById('week-snap-output');
+          if (!output) return;
+          const ranges = weekSnap.selectedRanges;
+          if (!ranges.length) { output.innerHTML = '<em>0 days selected</em>'; return; }
+          const fmt = (d) => d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+          const totalDays = ranges.reduce(
+            (n, r) => n + Math.floor((r.end - r.start) / MS_DAY) + 1, 0);
+          output.innerHTML = `
+            <strong>${ranges.length} week${ranges.length !== 1 ? 's' : ''} selected</strong> (${totalDays} days):<br>
+            ${ranges.map((r, i) => `Week ${i + 1}: ${fmt(r.start)} – ${fmt(r.end)}`).join('<br>')}
+          `;
+        });
+      }
+
       // Setup inline calendar examples
       const inlineSingle = document.getElementById('inline-single');
       if (inlineSingle) {
@@ -1118,10 +1217,10 @@ picker.addEventListener('date-select', (e) => {
       if (inlineHolidays) {
         // Add some holidays around today
         inlineHolidays.specialDates = [
-          { date: dayOffset(-2), class: 'holiday', label: '🎂', tooltip: 'Birthday' },
-          { date: dayOffset(0),  class: 'holiday', label: '⭐', tooltip: 'Today' },
-          { date: dayOffset(5),  class: 'holiday', label: '🎉', tooltip: 'Celebration' },
-          { date: dayOffset(12), class: 'holiday', label: '🎤', tooltip: 'Karaoke Night' }
+          { date: dayOffset(-2), dayClass: 'holiday', badgeText: '🎂', badgeTooltip: 'Birthday' },
+          { date: dayOffset(0),  dayClass: 'holiday', badgeText: '⭐', badgeTooltip: 'Today' },
+          { date: dayOffset(5),  dayClass: 'holiday', badgeText: '🎉', badgeTooltip: 'Celebration' },
+          { date: dayOffset(12), dayClass: 'holiday', badgeText: '🎤', badgeTooltip: 'Karaoke Night' }
         ];
 
         inlineHolidays.addEventListener('date-select', (e) => {
@@ -1211,7 +1310,7 @@ picker.addEventListener('date-select', (e) => {
 
         // Handle custom-action event for suggested dates
         inlineMessages.addEventListener('custom-action', (e) => {
-          const { startDate, endDate, reason } = e.detail;
+          const { startDate, endDate, reason } = e.detail.data;
           const output = document.getElementById('inline-messages-output');
 
           if (startDate && endDate) {
@@ -1225,6 +1324,54 @@ picker.addEventListener('date-select', (e) => {
               output.innerHTML = `<strong>Applied suggestion:</strong> ${reason === 'better-price' ? 'Better pricing dates' : 'Alternative dates'}`;
             }
           }
+        });
+      }
+
+      // Setup async-price example: loader in the summary block, then write the price.
+      const inlineAsyncPrice = document.getElementById('inline-async-price');
+      if (inlineAsyncPrice) {
+        let priceController = null;
+
+        // Fake pricing "server" — resolves after a delay, honours AbortSignal.
+        const fetchPrice = (start, end, signal) => new Promise((resolve, reject) => {
+          const nights = Math.max(1, Math.round((end - start) / 86400000));
+          const timer = setTimeout(() => resolve({ total: nights * 79, currency: '€', nights }), 900);
+          signal.addEventListener('abort', () => {
+            clearTimeout(timer);
+            reject(new DOMException('Aborted', 'AbortError'));
+          });
+        });
+
+        inlineAsyncPrice.addEventListener('date-select', (e) => {
+          if (!e.detail.dateRange) return;
+          const { start, end } = e.detail.dateRange;
+
+          // Cancel any previous request — this is the "abortable by new selection" part
+          if (priceController) priceController.abort();
+          priceController = new AbortController();
+
+          // Show a spinner right in the summary block
+          inlineAsyncPrice.showLoader('summary');
+
+          fetchPrice(start, end, priceController.signal)
+            .then((price) => {
+              inlineAsyncPrice.hideLoader('summary');
+              // Pin the price in the summary — sticks through hover preview until re-selection.
+              // Reuse the built-in .drp__summary-count markup so the pinned price matches the
+              // size/weight/padding of the derived "X days, Y nights" summary and doesn't jump.
+              inlineAsyncPrice.showSummary(
+                `<span class="drp__summary-count">${price.currency}${price.total}</span>` +
+                `<span>, </span>` +
+                `<span class="drp__summary-count">${price.nights} ${price.nights === 1 ? 'night' : 'nights'}</span>`
+              );
+              const output = document.getElementById('inline-async-price-output');
+              if (output) output.innerHTML = `<strong>Priced:</strong> ${price.currency}${price.total}`;
+            })
+            .catch((err) => {
+              if (err.name === 'AbortError') return; // superseded by a newer selection
+              inlineAsyncPrice.hideLoader('summary');
+              inlineAsyncPrice.showSummary('<span style="color:#b91c1c;">Couldn\'t load price</span>');
+            });
         });
       }
 

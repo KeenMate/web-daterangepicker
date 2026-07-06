@@ -224,7 +224,7 @@ picker.customStylesCallback = () => `
 `;
 
 // Apply CSS class to day wrapper based on day of week
-picker.getDateMetadataCallback = (date) => {
+picker.getDateMetadataCallback = ({ date }) => {
   const dayOfWeek = date.getDay();
   const weekdayClasses = ['weekday-sun', 'weekday-mon', 'weekday-tue',
                           'weekday-wed', 'weekday-thu', 'weekday-fri', 'weekday-sat'];
@@ -304,7 +304,7 @@ const toLocalISO = (d) =>
   `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 
 // Disable booked dates
-picker.getDateMetadataCallback = (date) => {
+picker.getDateMetadataCallback = ({ date }) => {
   const dateStr = toLocalISO(date);
   const info = bookingData[dateStr];
   if (info && info.booked) {
@@ -504,7 +504,7 @@ picker.addEventListener('date-select', (event) =&gt; {
       `;
 
       // Apply CSS class to day wrapper based on day of week
-      callbackWeekends.getDateMetadataCallback = (date) => {
+      callbackWeekends.getDateMetadataCallback = ({ date }) => {
         const dayOfWeek = date.getDay();
         const weekdayClasses = ['weekday-sun', 'weekday-mon', 'weekday-tue',
                                 'weekday-wed', 'weekday-thu', 'weekday-fri', 'weekday-sat'];
@@ -548,7 +548,7 @@ picker.addEventListener('date-select', (event) =&gt; {
       };
 
       // Disable booked dates
-      bookingSystem.getDateMetadataCallback = (date) => {
+      bookingSystem.getDateMetadataCallback = ({ date }) => {
         const dateStr = toLocalISO(date);
         const info = bookingData[dateStr];
 

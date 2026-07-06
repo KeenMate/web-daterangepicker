@@ -132,7 +132,7 @@ export function hasEnabledDaysInYear(picker: any, year: number): boolean {
         // Check if any day in this month is enabled
         for (let day = 1; day <= daysInMonth; day++) {
             const testDate = new Date(year, month, day);
-            if (!picker.isDateDisabledInternal(testDate)) {
+            if (!picker.isDateDisabled(testDate)) {
                 return true; // Found at least one enabled day
             }
         }

@@ -814,7 +814,7 @@ function switchTheme(newTheme) {
 
       // Dynamic weekday/weekend pricing for every non-special date.
       // specialDates take priority so we just skip those keys here.
-      picker.getDateMetadataCallback = (date) => {
+      picker.getDateMetadataCallback = ({ date }) => {
         const iso = toLocalISO(date);
         if (SPECIAL_KEYS.has(iso)) return null;
         const dow = date.getDay();

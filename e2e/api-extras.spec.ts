@@ -116,3 +116,77 @@ test('an explicit placeholder attribute wins over display-format-mask', async ({
     const p = pickerById(page, 'placeholder-wins');
     await expect(inputOf(p)).toHaveAttribute('placeholder', 'Vyberte datum');
 });
+
+// =============================================================================
+// v2.0.0 state-accessor alignment — DISPLAYED getters + settable selectedDatetime
+// =============================================================================
+
+const isoOf = (d: Date) =>
+    `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+
+test('visibleMonths / visibleMonthDates reflect the two displayed columns', async ({ page }) => {
+    const p = pickerById(page, 'range-setter'); // range mode, initial 2026-06-15 → June + July 2026
+    const info = await p.evaluate((el: any) => ({
+        count: el.visibleMonths.length,
+        months: el.visibleMonths.map((m: any) => ({ month: m.month, year: m.year })),
+        dates: el.visibleMonthDates.map((d: Date) =>
+            `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`),
+    }));
+    expect(info.count).toBe(2);
+    expect(info.months).toEqual([{ month: 5, year: 2026 }, { month: 6, year: 2026 }]);
+    expect(info.dates).toEqual(['2026-06-01', '2026-07-01']);
+});
+
+test('visibleMonths carries per-column firstDate / lastDate (month own boundaries)', async ({ page }) => {
+    const p = pickerById(page, 'range-setter');
+    const m0 = await p.evaluate((el: any) => {
+        const iso = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+        const m = el.visibleMonths[0];
+        return { first: iso(m.firstDate), last: iso(m.lastDate) };
+    });
+    expect(m0.first).toBe('2026-06-01');
+    expect(m0.last).toBe('2026-06-30');
+});
+
+test('visibleDateRange envelopes the first column start through the last column end', async ({ page }) => {
+    const p = pickerById(page, 'range-setter');
+    const r = await p.evaluate((el: any) => {
+        const iso = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+        const { start, end } = el.visibleDateRange;
+        return { start: iso(start), end: iso(end) };
+    });
+    // ISO strings sort chronologically: grid start is on/before June 1, grid end on/after July 31.
+    expect(r.start <= '2026-06-01').toBe(true);
+    expect(r.end >= '2026-07-31').toBe(true);
+});
+
+test('today getter returns the (clock-fixed) date normalized to midnight', async ({ page }) => {
+    const p = pickerById(page, 'single-setter');
+    const t = await p.evaluate((el: any) => {
+        const d = el.today;
+        return {
+            iso: `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`,
+            h: d.getHours(), m: d.getMinutes(), s: d.getSeconds(),
+        };
+    });
+    expect(t.iso).toBe('2026-05-22');
+    expect([t.h, t.m, t.s]).toEqual([0, 0, 0]);
+});
+
+test('selectedDatetime setter accepts an ISO string and sets the date + input', async ({ page }) => {
+    const p = pickerById(page, 'single-setter');
+    await p.evaluate((el: any) => { el.selectedDatetime = '2026-06-20T09:30:00'; });
+    await expect(inputOf(p)).toHaveValue('2026-06-20');
+    const got = await p.evaluate((el: any) => (el.selectedDate ? el.selectedDate.getDate() : null));
+    expect(got).toBe(20);
+});
+
+test('selectedStartDate / selectedEndDate are readable after a selectedRanges set', async ({ page }) => {
+    const p = pickerById(page, 'range-setter');
+    const got = await p.evaluate((el: any) => {
+        el.selectedRanges = [{ start: new Date(2026, 5, 10), end: new Date(2026, 5, 14) }];
+        const iso = (d: Date | null) => (d ? `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}` : null);
+        return { start: iso(el.selectedStartDate), end: iso(el.selectedEndDate) };
+    });
+    expect(got).toEqual({ start: '2026-06-10', end: '2026-06-14' });
+});

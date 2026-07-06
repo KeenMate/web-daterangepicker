@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Test — context-object callbacks (ActionButtonContext / custom-action detail)</title>
+    <link rel="stylesheet" href="test-fixtures.css">
+    <style>
+        web-daterangepicker { display: block; max-width: 340px; }
+    </style>
+</head>
+<body>
+    <h1>context-object callbacks</h1>
+    <p>Targeted by <code>e2e/context-callbacks.spec.ts</code>. Verifies the v2.0.0
+       unified-context wiring: every <code>ActionButton</code> callback receives an
+       <code>ActionButtonContext</code> (<code>{ picker, action, button, data }</code>),
+       and the <code>custom-action</code> event detail is <code>{ data, picker }</code>.</p>
+
+    <div class="fixture">
+        <div class="fixture-label">inline picker with ctx-driven action buttons</div>
+        <web-daterangepicker id="ctx-actions" selection-mode="single"
+            positioning-mode="inline" initial-date="2026-06-15"></web-daterangepicker>
+        <script>
+            // Set BEFORE upgrade (plain script) so the values are lifted through the
+            // accessor when the custom element is defined — same pattern as events-api.html.
+            document.getElementById('ctx-actions').actionButtons = [
+                {
+                    action: 'custom',
+                    text: 'placeholder',
+                    // getTextCallback must receive a live picker instance via ctx.picker
+                    getTextCallback: (ctx) => (ctx.picker && ctx.picker.options ? 'HASPICKER' : 'NOPICKER'),
+                    // getClassCallback must receive ctx.action
+                    getClassCallback: (ctx) => 'ctxclass-' + ctx.action,
+                    getTooltipCallback: (ctx) => 'tip-' + ctx.action,
+                    // onClick must receive ctx (picker + action)
+                    onClick: (ctx) => ctx.picker.showMessage('act:' + ctx.action)
+                },
+                {
+                    action: 'custom',
+                    text: 'HIDDEN',
+                    isVisibleCallback: (ctx) => !!(ctx.picker) && false // ctx present, but hide
+                },
+                {
+                    action: 'custom',
+                    text: 'DISABLED',
+                    isDisabledCallback: (ctx) => !!(ctx.picker) // disabled because ctx.picker exists
+                }
+            ];
+        </script>
+    </div>
+
+    <div class="fixture">
+        <div class="fixture-label">inline picker for custom-action event detail shape</div>
+        <web-daterangepicker id="ctx-events" selection-mode="single"
+            positioning-mode="inline" initial-date="2026-06-15"></web-daterangepicker>
+    </div>
+
+    <script type="module" src="/src/index.ts"></script>
+</body>
+</html>

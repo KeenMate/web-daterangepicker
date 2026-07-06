@@ -45,8 +45,8 @@
             { date: '2026-06-20', badgeText: 'B', badgeTooltip: 'Special badge tooltip' }
         ];
 
-        document.getElementById('invalid-range').beforeDateSelectCallback = (range) => {
-            if (range && typeof range === 'object' && 'start' in range) {
+        document.getElementById('invalid-range').beforeDateSelectCallback = (ctx) => {
+            if (ctx.range && 'start' in ctx.range) {
                 return { action: 'restore', message: 'Reject', showInvalidRange: true };
             }
             return { action: 'accept' };

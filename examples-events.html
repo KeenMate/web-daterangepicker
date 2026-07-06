@@ -309,7 +309,7 @@ picker.addEventListener('date-select', (event) => {
 
     <h3>Code Examples</h3>
     <pre><code>// Block weekends
-picker.beforeDateSelectCallback = (date) => {
+picker.beforeDateSelectCallback = ({ date }) => {
   const isWeekend = date.getDay() === 0 || date.getDay() === 6;
   return isWeekend
     ? { action: 'restore', message: 'Weekends not allowed' }
@@ -317,7 +317,7 @@ picker.beforeDateSelectCallback = (date) => {
 };
 
 // Adjust to next business day
-picker.beforeDateSelectCallback = (date) => {
+picker.beforeDateSelectCallback = ({ date }) => {
   const day = date.getDay();
   if (day === 0) { // Sunday → Monday
     const adjusted = new Date(date);
@@ -404,7 +404,7 @@ picker.beforeDateSelectCallback = async (date) => {
 
     <h3>Code Examples</h3>
     <pre><code>// Minimum nights requirement
-picker.beforeDateSelectCallback = (range) => {
+picker.beforeDateSelectCallback = ({ range }) => {
   const nights = Math.floor((range.end - range.start) / (1000 * 60 * 60 * 24));
   return nights &lt; 2
     ? { action: 'restore', message: 'Minimum 2 nights required' }
@@ -412,7 +412,7 @@ picker.beforeDateSelectCallback = (range) => {
 };
 
 // Adjust end date to checkout day (Sunday)
-picker.beforeDateSelectCallback = (range) => {
+picker.beforeDateSelectCallback = ({ range }) => {
   const endDay = range.end.getDay();
   if (endDay !== 0) { // Not Sunday
     const adjusted = new Date(range.end);
@@ -456,7 +456,7 @@ picker.beforeDateSelectCallback = async (range) => {
 // Maximum nights with showInvalidRange
 // Keeps invalid range visible with red styling for better visual feedback
 // User controls the message display via picker.showMessage()
-picker.beforeDateSelectCallback = (range) => {
+picker.beforeDateSelectCallback = ({ range }) => {
   const nights = Math.floor((range.end - range.start) / (1000 * 60 * 60 * 24));
   if (nights > 7) {
     // Show message using the built-in styled alert
@@ -497,7 +497,7 @@ picker.beforeDateSelectCallback = async (range) => {
 
 // Handle custom-action event to apply selected dates
 picker.addEventListener('custom-action', (e) => {
-  const { startDate, endDate } = e.detail;
+  const { startDate, endDate } = e.detail.data;
   if (startDate && endDate) {
     picker.selectedRanges = [{
       start: new Date(startDate),
@@ -733,7 +733,7 @@ picker.beforeMonthChangedCallback = async ({ year, month }) => {
 
     // Example 1: Block Weekends
     const singleBlockWeekends = document.getElementById('single-block-weekends');
-    singleBlockWeekends.beforeDateSelectCallback = (date) => {
+    singleBlockWeekends.beforeDateSelectCallback = ({ date }) => {
       const isWeekend = date.getDay() === 0 || date.getDay() === 6;
       const dayName = date.toLocaleDateString('en-US', { weekday: 'long' });
 
@@ -750,7 +750,7 @@ picker.beforeMonthChangedCallback = async ({ year, month }) => {
 
     // Example 2: Block Past Dates
     const singleBlockPast = document.getElementById('single-block-past');
-    singleBlockPast.beforeDateSelectCallback = (date) => {
+    singleBlockPast.beforeDateSelectCallback = ({ date }) => {
       const today = new Date();
       today.setHours(0, 0, 0, 0);
       const isPast = date < today;
@@ -768,7 +768,7 @@ picker.beforeMonthChangedCallback = async ({ year, month }) => {
 
     // Example 3: Adjust to Business Day
     const singleAdjustBusiness = document.getElementById('single-adjust-business');
-    singleAdjustBusiness.beforeDateSelectCallback = (date) => {
+    singleAdjustBusiness.beforeDateSelectCallback = ({ date }) => {
       const day = date.getDay();
       let adjusted = null;
       let message = '';
@@ -826,7 +826,7 @@ picker.beforeMonthChangedCallback = async ({ year, month }) => {
 
     // Example 5: Minimum Nights
     const rangeMinNights = document.getElementById('range-min-nights');
-    rangeMinNights.beforeDateSelectCallback = (range) => {
+    rangeMinNights.beforeDateSelectCallback = ({ range }) => {
       const nights = Math.floor((range.end - range.start) / (1000 * 60 * 60 * 24));
       const isValid = nights >= 2;
 
@@ -847,7 +847,7 @@ picker.beforeMonthChangedCallback = async ({ year, month }) => {
 
     // Example 6: Maximum Nights (with showInvalidRange)
     const rangeMaxNights = document.getElementById('range-max-nights');
-    rangeMaxNights.beforeDateSelectCallback = (range) => {
+    rangeMaxNights.beforeDateSelectCallback = ({ range }) => {
       const nights = Math.floor((range.end - range.start) / (1000 * 60 * 60 * 24));
       const isValid = nights <= 7;
 
@@ -871,7 +871,7 @@ picker.beforeMonthChangedCallback = async ({ year, month }) => {
 
     // Example 7: Adjust End Date to Sunday
     const rangeAdjustCheckout = document.getElementById('range-adjust-checkout');
-    rangeAdjustCheckout.beforeDateSelectCallback = (range) => {
+    rangeAdjustCheckout.beforeDateSelectCallback = ({ range }) => {
       const endDay = range.end.getDay();
 
       if (endDay !== 0) { // Not Sunday
@@ -984,7 +984,7 @@ picker.beforeMonthChangedCallback = async ({ year, month }) => {
 
     // Handle custom-action event to apply selected dates
     rangeAsync.addEventListener('custom-action', (e) => {
-      const { startDate, endDate, nights } = e.detail;
+      const { startDate, endDate, nights } = e.detail.data;
 
       logEvent('log-range-async', 'CUSTOM-ACTION', {
         startDate,

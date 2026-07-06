@@ -195,7 +195,7 @@ picker.customStylesCallback = () => {
   return `.price-high { background: #fee2e2; color: #991b1b; }
           .price-low { background: #d1fae5; color: #065f46; }`;
 };
-picker.getDateMetadataCallback = (date) => {
+picker.getDateMetadataCallback = ({ date }) => {
   const price = (date.getDay() === 0 || date.getDay() === 6) ? 220 : 150;
   const priceClass = price >= 220 ? 'price-high' : 'price-low';
   return { badgeText: `$${price}`, badgeClass: `badge-number ${priceClass}` };
@@ -215,6 +215,72 @@ picker.specialDates = [
 picker.badgeTooltipCallback = (data) => {
   return '&lt;strong&gt;Christmas Day&lt;/strong&gt;&lt;br&gt;🎁 Gift exchange&lt;br&gt;🍽️ Family dinner';
 };</code></pre>
+  </div>
+
+  <!-- Method 5: Async data on month change -->
+  <div class="card">
+    <h2>Async Badges — Load per Month (<code>beforeMonthChangedCallback</code>)</h2>
+    <p>
+      The badge callbacks (Methods 1–4) are <strong>synchronous</strong> — they render from data you already have.
+      When your badge data lives behind an API, load it <strong>per visible month</strong> with
+      <code>beforeMonthChangedCallback</code>. It fires on initial load and every navigation, hands you the visible
+      date range, and — because the callback returns a <code>Promise</code> — the picker automatically shows its
+      loading overlay while the fetch is in flight. Navigate the months below: each new month "fetches"
+      availability (mocked with a 600&nbsp;ms delay) and fills in price badges.
+    </p>
+
+    <div class="form-group">
+      <label>Availability &amp; pricing, loaded on demand</label>
+      <web-daterangepicker id="method-async" visible-months-count="2" placeholder="Select a range"></web-daterangepicker>
+      <small><strong>Best for:</strong> API-driven badges — one request per month instead of a per-day callback.
+        Open the calendar and use the <strong>🔄 Refresh</strong> button in the action bar to re-fetch (prices shift so you can see it worked).</small>
+      <span class="method-note">Uses: <code>beforeMonthChangedCallback</code> + a custom <code>actionButtons</code> entry whose <code>onClick({ picker })</code> re-fetches</span>
+    </div>
+
+    <pre><code>picker.beforeMonthChangedCallback = async ({ firstVisibleDate, lastVisibleDate }) => {
+  // One request for the whole visible grid (may include adjacent-month days).
+  const days = await fetchAvailability(firstVisibleDate, lastVisibleDate);
+
+  // Key each entry by a local 'YYYY-MM-DD' string — the same key the picker
+  // uses internally (Validation.formatDateKey).
+  const metadata = new Map();
+  days.forEach(d => metadata.set(d.date, {
+    isDisabled: d.available === 0,
+    badgeText:  d.available === 0 ? '✕' : `$${d.price}`,
+    badgeClass: d.available === 0 ? 'badge-number price-high' : 'badge-number price-low',
+    badgeTooltip: d.available === 0 ? 'Sold out — no rooms left' : `${d.available} rooms · $${d.price}/night`
+  }));
+
+  // 'accept' + metadata → merged into the cache and used instead of a per-day
+  // callback. Returning { action: 'block', message } would refuse the navigation.
+  return { action: 'accept', metadata };
+};
+
+// A Refresh button INSIDE the picker. Its onClick gets the core instance as
+// `picker` — so refreshing badges needs no reach into element internals:
+picker.actionButtons = [
+  { action: 'today', text: 'Today' },
+  { action: 'clear', text: 'Clear' },
+  { action: 'custom', text: '🔄 Refresh', onClick: async ({ picker }) => {
+      picker.showLoader();                       // public overlay
+      const { start, end } = picker.visibleDateRange;  // what's on screen
+      const days = await fetchAvailability(start, end);
+      const fresh = buildMetadata(days);         // Map<'YYYY-MM-DD', DayMetadata>
+      picker.bulkMetadataCache ??= new Map();
+      fresh.forEach((v, k) => picker.bulkMetadataCache.set(k, v));
+      picker.renderCalendar();                   // re-render from the fresh cache
+      picker.hideLoader();
+    } },
+  { action: 'apply', text: 'Apply' }
+];</code></pre>
+
+    <div class="info-box">
+      <strong>Why this and not <code>getDateMetadataCallback</code>?</strong>
+      The per-day metadata callback is synchronous and runs ~42 times per month — you can't <code>await</code> inside it.
+      <code>beforeMonthChangedCallback</code> is the async, once-per-month hook: it fills
+      <code>bulkMetadataCache</code>, which takes priority over the per-day callback during rendering, and the cache
+      <em>merges</em> across visits so paging back to a loaded month is instant.
+    </div>
   </div>
 
   <!-- Member Mapping Example -->
@@ -305,7 +371,7 @@ const priceData = {
 const toLocalISO = (d) =>
   `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 
-picker.getDateMetadataCallback = (date) => {
+picker.getDateMetadataCallback = ({ date }) => {
   const dateStr = toLocalISO(date);
   const price = priceData[dateStr];
 
@@ -375,7 +441,7 @@ const bookingInfo = {
 const toLocalISO = (d) =>
   `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 
-picker.getDateMetadataCallback = (date) => {
+picker.getDateMetadataCallback = ({ date }) => {
   const dateStr = toLocalISO(date);
   const info = bookingInfo[dateStr];
 
@@ -445,7 +511,7 @@ const priceData = { /* ... */ };
 const toLocalISO = (d) =>
   `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 
-picker.getDateMetadataCallback = (date) => {
+picker.getDateMetadataCallback = ({ date }) => {
   const dateStr = toLocalISO(date);
   const price = priceData[dateStr];
 
@@ -720,7 +786,7 @@ picker.specialDates = [
         { start: dateAt(15),  end: dateAt(22)  }
       ];
 
-      cottageDemo.getDateMetadataCallback = (date) => {
+      cottageDemo.getDateMetadataCallback = ({ date }) => {
         const checkDate = new Date(date);
         checkDate.setHours(0, 0, 0, 0);
 
@@ -790,7 +856,7 @@ picker.specialDates = [
         `;
       };
 
-      methodDynamic.getDateMetadataCallback = (date) => {
+      methodDynamic.getDateMetadataCallback = ({ date }) => {
         const dayOfWeek = date.getDay();
         const dateNum = date.getDate();
 
@@ -902,6 +968,107 @@ picker.specialDates = [
       console.log('[Method 4] badgeTooltipCallback set. Setup complete.');
     }
 
+    // Method 5: Async data on month change (beforeMonthChangedCallback)
+    const methodAsync = document.getElementById('method-async');
+    if (methodAsync) {
+      // Same tier styling as Method 2 so sold-out vs available reads clearly.
+      methodAsync.customStylesCallback = () => `
+        .price-high {
+          background-color: #fee2e2 !important;
+          color: #991b1b !important;
+          border: 1px solid #f87171 !important;
+          font-weight: 600;
+        }
+        .price-low {
+          background-color: #d1fae5 !important;
+          color: #065f46 !important;
+          border: 1px solid #34d399 !important;
+          font-weight: 600;
+        }
+      `;
+
+      // `priceShift` lets the Refresh button return *different* prices each time
+      // so you can see the re-fetch actually took effect. No closure needed to
+      // remember what's shown — the Refresh button reads picker.visibleDateRange.
+      let priceShift = 0;
+
+      // Mock API: availability/pricing for every day in [start, end].
+      // Deterministic from the date (+ current priceShift) so a given fetch is
+      // stable, with a 600ms delay so the picker's async loading overlay shows.
+      const fetchAvailability = (start, end) =>
+        new Promise((resolve) => {
+          setTimeout(() => {
+            const days = [];
+            const cursor = new Date(start);
+            cursor.setHours(0, 0, 0, 0);
+            const last = new Date(end);
+            last.setHours(0, 0, 0, 0);
+            while (cursor <= last) {
+              const dow = cursor.getDay();
+              const dateNum = cursor.getDate();
+              // Every ~9th day is sold out; weekends cost more.
+              const available = (dateNum % 9 === 0) ? 0 : (dow === 0 || dow === 6 ? 4 : 12);
+              const price = ((dow === 0 || dow === 6) ? 220 : 150) + priceShift;
+              days.push({ date: toLocalISO(cursor), available, price });
+              cursor.setDate(cursor.getDate() + 1);
+            }
+            resolve(days);
+          }, 600);
+        });
+
+      // days[] -> Map<'YYYY-MM-DD', DayMetadata>. Shared by the callback and Refresh.
+      const buildMetadata = (days) => {
+        const metadata = new Map();
+        days.forEach((d) => metadata.set(d.date, {
+          isDisabled: d.available === 0,
+          badgeText:  d.available === 0 ? '✕' : `$${d.price}`,
+          badgeClass: d.available === 0 ? 'badge-number price-high' : 'badge-number price-low',
+          badgeTooltip: d.available === 0 ? 'Sold out — no rooms left' : `${d.available} rooms · $${d.price}/night`
+        }));
+        return metadata;
+      };
+
+      methodAsync.beforeMonthChangedCallback = async ({ firstVisibleDate, lastVisibleDate }) => {
+        const days = await fetchAvailability(firstVisibleDate, lastVisibleDate);
+        return { action: 'accept', metadata: buildMetadata(days) };
+      };
+
+      // ----- Refresh button, rendered INSIDE the picker ---------------------
+      // A custom action button lives in the picker's action bar next to
+      // Today/Clear/Apply. Its onClick receives { picker } — the core instance —
+      // so refreshing needs NO reach into element internals: it reads what's
+      // shown from picker.visibleDateRange and every call below is public
+      // (showLoader/hideLoader/renderCalendar + the bulkMetadataCache field).
+      // `actionButtons` REPLACES the defaults, so we re-list Today/Clear/Apply.
+      methodAsync.actionButtons = [
+        { action: 'today', text: 'Today' },
+        { action: 'clear', text: 'Clear' },
+        {
+          action: 'custom',
+          text: '🔄 Refresh',
+          tooltip: 'Re-fetch prices for the visible months',
+          onClick: async ({ picker }) => {
+            priceShift += 15;            // make the change visible
+            picker.showLoader();         // public — full-calendar overlay
+
+            // What's on screen — no closure needed. Envelope of the visible grid.
+            const { start, end } = picker.visibleDateRange;
+            const days = await fetchAvailability(start, end);
+            const fresh = buildMetadata(days);
+
+            // Merge fresh data into the bulk cache and re-render. Both are public
+            // on the core instance handed to us via the button context.
+            picker.bulkMetadataCache = picker.bulkMetadataCache || new Map();
+            fresh.forEach((v, k) => picker.bulkMetadataCache.set(k, v));
+            picker.renderCalendar();
+
+            picker.hideLoader();
+          }
+        },
+        { action: 'apply', text: 'Apply' }
+      ];
+    }
+
     // ========================================
     // Member Mapping Example
     // ========================================
@@ -982,7 +1149,7 @@ picker.specialDates = [
       };
 
       // Simulate dynamic pricing based on day of week and demand
-      dynamicPricing.getDateMetadataCallback = (date) => {
+      dynamicPricing.getDateMetadataCallback = ({ date }) => {
         const dayOfWeek = date.getDay();
         const dateNum = date.getDate();
 
@@ -1033,7 +1200,7 @@ picker.specialDates = [
         `;
       };
 
-      dynamicAvailability.getDateMetadataCallback = (date) => {
+      dynamicAvailability.getDateMetadataCallback = ({ date }) => {
         const dateNum = date.getDate();
 
         // Simulate varying availability
@@ -1073,7 +1240,7 @@ picker.specialDates = [
       };
 
       // Set up badges
-      htmlTooltipsBooking.getDateMetadataCallback = (date) => {
+      htmlTooltipsBooking.getDateMetadataCallback = ({ date }) => {
         const dateStr = toLocalISO(date);
         const info = bookingInfo[dateStr];
 
@@ -1134,7 +1301,7 @@ picker.specialDates = [
         }
       };
 
-      htmlTooltipsEvents.getDateMetadataCallback = (date) => {
+      htmlTooltipsEvents.getDateMetadataCallback = ({ date }) => {
         const dateStr = toLocalISO(date);
         const event = eventInfo[dateStr];
 
@@ -1220,7 +1387,7 @@ picker.specialDates = [
         [dayOffset(19)]: 400
       };
 
-      combinedExample.getDateMetadataCallback = (date) => {
+      combinedExample.getDateMetadataCallback = ({ date }) => {
         const dateStr = toLocalISO(date);
         const price = priceData[dateStr];
 

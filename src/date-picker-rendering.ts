@@ -56,11 +56,11 @@ export function parseMonthRange(range: string | undefined): { min: number, max: 
 }
 
 export function renderCalendar(picker: any) {
-    renderingLogger.debug(`[DatePicker 18] renderCalendar called, showingRollingSelector:`, picker.showingRollingSelector, `activeCol: ${picker.activeMonthIndex}`);
-    renderingLogger.debug('[DatePicker 18] monthDates array:', picker.monthDates.map((d: Date, i: number) => `Col${i}: ${d.getFullYear()}-${d.getMonth()+1}`).join(', '));
+    renderingLogger.debug(`[DatePicker 18] renderCalendar called, rollingSelectorOpenByColumn:`, picker.rollingSelectorOpenByColumn, `activeCol: ${picker.activeMonthIndex}`);
+    renderingLogger.debug('[DatePicker 18] monthDates array:', picker._monthDates.map((d: Date, i: number) => `Col${i}: ${d.getFullYear()}-${d.getMonth()+1}`).join(', '));
 
     // Handle unified rolling selector (if enabled)
-    if (picker.options.isUnifiedNavigationEnabled && picker.showingUnifiedRollingSelector) {
+    if (picker.options.isUnifiedNavigationEnabled && picker.isUnifiedRollingSelectorOpen) {
         renderUnifiedRollingSelector(picker);
     }
 
@@ -85,7 +85,7 @@ export function renderCalendar(picker: any) {
     // Render each month (skipped entirely in time-only mode — no DOM to render)
     if (picker.options.pickerMode !== 'time') {
         for (let i = 0; i < picker.options.visibleMonthsCount; i++) {
-            if (picker.showingRollingSelector[i]) {
+            if (picker.rollingSelectorOpenByColumn[i]) {
                 renderRollingSelector(picker, i);
             } else {
                 renderNormalView(picker, i);
@@ -126,7 +126,7 @@ export function renderNormalView(picker: any, monthIndex: number) {
     rollingSelector?.classList.remove('drp__rolling-selector--visible');
 
     // Get picker month's date
-    const date = picker.monthDates[monthIndex];
+    const date = picker._monthDates[monthIndex];
     const year = date.getFullYear();
     const month = date.getMonth();
     const monthName = picker.monthNames[month];
@@ -147,6 +147,7 @@ export function renderNormalView(picker: any, monthIndex: number) {
         } else if (picker.options.getMonthHeaderCallback) {
             // Use callback to generate header
             headerText = picker.options.getMonthHeaderCallback({
+                picker,
                 month: date,
                 monthIndex: monthIndex,
                 monthName: monthName,
@@ -163,19 +164,20 @@ export function renderNormalView(picker: any, monthIndex: number) {
     // Update unified navigation (if enabled and this is the first month change)
     if (picker.options.isUnifiedNavigationEnabled && monthIndex === 0 && picker.unifiedRangeDisplay) {
         // Hide unified rolling selector (only if it's not supposed to be showing)
-        if (picker.unifiedRollingSelector && !picker.showingUnifiedRollingSelector) {
+        if (picker.unifiedRollingSelector && !picker.isUnifiedRollingSelectorOpen) {
             picker.unifiedRollingSelector.classList.remove('drp__unified-rolling-selector--visible');
         }
 
         // Update unified range display
-        const firstMonth = picker.monthDates[0];
-        const lastMonth = picker.monthDates[picker.monthDates.length - 1];
+        const firstMonth = picker._monthDates[0];
+        const lastMonth = picker._monthDates[picker._monthDates.length - 1];
         const anchorIndex = picker.options.unifiedNavigationAnchorIndex ?? 0;
-        const anchorMonth = picker.monthDates[anchorIndex];
+        const anchorMonth = picker._monthDates[anchorIndex];
 
         // Use callback if provided, otherwise use default format
         if (picker.options.getUnifiedHeaderCallback) {
             const headerText = picker.options.getUnifiedHeaderCallback({
+                picker,
                 firstMonth,
                 lastMonth,
                 anchorMonth,
@@ -369,7 +371,7 @@ export function renderDays(picker: any, monthIndex: number, date: Date) {
     for (const week of weeks) {
         // Check if any day in picker week has a badge
         const weekBadges = week.map(dayData => {
-            const dateInfo = picker.getDayMetadataInternal(dayData.date);
+            const dateInfo = picker.getDayMetadata(dayData.date);
 
             // Get base tooltip from dateInfo
             let badgeTooltip = dateInfo?.badgeTooltip || '';
@@ -381,7 +383,7 @@ export function renderDays(picker: any, monthIndex: number, date: Date) {
                     date: dayData.date,
                     dateString: Validation.formatDateKey(dayData.date),
                     dayNumber: dayData.day,
-                    isDisabled: picker.isDateDisabledInternal(dayData.date),
+                    isDisabled: picker.isDateDisabled(dayData.date),
                     isSelected: false, // Will be set below
                     isStartDate: false,
                     isEndDate: false,
@@ -434,12 +436,12 @@ export function renderDays(picker: any, monthIndex: number, date: Date) {
             if (weekday === 0 || weekday === 6) classes.push('drp__day--weekend');
 
             // Check for special date info (for styling classes and disabled state)
-            const dateInfo = picker.getDayMetadataInternal(dayData.date);
+            const dateInfo = picker.getDayMetadata(dayData.date);
 
             // Check if date is disabled - use dateInfo.isDisabled if available, otherwise standard validation
             const isDisabled = (dateInfo && dateInfo.isDisabled !== undefined)
                 ? dateInfo.isDisabled
-                : picker.isDateDisabledInternal(dayData.date);
+                : picker.isDateDisabled(dayData.date);
 
             if (isDisabled) {
                 classes.push('drp__day--disabled');
@@ -456,10 +458,10 @@ export function renderDays(picker: any, monthIndex: number, date: Date) {
             // Selected (single mode or multiple mode individual dates)
             let isSelected = false;
             if (picker.options.selectionMode === 'single') {
-                isSelected = picker.isSameDay(dayData.date, picker.selectedDate);
+                isSelected = picker.isSameDay(dayData.date, picker._selectedDate);
             } else if (picker.options.selectionMode === 'multiple') {
                 // Check if this date is in selectedDates array
-                isSelected = picker.selectedDates.some((d: Date) => picker.isSameDay(dayData.date, d));
+                isSelected = picker._selectedDates.some((d: Date) => picker.isSameDay(dayData.date, d));
             }
 
             if (isSelected) {
@@ -472,9 +474,11 @@ export function renderDays(picker: any, monthIndex: number, date: Date) {
             let isInRange = false;
 
             if (picker.options.selectionMode === 'range') {
-                isStartDate = picker.isSameDay(dayData.date, picker.selectedStartDate);
-                isEndDate = picker.isSameDay(dayData.date, picker.selectedEndDate);
-                isInRange = picker.isInRange(dayData.date);
+                // Multi-range aware: when a callback committed N ranges these read
+                // from _selectedRanges, otherwise from the single start/end envelope.
+                isStartDate = picker.isRangeStart(dayData.date);
+                isEndDate = picker.isRangeEnd(dayData.date);
+                isInRange = picker.isInCommittedRange(dayData.date);
 
                 if (isStartDate) classes.push('drp__day--range-start');
                 if (isEndDate) classes.push('drp__day--range-end');
@@ -497,7 +501,7 @@ export function renderDays(picker: any, monthIndex: number, date: Date) {
                 }
             } else if (picker.options.selectionMode === 'multiple') {
                 // Check if this date is in any of the selectedRanges
-                for (const range of picker.selectedRanges) {
+                for (const range of picker._selectedRanges) {
                     if (picker.isSameDay(dayData.date, range.start)) {
                         isStartDate = true;
                         classes.push('drp__day--range-start');
@@ -506,8 +510,11 @@ export function renderDays(picker: any, monthIndex: number, date: Date) {
                         isEndDate = true;
                         classes.push('drp__day--range-end');
                     }
-                    // Check if date is within this range
-                    if (dayData.date >= range.start && dayData.date <= range.end) {
+                    // Strictly between the endpoints (exclusive) — the start/end
+                    // cells keep their solid endpoint style instead of the pale
+                    // --in-range fill, matching single-range mode. Also keeps the
+                    // isInRange flag passed to day callbacks consistent.
+                    if (dayData.date > range.start && dayData.date < range.end) {
                         isInRange = true;
                         if (!isDisabled || picker.options.shouldHighlightDisabledInRange) {
                             classes.push('drp__day--in-range');
@@ -599,14 +606,14 @@ function processRenderCallbacks(picker: any, monthIndex: number, daysContainer: 
         }
 
         // Build DayRenderContext object
-        const isDisabled = picker.isDateDisabledInternal(date);
+        const isDisabled = picker.isDateDisabled(date);
         const isToday = picker.isToday(date);
         const isWeekend = date.getDay() === 0 || date.getDay() === 6;
 
-        const isSelected = picker.options.selectionMode === 'single' && picker.isSameDay(date, picker.selectedDate);
-        const isStartDate = picker.options.selectionMode === 'range' && picker.isSameDay(date, picker.selectedStartDate);
-        const isEndDate = picker.options.selectionMode === 'range' && picker.isSameDay(date, picker.selectedEndDate);
-        const isInRange = picker.options.selectionMode === 'range' && picker.isInRange(date);
+        const isSelected = picker.options.selectionMode === 'single' && picker.isSameDay(date, picker._selectedDate);
+        const isStartDate = picker.options.selectionMode === 'range' && picker.isRangeStart(date);
+        const isEndDate = picker.options.selectionMode === 'range' && picker.isRangeEnd(date);
+        const isInRange = picker.options.selectionMode === 'range' && picker.isInCommittedRange(date);
 
         const renderData = {
             date: date,
@@ -724,7 +731,7 @@ export function renderRollingSelector(picker: any, monthIndex: number) {
     const selector = monthContainer.querySelector('.drp__rolling-selector');
     selector?.classList.add('drp__rolling-selector--visible');
 
-    const date = picker.monthDates[monthIndex];
+    const date = picker._monthDates[monthIndex];
     renderRollingLists(picker, selector, {
         yearRange: parseYearRange(picker.options.rollingYearRange, date.getFullYear(), picker),
         monthRange: parseMonthRange(picker.options.rollingMonthRange),
@@ -740,10 +747,10 @@ export function renderUnifiedRollingSelector(picker: any) {
     picker.unifiedRollingSelector.classList.add('drp__unified-rolling-selector--visible');
 
     const anchorIndex = picker.options.unifiedNavigationAnchorIndex ?? 0;
-    const date = picker.monthDates[anchorIndex];
+    const date = picker._monthDates[anchorIndex];
     renderRollingLists(picker, picker.unifiedRollingSelector, {
-        yearRange: picker.getEffectiveYearRange(),
-        monthRange: picker.getEffectiveMonthRange(),
+        yearRange: picker.getAvailableYearRange(),
+        monthRange: picker.getAvailableMonthRange(),
         currentYear: date.getFullYear(),
         currentMonth: date.getMonth(),
         extraAttrs: 'data-unified="true"',
@@ -755,7 +762,7 @@ export function renderUnifiedRollingSelector(picker: any) {
  * The DOM scaffolding is built once in createCalendar; this function only fills
  * the inner `.drp__rolling-list` containers with items.
  *
- * Reads from `picker.selectedTime` — each field is independently nullable. Null
+ * Reads from `picker._selectedTime` — each field is independently nullable. Null
  * fields don't get a highlight (so picking only the hour leaves the minute roll
  * un-marked) and their focus value falls back to wall-clock (so the visual
  * centroid stays useful instead of snapping to 00).
@@ -764,7 +771,7 @@ export function renderTimePicker(picker: any) {
     const root = picker.calendar.querySelector('.drp__time-picker');
     if (!root) return;
 
-    const time = picker.selectedTime || { hour: null, minute: null, second: null, ampm: null };
+    const time = picker._selectedTime || { hour: null, minute: null, second: null, ampm: null };
     // Per-field focus: committed value if the user picked it, else the wall-clock
     // SNAPSHOT taken when the picker opened. Using a snapshot (not live `new Date()`)
     // keeps uncommitted rolls still — otherwise real-time-seconds tick forward
@@ -902,7 +909,7 @@ export function renderClockPicker(picker: any) {
     const root = picker.calendar.querySelector('.drp__clock-picker');
     if (!root) return;
 
-    const time = picker.selectedTime || { hour: null, minute: null, second: null, ampm: null };
+    const time = picker._selectedTime || { hour: null, minute: null, second: null, ampm: null };
     // Focus value semantics match the rolls: committed value if the user picked
     // it, otherwise the wall-clock snapshot taken when the picker opened. Using
     // the snapshot avoids live-seconds chasing across renders.
@@ -1123,7 +1130,7 @@ export function renderWheelPicker(picker: any) {
     const root = picker.calendar.querySelector('.drp__wheel-picker');
     if (!root) return;
 
-    const time = picker.selectedTime || { hour: null, minute: null, second: null, ampm: null };
+    const time = picker._selectedTime || { hour: null, minute: null, second: null, ampm: null };
     const snapshot: Date = picker.timePickerOpenSnapshot || new Date();
     const focusHour = time.hour !== null ? time.hour : snapshot.getHours();
     const focusMinute = time.minute !== null ? time.minute : snapshot.getMinutes();
@@ -1280,7 +1287,7 @@ export function renderCompactPicker(picker: any) {
     const root = picker.calendar.querySelector('.drp__compact-picker');
     if (!root) return;
 
-    const time = picker.selectedTime || { hour: null, minute: null, second: null, ampm: null };
+    const time = picker._selectedTime || { hour: null, minute: null, second: null, ampm: null };
     const snapshot: Date = picker.timePickerOpenSnapshot || new Date();
     const focusHour = time.hour !== null ? time.hour : snapshot.getHours();
     const focusMinute = time.minute !== null ? time.minute : snapshot.getMinutes();
@@ -1313,13 +1320,38 @@ export function renderCompactPicker(picker: any) {
     }
 }
 
+/**
+ * Re-apply an active in-block summary loader after the summary's className/innerHTML were
+ * rewritten by a (re-)render. Without this the spinner is wiped by the very first
+ * derivation that follows showLoader('summary') — e.g. the commitSelection() re-render that
+ * runs right AFTER a `date-select`/onSelect handler adds it, so the loader never appears.
+ * The loader must survive re-derivation exactly like a showSummary() override does.
+ * See showLoader() in date-picker-ui.ts.
+ */
+function reapplySummaryLoader(picker: any, summary: HTMLElement): void {
+    const spinner = picker.loaders?.summary;
+    if (!spinner) return;
+    summary.classList.remove('drp__summary--hidden');
+    summary.classList.add('drp__summary--loading', 'drp__summary--visible');
+    if (spinner.parentNode !== summary) summary.appendChild(spinner);
+}
+
 export function updateSummary(picker: any) {
     if (picker.options.selectionMode !== 'range') return;
 
-    const summary = picker.calendar.querySelector('.drp__summary');
+    const summary = picker.summaryElement || picker.calendar.querySelector('.drp__summary');
     if (!summary) return;
 
-    if (picker.selectedStartDate && picker.selectedEndDate) {
+    // Imperative override (showSummary): pinned content wins over derivation and persists
+    // until the next selection change clears picker.summaryOverride.
+    if (picker.summaryOverride != null) {
+        summary.className = 'drp__summary drp__summary--visible';
+        summary.innerHTML = picker.summaryOverride;
+        reapplySummaryLoader(picker, summary);
+        return;
+    }
+
+    if (picker._selectedStartDate && picker._selectedEndDate) {
         // Calculate days and nights
         let days: number;
         let enabledDates: Date[] | undefined;
@@ -1327,12 +1359,23 @@ export function updateSummary(picker: any) {
         let dates: Date[] | undefined;
         let dateRanges: any[] | undefined;
 
+        // A committed multi-range result (from a callback's adjustedRanges) is the
+        // authoritative set of pieces — list them directly and count only their
+        // enabled days, regardless of disabledDatesHandling.
+        if (picker._selectedRanges.length > 0) {
+            dateRanges = picker.selectedRanges;
+            enabledDates = dateRanges.reduce(
+                (acc: Date[], r: any) => acc.concat(picker.getEnabledDatesInRange(r.start, r.end)),
+                [] as Date[]
+            );
+            dates = enabledDates;
+            days = enabledDates.length;
         // For individual and split modes, count only enabled dates
-        if (picker.options.disabledDatesHandling === 'individual' ||
+        } else if (picker.options.disabledDatesHandling === 'individual' ||
             picker.options.disabledDatesHandling === 'split') {
             enabledDates = picker.getEnabledDatesInRange(
-                picker.selectedStartDate,
-                picker.selectedEndDate
+                picker._selectedStartDate,
+                picker._selectedEndDate
             );
             days = enabledDates.length;
             dates = enabledDates;
@@ -1340,28 +1383,28 @@ export function updateSummary(picker: any) {
             // For split mode, also get the date ranges
             if (picker.options.disabledDatesHandling === 'split') {
                 dateRanges = picker.splitRangeByDisabled(
-                    picker.selectedStartDate,
-                    picker.selectedEndDate
+                    picker._selectedStartDate,
+                    picker._selectedEndDate
                 );
             }
         } else if (picker.options.disabledDatesHandling === 'allow') {
             // For allow mode, get both enabled and disabled dates
             enabledDates = picker.getEnabledDatesInRange(
-                picker.selectedStartDate,
-                picker.selectedEndDate
+                picker._selectedStartDate,
+                picker._selectedEndDate
             );
             disabledDates = picker.getDisabledDatesInRange(
-                picker.selectedStartDate,
-                picker.selectedEndDate
+                picker._selectedStartDate,
+                picker._selectedEndDate
             );
             // Count total days for allow mode
             const msPerDay = 1000 * 60 * 60 * 24;
-            const timeDiff = picker.selectedEndDate.getTime() - picker.selectedStartDate.getTime();
+            const timeDiff = picker._selectedEndDate.getTime() - picker._selectedStartDate.getTime();
             days = Math.floor(timeDiff / msPerDay) + 1;
         } else {
             // For block mode, count total days
             const msPerDay = 1000 * 60 * 60 * 24;
-            const timeDiff = picker.selectedEndDate.getTime() - picker.selectedStartDate.getTime();
+            const timeDiff = picker._selectedEndDate.getTime() - picker._selectedStartDate.getTime();
             days = Math.floor(timeDiff / msPerDay) + 1; // +1 to include both start and end days
         }
 
@@ -1372,10 +1415,11 @@ export function updateSummary(picker: any) {
         // Check if custom formatter exists
         if (picker.options.formatSummaryCallback) {
             const callbackData: any = {
+                picker,
                 days,
                 nights,
-                startDate: picker.selectedStartDate,
-                endDate: picker.selectedEndDate,
+                startDate: picker._selectedStartDate,
+                endDate: picker._selectedEndDate,
                 selectionMode: picker.options.selectionMode,
                 disabledDatesHandling: picker.options.disabledDatesHandling,
                 localeStrings: picker.localeStrings,
@@ -1401,13 +1445,23 @@ export function updateSummary(picker: any) {
         summary.className = 'drp__summary drp__summary--hidden';
         summary.innerHTML = '';
     }
+
+    reapplySummaryLoader(picker, summary);
 }
 
 export function updateSummaryWithPreview(picker: any) {
     if (picker.options.selectionMode !== 'range') return;
 
-    const summary = picker.calendar.querySelector('.drp__summary');
+    const summary = picker.summaryElement || picker.calendar.querySelector('.drp__summary');
     if (!summary) return;
+
+    // An active override suppresses drag/hover preview too (keeps pinned content stable).
+    if (picker.summaryOverride != null) {
+        summary.className = 'drp__summary drp__summary--visible';
+        summary.innerHTML = picker.summaryOverride;
+        reapplySummaryLoader(picker, summary);
+        return;
+    }
 
     if (picker.dragPreviewStart && picker.dragPreviewEnd) {
         let days: number;
@@ -1461,6 +1515,7 @@ export function updateSummaryWithPreview(picker: any) {
         // Check if custom formatter exists
         if (picker.options.formatSummaryCallback) {
             const callbackData: any = {
+                picker,
                 days,
                 nights,
                 startDate: picker.dragPreviewStart,
@@ -1488,6 +1543,8 @@ export function updateSummaryWithPreview(picker: any) {
             `;
         }
     }
+
+    reapplySummaryLoader(picker, summary);
 }
 
 /**
@@ -1511,10 +1568,10 @@ export function updateHoverPreview(picker: any) {
         );
     });
 
-    if (!picker.selectedStartDate || picker.selectedEndDate || !picker.hoverPreviewEnd) return;
+    if (!picker._selectedStartDate || picker._selectedEndDate || !picker.hoverPreviewEnd) return;
     if (picker.isDragging) return;
 
-    let start: Date = picker.selectedStartDate;
+    let start: Date = picker._selectedStartDate;
     let end: Date = picker.hoverPreviewEnd;
     if (end < start) [start, end] = [end, start];
 
@@ -1535,7 +1592,7 @@ export function updateHoverPreview(picker: any) {
     // + on-accent text). Painting --hover-preview on top would override the
     // solid background with a translucent one and leave the on-accent text
     // visually mismatched (white-on-pale). Skip it.
-    const committedStartTime = picker.selectedStartDate.getTime();
+    const committedStartTime = picker._selectedStartDate.getTime();
 
     const allDays = picker.calendar.querySelectorAll('.drp__day');
     allDays.forEach((day: Element) => {

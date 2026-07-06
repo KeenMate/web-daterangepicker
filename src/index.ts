@@ -14,7 +14,16 @@ export { WebDaterangepickerElement } from './web-component';
 export { DateRangePicker } from './date-picker';
 
 // Export types
-export type { DatePickerOptions, DateRange, FormatOptions, MonthDisplay, DatePickerEventDetail } from './types';
+export type {
+    DatePickerOptions, DateRange, FormatOptions, MonthDisplay, DatePickerEventDetail,
+    // Shared callback/event context vocabulary
+    PickerContext, DayContext, MonthHeaderContext, UnifiedHeaderContext,
+    SelectionContext, MonthChangeContext, SummaryContext, ActionButtonContext,
+    SelectEventDetail, CustomActionEventDetail, LoaderTarget,
+    // Supporting types
+    DayMetadata, DecoratedDate, ActionButton, BeforeSelectResult,
+    BeforeMonthChangeResult, LocaleStrings
+} from './types';
 
 // ==============================================================================
 // GLOBAL API INTERFACE

@@ -57,11 +57,11 @@ The codebase is TypeScript, organized as a core class plus extracted operation m
 ### Important Implementation Details
 
 **Month columns (multi-month mode)**
-- `monthDates: Date[]` — one entry per visible month column; navigation can move them independently
+- `_monthDates: Date[]` (private) — one anchor per visible month column; the single source of truth for what's displayed. Public read views derive from it: `visibleMonths: MonthDisplay[]` (with `firstDate`/`lastDate`/`gridStart`/`gridEnd`), `visibleMonthDates: Date[]`, `visibleDateRange: {start,end}`.
 - `activeMonthIndex` — which column has keyboard focus
-- `focusedDayIndex` — which day within the active column is focused
-- `showingRollingSelector: boolean[]` — rolling-selector open state per column
-- Tab cycles between columns; collision detection prevents two adjacent columns from showing the same month
+- `focusedDayIndex` — which day within the active column is focused (`dayOfMonth − 1`; nullable)
+- `rollingSelectorOpenByColumn: boolean[]` — rolling-selector open state per column (`isUnifiedRollingSelectorOpen: boolean` for unified-grid mode)
+- Tab cycles between columns; collision detection keeps columns strictly ascending (no duplicates, no out-of-order — but gaps are allowed)
 
 **Date format parsing** (`parseFormat` in core class)
 - Supports `YYYY`/`YY`, `MM`/`M`, `DD`/`D` with arbitrary separators
@@ -83,8 +83,8 @@ The codebase is TypeScript, organized as a core class plus extracted operation m
 
 ### Adding New Features
 
-- Min/max dates, disabled dates, disabled weekdays, and rolling year/month ranges are implemented; the constraint pipeline lives in `Validation.isDateDisabled` plus `getEffectiveYearRange` / `getEffectiveMonthRange` on the core class
-- For new options that should be reactive at runtime, both `observedAttributes` (in `web-component.ts`) and the parsing block in `initializePicker` need updating — these two lists must agree, and currently a hand-coded mapping exists between them
+- Min/max dates, disabled dates, disabled weekdays, and rolling year/month ranges are implemented; the constraint pipeline lives in `Validation.isDateDisabled` plus `getAvailableYearRange` / `getAvailableMonthRange` on the core class
+- For new options that should be reactive at runtime, add a row to `ATTRIBUTE_TABLE` in `web-component.ts` — it is the single source of truth that drives both `observedAttributes` and the initial parse (`parseAttributesFromTable` in `initializePicker`), so the two can no longer drift. (The only remaining hand-coordinated pair is `DUAL_PATH_KEYS` for the `disabledDates` + `*Member` data-prop family.)
 - Most attribute changes today trigger a full picker rebuild via `destroy() + initializePicker()` — selection state is lost. A surgical `updateOptions(partial)` API is the architectural fix; until it lands, treat any new option that changes at runtime carefully
 
 ### Adding New CSS Variables
@@ -95,12 +95,12 @@ The codebase is TypeScript, organized as a core class plus extracted operation m
 
 ### State Management
 
-Key state properties:
-- `selectedDate` / `selectedStartDate` / `selectedEndDate`: Current selection
-- `monthDates[]`: Array of Date objects representing each visible month column
+Key state. Public selection accessors are get/set (reactive — assigning re-renders + syncs input) backed by private raw fields; displayed state is read-only and derived:
+- `selectedDate` / `selectedDates` / `selectedRanges`: get/set selection accessors (raw storage is private `_selectedDate` etc.). `selectedStartDate` / `selectedEndDate` are read-only; `selectedTime` / `selectedDatetime` get/set (the `selectedDatetime` setter accepts a `Date | string` and splits it).
+- `visibleMonths` / `visibleMonthDates` / `visibleDateRange`: read-only views of the displayed columns, derived from private `_monthDates`
 - `activeMonthIndex`: Which month column has keyboard focus
 - `focusedDayIndex`: Which day within active column is keyboard-focused
-- `showingRollingSelector[]`: Boolean array tracking rolling selector visibility per column
+- `rollingSelectorOpenByColumn[]`: Boolean array tracking rolling selector visibility per column
 - Drag state: `isDragging`, `draggingType`, `dragPreviewStart`, `dragPreviewEnd`
 
 ### Known Dependencies

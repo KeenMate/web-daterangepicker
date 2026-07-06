@@ -5,9 +5,9 @@
  * rolling selector, and keyboard focus movement.
  */
 
-import type { BeforeMonthChangeContext, BeforeMonthChangeResult } from './types';
+import type { MonthChangeContext, BeforeMonthChangeResult } from './types';
 import { navigationLogger } from './logger';
-import { showLoadingOverlay, hideLoadingOverlay } from './date-picker-ui';
+import { showLoader, hideLoader } from './date-picker-ui';
 
 /**
  * Check if a given month has any enabled (non-disabled) days
@@ -24,7 +24,7 @@ export function hasEnabledDaysInMonth(picker: any, year: number, month: number):
         if (date.getMonth() !== month) continue;
 
         // If we find at least one enabled day, the month is navigable
-        if (!picker.isDateDisabledInternal(date)) {
+        if (!picker.isDateDisabled(date)) {
             return true;
         }
     }
@@ -55,7 +55,7 @@ export async function handleInitialMonthLoad(picker: any): Promise<void> {
         if (picker.options.isUnifiedNavigationEnabled) {
             // UNIFIED MODE: One callback for all visible months together
             const anchorIndex = picker.options.unifiedNavigationAnchorIndex ?? 0;
-            const anchorMonth = picker.monthDates[anchorIndex];
+            const anchorMonth = picker._monthDates[anchorIndex];
             const targetYear = anchorMonth.getFullYear();
             const targetMonth = anchorMonth.getMonth();
 
@@ -65,8 +65,8 @@ export async function handleInitialMonthLoad(picker: any): Promise<void> {
             let latestYear = -Infinity;
             let latestMonth = -Infinity;
 
-            for (let i = 0; i < picker.monthDates.length; i++) {
-                const monthDate = picker.monthDates[i];
+            for (let i = 0; i < picker._monthDates.length; i++) {
+                const monthDate = picker._monthDates[i];
                 const year = monthDate.getFullYear();
                 const month = monthDate.getMonth();
 
@@ -92,7 +92,8 @@ export async function handleInitialMonthLoad(picker: any): Promise<void> {
             const daysToAdd = (picker.weekStartDay + 6 - lastDayWeekday) % 7;
             const lastVisibleDate = new Date(latestYear, latestMonth, lastDayOfLastMonth + daysToAdd);
 
-            const context: BeforeMonthChangeContext = {
+            const context: MonthChangeContext = {
+                picker,
                 year: targetYear,
                 month: targetMonth,
                 monthIndex: anchorIndex,
@@ -106,13 +107,13 @@ export async function handleInitialMonthLoad(picker: any): Promise<void> {
             const isAsync = callbackResult instanceof Promise;
 
             if (isAsync) {
-                showLoadingOverlay(picker);
+                showLoader(picker);
             }
 
             const result: BeforeMonthChangeResult = await Promise.resolve(callbackResult);
 
             if (isAsync) {
-                hideLoadingOverlay(picker);
+                hideLoader(picker);
             }
 
             navigationLogger.debug(`handleInitialMonthLoad() [UNIFIED] - callback completed, metadata items: ${result.metadata?.size || 0}, monthHeaders: ${result.monthHeaders?.size || 0}`);
@@ -134,15 +135,15 @@ export async function handleInitialMonthLoad(picker: any): Promise<void> {
 
         } else {
             // NON-UNIFIED MODE: Call callback for EACH visible month separately
-            navigationLogger.debug(`handleInitialMonthLoad() [NON-UNIFIED] - calling callback for ${picker.monthDates.length} months`);
+            navigationLogger.debug(`handleInitialMonthLoad() [NON-UNIFIED] - calling callback for ${picker._monthDates.length} months`);
 
             // Initialize empty maps for combined data
             const combinedMetadata = new Map<string, any>();
             const combinedMonthHeaders = new Map<string, string>();
             let hadAsync = false;
 
-            for (let i = 0; i < picker.monthDates.length; i++) {
-                const monthDate = picker.monthDates[i];
+            for (let i = 0; i < picker._monthDates.length; i++) {
+                const monthDate = picker._monthDates[i];
                 const targetYear = monthDate.getFullYear();
                 const targetMonth = monthDate.getMonth();
 
@@ -154,7 +155,8 @@ export async function handleInitialMonthLoad(picker: any): Promise<void> {
                 const lastVisibleDate = new Date(firstVisibleDate);
                 lastVisibleDate.setDate(firstVisibleDate.getDate() + 41);
 
-                const context: BeforeMonthChangeContext = {
+                const context: MonthChangeContext = {
+                    picker,
                     year: targetYear,
                     month: targetMonth,
                     monthIndex: i,
@@ -169,7 +171,7 @@ export async function handleInitialMonthLoad(picker: any): Promise<void> {
 
                 if (isAsync && !hadAsync) {
                     hadAsync = true;
-                    showLoadingOverlay(picker);
+                    showLoader(picker);
                 }
 
                 const result: BeforeMonthChangeResult = await Promise.resolve(callbackResult);
@@ -192,7 +194,7 @@ export async function handleInitialMonthLoad(picker: any): Promise<void> {
             }
 
             if (hadAsync) {
-                hideLoadingOverlay(picker);
+                hideLoader(picker);
             }
 
             // Update bulk metadata cache with combined data from all months
@@ -214,7 +216,7 @@ export async function handleInitialMonthLoad(picker: any): Promise<void> {
 
     } catch (error) {
         // Hide loading overlay on error
-        hideLoadingOverlay(picker);
+        hideLoader(picker);
 
         navigationLogger.debug(`handleInitialMonthLoad() - error in callback:`, error);
         console.error('[DateRangePicker] Error in beforeMonthChangedCallback (initial load):', error);
@@ -261,8 +263,8 @@ export async function handleBeforeMonthChange(
             let latestYear = -Infinity;
             let latestMonth = -Infinity;
 
-            for (let i = 0; i < picker.monthDates.length; i++) {
-                const monthDate = picker.monthDates[i];
+            for (let i = 0; i < picker._monthDates.length; i++) {
+                const monthDate = picker._monthDates[i];
                 const year = monthDate.getFullYear();
                 const month = monthDate.getMonth();
 
@@ -304,7 +306,8 @@ export async function handleBeforeMonthChange(
         }
 
         // Build context object
-        const context: BeforeMonthChangeContext = {
+        const context: MonthChangeContext = {
+            picker,
             year: targetYear,
             month: targetMonth,
             monthIndex: monthIndex,
@@ -320,7 +323,7 @@ export async function handleBeforeMonthChange(
 
         // Show loading overlay if async
         if (isAsync) {
-            showLoadingOverlay(picker);
+            showLoader(picker);
         }
 
         // Await the result
@@ -328,7 +331,7 @@ export async function handleBeforeMonthChange(
 
         // Hide loading overlay if it was shown
         if (isAsync) {
-            hideLoadingOverlay(picker);
+            hideLoader(picker);
         }
 
         // Handle the result
@@ -380,7 +383,7 @@ export async function handleBeforeMonthChange(
 
     } catch (error) {
         // Hide loading overlay on error
-        hideLoadingOverlay(picker);
+        hideLoader(picker);
 
         navigationLogger.debug(`handleBeforeMonthChange() - error in callback:`, error);
         console.error('[DateRangePicker] Error in beforeMonthChangedCallback:', error);
@@ -393,13 +396,13 @@ export async function handleBeforeMonthChange(
 }
 
 export function toggleRollingSelector(picker: any, monthIndex: number) {
-    picker.showingRollingSelector[monthIndex] = !picker.showingRollingSelector[monthIndex];
+    picker.rollingSelectorOpenByColumn[monthIndex] = !picker.rollingSelectorOpenByColumn[monthIndex];
     picker.renderCalendar();
 }
 
 export async function selectYear(picker: any, year: number, monthIndex: number) {
     // Get current month to preserve it
-    const currentMonth = picker.monthDates[monthIndex].getMonth();
+    const currentMonth = picker._monthDates[monthIndex].getMonth();
 
     // Call beforeMonthChangedCallback
     const shouldProceed = await handleBeforeMonthChange(picker, year, currentMonth, monthIndex);
@@ -409,20 +412,20 @@ export async function selectYear(picker: any, year: number, monthIndex: number) 
     }
 
     // Update only this specific month's year
-    const oldYear = picker.monthDates[monthIndex].getFullYear();
-    picker.monthDates[monthIndex].setFullYear(year);
+    const oldYear = picker._monthDates[monthIndex].getFullYear();
+    picker._monthDates[monthIndex].setFullYear(year);
     navigationLogger.debug(`selectYear() Col${monthIndex} - changed from ${oldYear} to ${year}`);
 
     // Check for collisions with adjacent columns
     checkAndResolveCollisions(picker, monthIndex);
 
-    picker.showingRollingSelector[monthIndex] = false;
+    picker.rollingSelectorOpenByColumn[monthIndex] = false;
     picker.renderCalendar();
 }
 
 export async function selectMonth(picker: any, month: number, monthIndex: number) {
     // Get current year to preserve it
-    const currentYear = picker.monthDates[monthIndex].getFullYear();
+    const currentYear = picker._monthDates[monthIndex].getFullYear();
 
     // Call beforeMonthChangedCallback
     const shouldProceed = await handleBeforeMonthChange(picker, currentYear, month, monthIndex);
@@ -432,29 +435,29 @@ export async function selectMonth(picker: any, month: number, monthIndex: number
     }
 
     // Update only this specific month's month
-    const oldMonth = picker.monthDates[monthIndex].getMonth();
-    picker.monthDates[monthIndex].setMonth(month);
+    const oldMonth = picker._monthDates[monthIndex].getMonth();
+    picker._monthDates[monthIndex].setMonth(month);
     navigationLogger.debug(`selectMonth() Col${monthIndex} - changed from ${oldMonth+1} to ${month+1}`);
 
     // Check for collisions with adjacent columns
     checkAndResolveCollisions(picker, monthIndex);
 
-    picker.showingRollingSelector[monthIndex] = false;
+    picker.rollingSelectorOpenByColumn[monthIndex] = false;
     picker.renderCalendar();
 }
 
 // Check and resolve collisions after changing a column's date
 export function checkAndResolveCollisions(picker: any, changedIdx: number) {
-    const changedDate = picker.monthDates[changedIdx];
+    const changedDate = picker._monthDates[changedIdx];
 
     // Check collision with next column (if exists)
-    if (changedIdx < picker.monthDates.length - 1) {
-        const nextDate = picker.monthDates[changedIdx + 1];
+    if (changedIdx < picker._monthDates.length - 1) {
+        const nextDate = picker._monthDates[changedIdx + 1];
         if (isSameOrAfterMonth(changedDate, nextDate)) {
             navigationLogger.debug(`checkAndResolveCollisions() Col${changedIdx} - collision with Col${changedIdx+1}, shifting forward`);
             // Move next column to be 1 month after changed column
             const newNextDate = new Date(changedDate.getFullYear(), changedDate.getMonth() + 1, 1);
-            picker.monthDates[changedIdx + 1] = newNextDate;
+            picker._monthDates[changedIdx + 1] = newNextDate;
             // Recursively check next column
             checkAndResolveCollisions(picker, changedIdx + 1);
         }
@@ -462,12 +465,12 @@ export function checkAndResolveCollisions(picker: any, changedIdx: number) {
 
     // Check collision with previous column (if exists)
     if (changedIdx > 0) {
-        const prevDate = picker.monthDates[changedIdx - 1];
+        const prevDate = picker._monthDates[changedIdx - 1];
         if (isSameOrAfterMonth(prevDate, changedDate)) {
             navigationLogger.debug(`checkAndResolveCollisions() Col${changedIdx} - collision with Col${changedIdx-1}, shifting backward`);
             // Move previous column to be 1 month before changed column
             const newPrevDate = new Date(changedDate.getFullYear(), changedDate.getMonth() - 1, 1);
-            picker.monthDates[changedIdx - 1] = newPrevDate;
+            picker._monthDates[changedIdx - 1] = newPrevDate;
             // Recursively check previous column
             checkAndResolveCollisions(picker, changedIdx - 1);
         }
@@ -496,11 +499,11 @@ async function changeMonth(picker: any, monthIndex: number, offset: -1 | 1): Pro
     const idx = !isNaN(monthIndex) ? monthIndex : picker.activeMonthIndex;
     const dir = offset > 0 ? 'nextMonth' : 'prevMonth';
 
-    if (picker.showingRollingSelector[idx]) {
-        picker.showingRollingSelector[idx] = false;
+    if (picker.rollingSelectorOpenByColumn[idx]) {
+        picker.rollingSelectorOpenByColumn[idx] = false;
     }
 
-    const oldDate = picker.monthDates[idx];
+    const oldDate = picker._monthDates[idx];
     const newDate = new Date(oldDate.getFullYear(), oldDate.getMonth() + offset, 1);
 
     if (!hasEnabledDaysInMonth(picker, newDate.getFullYear(), newDate.getMonth())) {
@@ -514,17 +517,17 @@ async function changeMonth(picker: any, monthIndex: number, offset: -1 | 1): Pro
         return;
     }
 
-    picker.monthDates[idx] = newDate;
+    picker._monthDates[idx] = newDate;
     navigationLogger.debug(`${dir}() Col${idx} - changed from ${oldDate.getFullYear()}-${oldDate.getMonth()+1} to ${newDate.getFullYear()}-${newDate.getMonth()+1}`);
 
     // Collision propagation: if the moved column overlaps its same-direction neighbour,
     // recursively shift that neighbour the same direction.
     const neighbourIdx = idx + offset;
     const neighbourInBounds = offset > 0
-        ? neighbourIdx < picker.monthDates.length
+        ? neighbourIdx < picker._monthDates.length
         : neighbourIdx >= 0;
     if (neighbourInBounds) {
-        const neighbourDate = picker.monthDates[neighbourIdx];
+        const neighbourDate = picker._monthDates[neighbourIdx];
         const collides = offset > 0
             ? isSameOrAfterMonth(newDate, neighbourDate)       // moved forward into next
             : isSameOrAfterMonth(neighbourDate, newDate);      // moved back into prev
@@ -559,7 +562,7 @@ export function findNextEnabledDayIndex(picker: any, startIndex: number, offset:
                 const date = new Date(year, month - 1, day); // month is 1-based in data-date, but Date constructor expects 0-based
 
                 // Check if this date is enabled
-                if (!picker.isDateDisabledInternal(date)) {
+                if (!picker.isDateDisabled(date)) {
                     return { index: currentIndex, monthChanged: false };
                 }
             }
@@ -777,7 +780,7 @@ export async function unifiedNextMonth(picker: any) {
     if (!picker.options.isUnifiedNavigationEnabled) return;
 
     const anchorIndex = picker.options.unifiedNavigationAnchorIndex ?? 0;
-    const anchorMonth = picker.monthDates[anchorIndex];
+    const anchorMonth = picker._monthDates[anchorIndex];
     const newAnchorMonth = new Date(anchorMonth.getFullYear(), anchorMonth.getMonth() + 1, 1);
 
     navigationLogger.debug(`unifiedNextMonth() - anchor index: ${anchorIndex}, current: ${anchorMonth.getFullYear()}-${anchorMonth.getMonth()+1}, new: ${newAnchorMonth.getFullYear()}-${newAnchorMonth.getMonth()+1}`);
@@ -792,9 +795,9 @@ export async function unifiedNextMonth(picker: any) {
     if (!shouldProceed) return;
 
     // Update ALL months relative to the anchor
-    for (let i = 0; i < picker.monthDates.length; i++) {
+    for (let i = 0; i < picker._monthDates.length; i++) {
         const offset = i - anchorIndex;
-        picker.monthDates[i] = new Date(newAnchorMonth.getFullYear(), newAnchorMonth.getMonth() + offset, 1);
+        picker._monthDates[i] = new Date(newAnchorMonth.getFullYear(), newAnchorMonth.getMonth() + offset, 1);
     }
     picker.renderCalendar();
 }
@@ -806,7 +809,7 @@ export async function unifiedPrevMonth(picker: any) {
     if (!picker.options.isUnifiedNavigationEnabled) return;
 
     const anchorIndex = picker.options.unifiedNavigationAnchorIndex ?? 0;
-    const anchorMonth = picker.monthDates[anchorIndex];
+    const anchorMonth = picker._monthDates[anchorIndex];
     const newAnchorMonth = new Date(anchorMonth.getFullYear(), anchorMonth.getMonth() - 1, 1);
 
     navigationLogger.debug(`unifiedPrevMonth() - anchor index: ${anchorIndex}, current: ${anchorMonth.getFullYear()}-${anchorMonth.getMonth()+1}, new: ${newAnchorMonth.getFullYear()}-${newAnchorMonth.getMonth()+1}`);
@@ -821,9 +824,9 @@ export async function unifiedPrevMonth(picker: any) {
     if (!shouldProceed) return;
 
     // Update ALL months relative to the anchor
-    for (let i = 0; i < picker.monthDates.length; i++) {
+    for (let i = 0; i < picker._monthDates.length; i++) {
         const offset = i - anchorIndex;
-        picker.monthDates[i] = new Date(newAnchorMonth.getFullYear(), newAnchorMonth.getMonth() + offset, 1);
+        picker._monthDates[i] = new Date(newAnchorMonth.getFullYear(), newAnchorMonth.getMonth() + offset, 1);
     }
     picker.renderCalendar();
 }
@@ -836,7 +839,7 @@ export async function setUnifiedMonth(picker: any, month: number) {
     if (!picker.options.isUnifiedNavigationEnabled) return;
 
     const anchorIndex = picker.options.unifiedNavigationAnchorIndex ?? 0;
-    const currentYear = picker.monthDates[anchorIndex].getFullYear();
+    const currentYear = picker._monthDates[anchorIndex].getFullYear();
 
     navigationLogger.debug(`setUnifiedMonth(${month}) - anchor index: ${anchorIndex}, year: ${currentYear}`);
 
@@ -844,13 +847,13 @@ export async function setUnifiedMonth(picker: any, month: number) {
     if (!shouldProceed) return;
 
     // Update ALL months relative to the new anchor month
-    for (let i = 0; i < picker.monthDates.length; i++) {
+    for (let i = 0; i < picker._monthDates.length; i++) {
         const offset = i - anchorIndex;
-        picker.monthDates[i] = new Date(currentYear, month + offset, 1);
+        picker._monthDates[i] = new Date(currentYear, month + offset, 1);
     }
 
     // Close the unified rolling selector (like normal selectMonth does)
-    picker.showingUnifiedRollingSelector = false;
+    picker.isUnifiedRollingSelectorOpen = false;
     picker.renderCalendar();
 }
 
@@ -862,8 +865,8 @@ export function toggleUnifiedRollingSelector(picker: any) {
         return;
     }
 
-    picker.showingUnifiedRollingSelector = !picker.showingUnifiedRollingSelector;
-    navigationLogger.debug(`toggleUnifiedRollingSelector() - now ${picker.showingUnifiedRollingSelector ? 'visible' : 'hidden'}`);
+    picker.isUnifiedRollingSelectorOpen = !picker.isUnifiedRollingSelectorOpen;
+    navigationLogger.debug(`toggleUnifiedRollingSelector() - now ${picker.isUnifiedRollingSelectorOpen ? 'visible' : 'hidden'}`);
     picker.renderCalendar();
 }
 
@@ -875,7 +878,7 @@ export async function setUnifiedYear(picker: any, year: number) {
     if (!picker.options.isUnifiedNavigationEnabled) return;
 
     const anchorIndex = picker.options.unifiedNavigationAnchorIndex ?? 0;
-    const currentMonth = picker.monthDates[anchorIndex].getMonth();
+    const currentMonth = picker._monthDates[anchorIndex].getMonth();
 
     navigationLogger.debug(`setUnifiedYear(${year}) - anchor index: ${anchorIndex}, month: ${currentMonth}`);
 
@@ -883,12 +886,12 @@ export async function setUnifiedYear(picker: any, year: number) {
     if (!shouldProceed) return;
 
     // Update ALL months relative to the new anchor
-    for (let i = 0; i < picker.monthDates.length; i++) {
+    for (let i = 0; i < picker._monthDates.length; i++) {
         const offset = i - anchorIndex;
-        picker.monthDates[i] = new Date(year, currentMonth + offset, 1);
+        picker._monthDates[i] = new Date(year, currentMonth + offset, 1);
     }
 
     // Close the unified rolling selector (like normal selectYear does)
-    picker.showingUnifiedRollingSelector = false;
+    picker.isUnifiedRollingSelectorOpen = false;
     picker.renderCalendar();
 }

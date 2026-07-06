@@ -3,13 +3,13 @@
    ==============================================================================
    Spinner uses the `drp-spin` keyframe declared in `animations.css`. */
 
-.drp__loading-overlay {
+.drp__loader-overlay {
   position: absolute;
   top: 0;
   left: 0;
   right: 0;
   bottom: 0;
-  background-color: var(--drp-loading-overlay-bg);
+  background-color: var(--drp-loader-overlay-bg);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -17,11 +17,49 @@
   border-radius: var(--drp-border-radius-lg);
 }
 
-.drp__loading-spinner {
-  width: var(--drp-loading-spinner-size);
-  height: var(--drp-loading-spinner-size);
-  border: var(--drp-loading-spinner-border-width) solid var(--drp-loading-spinner-color);
-  border-top-color: var(--drp-loading-spinner-accent);
+.drp__loader {
+  width: var(--drp-loader-size);
+  height: var(--drp-loader-size);
+  border: var(--drp-loader-border-width) solid var(--drp-loader-color);
+  border-top-color: var(--drp-loader-accent);
   border-radius: 50%;
   animation: drp-spin 0.8s linear infinite;
+}
+
+/* In-block spinner — used by showLoader('message') / showLoader('summary').
+   While loading, the block's own content is HIDDEN and the spinner is centered
+   over it (rather than dimming the content and sitting beside it). The block keeps
+   its height and its own border/background, so nothing jumps. */
+.drp__inline-loader {
+  width: var(--drp-loader-inline-size);
+  height: var(--drp-loader-inline-size);
+  border: 2px solid var(--drp-loader-color);
+  border-top-color: var(--drp-loader-accent);
+  border-radius: 50%;
+  animation: drp-spin 0.8s linear infinite;
+}
+
+/* Positioning context + hide the underlying content (keep the block's own border).
+   `visibility` (not `display`) preserves the block's height so it doesn't collapse. */
+.drp__message--loading,
+.drp__summary--loading { position: relative; }
+.drp__summary--loading > :not(.drp__inline-loader) { visibility: hidden; }
+.drp__message--loading .drp__message-text { visibility: hidden; }
+
+/* Loader stays visible and is dead-centered over the block. `inset: 0; margin: auto`
+   centers a fixed-size absolute element on both axes without touching `transform`
+   (which is owned by the drp-spin rotation animation). */
+.drp__summary--loading .drp__inline-loader,
+.drp__message--loading .drp__inline-loader {
+  visibility: visible;
+  position: absolute;
+  inset: 0;
+  margin: auto;
+}
+
+/* The summary is padded only at the top (its bottom spacing is a margin, not padding),
+   so its padding box is top-heavy and a plain center lands the loader above the text.
+   Anchor the top inset to the content box so the loader sits where the value was. */
+.drp__summary--loading .drp__inline-loader {
+  top: var(--drp-spacing-sm);
 }

@@ -4,8 +4,8 @@
  * Functions for date selection logic.
  */
 
-import { showLoadingOverlay, hideLoadingOverlay, showMessage, hideMessage } from './date-picker-ui';
-import type { BeforeSelectResult, DateRange } from './types';
+import { showLoader, hideLoader, showMessage, hideMessage } from './date-picker-ui';
+import type { BeforeSelectResult, DateRange, SelectionContext } from './types';
 import { validationLogger, selectionLogger } from './logger';
 import log from './logger';
 
@@ -20,6 +20,7 @@ async function callBeforeSelectCallback(
     adjustedDate?: Date;
     adjustedStart?: Date;
     adjustedEnd?: Date;
+    adjustedRanges?: DateRange[];
     message?: string;
     showInvalidRange?: boolean;
     invalidStart?: Date;
@@ -31,20 +32,53 @@ async function callBeforeSelectCallback(
 
     try {
         picker.isValidating = true;
-        showLoadingOverlay(picker);
+        showLoader(picker);
 
-        const result: BeforeSelectResult = await Promise.resolve(picker.options.beforeDateSelectCallback(selection));
+        let ctx: SelectionContext;
+        if (selection instanceof Date) {
+            ctx = { picker, mode: picker.options.selectionMode, date: selection };
+        } else {
+            ctx = { picker, mode: picker.options.selectionMode, range: selection };
+            // Split/individual handling carves the contiguous envelope into
+            // enabled-only pieces at summary time. Surface those same pieces here
+            // (read-only) so the callback can validate the split without
+            // re-deriving it. The return contract stays single-range.
+            const handling = picker.options.disabledDatesHandling;
+            if (handling === 'split' || handling === 'individual') {
+                ctx.enabledDates = picker.getEnabledDatesInRange(selection.start, selection.end);
+                if (handling === 'split') {
+                    ctx.subRanges = picker.splitRangeByDisabled(selection.start, selection.end);
+                }
+            }
+        }
+        const result: BeforeSelectResult = await Promise.resolve(picker.options.beforeDateSelectCallback(ctx));
 
-        hideLoadingOverlay(picker);
+        hideLoader(picker);
         picker.isValidating = false;
+
+        // A callback may return N independent ranges (range mode only) to replace
+        // the single proposed envelope — valid with 'accept' or 'adjust'.
+        const isRangeSelection = !(selection instanceof Date);
+        const hasAdjustedRanges = isRangeSelection
+            && Array.isArray(result.adjustedRanges) && result.adjustedRanges.length > 0;
 
         switch (result.action) {
             case 'accept':
                 // Clear any previous message on successful selection
                 hideMessage(picker);
+                if (hasAdjustedRanges) {
+                    return { isValid: true, adjustedRanges: result.adjustedRanges };
+                }
                 return { isValid: true };
 
             case 'adjust':
+                if (hasAdjustedRanges) {
+                    // Multi-range replacement takes precedence over start/end pair.
+                    if (result.message) {
+                        showMessage(picker, result.message, 'info');
+                    }
+                    return { isValid: true, adjustedRanges: result.adjustedRanges, message: result.message };
+                }
                 if (selection instanceof Date && result.adjustedDate) {
                     // Single mode adjustment - show info message if provided
                     if (result.message) {
@@ -86,7 +120,7 @@ async function callBeforeSelectCallback(
                 return { isValid: false, message: 'Unknown validation action' };
         }
     } catch (error) {
-        hideLoadingOverlay(picker);
+        hideLoader(picker);
         picker.isValidating = false;
         log.error('beforeDateSelectCallback error:', error);
         return { isValid: false, message: 'Validation error occurred' };
@@ -98,6 +132,8 @@ async function callBeforeSelectCallback(
  * Single hook so debounced events / bulk-op callbacks can be added later.
  */
 function commitSelection(picker: any) {
+    // A new selection supersedes any pinned summary override (showSummary).
+    picker.summaryOverride = null;
     picker.renderCalendar();
     picker.updateSummary();
 }
@@ -118,8 +154,8 @@ export function commitInputValue(picker: any, value: string) {
  * to that day. Used after a selection commit to keep the focus indicator in sync.
  */
 function moveFocusToDate(picker: any, target: Date): void {
-    for (let colIndex = 0; colIndex < picker.monthDates.length; colIndex++) {
-        const monthDate = picker.monthDates[colIndex];
+    for (let colIndex = 0; colIndex < picker._monthDates.length; colIndex++) {
+        const monthDate = picker._monthDates[colIndex];
         if (target.getFullYear() !== monthDate.getFullYear() || target.getMonth() !== monthDate.getMonth()) {
             continue;
         }
@@ -153,23 +189,70 @@ function moveFocusToDate(picker: any, target: Date): void {
  * Format the current selection for display in the input field.
  * Returns null for selection states that have no canonical input representation.
  */
+/**
+ * Apply a SUCCESSFUL range validation to picker selection state, multi-range
+ * aware. Shared by every range-commit path (click, drag, typed input) so they
+ * can't drift: a callback returning `adjustedRanges` replaces the single range
+ * with N pieces (start/end become the envelope); otherwise the single
+ * (optionally adjusted) range is stored and `_selectedRanges` is cleared.
+ * Returns the payload for onSelect / pendingSelection (a DateRange[] for a
+ * multi-range result, else a single {start,end}).
+ */
+export function applyValidatedRangeSelection(
+    picker: any,
+    validation: { adjustedRanges?: DateRange[]; adjustedStart?: Date; adjustedEnd?: Date },
+    startDate: Date,
+    endDate: Date
+): DateRange[] | DateRange {
+    if (validation.adjustedRanges && validation.adjustedRanges.length > 0) {
+        picker._selectedRanges = validation.adjustedRanges.map((r: DateRange) => ({
+            start: new Date(r.start),
+            end: new Date(r.end)
+        }));
+        picker._selectedStartDate = new Date(picker._selectedRanges[0].start);
+        picker._selectedEndDate = new Date(picker._selectedRanges[picker._selectedRanges.length - 1].end);
+    } else {
+        picker._selectedRanges = [];
+        picker._selectedStartDate = validation.adjustedStart || startDate;
+        picker._selectedEndDate = validation.adjustedEnd || endDate;
+    }
+    picker.invalidRangeStart = null;
+    picker.invalidRangeEnd = null;
+    return picker._selectedRanges.length > 0
+        ? picker.selectedRanges
+        : { start: picker._selectedStartDate, end: picker._selectedEndDate };
+}
+
+/**
+ * Format a range-mode selection for the input: a single "start - end", or, when
+ * a multi-range result is committed, each piece joined by ", ".
+ */
+export function formatRangeInput(picker: any): string {
+    if (picker._selectedRanges.length > 0) {
+        return picker._selectedRanges
+            .map((r: DateRange) => `${picker.formatDate(r.start)} - ${picker.formatDate(r.end)}`)
+            .join(', ');
+    }
+    return `${picker.formatDate(picker._selectedStartDate)} - ${picker.formatDate(picker._selectedEndDate)}`;
+}
+
 function formatInputValue(picker: any): string | null {
     const mode = picker.options.selectionMode;
     // Time-only mode: selectedDate stays null. Format from selectedTime parts so
     // Apply writes "10:37:50" even though there's no date involved.
     if (picker.options.pickerMode === 'time') {
-        const t = picker.selectedTime;
+        const t = picker._selectedTime;
         const anyCommitted = t && (t.hour !== null || t.minute !== null || t.second !== null);
         return anyCommitted ? picker.formatTime(t) : null;
     }
-    if (mode === 'range' && picker.selectedStartDate && picker.selectedEndDate) {
-        return `${picker.formatDate(picker.selectedStartDate)} - ${picker.formatDate(picker.selectedEndDate)}`;
+    if (mode === 'range' && picker._selectedStartDate && picker._selectedEndDate) {
+        return formatRangeInput(picker);
     }
-    if (mode === 'single' && picker.selectedDate) {
-        return picker.formatDate(picker.selectedDate);
+    if (mode === 'single' && picker._selectedDate) {
+        return picker.formatDate(picker._selectedDate);
     }
     if (mode === 'multiple') {
-        const count = picker.selectedDates.length + picker.selectedRanges.length;
+        const count = picker._selectedDates.length + picker._selectedRanges.length;
         return count > 0 ? `${count} selection(s)` : '';
     }
     return null;
@@ -187,6 +270,7 @@ export async function validateRangeAsync(
     isValid: boolean;
     adjustedStart?: Date;
     adjustedEnd?: Date;
+    adjustedRanges?: DateRange[];
     message?: string;
     showInvalidRange?: boolean;
     invalidStart?: Date;
@@ -229,6 +313,10 @@ export async function validateRangeAsync(
             };
         }
         return { isValid: false, message: callbackResult.message };
+    }
+    // Multi-range replacement wins over the single start/end pair when present.
+    if (callbackResult.adjustedRanges) {
+        return { isValid: true, adjustedRanges: callbackResult.adjustedRanges, message: callbackResult.message };
     }
     // Partial adjustment is intentional: a callback may adjust only one side of the range.
     // Consumers fall back per-field (`validation.adjustedStart || originalStart`), so leaving
@@ -297,7 +385,7 @@ export async function selectDay(picker: any, dayElement: HTMLElement) {
             singleModeAdjustedDate = finalDate;
         }
 
-        picker.selectedDate = finalDate;
+        picker._selectedDate = finalDate;
         commitInputValue(picker, picker.formatDate(finalDate));
 
         // In datetime mode, the payload to onSelect is the composed Date+time.
@@ -321,48 +409,51 @@ export async function selectDay(picker: any, dayElement: HTMLElement) {
 
         // Check if date is already selected
         const dateStr = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
-        const existingIndex = picker.selectedDates.findIndex((d: Date) => {
+        const existingIndex = picker._selectedDates.findIndex((d: Date) => {
             const dStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
             return dStr === dateStr;
         });
 
         if (existingIndex !== -1) {
             // Remove the date (toggle off)
-            picker.selectedDates.splice(existingIndex, 1);
+            picker._selectedDates.splice(existingIndex, 1);
         } else {
             // Add the date
-            picker.selectedDates.push(new Date(date));
+            picker._selectedDates.push(new Date(date));
         }
 
         // Update input to show count (only if Apply button is NOT required)
-        const count = picker.selectedDates.length + picker.selectedRanges.length;
+        const count = picker._selectedDates.length + picker._selectedRanges.length;
         commitInputValue(picker, count > 0 ? `${count} selection(s)` : '');
 
         // Multiple mode always defers events (inherently requires Apply button)
         // Store pending selection for onSelect callback
-        if (picker.selectedRanges.length > 0 && picker.selectedDates.length > 0) {
-            picker.pendingSelection = [...picker.selectedRanges, ...picker.selectedDates];
-        } else if (picker.selectedRanges.length > 0) {
-            picker.pendingSelection = picker.selectedRanges;
+        if (picker._selectedRanges.length > 0 && picker._selectedDates.length > 0) {
+            picker.pendingSelection = [...picker._selectedRanges, ...picker._selectedDates];
+        } else if (picker._selectedRanges.length > 0) {
+            picker.pendingSelection = picker._selectedRanges;
         } else {
-            picker.pendingSelection = picker.selectedDates;
+            picker.pendingSelection = picker._selectedDates;
         }
     } else { // range
-        if (!picker.selectedStartDate || picker.selectedEndDate) {
+        if (!picker._selectedStartDate || picker._selectedEndDate) {
             // Start new range - clear any previous invalid range
             picker.invalidRangeStart = null;
             picker.invalidRangeEnd = null;
-            picker.selectedStartDate = date;
-            picker.selectedEndDate = null;
+            // Drop any prior multi-range result so the new drag renders as a
+            // single contiguous range until (and unless) the callback splits it.
+            picker._selectedRanges = [];
+            picker._selectedStartDate = date;
+            picker._selectedEndDate = null;
             // Show first date in input immediately (only if Apply button is NOT required)
-            commitInputValue(picker, `${picker.formatDate(picker.selectedStartDate)} - ...`);
+            commitInputValue(picker, `${picker.formatDate(picker._selectedStartDate)} - ...`);
         } else {
             // Complete range - determine start/end order
-            let startDate = picker.selectedStartDate;
+            let startDate = picker._selectedStartDate;
             let endDate = date;
 
-            if (date < picker.selectedStartDate) {
-                endDate = picker.selectedStartDate;
+            if (date < picker._selectedStartDate) {
+                endDate = picker._selectedStartDate;
                 startDate = date;
             }
 
@@ -382,8 +473,8 @@ export async function selectDay(picker: any, dayElement: HTMLElement) {
                     picker.invalidRangeStart = validation.invalidStart;
                     picker.invalidRangeEnd = validation.invalidEnd;
                     // Reset selection to start-only state so user can try again
-                    picker.selectedStartDate = null;
-                    picker.selectedEndDate = null;
+                    picker._selectedStartDate = null;
+                    picker._selectedEndDate = null;
                 }
 
                 // Range was already cleared if action was 'clear'
@@ -391,23 +482,19 @@ export async function selectDay(picker: any, dayElement: HTMLElement) {
                 return;
             }
 
-            // Apply validated/adjusted dates
-            picker.selectedStartDate = validation.adjustedStart || startDate;
-            picker.selectedEndDate = validation.adjustedEnd || endDate;
-
-            // Clear any invalid range on successful selection
-            picker.invalidRangeStart = null;
-            picker.invalidRangeEnd = null;
+            // Apply validated/adjusted dates (multi-range aware; shared with the
+            // drag and typed-input commit paths so they can't drift).
+            const selection = applyValidatedRangeSelection(picker, validation, startDate, endDate);
 
             // Clear any previous message on successful selection (if no adjustment message)
             if (!validation.message) {
                 hideMessage(picker);
             }
 
-            commitInputValue(picker, `${picker.formatDate(picker.selectedStartDate)} - ${picker.formatDate(picker.selectedEndDate)}`);
+            commitInputValue(picker, formatRangeInput(picker));
 
-            // Defer onSelect callback if Apply button is required
-            const selection = { start: picker.selectedStartDate, end: picker.selectedEndDate };
+            // Defer onSelect callback if Apply button is required. A multi-range
+            // result is delivered as the DateRange[] array; a plain range as {start,end}.
             if (picker.requiresApplyButton()) {
                 picker.pendingSelection = selection;
             } else {
@@ -429,8 +516,8 @@ export async function selectDay(picker: any, dayElement: HTMLElement) {
     if (singleModeAdjustedDate) {
         moveFocusToDate(picker, singleModeAdjustedDate);
     }
-    if (picker.options.selectionMode === 'range' && picker.selectedEndDate) {
-        moveFocusToDate(picker, picker.selectedEndDate);
+    if (picker.options.selectionMode === 'range' && picker._selectedEndDate) {
+        moveFocusToDate(picker, picker._selectedEndDate);
     }
 }
 
@@ -438,13 +525,13 @@ export function selectToday(picker: any) {
     // Time mode has no calendar grid to seek to — Today is meaningless there.
     if (picker.options.pickerMode === 'time') return;
 
-    picker.monthDates[picker.activeMonthIndex] = new Date();
+    picker._monthDates[picker.activeMonthIndex] = new Date();
     // In datetime mode keep selectedDate as date-only (time lives in selectedTime
     // and is untouched). In date mode the time portion is irrelevant.
     const today = new Date();
-    picker.selectedDate = new Date(today.getFullYear(), today.getMonth(), today.getDate());
-    const payload = picker.options.pickerMode === 'datetime' ? picker.selectedDatetime : picker.selectedDate;
-    commitInputValue(picker, picker.formatDate(picker.selectedDate));
+    picker._selectedDate = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+    const payload = picker.options.pickerMode === 'datetime' ? picker.selectedDatetime : picker._selectedDate;
+    commitInputValue(picker, picker.formatDate(picker._selectedDate));
 
     // Defer onSelect callback if Apply button is required
     if (picker.requiresApplyButton()) {
@@ -462,13 +549,13 @@ export function selectToday(picker: any) {
 }
 
 export function clearSelection(picker: any) {
-    picker.selectedDate = null;
-    picker.selectedStartDate = null;
-    picker.selectedEndDate = null;
-    picker.selectedRanges = [];
-    picker.selectedDates = [];
+    picker._selectedDate = null;
+    picker._selectedStartDate = null;
+    picker._selectedEndDate = null;
+    picker._selectedRanges = [];
+    picker._selectedDates = [];
     picker.pendingSelection = null;
-    picker.selectedTime = null;
+    picker._selectedTime = null;
 
     // Clear drag preview state
     picker.dragPreviewStart = null;
@@ -492,28 +579,28 @@ export function clearSelection(picker: any) {
 }
 
 /**
- * Ensure picker.selectedTime exists with all fields null. Each select* helper
+ * Ensure picker._selectedTime exists with all fields null. Each select* helper
  * then fills in the field the user clicked. Null fields stay null so the
  * renderer knows not to highlight that roll.
  */
 function ensureSelectedTime(picker: any) {
-    if (!picker.selectedTime) {
-        picker.selectedTime = { hour: null, minute: null, second: null, ampm: null };
+    if (!picker._selectedTime) {
+        picker._selectedTime = { hour: null, minute: null, second: null, ampm: null };
     }
-    return picker.selectedTime;
+    return picker._selectedTime;
 }
 
 function commitTimeSelection(picker: any) {
     const mode = picker.options.pickerMode;
     let formatted: string;
     if (mode === 'time') {
-        formatted = picker.formatTime(picker.selectedTime);
-    } else if (mode === 'datetime' && picker.selectedDate) {
-        formatted = picker.formatDate(picker.selectedDate);
+        formatted = picker.formatTime(picker._selectedTime);
+    } else if (mode === 'datetime' && picker._selectedDate) {
+        formatted = picker.formatDate(picker._selectedDate);
     } else {
         // datetime mode without a committed date — show just the time so the
         // user sees feedback for their click. Day-click later replaces the input.
-        formatted = picker.formatTime(picker.selectedTime);
+        formatted = picker.formatTime(picker._selectedTime);
     }
     commitInputValue(picker, formatted);
     // onSelect receives the composed Date when the picker has time semantics.
@@ -667,7 +754,7 @@ export function commitWheelScroll(picker: any, col: HTMLElement, listKey: string
     const value = parseInt(raw, 10);
     if (isNaN(value)) return;
     const is12h = picker.options.hourCycle === 'h12';
-    const time = picker.selectedTime || { hour: null, minute: null, second: null, ampm: null };
+    const time = picker._selectedTime || { hour: null, minute: null, second: null, ampm: null };
     if (listKey === 'hours') {
         if (is12h) {
             const currentDisplay = time.hour !== null ? picker.toDisplayHour(time.hour) : -1;
@@ -859,13 +946,13 @@ export function selectNow(picker: any) {
     const now = new Date();
     if (picker.options.pickerMode === 'datetime') {
         // Set both date and time to now, and re-seek calendar to today.
-        picker.selectedDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-        if (picker.monthDates && picker.monthDates.length > 0) {
-            picker.monthDates[picker.activeMonthIndex || 0] = new Date(now.getFullYear(), now.getMonth(), 1);
+        picker._selectedDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+        if (picker._monthDates && picker._monthDates.length > 0) {
+            picker._monthDates[picker.activeMonthIndex || 0] = new Date(now.getFullYear(), now.getMonth(), 1);
         }
     }
     // "Now" is an explicit commitment of every time field.
-    picker.selectedTime = {
+    picker._selectedTime = {
         hour: now.getHours(),
         minute: now.getMinutes(),
         second: now.getSeconds(),
@@ -875,6 +962,8 @@ export function selectNow(picker: any) {
 }
 
 export function apply(picker: any) {
+    // Apply commits the selection — clear any pinned summary override.
+    picker.summaryOverride = null;
     // Always update input if dates are selected (handles custom buttons, programmatic setting).
     // Bypasses the requiresApplyButton gate — this is the Apply action itself.
     if (picker.input) {
@@ -892,14 +981,19 @@ export function apply(picker: any) {
 
     // Store committed values
     if (picker.options.selectionMode === 'range') {
-        picker.committedStartDate = picker.selectedStartDate;
-        picker.committedEndDate = picker.selectedEndDate;
+        picker.committedStartDate = picker._selectedStartDate;
+        picker.committedEndDate = picker._selectedEndDate;
+        // Snapshot the multi-range result too, so cancel-without-Apply can revert it.
+        picker.committedRanges = picker._selectedRanges.map((r: DateRange) => ({
+            start: new Date(r.start),
+            end: new Date(r.end)
+        }));
     } else if (picker.options.selectionMode === 'single') {
-        picker.committedDate = picker.selectedDate;
+        picker.committedDate = picker._selectedDate;
     }
     // Time/datetime modes also commit the time parts so hide() can revert.
     if (picker.options.pickerMode !== 'date') {
-        picker.committedTime = picker.selectedTime ? { ...picker.selectedTime } : null;
+        picker.committedTime = picker._selectedTime ? { ...picker._selectedTime } : null;
     }
 
     // Always close on Apply (inline mode never closes; floating and modal both close)

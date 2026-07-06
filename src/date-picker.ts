@@ -13,7 +13,7 @@
  * Dependencies: @floating-ui/dom
  */
 
-import type { DatePickerOptions, DateRange, FormatOptions, TimeFormatOptions, SelectedTime, MonthDisplay, DecoratedDate, DayMetadata, LocaleStrings, ActionButton } from './types';
+import type { DatePickerOptions, DateRange, FormatOptions, TimeFormatOptions, SelectedTime, MonthDisplay, DecoratedDate, DayMetadata, LocaleStrings, ActionButton, ActionButtonContext, LoaderTarget, CustomActionEventDetail } from './types';
 import * as Validation from './date-picker-validation';
 import * as Rendering from './date-picker-rendering';
 import * as Navigation from './date-picker-navigation';
@@ -37,21 +37,25 @@ class DateRangePicker {
     /** Parsed time format mask, only populated when pickerMode is 'time' or 'datetime'. */
     timeFormatOptions!: TimeFormatOptions;
     _previousInputValue: string;
-    currentDate: Date;
-    monthDates: Date[];
-    displayMonths?: MonthDisplay[];
-    selectedDate: Date | null;
-    selectedStartDate: Date | null;
-    selectedEndDate: Date | null;
-    selectedRanges: DateRange[];
-    selectedDates: Date[];
-    pendingSelection: any; // Stores uncommitted selection when Apply button is required
+    /** Month anchor (first-of-month) per visible column — the single source of
+     *  truth for what's displayed. Public read views: visibleMonths /
+     *  visibleMonthDates / visibleDateRange. */
+    private _monthDates: Date[];
+    // Raw selection storage — private. Public read/write goes through the
+    // reactive accessors below (selectedDate / selectedDates / selectedRanges /
+    // selectedStartDate / selectedEndDate / selectedTime / selectedDatetime).
+    private _selectedDate: Date | null;
+    private _selectedStartDate: Date | null;
+    private _selectedEndDate: Date | null;
+    private _selectedRanges: DateRange[];
+    private _selectedDates: Date[];
+    private pendingSelection: any; // Stores uncommitted selection when Apply button is required
 
     // Time picker state for pickerMode 'time' / 'datetime'. Each field is
     // independently nullable so we can highlight only the rolls the user has
     // explicitly committed (clicking only the hour shouldn't visually claim
     // minutes/seconds as selected just because they default to 00).
-    selectedTime: SelectedTime | null = null;
+    private _selectedTime: SelectedTime | null = null;
 
     // Wall-clock snapshot captured when the picker opens (time/datetime modes).
     // renderTimePicker uses this as the focus fallback for fields the user hasn't
@@ -81,13 +85,14 @@ class DateRangePicker {
 
     // State for deferred commit when Apply button is required
     originalInputValue: string | null = null; // Stores input value when calendar opens (for restore on close without Apply)
-    committedDate: Date | null = null; // Last committed single date
-    committedStartDate: Date | null = null; // Last committed range start
-    committedEndDate: Date | null = null; // Last committed range end
-    committedTime: SelectedTime | null = null; // Last committed time parts (time/datetime modes)
+    private committedDate: Date | null = null; // Last committed single date
+    private committedStartDate: Date | null = null; // Last committed range start
+    private committedEndDate: Date | null = null; // Last committed range end
+    private committedRanges: DateRange[] = []; // Last committed multi-range result (range mode); empty for a plain single range
+    private committedTime: SelectedTime | null = null; // Last committed time parts (time/datetime modes)
     focusedDayIndex: number | null;
     activeMonthIndex: number;
-    showingRollingSelector: boolean[];
+    rollingSelectorOpenByColumn: boolean[];
     draggingType: 'start' | 'end' | null;
     isDragging: boolean;
     dragStartDate: Date | null;
@@ -123,7 +128,8 @@ class DateRangePicker {
 
     // Async validation state
     private isValidating: boolean = false;
-    private loadingOverlay?: HTMLElement;
+    // Active loaders keyed by target ('calendar' | 'message' | 'summary'); single instance per target.
+    loaders: Partial<Record<LoaderTarget, HTMLElement | undefined>> = {};
 
     // Month change callback state
     private isMonthChanging: boolean = false;
@@ -134,7 +140,7 @@ class DateRangePicker {
     private unifiedHeader?: HTMLElement;
     private unifiedRangeDisplay?: HTMLElement;
     private unifiedRollingSelector?: HTMLElement;
-    private showingUnifiedRollingSelector: boolean = false;
+    isUnifiedRollingSelectorOpen: boolean = false;
 
     // Floating UI tooltips
     private tooltip?: HTMLElement;
@@ -144,6 +150,11 @@ class DateRangePicker {
     // Message area
     private messageElement?: HTMLElement;
     private messageAutoHideTimeout?: number;
+
+    // Summary area
+    summaryElement?: HTMLElement;
+    // Imperative override written by showSummary(); persists until the next selection change.
+    summaryOverride: string | null = null;
 
     // Action button tooltips
     private actionButtonTooltipInstances: Tooltip[] = [];
@@ -326,8 +337,6 @@ class DateRangePicker {
         // Track previous input value for deletion detection
         this._previousInputValue = '';
 
-        this.currentDate = new Date();
-
         // Determine initial display date
         let initialDisplayDate: Date;
         if (this.options.initialDate) {
@@ -339,8 +348,8 @@ class DateRangePicker {
             drpLogger.debug(`Using initialDate: ${initialDisplayDate.toISOString()}`);
         } else if (this.options.rollingYearRange || this.options.rollingMonthRange) {
             // If rolling ranges are set, use first allowed year/month
-            const yearRange = this.getEffectiveYearRange();
-            const monthRange = this.getEffectiveMonthRange();
+            const yearRange = this.getAvailableYearRange();
+            const monthRange = this.getAvailableMonthRange();
 
             const year = yearRange.min;
             const month = monthRange.min - 1; // Convert to 0-based
@@ -361,31 +370,20 @@ class DateRangePicker {
             drpLogger.debug(`Using current date as initial: ${initialDisplayDate.toISOString()}`);
         }
 
-        // Initialize separate dates for each month
-        this.monthDates = [];
+        // Initialize the month anchor per visible column (single source of truth
+        // for what's displayed; visibleMonths / visibleMonthDates derive from it).
+        this._monthDates = [];
         for (let i = 0; i < this.options.visibleMonthsCount; i++) {
             const date = new Date(initialDisplayDate.getFullYear(), initialDisplayDate.getMonth() + i, 1);
-            this.monthDates.push(date);
-            drpLogger.debug(`monthDates[${i}] = ${date.getFullYear()}-${date.getMonth()+1}`);
+            this._monthDates.push(date);
+            drpLogger.debug(`_monthDates[${i}] = ${date.getFullYear()}-${date.getMonth()+1}`);
         }
 
-        // Initialize displayMonths for range mode
-        if (this.options.selectionMode === 'range') {
-            this.displayMonths = [];
-            for (let i = 0; i < this.options.visibleMonthsCount; i++) {
-                const date = new Date(initialDisplayDate.getFullYear(), initialDisplayDate.getMonth() + i, 1);
-                this.displayMonths.push({
-                    month: date.getMonth(),
-                    year: date.getFullYear()
-                });
-            }
-        }
-
-        this.selectedDate = null;
-        this.selectedStartDate = null;
-        this.selectedEndDate = null;
-        this.selectedRanges = [];
-        this.selectedDates = [];
+        this._selectedDate = null;
+        this._selectedStartDate = null;
+        this._selectedEndDate = null;
+        this._selectedRanges = [];
+        this._selectedDates = [];
         this.pendingSelection = null;
         this.focusedDayIndex = null;
         this.activeMonthIndex = 0; // Track which month column is active for keyboard navigation
@@ -398,24 +396,24 @@ class DateRangePicker {
             if (seedDate) {
                 // Date portion (Y/M/D only, time zeroed)
                 const dateOnly = new Date(seedDate.getFullYear(), seedDate.getMonth(), seedDate.getDate());
-                this.selectedDate = dateOnly;
+                this._selectedDate = dateOnly;
                 this.committedDate = dateOnly;
                 // Time portion — every field is a developer commitment.
                 const h = seedDate.getHours();
-                this.selectedTime = {
+                this._selectedTime = {
                     hour: h,
                     minute: seedDate.getMinutes(),
                     second: seedDate.getSeconds(),
                     ampm: h >= 12 ? 'pm' : 'am',
                 };
-                this.committedTime = { ...this.selectedTime };
+                this.committedTime = { ...this._selectedTime };
             }
         }
 
         // Initialize rolling selector state for each month
-        this.showingRollingSelector = [];
+        this.rollingSelectorOpenByColumn = [];
         for (let i = 0; i < this.options.visibleMonthsCount; i++) {
-            this.showingRollingSelector.push(false);
+            this.rollingSelectorOpenByColumn.push(false);
         }
 
         // Drag state for range adjustment
@@ -540,16 +538,16 @@ class DateRangePicker {
                 let needsRender = false;
 
                 // Close any open individual selectors
-                for (let i = 0; i < this.showingRollingSelector.length; i++) {
-                    if (this.showingRollingSelector[i]) {
-                        this.showingRollingSelector[i] = false;
+                for (let i = 0; i < this.rollingSelectorOpenByColumn.length; i++) {
+                    if (this.rollingSelectorOpenByColumn[i]) {
+                        this.rollingSelectorOpenByColumn[i] = false;
                         needsRender = true;
                     }
                 }
 
                 // Close unified selector if open
-                if (this.showingUnifiedRollingSelector) {
-                    this.showingUnifiedRollingSelector = false;
+                if (this.isUnifiedRollingSelectorOpen) {
+                    this.isUnifiedRollingSelectorOpen = false;
                     needsRender = true;
                 }
 
@@ -675,7 +673,7 @@ class DateRangePicker {
      * Returns the year range that should be enforced for date validation and navigation
      * Considers: rollingYearRange option, minDate/maxDate, or defaults to today ± 1
      */
-    getEffectiveYearRange(): { min: number, max: number } {
+    getAvailableYearRange(): { min: number, max: number } {
         const todayYear = new Date().getFullYear();
         return Rendering.parseYearRange(this.options.rollingYearRange, todayYear, this);
     }
@@ -685,9 +683,60 @@ class DateRangePicker {
      * Returns the month range that should be enforced for date validation and navigation
      * Considers: rollingMonthRange option, or defaults to all months (1-12)
      */
-    getEffectiveMonthRange(): { min: number, max: number } {
+    getAvailableMonthRange(): { min: number, max: number } {
         return Rendering.parseMonthRange(this.options.rollingMonthRange);
     }
+
+    // =========================================================================
+    // DISPLAYED — read-only views of what's currently on screen. All derive from
+    // the single source of truth `_monthDates` (one anchor per visible column),
+    // so they can never drift out of sync. Change what's shown via navigation,
+    // not by assigning to these.
+    // =========================================================================
+
+    /** Build the rich per-column descriptor for a month anchor (first-of-month). */
+    private buildMonthDisplay(anchor: Date): MonthDisplay {
+        const year = anchor.getFullYear();
+        const month = anchor.getMonth();
+        const firstDate = new Date(year, month, 1);
+        const lastDate = new Date(year, month + 1, 0);
+        // Back-offset the 1st to the week-start to get the first rendered cell,
+        // then +41 for the last cell of the fixed 6-week (42-cell) grid.
+        const offset = (firstDate.getDay() - this.weekStartDay + 7) % 7;
+        const gridStart = new Date(year, month, 1 - offset);
+        const gridEnd = new Date(gridStart);
+        gridEnd.setDate(gridStart.getDate() + 41);
+        return { month, year, firstDate, lastDate, gridStart, gridEnd };
+    }
+
+    /** One descriptor per visible month column, in display order (ascending, may have gaps). */
+    get visibleMonths(): MonthDisplay[] {
+        return this._monthDates.map(d => this.buildMonthDisplay(d));
+    }
+
+    /** First-of-month Date per visible column — convenience mirror of visibleMonths. */
+    get visibleMonthDates(): Date[] {
+        return this._monthDates.map(d => new Date(d));
+    }
+
+    /**
+     * Outer envelope of the visible grid: first cell of the first column to the
+     * last cell of the last column. Columns are strictly ascending, so start ≤ end
+     * always holds — but they may be non-contiguous, so this can include gap
+     * months that aren't on screen. Iterate `visibleMonths` for gap-honest work.
+     */
+    get visibleDateRange(): { start: Date; end: Date } {
+        const months = this.visibleMonths;
+        return { start: months[0].gridStart, end: months[months.length - 1].gridEnd };
+    }
+
+    /** The picker's notion of "today", normalized to 00:00 local. */
+    get today(): Date {
+        const d = new Date();
+        d.setHours(0, 0, 0, 0);
+        return d;
+    }
+
     /**
      * Render action buttons based on configuration
      * Implements priority system matching web-multiselect:
@@ -710,9 +759,12 @@ class DateRangePicker {
         const buttons: ActionButton[] = this.options.actionButtons || this.getDefaultButtons();
 
         buttons.forEach(button => {
+            // One context object per button, shared by all of this button's callbacks
+            const ctx: ActionButtonContext = { picker: this, action: button.action, button };
+
             // Priority 1: Check dynamic visibility callback
             if (button.isVisibleCallback !== undefined) {
-                if (!button.isVisibleCallback(this)) {
+                if (!button.isVisibleCallback(ctx)) {
                     return; // Skip this button
                 }
             }
@@ -729,7 +781,7 @@ class DateRangePicker {
 
             // Apply CSS classes (priority: callback → static → none)
             const cssClasses = button.getClassCallback
-                ? button.getClassCallback(this)
+                ? button.getClassCallback(ctx)
                 : button.cssClass;
             if (cssClasses) {
                 if (Array.isArray(cssClasses)) {
@@ -741,7 +793,7 @@ class DateRangePicker {
 
             // Apply text (priority: callback → static)
             const buttonText = button.getTextCallback
-                ? button.getTextCallback(this)
+                ? button.getTextCallback(ctx)
                 : button.text;
             buttonEl.innerHTML = buttonText;
 
@@ -749,7 +801,7 @@ class DateRangePicker {
 
             // Apply disabled state (priority: callback → static → false)
             const isDisabled = button.isDisabledCallback
-                ? button.isDisabledCallback(this)
+                ? button.isDisabledCallback(ctx)
                 : (button.isDisabled ?? false);
             if (isDisabled) {
                 buttonEl.disabled = true;
@@ -757,9 +809,11 @@ class DateRangePicker {
 
             buttonEl.dataset.action = button.action;
 
-            // Store custom onClick handler if provided
+            // Store custom onClick handler + config if provided (config is needed to
+            // build the ActionButtonContext when the click fires later)
             if (button.onClick) {
                 (buttonEl as any)._customOnClick = button.onClick;
+                (buttonEl as any)._buttonConfig = button;
             }
 
             container.appendChild(buttonEl);
@@ -832,7 +886,7 @@ class DateRangePicker {
             if (!actionConfig) return;
 
             const tooltipText = actionConfig.getTooltipCallback
-                ? actionConfig.getTooltipCallback(this)
+                ? actionConfig.getTooltipCallback({ picker: this, action: actionConfig.action, button: actionConfig })
                 : actionConfig.tooltip;
             if (!tooltipText) return;
 
@@ -854,17 +908,17 @@ class DateRangePicker {
     /**
      * Check if a date should be disabled
      */
-    isDateDisabledInternal(date: Date): boolean {
+    isDateDisabled(date: Date): boolean {
         // FIRST: Check rolling selector ranges (primary constraints)
         // Always check year range (considers rollingYearRange, minDate/maxDate, or defaults to today ± 1)
-        const yearRange = this.getEffectiveYearRange();
+        const yearRange = this.getAvailableYearRange();
         const year = date.getFullYear();
         if (year < yearRange.min || year > yearRange.max) {
             return true; // Outside allowed year range
         }
 
         // Always check month range (considers rollingMonthRange or defaults to all months 1-12)
-        const monthRange = this.getEffectiveMonthRange();
+        const monthRange = this.getAvailableMonthRange();
         const month = date.getMonth() + 1; // Convert to 1-12
         if (month < monthRange.min || month > monthRange.max) {
             return true; // Outside allowed month range
@@ -884,7 +938,7 @@ class DateRangePicker {
      * Get additional info for a date (special styling, labels, etc.)
      * Priority: bulkMetadataCache > callback > specialDates
      */
-    getDayMetadataInternal(date: Date): DayMetadata | null {
+    getDayMetadata(date: Date): DayMetadata | null {
         const dateKey = Validation.formatDateKey(date);
 
         // 1. Check bulk metadata cache FIRST (highest priority - from beforeMonthChangedCallback)
@@ -892,17 +946,25 @@ class DateRangePicker {
             const cachedInfo = this.bulkMetadataCache.get(dateKey)!;
             return {
                 ...cachedInfo,
-                isDisabled: cachedInfo.isDisabled !== undefined ? cachedInfo.isDisabled : this.isDateDisabledInternal(date)
+                isDisabled: cachedInfo.isDisabled !== undefined ? cachedInfo.isDisabled : this.isDateDisabled(date)
             };
         }
 
         // 2. Check callback SECOND (per-day callback)
         if (this.options.getDateMetadataCallback) {
-            const customInfo = this.options.getDateMetadataCallback(date);
+            const customInfo = this.options.getDateMetadataCallback({
+                picker: this,
+                date,
+                dateString: dateKey,
+                dayNumber: date.getDate(),
+                isDisabled: this.isDateDisabled(date),
+                isToday: Validation.isToday(date),
+                isWeekend: date.getDay() === 0 || date.getDay() === 6
+            });
             if (customInfo) {
                 return {
                     ...customInfo,
-                    isDisabled: customInfo.isDisabled !== undefined ? customInfo.isDisabled : this.isDateDisabledInternal(date)
+                    isDisabled: customInfo.isDisabled !== undefined ? customInfo.isDisabled : this.isDateDisabled(date)
                 };
             }
         }
@@ -920,7 +982,7 @@ class DateRangePicker {
             const isDisabledMember = this.options.isDisabledMember || 'isDisabled';
 
             return {
-                isDisabled: specialDate[isDisabledMember] !== undefined ? specialDate[isDisabledMember] : this.isDateDisabledInternal(date),
+                isDisabled: specialDate[isDisabledMember] !== undefined ? specialDate[isDisabledMember] : this.isDateDisabled(date),
                 badgeClass: specialDate[badgeClassMember],
                 dayClass: specialDate[dayClassMember],
                 badgeText: specialDate[badgeTextMember],
@@ -936,35 +998,35 @@ class DateRangePicker {
      * Check if there are any disabled dates in a range
      */
     hasDisabledDatesInRange(start: Date, end: Date): boolean {
-        return Validation.hasDisabledDatesInRange(start, end, (date) => this.isDateDisabledInternal(date));
+        return Validation.hasDisabledDatesInRange(start, end, (date) => this.isDateDisabled(date));
     }
 
     /**
      * Get all enabled dates in a range
      */
     getEnabledDatesInRange(start: Date, end: Date): Date[] {
-        return Validation.getEnabledDatesInRange(start, end, (date) => this.isDateDisabledInternal(date));
+        return Validation.getEnabledDatesInRange(start, end, (date) => this.isDateDisabled(date));
     }
 
     /**
      * Get all disabled dates in a range
      */
     getDisabledDatesInRange(start: Date, end: Date): Date[] {
-        return Validation.getDisabledDatesInRange(start, end, (date) => this.isDateDisabledInternal(date));
+        return Validation.getDisabledDatesInRange(start, end, (date) => this.isDateDisabled(date));
     }
 
     /**
      * For 'block' mode: Find the last enabled date before hitting a disabled date
      */
     findLastEnabledBeforeGap(start: Date, end: Date): Date {
-        return Validation.findLastEnabledBeforeGap(start, end, (date) => this.isDateDisabledInternal(date));
+        return Validation.findLastEnabledBeforeGap(start, end, (date) => this.isDateDisabled(date));
     }
 
     /**
      * For 'split' mode: Split a range into multiple ranges separated by disabled dates
      */
     splitRangeByDisabled(start: Date, end: Date): DateRange[] {
-        return Validation.splitRangeByDisabled(start, end, (date) => this.isDateDisabledInternal(date));
+        return Validation.splitRangeByDisabled(start, end, (date) => this.isDateDisabled(date));
     }
 
     isToday(date: Date): boolean {
@@ -976,7 +1038,38 @@ class DateRangePicker {
     }
 
     isInRange(date: Date): boolean {
-        return Validation.isInRange(date, this.selectedStartDate, this.selectedEndDate);
+        return Validation.isInRange(date, this._selectedStartDate, this._selectedEndDate);
+    }
+
+    /**
+     * Range-mode day decoration, multi-range aware. When a callback (or the
+     * `selectedRanges` setter) has committed N independent ranges, these read
+     * from `_selectedRanges`; otherwise they fall back to the single
+     * `_selectedStartDate`.._selectedEndDate` envelope. Used by both rendering
+     * paths so a single-range and a multi-range selection decorate identically.
+     */
+    isRangeStart(date: Date): boolean {
+        if (this._selectedRanges.length > 0) {
+            return this._selectedRanges.some(r => this.isSameDay(date, r.start));
+        }
+        return this.isSameDay(date, this._selectedStartDate);
+    }
+
+    isRangeEnd(date: Date): boolean {
+        if (this._selectedRanges.length > 0) {
+            return this._selectedRanges.some(r => this.isSameDay(date, r.end));
+        }
+        return this.isSameDay(date, this._selectedEndDate);
+    }
+
+    isInCommittedRange(date: Date): boolean {
+        if (this._selectedRanges.length > 0) {
+            // Exclusive of each range's endpoints — mirrors Validation.isInRange, so
+            // start/end cells keep the solid endpoint style instead of being tinted
+            // with the pale --in-range fill.
+            return this._selectedRanges.some(r => date > r.start && date < r.end);
+        }
+        return Validation.isInRange(date, this._selectedStartDate, this._selectedEndDate);
     }
 
     /**
@@ -1209,6 +1302,7 @@ class DateRangePicker {
             const summary = document.createElement('div');
             summary.className = 'drp__summary drp__summary--hidden';
             this.calendar.appendChild(summary);
+            this.summaryElement = summary;
         }
 
         // Add actions at the bottom (only if there are buttons to show)
@@ -1234,7 +1328,7 @@ class DateRangePicker {
         this.attachCalendarListeners();
 
         // Initialize rolling selector states for each month
-        this.showingRollingSelector = new Array(this.options.visibleMonthsCount).fill(false);
+        this.rollingSelectorOpenByColumn = new Array(this.options.visibleMonthsCount).fill(false);
     }
 
     attachInputListeners() {
@@ -1331,10 +1425,17 @@ class DateRangePicker {
                 // Fire custom-action event
                 this.fireCustomActionEvent(dataAttributes);
 
-                // Still call onClick callback if provided (for backward compatibility)
+                // Still call onClick callback if provided
                 const customOnClick = (customActionBtn as any)._customOnClick;
                 if (customOnClick) {
-                    await Promise.resolve(customOnClick(this));
+                    const buttonConfig: ActionButton = (customActionBtn as any)._buttonConfig
+                        || { action: 'custom', text: '' };
+                    await Promise.resolve(customOnClick({
+                        picker: this,
+                        action: buttonConfig.action,
+                        button: buttonConfig,
+                        data: dataAttributes
+                    }));
                 }
                 return;
             }
@@ -1487,16 +1588,16 @@ class DateRangePicker {
                     let needsRender = false;
 
                     // Close any open individual selectors
-                    for (let i = 0; i < this.showingRollingSelector.length; i++) {
-                        if (this.showingRollingSelector[i]) {
-                            this.showingRollingSelector[i] = false;
+                    for (let i = 0; i < this.rollingSelectorOpenByColumn.length; i++) {
+                        if (this.rollingSelectorOpenByColumn[i]) {
+                            this.rollingSelectorOpenByColumn[i] = false;
                             needsRender = true;
                         }
                     }
 
                     // Close unified selector if open
-                    if (this.showingUnifiedRollingSelector) {
-                        this.showingUnifiedRollingSelector = false;
+                    if (this.isUnifiedRollingSelectorOpen) {
+                        this.isUnifiedRollingSelectorOpen = false;
                         needsRender = true;
                     }
 
@@ -1539,7 +1640,7 @@ class DateRangePicker {
         // preview, so suppress this when isDragging.
         this.calendar.addEventListener('mouseover', (e) => {
             if (this.options.selectionMode !== 'range') return;
-            if (!this.selectedStartDate || this.selectedEndDate) return;
+            if (!this._selectedStartDate || this._selectedEndDate) return;
             if (this.isDragging) return;
 
             const target = e.target as HTMLElement;
@@ -1661,7 +1762,7 @@ class DateRangePicker {
                     const newMonthIndex = this.activeMonthIndex + direction;
 
                     // Clamp to valid range
-                    if (newMonthIndex >= 0 && newMonthIndex < this.monthDates.length) {
+                    if (newMonthIndex >= 0 && newMonthIndex < this._monthDates.length) {
                         navigationLogger.debug(`Tab: switching from Col${this.activeMonthIndex} to Col${newMonthIndex}`);
 
                         // Get current focused day index before switching
@@ -1686,7 +1787,7 @@ class DateRangePicker {
             }
             else if (e.key === 't' || e.key === 'T') {
                 // Jump to today in the active month column
-                this.monthDates[this.activeMonthIndex] = new Date();
+                this._monthDates[this.activeMonthIndex] = new Date();
                 Navigation.checkAndResolveCollisions(this, this.activeMonthIndex);
                 this.renderCalendar();
                 // Focus on today's day in the active month
@@ -1738,15 +1839,15 @@ class DateRangePicker {
             }
             else if (e.key === 'Home') {
                 navigationLogger.debug('Home key pressed, Ctrl:', e.ctrlKey, 'Meta:', e.metaKey);
-                const currentYear = this.monthDates[this.activeMonthIndex].getFullYear();
-                const currentMonth = this.monthDates[this.activeMonthIndex].getMonth();
+                const currentYear = this._monthDates[this.activeMonthIndex].getFullYear();
+                const currentMonth = this._monthDates[this.activeMonthIndex].getMonth();
 
                 if (e.ctrlKey || e.metaKey) {
                     navigationLogger.debug('Ctrl+Home: Navigate to year start');
                     // Ctrl+Home: Go to January 1st of current year
                     // If already there, go to January 1st of previous year
-                    const yearRange = this.getEffectiveYearRange();
-                    const monthRange = this.getEffectiveMonthRange();
+                    const yearRange = this.getAvailableYearRange();
+                    const monthRange = this.getAvailableMonthRange();
                     const isJanuary = currentMonth === 0;
                     const isFirstDay = this.focusedDayIndex === 0;
 
@@ -1766,10 +1867,10 @@ class DateRangePicker {
 
                     // Only navigate if not already at the boundary
                     const newDate = new Date(targetYear, targetMonth, 1);
-                    const currentDate = this.monthDates[this.activeMonthIndex];
+                    const currentDate = this._monthDates[this.activeMonthIndex];
                     if (newDate.getFullYear() !== currentDate.getFullYear() || newDate.getMonth() !== currentDate.getMonth() || this.focusedDayIndex !== 0) {
                         navigationLogger.debug('Going to', targetMonth + 1, '/', targetYear);
-                        this.monthDates[this.activeMonthIndex] = newDate;
+                        this._monthDates[this.activeMonthIndex] = newDate;
                         this.renderCalendar();
                         setTimeout(() => {
                             const daysContainer = this.calendar.querySelector(`.drp__days[data-month-index="${this.activeMonthIndex}"]`);
@@ -1817,15 +1918,15 @@ class DateRangePicker {
             }
             else if (e.key === 'End') {
                 navigationLogger.debug('End key pressed, Ctrl:', e.ctrlKey, 'Meta:', e.metaKey);
-                const currentYear = this.monthDates[this.activeMonthIndex].getFullYear();
-                const currentMonth = this.monthDates[this.activeMonthIndex].getMonth();
+                const currentYear = this._monthDates[this.activeMonthIndex].getFullYear();
+                const currentMonth = this._monthDates[this.activeMonthIndex].getMonth();
 
                 if (e.ctrlKey || e.metaKey) {
                     navigationLogger.debug('Ctrl+End: Navigate to year end');
                     // Ctrl+End: Go to December 31st of current year
                     // If already there, go to December 31st of next year
-                    const yearRange = this.getEffectiveYearRange();
-                    const monthRange = this.getEffectiveMonthRange();
+                    const yearRange = this.getAvailableYearRange();
+                    const monthRange = this.getAvailableMonthRange();
                     const isDecember = currentMonth === 11;
 
                     // Check if we're at the last day
@@ -1850,10 +1951,10 @@ class DateRangePicker {
                     // Only navigate if not already at the boundary
                     const lastDayOfMonth = new Date(targetYear, targetMonth + 1, 0).getDate(); // Get last day of target month
                     const newDate = new Date(targetYear, targetMonth, lastDayOfMonth);
-                    const currentDate = this.monthDates[this.activeMonthIndex];
+                    const currentDate = this._monthDates[this.activeMonthIndex];
                     if (newDate.getFullYear() !== currentDate.getFullYear() || newDate.getMonth() !== currentDate.getMonth() || !isLastDay) {
                         navigationLogger.debug('Going to', targetMonth + 1, '/', targetYear);
-                        this.monthDates[this.activeMonthIndex] = newDate;
+                        this._monthDates[this.activeMonthIndex] = newDate;
                         this.renderCalendar();
                         setTimeout(() => {
                             const newContainer = this.calendar.querySelector(`.drp__days[data-month-index="${this.activeMonthIndex}"]`);
@@ -2009,12 +2110,12 @@ class DateRangePicker {
         const datePart = values.join(separator);
 
         // Time mode: time only. Datetime mode: date + space + time. Date mode: date only.
-        // Time portion is sourced from this.selectedTime — `date` only supplies Y/M/D.
+        // Time portion is sourced from this._selectedTime — `date` only supplies Y/M/D.
         if (this.options.pickerMode === 'time') {
-            return this.formatTime(this.selectedTime);
+            return this.formatTime(this._selectedTime);
         }
         if (this.options.pickerMode === 'datetime') {
-            return `${datePart} ${this.formatTime(this.selectedTime)}`;
+            return `${datePart} ${this.formatTime(this._selectedTime)}`;
         }
         return datePart;
     }
@@ -2088,13 +2189,15 @@ class DateRangePicker {
     /**
      * Get/set selected ranges (for multiple mode or programmatic multi-range selection)
      */
-    get selectedRangesReactive(): DateRange[] {
-        return [...this.selectedRanges];
+    get selectedRanges(): DateRange[] {
+        return [...this._selectedRanges];
     }
 
-    set selectedRangesReactive(ranges: DateRange[]) {
+    set selectedRanges(ranges: DateRange[]) {
+        // Programmatic selection change supersedes any pinned summary override.
+        this.summaryOverride = null;
         // For multiple mode: store in selectedRanges array
-        this.selectedRanges = ranges.map(r => ({
+        this._selectedRanges = ranges.map(r => ({
             start: new Date(r.start),
             end: new Date(r.end)
         }));
@@ -2106,14 +2209,20 @@ class DateRangePicker {
         // Clear focus state (programmatic selection should clear keyboard focus)
         this.focusedDayIndex = null;
 
-        // For range mode: also set selectedStartDate/selectedEndDate
-        if (this.options.selectionMode === 'range' && ranges.length > 0) {
-            this.selectedStartDate = new Date(ranges[0].start);
-            this.selectedEndDate = new Date(ranges[0].end);
+        // For range mode: derive the envelope (first start .. last end) so the
+        // read-only selectedStartDate/selectedEndDate and the input stay correct
+        // whether one range or many were assigned.
+        if (this.options.selectionMode === 'range' && this._selectedRanges.length > 0) {
+            const first = this._selectedRanges[0];
+            const last = this._selectedRanges[this._selectedRanges.length - 1];
+            this._selectedStartDate = new Date(first.start);
+            this._selectedEndDate = new Date(last.end);
 
             // Update input value for range mode
             if (this.input && !this.requiresApplyButton()) {
-                this.input.value = `${this.formatDate(this.selectedStartDate)} - ${this.formatDate(this.selectedEndDate)}`;
+                this.input.value = this._selectedRanges.length > 1
+                    ? this._selectedRanges.map(r => `${this.formatDate(r.start)} - ${this.formatDate(r.end)}`).join(', ')
+                    : `${this.formatDate(this._selectedStartDate)} - ${this.formatDate(this._selectedEndDate)}`;
             }
         } else if (this.input && !this.requiresApplyButton()) {
             // Clear input if no ranges or not in range mode
@@ -2127,12 +2236,13 @@ class DateRangePicker {
     /**
      * Get/set selected individual dates (for multiple mode)
      */
-    get selectedDatesReactive(): Date[] {
-        return this.selectedDates.map(d => new Date(d));
+    get selectedDates(): Date[] {
+        return this._selectedDates.map(d => new Date(d));
     }
 
-    set selectedDatesReactive(dates: Date[]) {
-        this.selectedDates = dates.map(d => new Date(d));
+    set selectedDates(dates: Date[]) {
+        this.summaryOverride = null;
+        this._selectedDates = dates.map(d => new Date(d));
         this.renderCalendar();
         this.updateSummary();
     }
@@ -2140,16 +2250,48 @@ class DateRangePicker {
     /**
      * Get/set single selected date (single mode)
      */
-    get selectedDateReactive(): Date | null {
-        return this.selectedDate ? new Date(this.selectedDate) : null;
+    get selectedDate(): Date | null {
+        return this._selectedDate ? new Date(this._selectedDate) : null;
     }
 
-    set selectedDateReactive(date: Date | null) {
-        this.selectedDate = date ? new Date(date) : null;
+    set selectedDate(date: Date | null) {
+        this.summaryOverride = null;
+        this._selectedDate = date ? new Date(date) : null;
         if (this.input && date) {
             this.input.value = this.formatDate(date);
         } else if (this.input) {
             this.input.value = '';
+        }
+        this.renderCalendar();
+        this.updateSummary();
+    }
+
+    /** True while a selection is staged but not yet committed (Apply-button mode). */
+    get hasPendingSelection(): boolean {
+        return this.pendingSelection != null;
+    }
+
+    /** Committed range start (read-only; set a range via `selectedRanges`). */
+    get selectedStartDate(): Date | null {
+        return this._selectedStartDate ? new Date(this._selectedStartDate) : null;
+    }
+
+    /** Committed range end (read-only; set a range via `selectedRanges`). */
+    get selectedEndDate(): Date | null {
+        return this._selectedEndDate ? new Date(this._selectedEndDate) : null;
+    }
+
+    /** Committed time parts (time / datetime modes). */
+    get selectedTime(): SelectedTime | null {
+        return this._selectedTime ? { ...this._selectedTime } : null;
+    }
+
+    set selectedTime(time: SelectedTime | null) {
+        this.summaryOverride = null;
+        this._selectedTime = time ? { ...time } : null;
+        if (this.input) {
+            const composed = this.selectedDatetime;
+            this.input.value = composed ? this.formatDate(composed) : '';
         }
         this.renderCalendar();
         this.updateSummary();
@@ -2164,8 +2306,8 @@ class DateRangePicker {
      */
     get selectedDatetime(): Date | null {
         const mode = this.options.pickerMode;
-        if (mode === 'date') return this.selectedDate ? new Date(this.selectedDate) : null;
-        const t = this.selectedTime;
+        if (mode === 'date') return this._selectedDate ? new Date(this._selectedDate) : null;
+        const t = this._selectedTime;
         const h = t?.hour ?? 0;
         const m = t?.minute ?? 0;
         const s = t?.second ?? 0;
@@ -2175,17 +2317,56 @@ class DateRangePicker {
             return d;
         }
         // datetime — both parts required (date drives the anchor)
-        if (!this.selectedDate) return null;
-        const d = new Date(this.selectedDate);
+        if (!this._selectedDate) return null;
+        const d = new Date(this._selectedDate);
         d.setHours(h, m, s, 0);
         return d;
     }
 
     /**
+     * Set the composed value from a full datetime (Date or ISO string) — the shape
+     * you get back from an API/DB. Splits internally: the Y/M/D drives `_selectedDate`
+     * (ignored in `time` mode), the H/M/S drives `_selectedTime` (ignored in `date`
+     * mode). Pass null to clear both.
+     */
+    set selectedDatetime(value: Date | string | null) {
+        this.summaryOverride = null;
+        if (value === null) {
+            this._selectedDate = null;
+            this._selectedTime = null;
+        } else {
+            const d = Validation.normalizeDate(value, true); // preserveTime
+            if (d) {
+                const mode = this.options.pickerMode;
+                if (mode !== 'time') {
+                    this._selectedDate = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+                }
+                if (mode !== 'date') {
+                    const h = d.getHours();
+                    this._selectedTime = {
+                        hour: h,
+                        minute: d.getMinutes(),
+                        second: d.getSeconds(),
+                        ampm: h >= 12 ? 'pm' : 'am',
+                    };
+                }
+            }
+        }
+        if (this.input) {
+            const composed = this.selectedDatetime;
+            this.input.value = composed ? this.formatDate(composed) : '';
+        }
+        this.renderCalendar();
+        this.updateSummary();
+    }
+
+    /**
      * Fire a custom-action event with the provided data attributes
      */
-    private fireCustomActionEvent(detail: Record<string, string>): void {
-        // Fire on calendar element (internal)
+    private fireCustomActionEvent(data: Record<string, string>): void {
+        // Fire on calendar element (internal). Detail wraps the data-* map under `data`
+        // and carries the picker instance, matching CustomActionEventDetail.
+        const detail: CustomActionEventDetail = { data, picker: this };
         this.calendar.dispatchEvent(new CustomEvent('custom-action', {
             detail,
             bubbles: true,
@@ -2242,6 +2423,13 @@ class DateRangePicker {
     hideTooltip() { return UI.hideTooltip(this); }
     showMessage(content: string, type?: 'error' | 'warning' | 'info' | 'success', autoHide?: number) { return UI.showMessage(this, content, type, autoHide); }
     hideMessage() { return UI.hideMessage(this); }
+    toggleMessage(content?: string, type?: 'error' | 'warning' | 'info' | 'success', autoHide?: number) { return UI.toggleMessage(this, content, type, autoHide); }
+    showSummary(content: string) { return UI.showSummary(this, content); }
+    hideSummary() { return UI.hideSummary(this); }
+    refreshSummary() { return Rendering.updateSummary(this); }
+    showLoader(target?: LoaderTarget) { return UI.showLoader(this, target); }
+    hideLoader(target?: LoaderTarget) { return UI.hideLoader(this, target); }
+    toggleLoader(target?: LoaderTarget) { return UI.toggleLoader(this, target); }
 
     // Rendering methods - wrappers for pure functions
     renderCalendar() { return Rendering.renderCalendar(this); }

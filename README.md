@@ -11,6 +11,20 @@ mode out of the box.
 > you must sanitize it yourself. See [HTML Injection (XSS) Notice](#html-injection-xss-notice)
 > for the complete list of affected callbacks and methods.
 
+## What's New in v2.0.0-rc01
+
+- **Callbacks — one typed context object, everywhere** — Every callback now receives a single context object that extends the new exported `PickerContext` (`{ picker }`), replacing the old mix of positional args, raw `picker: any`, and anonymous inline types. `getDateMetadataCallback(date)` becomes `(ctx: DayContext)`; all six `ActionButton` callbacks take `(ctx: ActionButtonContext)` = `{ picker, action, button, data? }`; `beforeDateSelectCallback` reads `ctx.date` / `ctx.range` instead of narrowing a `Date | DateRange` union. The `DayRenderContext` / `SummaryDetail` / `BeforeMonthChangeContext` types were renamed to `DayContext` / `SummaryContext` / `MonthChangeContext`, and the month-header callbacks' anonymous shapes were promoted to exported `MonthHeaderContext` / `UnifiedHeaderContext`. This is a breaking change with a full migration table in the CHANGELOG.
+
+- **`beforeDateSelectCallback` can now return multiple independent ranges** — A range-mode callback may return `adjustedRanges: DateRange[]` (with action `'accept'` or `'adjust'`) to replace the single proposed span with N independent ranges — e.g. carving a selection around unavailable days, or snapping a loose drag to whole weeks. `selectedRanges` reflects the pieces, the grid highlights each range's own start/end/in-range cells, the summary lists them, and `onSelect` receives the array; the read-only `selectedStartDate`/`selectedEndDate` envelope spans first-start to last-end. It applies identically whether the range was completed by **clicking, dragging, or typing** — and typed range completion now runs the validation callback at all, which it previously skipped.
+
+- **`beforeDateSelectCallback` sees the split pieces** — In range mode with `disabledDatesHandling: 'split' | 'individual'`, the `SelectionContext` now carries `subRanges?: DateRange[]` (the envelope carved into enabled-only segments) and `enabledDates?: Date[]` (the flat enabled-day list), so the callback can validate the pieces a split selection will actually produce without re-deriving them itself.
+
+- **Symmetric imperative feedback API — summary and loader join message** — The summary block gets a direct writer mirroring `showMessage`: `showSummary(html)` pins content that survives re-renders (including hover preview) until the next selection change, `hideSummary()` re-derives, and `refreshSummary()` re-runs derivation for async data. The loader becomes a scoped `showLoader(target?)` / `hideLoader(target?)` / `toggleLoader(target?)` where `target` is `'calendar' | 'message' | 'summary'` — the in-block targets render a spinner inside that block, enabling the "spinner in the summary while a price loads, then show the price" pattern. `toggleMessage` was added for verb-family completeness.
+
+- **State accessors realigned — the clean name is the reactive property** — The `*Reactive` suffix is gone: `picker.selectedDate` / `selectedDates` / `selectedRanges` are now the get/set accessors a programmer expects (assigning re-renders and syncs the input), with raw storage made private. `selectedDatetime` is now **settable** and accepts a `Date` or ISO string, splitting it into date + time parts so you can round-trip a datetime straight from an API without splitting it yourself. Displayed state is exposed through derived, always-in-sync getters: `visibleMonths` (with per-column `firstDate`/`lastDate`/`gridStart`/`gridEnd`), `visibleMonthDates`, `visibleDateRange`, and a fresh `today` getter.
+
+- **`custom-action` event detail is now `{ data, picker }`** — The event detail was flattened before (`e.detail.myKey`); it now nests the button's `data-*` attributes under `e.detail.data.myKey` and exposes the picker instance, matching the shape an action button's `onClick` receives. `date-select` / `change` details are now properly typed as `SelectEventDetail`.
+
 ## What is it
 
 `@keenmate/web-daterangepicker` is a date picker that runs as a Web

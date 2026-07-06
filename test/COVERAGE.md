@@ -179,8 +179,26 @@ When a row is marked `✓`/`△`, the **Spec** column points at the file under
 | `isOpen` setter opens/closes programmatically                 | ✓      | `events-api.spec.ts`, `triggers.spec.ts` | `events-api.html`, `triggers.html` |
 | `updateOptions(partial)` survives without losing selection    | ✓      | `events-api.spec.ts`         | `events-api.html`         |
 | `showMessage` / `hideMessage`                                 | ✓      | `api-extras.spec.ts`         | `api-extras.html`         |
+| `toggleMessage`                                               | ✓      | `imperative-feedback.spec.ts`| `imperative-feedback.html`|
 | `value` setter populates input + selection                    | △      | `events-api.spec.ts`         | `events-api.html`         |
 | `disabled` setter disables input + suppresses open            | ✓      | `events-api.spec.ts`         | `events-api.html`         |
+| `custom-action` detail shape `{ data, picker }` (v2)          | ✓      | `context-callbacks.spec.ts`  | `context-callbacks.html`  |
+
+## 16. v2.0.0 symmetric feedback API & context callbacks
+
+| Feature                                                       | Status | Spec | Fixture |
+| ------------------------------------------------------------- | :----: | ---- | ------- |
+| `showSummary(html)` pins custom summary HTML (--visible)      | ✓      | `imperative-feedback.spec.ts`| `imperative-feedback.html`|
+| Summary override survives re-render until selection commits   | ✓      | `imperative-feedback.spec.ts`| `imperative-feedback.html`|
+| `hideSummary()` / `refreshSummary()` re-derive summary        | ✓      | `imperative-feedback.spec.ts`| `imperative-feedback.html`|
+| `showLoader()` full-calendar overlay + single-instance guard  | ✓      | `imperative-feedback.spec.ts`| `imperative-feedback.html`|
+| `showLoader('summary')` / `('message')` in-block spinner      | ✓      | `imperative-feedback.spec.ts`| `imperative-feedback.html`|
+| `hideLoader(target)` / `toggleLoader(target)`                 | ✓      | `imperative-feedback.spec.ts`| `imperative-feedback.html`|
+| Summary loader added in `date-select` handler survives commit re-render | ✓ | `imperative-feedback.spec.ts`| `imperative-feedback.html`|
+| `ActionButton` callbacks receive `ActionButtonContext`        | ✓      | `context-callbacks.spec.ts`  | `context-callbacks.html`  |
+| `onClick` receives ctx (`ctx.picker`, `ctx.action`)           | ✓      | `context-callbacks.spec.ts`  | `context-callbacks.html`  |
+| `getTextCallback` / `getClassCallback` / `getTooltipCallback` via ctx | ✓ | `context-callbacks.spec.ts`  | `context-callbacks.html`  |
+| `isVisibleCallback` / `isDisabledCallback` via ctx            | ✓      | `context-callbacks.spec.ts`  | `context-callbacks.html`  |
 
 ## 14. Visual states
 

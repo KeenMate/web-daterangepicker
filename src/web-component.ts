@@ -1,5 +1,5 @@
 import { DateRangePicker } from './date-picker';
-import type { DatePickerOptions, DateRange, DecoratedDate, DayMetadata, DayRenderContext, BeforeSelectResult, ActionButton, LocaleStrings } from './types';
+import type { DatePickerOptions, DateRange, DecoratedDate, DayMetadata, DayContext, BeforeSelectResult, ActionButton, LocaleStrings, SelectionContext, MonthChangeContext, BeforeMonthChangeResult, SummaryContext, UnifiedHeaderContext, MonthHeaderContext, LoaderTarget, SelectEventDetail, SelectedTime, MonthDisplay } from './types';
 import styles from './css/main.css?inline';
 
 // =============================================================================
@@ -174,17 +174,17 @@ export class WebDaterangepickerElement extends HTMLElement {
     // Properties for complex data (not attributes)
     private _specialDates?: DecoratedDate[];
     private _disabledDates?: (Date | string)[];
-    private _getDateMetadataCallback?: (date: Date) => DayMetadata | null;
-    private _badgeTooltipCallback?: (data: DayRenderContext) => string | null;
-    private _dayTooltipCallback?: (data: DayRenderContext) => string | null;
+    private _getDateMetadataCallback?: (ctx: DayContext) => DayMetadata | null;
+    private _badgeTooltipCallback?: (data: DayContext) => string | null;
+    private _dayTooltipCallback?: (data: DayContext) => string | null;
     private _customStylesCallback?: () => string;
-    private _renderDayCallback?: (data: DayRenderContext) => HTMLElement | string | null;
-    private _renderDayContentCallback?: (data: DayRenderContext) => HTMLElement | string | null;
-    private _beforeDateSelectCallback?: (selection: Date | DateRange) => Promise<BeforeSelectResult> | BeforeSelectResult;
-    private _beforeMonthChangedCallback?: (context: any) => Promise<any> | any;
-    private _formatSummaryCallback?: (data: any) => string;
-    private _getUnifiedHeaderCallback?: (data: { firstMonth: Date; lastMonth: Date; anchorMonth: Date; monthNames: string[] }) => string;
-    private _getMonthHeaderCallback?: (data: { month: Date; monthIndex: number; monthName: string; year: number }) => string;
+    private _renderDayCallback?: (data: DayContext) => HTMLElement | string | null;
+    private _renderDayContentCallback?: (data: DayContext) => HTMLElement | string | null;
+    private _beforeDateSelectCallback?: (ctx: SelectionContext) => Promise<BeforeSelectResult> | BeforeSelectResult;
+    private _beforeMonthChangedCallback?: (context: MonthChangeContext) => Promise<BeforeMonthChangeResult> | BeforeMonthChangeResult;
+    private _formatSummaryCallback?: (data: SummaryContext) => string;
+    private _getUnifiedHeaderCallback?: (data: UnifiedHeaderContext) => string;
+    private _getMonthHeaderCallback?: (data: MonthHeaderContext) => string;
 
     // Member mapping properties for specialDates array
     private _dateMember?: string;
@@ -565,7 +565,7 @@ export class WebDaterangepickerElement extends HTMLElement {
 
     private handleDateSelect(date: Date | DateRange | DateRange[] | Date[]) {
         // Build base event detail
-        const detail: any = {
+        const detail: SelectEventDetail = {
             date: date instanceof Date ? date : undefined,
             dateRange: date instanceof Date ? undefined : (Array.isArray(date) ? undefined : date),
             formattedValue: this.inputElement?.value || ''
@@ -583,7 +583,7 @@ export class WebDaterangepickerElement extends HTMLElement {
         // This callback should only be invoked when events should fire
         // (either immediately, or from the apply() function)
         // But add safety check just in case
-        if (this.picker.requiresApplyButton() && this.picker.pendingSelection) {
+        if (this.picker.requiresApplyButton() && this.picker.hasPendingSelection) {
             // Events are deferred - don't dispatch yet
             return;
         }
@@ -637,6 +637,14 @@ export class WebDaterangepickerElement extends HTMLElement {
                     detail.dates = this.picker.getEnabledDatesInRange(start, end);
                     break;
             }
+        } else if (Array.isArray(date) && date.length > 0 && typeof date[0] === 'object' && 'start' in date[0]) {
+            // Multi-range result (a callback's adjustedRanges): surface the pieces
+            // on the event and reflect them in the formatted value.
+            const ranges = date as DateRange[];
+            detail.dateRanges = ranges;
+            detail.formattedValue = ranges
+                .map(r => `${this.picker!.formatDate(r.start)} - ${this.picker!.formatDate(r.end)}`)
+                .join(', ');
         }
 
         this.dispatchEvent(new CustomEvent('date-select', {
@@ -700,6 +708,71 @@ export class WebDaterangepickerElement extends HTMLElement {
             return;
         }
         this.picker.hideMessage();
+    }
+
+    public toggleMessage(content?: string, type?: 'error' | 'warning' | 'info' | 'success', autoHide?: number) {
+        if (!this.picker) {
+            console.warn('[web-daterangepicker] toggleMessage() called but picker not initialized yet');
+            return;
+        }
+        this.picker.toggleMessage(content, type, autoHide);
+    }
+
+    /**
+     * Write custom HTML into the summary block. Pins the content until the next selection
+     * change (survives hover preview), mirroring showMessage(). Use for async-derived summaries.
+     */
+    public showSummary(content: string) {
+        if (!this.picker) {
+            console.warn('[web-daterangepicker] showSummary() called but picker not initialized yet');
+            return;
+        }
+        this.picker.showSummary(content);
+    }
+
+    /** Drop any summary override and re-derive the summary from current selection state. */
+    public hideSummary() {
+        if (!this.picker) {
+            console.warn('[web-daterangepicker] hideSummary() called but picker not initialized yet');
+            return;
+        }
+        this.picker.hideSummary();
+    }
+
+    /** Re-run summary derivation now (e.g. after async data arrived). Respects an active override. */
+    public refreshSummary() {
+        if (!this.picker) {
+            console.warn('[web-daterangepicker] refreshSummary() called but picker not initialized yet');
+            return;
+        }
+        this.picker.refreshSummary();
+    }
+
+    /** Show a loader spinner. target: 'calendar' (default, full overlay) | 'message' | 'summary' (in-block). */
+    public showLoader(target?: LoaderTarget) {
+        if (!this.picker) {
+            console.warn('[web-daterangepicker] showLoader() called but picker not initialized yet');
+            return;
+        }
+        this.picker.showLoader(target);
+    }
+
+    /** Hide the loader for the given target (default 'calendar'). */
+    public hideLoader(target?: LoaderTarget) {
+        if (!this.picker) {
+            console.warn('[web-daterangepicker] hideLoader() called but picker not initialized yet');
+            return;
+        }
+        this.picker.hideLoader(target);
+    }
+
+    /** Toggle the loader for the given target (default 'calendar'). */
+    public toggleLoader(target?: LoaderTarget) {
+        if (!this.picker) {
+            console.warn('[web-daterangepicker] toggleLoader() called but picker not initialized yet');
+            return;
+        }
+        this.picker.toggleLoader(target);
     }
 
     public getInputValue(): string {
@@ -942,29 +1015,29 @@ export class WebDaterangepickerElement extends HTMLElement {
 
 
 
-    get getDateMetadataCallback(): ((date: Date) => DayMetadata | null) | undefined {
+    get getDateMetadataCallback(): ((ctx: DayContext) => DayMetadata | null) | undefined {
         return this._getDateMetadataCallback;
     }
 
-    set getDateMetadataCallback(value: ((date: Date) => DayMetadata | null) | undefined) {
+    set getDateMetadataCallback(value: ((ctx: DayContext) => DayMetadata | null) | undefined) {
         this._getDateMetadataCallback = value;
         this.applyOptionUpdate('getDateMetadataCallback', value);
     }
 
-    get badgeTooltipCallback(): ((data: DayRenderContext) => string | null) | undefined {
+    get badgeTooltipCallback(): ((data: DayContext) => string | null) | undefined {
         return this._badgeTooltipCallback;
     }
 
-    set badgeTooltipCallback(value: ((data: DayRenderContext) => string | null) | undefined) {
+    set badgeTooltipCallback(value: ((data: DayContext) => string | null) | undefined) {
         this._badgeTooltipCallback = value;
         this.applyOptionUpdate('badgeTooltipCallback', value);
     }
 
-    get dayTooltipCallback(): ((data: DayRenderContext) => string | null) | undefined {
+    get dayTooltipCallback(): ((data: DayContext) => string | null) | undefined {
         return this._dayTooltipCallback;
     }
 
-    set dayTooltipCallback(value: ((data: DayRenderContext) => string | null) | undefined) {
+    set dayTooltipCallback(value: ((data: DayContext) => string | null) | undefined) {
         this._dayTooltipCallback = value;
         this.applyOptionUpdate('dayTooltipCallback', value);
     }
@@ -981,20 +1054,20 @@ export class WebDaterangepickerElement extends HTMLElement {
         this.scheduleReinit();
     }
 
-    get renderDayCallback(): ((data: DayRenderContext) => HTMLElement | string | null) | undefined {
+    get renderDayCallback(): ((data: DayContext) => HTMLElement | string | null) | undefined {
         return this._renderDayCallback;
     }
 
-    set renderDayCallback(value: ((data: DayRenderContext) => HTMLElement | string | null) | undefined) {
+    set renderDayCallback(value: ((data: DayContext) => HTMLElement | string | null) | undefined) {
         this._renderDayCallback = value;
         this.applyOptionUpdate('renderDayCallback', value);
     }
 
-    get renderDayContentCallback(): ((data: DayRenderContext) => HTMLElement | string | null) | undefined {
+    get renderDayContentCallback(): ((data: DayContext) => HTMLElement | string | null) | undefined {
         return this._renderDayContentCallback;
     }
 
-    set renderDayContentCallback(value: ((data: DayRenderContext) => HTMLElement | string | null) | undefined) {
+    set renderDayContentCallback(value: ((data: DayContext) => HTMLElement | string | null) | undefined) {
         this._renderDayContentCallback = value;
         this.applyOptionUpdate('renderDayContentCallback', value);
     }
@@ -1003,7 +1076,7 @@ export class WebDaterangepickerElement extends HTMLElement {
         return this._beforeDateSelectCallback;
     }
 
-    set beforeDateSelectCallback(value: ((selection: Date | DateRange) => Promise<BeforeSelectResult> | BeforeSelectResult) | undefined) {
+    set beforeDateSelectCallback(value: ((ctx: SelectionContext) => Promise<BeforeSelectResult> | BeforeSelectResult) | undefined) {
         this._beforeDateSelectCallback = value;
         this.applyOptionUpdate('beforeDateSelectCallback', value);
     }
@@ -1012,34 +1085,34 @@ export class WebDaterangepickerElement extends HTMLElement {
         return this._beforeMonthChangedCallback;
     }
 
-    set beforeMonthChangedCallback(value: ((context: any) => Promise<any> | any) | undefined) {
+    set beforeMonthChangedCallback(value: ((context: MonthChangeContext) => Promise<BeforeMonthChangeResult> | BeforeMonthChangeResult) | undefined) {
         this._beforeMonthChangedCallback = value;
         this.applyOptionUpdate('beforeMonthChangedCallback', value);
     }
 
-    get formatSummaryCallback(): ((data: any) => string) | undefined {
+    get formatSummaryCallback(): ((data: SummaryContext) => string) | undefined {
         return this._formatSummaryCallback;
     }
 
-    set formatSummaryCallback(value: ((data: any) => string) | undefined) {
+    set formatSummaryCallback(value: ((data: SummaryContext) => string) | undefined) {
         this._formatSummaryCallback = value;
         this.applyOptionUpdate('formatSummaryCallback', value);
     }
 
-    get getUnifiedHeaderCallback(): ((data: { firstMonth: Date; lastMonth: Date; anchorMonth: Date; monthNames: string[] }) => string) | undefined {
+    get getUnifiedHeaderCallback(): ((data: UnifiedHeaderContext) => string) | undefined {
         return this._getUnifiedHeaderCallback;
     }
 
-    set getUnifiedHeaderCallback(value: ((data: { firstMonth: Date; lastMonth: Date; anchorMonth: Date; monthNames: string[] }) => string) | undefined) {
+    set getUnifiedHeaderCallback(value: ((data: UnifiedHeaderContext) => string) | undefined) {
         this._getUnifiedHeaderCallback = value;
         this.applyOptionUpdate('getUnifiedHeaderCallback', value);
     }
 
-    get getMonthHeaderCallback(): ((data: { month: Date; monthIndex: number; monthName: string; year: number }) => string) | undefined {
+    get getMonthHeaderCallback(): ((data: MonthHeaderContext) => string) | undefined {
         return this._getMonthHeaderCallback;
     }
 
-    set getMonthHeaderCallback(value: ((data: { month: Date; monthIndex: number; monthName: string; year: number }) => string) | undefined) {
+    set getMonthHeaderCallback(value: ((data: MonthHeaderContext) => string) | undefined) {
         this._getMonthHeaderCallback = value;
         this.applyOptionUpdate('getMonthHeaderCallback', value);
     }
@@ -1139,33 +1212,82 @@ export class WebDaterangepickerElement extends HTMLElement {
 
     // Reactive selection properties (forward to picker)
     get selectedRanges(): DateRange[] {
-        return this.picker?.selectedRangesReactive || [];
+        return this.picker?.selectedRanges || [];
     }
 
     set selectedRanges(ranges: DateRange[]) {
         if (this.picker) {
-            this.picker.selectedRangesReactive = ranges;
+            this.picker.selectedRanges = ranges;
         }
     }
 
     get selectedDates(): Date[] {
-        return this.picker?.selectedDatesReactive || [];
+        return this.picker?.selectedDates || [];
     }
 
     set selectedDates(dates: Date[]) {
         if (this.picker) {
-            this.picker.selectedDatesReactive = dates;
+            this.picker.selectedDates = dates;
         }
     }
 
     get selectedDate(): Date | null {
-        return this.picker?.selectedDateReactive || null;
+        return this.picker?.selectedDate || null;
     }
 
     set selectedDate(date: Date | null) {
         if (this.picker) {
-            this.picker.selectedDateReactive = date;
+            this.picker.selectedDate = date;
         }
+    }
+
+    /** Committed range start (read-only; set a range via `selectedRanges`). */
+    get selectedStartDate(): Date | null {
+        return this.picker?.selectedStartDate || null;
+    }
+
+    /** Committed range end (read-only; set a range via `selectedRanges`). */
+    get selectedEndDate(): Date | null {
+        return this.picker?.selectedEndDate || null;
+    }
+
+    get selectedTime(): SelectedTime | null {
+        return this.picker?.selectedTime || null;
+    }
+
+    set selectedTime(time: SelectedTime | null) {
+        if (this.picker) {
+            this.picker.selectedTime = time;
+        }
+    }
+
+    /** Composed date+time; the setter accepts a Date or ISO string and splits it. */
+    get selectedDatetime(): Date | null {
+        return this.picker?.selectedDatetime || null;
+    }
+
+    set selectedDatetime(value: Date | string | null) {
+        if (this.picker) {
+            this.picker.selectedDatetime = value;
+        }
+    }
+
+    // Displayed state (read-only; change what's shown via navigation, not assignment)
+    get visibleMonths(): MonthDisplay[] {
+        return this.picker?.visibleMonths || [];
+    }
+
+    get visibleMonthDates(): Date[] {
+        return this.picker?.visibleMonthDates || [];
+    }
+
+    get visibleDateRange(): { start: Date; end: Date } | null {
+        return this.picker?.visibleDateRange || null;
+    }
+
+    /** The picker's notion of "today", normalized to 00:00 local. */
+    get today(): Date {
+        return this.picker?.today || new Date();
     }
 
     get isOpen(): boolean {

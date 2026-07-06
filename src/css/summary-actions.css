@@ -9,7 +9,10 @@
 
 .drp__summary {
   text-align: center;
-  padding: 0;
+  /* Symmetric vertical padding: padding-top balances the border-top line above,
+     margin-bottom balances the gap to the block below — so the text sits centered
+     between the two separator lines instead of hugging the top one. */
+  padding: var(--drp-spacing-sm) 0 0;
   margin: 0;
   margin-bottom: var(--drp-spacing-sm);
   border-top: var(--drp-summary-border);

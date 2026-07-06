@@ -145,12 +145,14 @@
   --drp-tooltip-bg: var(--base-tooltip-bg, var(--base-inverse-bg, light-dark(#111827, #f5f5f5)));
   --drp-tooltip-text-color: var(--base-tooltip-text-color, light-dark(#ffffff, #1a1a1a));
 
-  /* Loading Overlay */
-  --drp-loading-overlay-bg: light-dark(rgba(255, 255, 255, 0.8), rgba(26, 26, 26, 0.8));
-  --drp-loading-spinner-size: 40px;
-  --drp-loading-spinner-border-width: 4px;
-  --drp-loading-spinner-color: var(--drp-border-color);
-  --drp-loading-spinner-accent: var(--drp-accent-color);
+  /* Loader — the default visual is a spinner, but the tokens are named
+     generically so a consumer can restyle it into any loader shape. */
+  --drp-loader-overlay-bg: light-dark(rgba(255, 255, 255, 0.8), rgba(26, 26, 26, 0.8));
+  --drp-loader-size: 40px;         /* full-calendar overlay loader */
+  --drp-loader-inline-size: 1em;   /* in-block loader (summary / message) */
+  --drp-loader-border-width: 4px;
+  --drp-loader-color: var(--drp-border-color);
+  --drp-loader-accent: var(--drp-accent-color);
 
   /* ==========================================================================
      BORDER & SHADOW

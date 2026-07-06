@@ -9,6 +9,8 @@ import { computePosition, flip, shift, offset, arrow, autoUpdate, size, platform
 import { uiLogger } from './logger';
 import { handleInitialMonthLoad } from './date-picker-navigation';
 import { updateCalendarFromInput } from './date-picker-interaction';
+import { updateSummary } from './date-picker-rendering';
+import type { LoaderTarget } from './types';
 
 /**
  * Resolve the nearest ancestor that genuinely establishes a containing block for a
@@ -367,14 +369,19 @@ export function hide(picker: any) {
         }
         // Restore committed selection state
         if (picker.options.selectionMode === 'range') {
-            picker.selectedStartDate = picker.committedStartDate;
-            picker.selectedEndDate = picker.committedEndDate;
+            picker._selectedStartDate = picker.committedStartDate;
+            picker._selectedEndDate = picker.committedEndDate;
+            // Restore the committed multi-range result (empty for a plain range).
+            picker._selectedRanges = (picker.committedRanges || []).map((r: any) => ({
+                start: new Date(r.start),
+                end: new Date(r.end)
+            }));
         } else if (picker.options.selectionMode === 'single') {
-            picker.selectedDate = picker.committedDate;
+            picker._selectedDate = picker.committedDate;
         }
         // Time/datetime modes also revert the per-field time selection.
         if (picker.options.pickerMode !== 'date') {
-            picker.selectedTime = picker.committedTime ? { ...picker.committedTime } : null;
+            picker._selectedTime = picker.committedTime ? { ...picker.committedTime } : null;
         }
         uiLogger.debug('hide() - reverted selection state');
     }
@@ -384,8 +391,8 @@ export function hide(picker: any) {
     // Drop the wall-clock snapshot so the next open captures a fresh "now".
     picker.timePickerOpenSnapshot = null;
     // Reset all rolling selectors to closed state
-    for (let i = 0; i < picker.showingRollingSelector.length; i++) {
-        picker.showingRollingSelector[i] = false;
+    for (let i = 0; i < picker.rollingSelectorOpenByColumn.length; i++) {
+        picker.rollingSelectorOpenByColumn[i] = false;
     }
     // Only render if calendar was actually shown (not first render)
     if (!picker.isFirstRender) {
@@ -529,28 +536,92 @@ export function hideTooltip(picker: any) {
 }
 
 /**
- * Show loading overlay during async validation
+ * Resolve the DOM element a loader mounts into for a given target.
  */
-export function showLoadingOverlay(picker: any): void {
-    if (picker.loadingOverlay) return; // Already showing
+function resolveLoaderMount(picker: any, target: LoaderTarget): HTMLElement | null {
+    switch (target) {
+        case 'message':
+            return (picker.messageElement?.querySelector('.drp__message-text') as HTMLElement | null)
+                || picker.messageElement || null;
+        case 'summary':
+            return picker.summaryElement
+                || (picker.calendar?.querySelector('.drp__summary') as HTMLElement | null)
+                || null;
+        case 'calendar':
+        default:
+            return picker.calendar || null;
+    }
+}
 
-    const overlay = document.createElement('div');
-    overlay.className = 'drp__loading-overlay';
-    overlay.innerHTML = `
-        <div class="drp__loading-spinner"></div>
-    `;
-
-    picker.calendar.appendChild(overlay);
-    picker.loadingOverlay = overlay;
+function summaryBlock(picker: any): HTMLElement | null {
+    return picker.summaryElement
+        || (picker.calendar?.querySelector('.drp__summary') as HTMLElement | null)
+        || null;
 }
 
 /**
- * Hide loading overlay after async validation completes
+ * Show a loader (spinner). Scoped by `target`:
+ * - 'calendar' (default): full-calendar overlay (also used automatically around async gates)
+ * - 'message' / 'summary': an in-block spinner inside that feedback block
+ *
+ * Single-instance per target: a second call for the same target is a no-op, so a manual
+ * showLoader('calendar') and an in-flight async validation cannot stack two overlays.
  */
-export function hideLoadingOverlay(picker: any): void {
-    if (picker.loadingOverlay) {
-        picker.loadingOverlay.remove();
-        picker.loadingOverlay = undefined;
+export function showLoader(picker: any, target: LoaderTarget = 'calendar'): void {
+    if (!picker.loaders) picker.loaders = {};
+    if (picker.loaders[target]) return; // already showing for this target
+
+    const mount = resolveLoaderMount(picker, target);
+    if (!mount) {
+        uiLogger.warn(`showLoader() - mount for target '${target}' not found`);
+        return;
+    }
+
+    if (target === 'calendar') {
+        const overlay = document.createElement('div');
+        overlay.className = 'drp__loader-overlay';
+        overlay.innerHTML = `<div class="drp__loader"></div>`;
+        mount.appendChild(overlay);
+        picker.loaders[target] = overlay;
+        return;
+    }
+
+    // In-block spinner (message / summary)
+    const spinner = document.createElement('span');
+    spinner.className = 'drp__inline-loader';
+    if (target === 'message' && picker.messageElement) {
+        picker.messageElement.classList.add('drp__message--loading', 'drp__message--visible');
+    } else if (target === 'summary') {
+        // Force the summary visible so an empty (no-range) block is tall enough for the spinner
+        summaryBlock(picker)?.classList.add('drp__summary--loading', 'drp__summary--visible');
+    }
+    mount.appendChild(spinner);
+    picker.loaders[target] = spinner;
+}
+
+/**
+ * Hide the loader for the given target (default 'calendar').
+ */
+export function hideLoader(picker: any, target: LoaderTarget = 'calendar'): void {
+    if (!picker.loaders || !picker.loaders[target]) return;
+    picker.loaders[target].remove();
+    picker.loaders[target] = undefined;
+
+    if (target === 'message' && picker.messageElement) {
+        picker.messageElement.classList.remove('drp__message--loading');
+    } else if (target === 'summary') {
+        summaryBlock(picker)?.classList.remove('drp__summary--loading');
+    }
+}
+
+/**
+ * Toggle the loader for the given target (default 'calendar').
+ */
+export function toggleLoader(picker: any, target: LoaderTarget = 'calendar'): void {
+    if (picker.loaders?.[target]) {
+        hideLoader(picker, target);
+    } else {
+        showLoader(picker, target);
     }
 }
 
@@ -626,4 +697,39 @@ export function hideMessage(picker: any): void {
 
     // Hide the message
     picker.messageElement.classList.remove('drp__message--visible');
+}
+
+/**
+ * Toggle the message area. If currently visible, hide it; otherwise show `content`.
+ */
+export function toggleMessage(
+    picker: any,
+    content: string = '',
+    type?: 'error' | 'warning' | 'info' | 'success',
+    autoHide?: number
+): void {
+    if (picker.messageElement?.classList.contains('drp__message--visible')) {
+        hideMessage(picker);
+    } else {
+        showMessage(picker, content, type, autoHide);
+    }
+}
+
+/**
+ * Write custom HTML into the summary block. The content is pinned as an override that
+ * survives re-renders (including hover preview) until the next selection change — mirroring
+ * how showMessage "sticks". Use for async-derived summaries (e.g. a fetched price).
+ */
+export function showSummary(picker: any, content: string): void {
+    picker.summaryOverride = content;
+    updateSummary(picker);
+}
+
+/**
+ * Drop any summary override and re-derive the summary from current selection state
+ * (the block auto-hides when no range is selected).
+ */
+export function hideSummary(picker: any): void {
+    picker.summaryOverride = null;
+    updateSummary(picker);
 }

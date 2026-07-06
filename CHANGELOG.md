@@ -5,6 +5,85 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.0.0-rc01] - 2026-07-06 [PUBLISHED]
+
+Public-API **signature + naming alignment** sweep — the date-picker equivalent of the `@keenmate/svelte-treeview` rc13 pass. Every callback and every consumer event now takes ONE typed context object drawn from a shared, exported vocabulary (no more positional args, raw `picker: any`, or anonymous inline context types), and the three "feedback" blocks (message / summary / loader) get one symmetric, HTML-accepting imperative API instead of message-only. The loader also becomes a scoped `showLoader(target?)` that can render an in-block spinner in the message or summary block. **Breaking** — no back-compat shims; see the migration table.
+
+### Changed (BREAKING) — one context object per callback
+
+- **Every callback now receives a single context object that extends the new exported `PickerContext` (`{ picker }`)**, so a handler can always reach the instance without re-resolving it. The positional and `picker: any` holdouts are gone:
+  - `getDateMetadataCallback(date)` → `getDateMetadataCallback(ctx: DayContext)` — the bare `Date` becomes a full day context (`ctx.date`, `ctx.dateString`, `ctx.picker`, …).
+  - All six **`ActionButton`** callbacks (`onClick`, `isVisibleCallback`, `isDisabledCallback`, `getTextCallback`, `getClassCallback`, `getTooltipCallback`) took a raw `(picker)` → now `(ctx: ActionButtonContext)` = `{ picker, action, button, data? }`. `data` carries the button's `data-*` attributes for custom actions (same map the `custom-action` event now exposes), so an `onClick` and the event share one shape.
+  - `getMonthHeaderCallback` / `getUnifiedHeaderCallback` took **anonymous inline object types** → promoted to exported `MonthHeaderContext` / `UnifiedHeaderContext` (each `extends PickerContext`).
+  - `beforeDateSelectCallback(selection: Date | DateRange)` → `beforeDateSelectCallback(ctx: SelectionContext)` = `{ mode, date?, range?, picker }`. Read `ctx.date` (single) / `ctx.range` (range) instead of narrowing a union.
+  - `formatSummaryCallback` argument type renamed `SummaryDetail` → `SummaryContext` (now `extends PickerContext`; still **synchronous** — its return feeds `innerHTML`).
+  - `beforeMonthChangedCallback` context type renamed `BeforeMonthChangeContext` → `MonthChangeContext` (now `extends PickerContext`).
+  - `DayRenderContext` (used by `renderDayCallback` / `renderDayContentCallback` / `badgeTooltipCallback` / `dayTooltipCallback`) renamed → **`DayContext`**, and reused by `getDateMetadataCallback`. `element` and the selection-state flags (`isSelected`/`isStartDate`/`isEndDate`/`isInRange`) plus `monthIndex` are now optional (the metadata + string-render paths don't populate them).
+  - Intentional exception: `customStylesCallback()` stays no-arg — there is nothing meaningful to pass.
+
+### Changed (BREAKING) — events
+
+- **`custom-action` detail is now `{ data: Record<string,string>, picker }`** (was the flat `Record<string,string>`). Read `e.detail.data.myKey` instead of `e.detail.myKey`. Still `bubbles` + `composed`.
+- `date-select` / `change` details are now typed as `SelectEventDetail` (formerly an untyped `any`). No runtime shape change; `dateRange` may be `null` in `individual` mode (previously untyped).
+
+### Added — symmetric imperative surface
+
+- **Summary block gets a direct writer, mirroring `showMessage`:** `showSummary(content)` pins custom HTML that survives re-renders (including hover preview) until the next selection change; `hideSummary()` drops the override and re-derives; `refreshSummary()` re-runs derivation now (for async data that arrives after open). Enables the "loader in the summary while a price loads, then show the price" pattern.
+- **Scoped loader API:** `showLoader(target?)`, `hideLoader(target?)`, `toggleLoader(target?)` where `target: 'calendar' | 'message' | 'summary'` (default `'calendar'`). `'message'`/`'summary'` render an in-block `.drp__inline-spinner`; `'calendar'` is the existing full overlay (also used automatically around async gates, single-instance so a manual call can't stack a second overlay).
+- **`toggleMessage(content?, type?, autoHide?)`** for verb-family completeness alongside `showMessage`/`hideMessage`.
+- New exported types from the package entry: `PickerContext`, `DayContext`, `MonthHeaderContext`, `UnifiedHeaderContext`, `SelectionContext`, `MonthChangeContext`, `SummaryContext`, `ActionButtonContext`, `SelectEventDetail`, `CustomActionEventDetail`, `LoaderTarget`.
+- **`beforeDateSelectCallback` sees the split pieces:** in range mode with `disabledDatesHandling: 'split' | 'individual'`, the `SelectionContext` now carries `subRanges?: DateRange[]` (split mode — the contiguous envelope carved into enabled-only segments, same as `splitRangeByDisabled()`) and `enabledDates?: Date[]` (split + individual — the flat enabled-day list). Read-only; the callback can validate the pieces without re-deriving them.
+- **`beforeDateSelectCallback` can return N ranges:** `BeforeSelectResult.adjustedRanges?: DateRange[]` (range mode, with action `'accept'` or `'adjust'`) replaces the single proposed range with N independent ranges. `selectedRanges` reflects them, the grid highlights each range's start/end/in-range cells, the summary lists them, and `onSelect` receives the `DateRange[]`. The envelope accessors (`selectedStartDate`/`selectedEndDate`) span first-start..last-end. Takes precedence over `adjustedStartDate`/`adjustedEndDate`. Assigning `selectedRanges = [...]` in range mode renders the same way. New core helpers `isRangeStart` / `isRangeEnd` / `isInCommittedRange` back the multi-range-aware decoration. Applies consistently across all three range-commit paths — click, drag-to-select, and typed input.
+- **`beforeDateSelectCallback` now runs on typed range completion.** Previously, typing a full `start - end` range into the input committed it directly and bypassed the validation gate; now completing the second date runs the same async callback (and honors `adjustedRanges` / `adjust` / `restore` / `clear`) as clicking or dragging. Single-date typing is unchanged. The three commit paths were unified onto one shared applier (`applyValidatedRangeSelection`) so they can no longer drift.
+- CSS: `.drp__inline-loader` + `.drp__message--loading` / `.drp__summary--loading` (hide the block's content and center the loader over it while active), plus the `--drp-loader-inline-size` token. The internal loader classes are `--drp-loader-*`-themed: `.drp__loader-overlay` (backdrop) and `.drp__loader` (the loader element, generically named since it needn't be a spinner).
+
+### Changed (BREAKING) — state accessor alignment
+
+Second alignment pass, this time on the **state surface**. The instance carried two names for the same concept (a raw public field *and* a `*Reactive` getter/setter), read-only display state under `showing*` / `*Internal` names, and dead/stale mirror arrays. The rule now: **the clean name is the accessor; raw storage is private.** Settable state exposes a proper get/set; read-only state exposes a get; constraint helpers drop the `*Internal` suffix.
+
+- **Selection** — the `*Reactive` suffix is gone; the plain name is now the reactive get/set, so `picker.selectedDate` (and `el.selectedDate`) is the property a programmer expects — assigning re-renders and syncs the input; the old raw fields are private.
+  - `selectedDateReactive` → **`selectedDate`** (get/set); raw `selectedDate` field → private `_selectedDate`.
+  - `selectedDatesReactive` → **`selectedDates`**; `selectedRangesReactive` → **`selectedRanges`** (same treatment).
+  - New read-only `selectedStartDate` / `selectedEndDate` getters (set a range via `selectedRanges`); raw fields privatized.
+  - New `selectedTime` get/set. **`selectedDatetime` is now settable** — the setter accepts a `Date` *or ISO string* and splits it into the date + time parts (so you can round-trip a datetime straight from an API/DB without splitting it yourself).
+- **Displayed state** — `monthDates` (a public `Date[]`) is replaced by the derived, always-in-sync **`visibleMonths: MonthDisplay[]`** (now carrying `firstDate` / `lastDate` / `gridStart` / `gridEnd` per column), plus **`visibleMonthDates`** (the `Date[]` mirror) and **`visibleDateRange`** (`{ start, end }` grid envelope). The dead `displayMonths` mirror array is removed. `showingRollingSelector` → **`rollingSelectorOpenByColumn`**; `showingUnifiedRollingSelector` → **`isUnifiedRollingSelectorOpen`**. Dead `currentDate` field → **`today`** getter (fresh, normalized to 00:00).
+- **Constraints** — `*Internal` suffixes dropped and names aligned to the "available" vocabulary: `getEffectiveYearRange` → **`getAvailableYearRange`**, `getEffectiveMonthRange` → **`getAvailableMonthRange`**, `isDateDisabledInternal` → **`isDateDisabled`**, `getDayMetadataInternal` → **`getDayMetadata`**.
+- `MonthDisplay` gains `firstDate`, `lastDate`, `gridStart`, `gridEnd` (all `Date`).
+
+### Migration
+
+| Old | New |
+|---|---|
+| `getDateMetadataCallback(date)` | `getDateMetadataCallback(ctx)` → `ctx.date` |
+| `onClick(picker)` / `isVisibleCallback(picker)` / `getTextCallback(picker)` / … | `(ctx)` → `ctx.picker`, `ctx.action`, `ctx.button`, `ctx.data` |
+| `beforeDateSelectCallback((dateOrRange) => …)` | `beforeDateSelectCallback((ctx) => …)` → `ctx.date` / `ctx.range` |
+| `getMonthHeaderCallback(({month, monthName, year}) => …)` | same fields, now typed `MonthHeaderContext` (+ `ctx.picker`) |
+| `getUnifiedHeaderCallback(({firstMonth, …}) => …)` | typed `UnifiedHeaderContext` (+ `ctx.picker`) |
+| type `DayRenderContext` | type `DayContext` |
+| type `SummaryDetail` | type `SummaryContext` |
+| type `BeforeMonthChangeContext` | type `MonthChangeContext` |
+| `e.detail.myKey` (custom-action) | `e.detail.data.myKey` |
+| *(summary was callback-only)* | `showSummary(html)` / `hideSummary()` / `refreshSummary()` |
+| *(loader was internal)* | `showLoader(target?)` / `hideLoader(target?)` / `toggleLoader(target?)` |
+| CSS `--drp-loading-overlay-bg` | `--drp-loader-overlay-bg` |
+| CSS `--drp-loading-spinner-size` | `--drp-loader-size` |
+| CSS `--drp-loading-spinner-border-width` | `--drp-loader-border-width` |
+| CSS `--drp-loading-spinner-color` | `--drp-loader-color` |
+| CSS `--drp-loading-spinner-accent` | `--drp-loader-accent` |
+| `picker.selectedDateReactive` | `picker.selectedDate` (get/set) |
+| `picker.selectedDatesReactive` | `picker.selectedDates` (get/set) |
+| `picker.selectedRangesReactive` | `picker.selectedRanges` (get/set) |
+| `picker.selectedStartDate = d` / `selectedEndDate = d` (raw write) | `picker.selectedRanges = [{ start, end }]` (start/end are now read-only) |
+| *(selectedDatetime was read-only)* | `picker.selectedDatetime = date \| isoString` (splits into date + time) |
+| `picker.monthDates` | `picker.visibleMonthDates` (or `visibleMonths[i].firstDate`) |
+| `picker.displayMonths` | `picker.visibleMonths` (`{ month, year, firstDate, lastDate, gridStart, gridEnd }`) |
+| *(no visible-grid range accessor)* | `picker.visibleDateRange` → `{ start, end }` |
+| `picker.showingRollingSelector` | `picker.rollingSelectorOpenByColumn` |
+| `picker.showingUnifiedRollingSelector` | `picker.isUnifiedRollingSelectorOpen` |
+| `picker.getEffectiveYearRange()` / `getEffectiveMonthRange()` | `getAvailableYearRange()` / `getAvailableMonthRange()` |
+| `picker.isDateDisabledInternal(d)` | `picker.isDateDisabled(d)` |
+| `picker.getDayMetadataInternal(d)` | `picker.getDayMetadata(d)` |
+
 ## [1.14.0-rc02] - 2026-06-16 [PUBLISHED]
 
 Naming-alignment pass against the BlissFramework web-component guidelines plus one behavior fix and a handful of structural polish items. Closes five auto-script flags by renaming TS types, boolean public attributes, two internal handler methods, one internal type alias, and a CSS modifier class; adds three CSS-level structural fixes (FOUC, `:host` display, `--drp-font-family` declaration) and a discovery aid for the consumer-data classifier convention. **Breaking change** for any consumer that depends on the old names — see migration table below.

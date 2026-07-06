@@ -5,7 +5,7 @@
  * and input masking.
  */
 
-import { validateRangeAsync, commitInputValue } from './date-picker-selection';
+import { validateRangeAsync, commitInputValue, applyValidatedRangeSelection, formatRangeInput } from './date-picker-selection';
 import { hideMessage } from './date-picker-ui';
 import { dragLogger, interactionLogger } from './logger';
 import log from './logger';
@@ -37,9 +37,9 @@ export function initDragListeners(picker: any) {
                 const isRangeEnd = dayElement.classList.contains('drp__day--range-end');
 
                 let dragType: 'start' | 'end';
-                if (isRangeStart && picker.selectedStartDate && picker.selectedEndDate) {
+                if (isRangeStart && picker._selectedStartDate && picker._selectedEndDate) {
                     dragType = 'start';
-                } else if (isRangeEnd && picker.selectedStartDate && picker.selectedEndDate) {
+                } else if (isRangeEnd && picker._selectedStartDate && picker._selectedEndDate) {
                     dragType = 'end';
                 } else {
                     // Drawing from scratch - set as start point
@@ -96,6 +96,11 @@ export function startDrag(picker: any, event: MouseEvent, type: 'start' | 'end',
     picker.invalidRangeStart = null;
     picker.invalidRangeEnd = null;
 
+    // A drag defines a fresh contiguous span — drop any prior multi-range result
+    // so its highlights don't linger through the preview (onDragEnd re-derives it
+    // via the callback, which may split the new span again).
+    picker._selectedRanges = [];
+
     // Parse date from the clicked element
     const clickedElement = dayElement;
     const dateAttr = clickedElement.dataset.date;
@@ -106,20 +111,20 @@ export function startDrag(picker: any, event: MouseEvent, type: 'start' | 'end',
     }
 
     // If no selection exists (drawing from scratch), use the clicked day as the start point
-    if (!picker.selectedStartDate && !picker.selectedEndDate) {
+    if (!picker._selectedStartDate && !picker._selectedEndDate) {
         if (clickedDate) {
             picker.originalStartDate = clickedDate;
             picker.originalEndDate = null;
             // Set type to 'end' so we're dragging the end point from this start
             picker.draggingType = 'end';
         }
-    } else if (clickedDate && picker.selectedStartDate && !picker.selectedEndDate) {
+    } else if (clickedDate && picker._selectedStartDate && !picker._selectedEndDate) {
         // Single date selected but dragging from a DIFFERENT date - start new range
-        const isSameDate = clickedDate.getTime() === picker.selectedStartDate.getTime();
+        const isSameDate = clickedDate.getTime() === picker._selectedStartDate.getTime();
         if (!isSameDate) {
             // Clear the old selection and start fresh
-            picker.selectedStartDate = null;
-            picker.selectedEndDate = null;
+            picker._selectedStartDate = null;
+            picker._selectedEndDate = null;
 
             // Clear focus state to prevent re-applying focused class during re-render
             picker.focusedDayIndex = null;
@@ -134,16 +139,16 @@ export function startDrag(picker: any, event: MouseEvent, type: 'start' | 'end',
             picker.draggingType = 'end';
         } else {
             // Dragging from the selected start date - treat as extending range
-            picker.originalStartDate = new Date(picker.selectedStartDate);
+            picker.originalStartDate = new Date(picker._selectedStartDate);
             picker.originalEndDate = null;
         }
     } else {
         // Existing range - store original positions for drag
-        if (picker.selectedStartDate) {
-            picker.originalStartDate = new Date(picker.selectedStartDate);
+        if (picker._selectedStartDate) {
+            picker.originalStartDate = new Date(picker._selectedStartDate);
         }
-        if (picker.selectedEndDate) {
-            picker.originalEndDate = new Date(picker.selectedEndDate);
+        if (picker._selectedEndDate) {
+            picker.originalEndDate = new Date(picker._selectedEndDate);
         }
     }
 
@@ -315,31 +320,27 @@ export async function onDragEnd(picker: any, event: MouseEvent) {
                 picker.invalidRangeStart = validation.invalidStart;
                 picker.invalidRangeEnd = validation.invalidEnd;
                 // Clear selected range so blue --in-range styling isn't applied
-                picker.selectedStartDate = null;
-                picker.selectedEndDate = null;
+                picker._selectedStartDate = null;
+                picker._selectedEndDate = null;
             }
 
             // Range was already cleared if action was 'clear'
             validationSucceeded = false;
         } else {
-            // Apply validated/adjusted dates
-            picker.selectedStartDate = validation.adjustedStart || startDate;
-            picker.selectedEndDate = validation.adjustedEnd || endDate;
+            // Apply validated/adjusted dates (multi-range aware; shared with the
+            // click and typed-input commit paths so drag snaps identically).
+            const selection = applyValidatedRangeSelection(picker, validation, startDate, endDate);
             validationSucceeded = true;
-
-            // Clear any invalid range on successful selection
-            picker.invalidRangeStart = null;
-            picker.invalidRangeEnd = null;
 
             // Clear any previous error message on successful selection (if no adjustment message)
             if (!validation.message) {
                 hideMessage(picker);
             }
 
-            commitInputValue(picker, `${picker.formatDate(picker.selectedStartDate)} - ${picker.formatDate(picker.selectedEndDate)}`);
+            commitInputValue(picker, formatRangeInput(picker));
 
-            // Defer onSelect callback if Apply button is required
-            const selection = { start: picker.selectedStartDate, end: picker.selectedEndDate };
+            // Defer onSelect callback if Apply button is required. A multi-range
+            // result is delivered as the DateRange[] array; a plain range as {start,end}.
             if (picker.requiresApplyButton()) {
                 picker.pendingSelection = selection;
             } else {
@@ -378,15 +379,18 @@ export async function onDragEnd(picker: any, event: MouseEvent) {
     // Reset body cursor
     document.body.style.cursor = '';
 
+    // Drag commit is a new selection — clear any pinned summary override.
+    picker.summaryOverride = null;
+
     // Re-render to show final selection
     picker.renderCalendar();
     picker.updateSummary();
 
     // Update focus to the end date after rendering (for drag operations)
-    if (picker.selectedEndDate) {
-        const finalEndDate = picker.selectedEndDate;
-        for (let colIndex = 0; colIndex < picker.monthDates.length; colIndex++) {
-            const monthDate = picker.monthDates[colIndex];
+    if (picker._selectedEndDate) {
+        const finalEndDate = picker._selectedEndDate;
+        for (let colIndex = 0; colIndex < picker._monthDates.length; colIndex++) {
+            const monthDate = picker._monthDates[colIndex];
             if (finalEndDate.getFullYear() === monthDate.getFullYear() && finalEndDate.getMonth() === monthDate.getMonth()) {
                 picker.activeMonthIndex = colIndex;
 
@@ -431,7 +435,7 @@ export function findNearestEnabledDate(picker: any, targetDate: Date, preferredD
     date.setHours(0, 0, 0, 0);
 
     // If target date is already enabled, return it
-    if (!picker.isDateDisabledInternal(date)) {
+    if (!picker.isDateDisabled(date)) {
         return date;
     }
 
@@ -442,7 +446,7 @@ export function findNearestEnabledDate(picker: any, targetDate: Date, preferredD
         testDate.setDate(testDate.getDate() + (i * primaryOffset));
         testDate.setHours(0, 0, 0, 0);
 
-        if (!picker.isDateDisabledInternal(testDate)) {
+        if (!picker.isDateDisabled(testDate)) {
             return testDate;
         }
     }
@@ -454,7 +458,7 @@ export function findNearestEnabledDate(picker: any, targetDate: Date, preferredD
         testDate.setDate(testDate.getDate() + (i * secondaryOffset));
         testDate.setHours(0, 0, 0, 0);
 
-        if (!picker.isDateDisabledInternal(testDate)) {
+        if (!picker.isDateDisabled(testDate)) {
             return testDate;
         }
     }
@@ -766,11 +770,17 @@ export function updateCalendarFromInput(picker: any) {
 
         if (startValue !== null) {
             interactionLogger.debug('Range parts - start:', startValue, 'end:', endValue);
-            parseAndUpdateSingleDate(picker, startValue, 'start');
+            const startComplete = parseAndUpdateSingleDate(picker, startValue, 'start');
+            let endComplete = false;
             if (endValue) {
-                parseAndUpdateSingleDate(picker, endValue, 'end');
+                endComplete = parseAndUpdateSingleDate(picker, endValue, 'end');
             } else {
-                picker.selectedEndDate = null;
+                picker._selectedEndDate = null;
+            }
+            // Both endpoints fully typed → run the validation gate (callback +
+            // adjustedRanges), matching the click / drag commit paths.
+            if (startComplete && endComplete && picker._selectedStartDate && picker._selectedEndDate) {
+                void commitTypedRange(picker);
             }
             return;
         }
@@ -782,9 +792,10 @@ export function updateCalendarFromInput(picker: any) {
     parseAndUpdateSingleDate(picker, value, dateType);
 }
 
-export function parseAndUpdateSingleDate(picker: any, value: string, dateType: string = 'single') {
-    // Helper to parse a single date string and update calendar
-    // dateType: 'single', 'start', or 'end'
+export function parseAndUpdateSingleDate(picker: any, value: string, dateType: string = 'single'): boolean {
+    // Helper to parse a single date string and update calendar.
+    // dateType: 'single', 'start', or 'end'.
+    // Returns true when a COMPLETE, valid date was parsed and applied.
     const { separator, parts, maxLength } = picker.formatInfo;
 
     const segments = value.split(separator);
@@ -823,28 +834,19 @@ export function parseAndUpdateSingleDate(picker: any, value: string, dateType: s
         const newMonth = month !== null ? month - 1 : new Date().getMonth();
 
         if (picker.options.selectionMode === 'single') {
-            picker.monthDates = [];
+            picker._monthDates = [];
             for (let i = 0; i < picker.options.visibleMonthsCount; i++) {
                 const date = new Date(newYear, newMonth + i, 1);
-                picker.monthDates.push(date);
+                picker._monthDates.push(date);
             }
         } else if (picker.options.selectionMode === 'range') {
-            // For start date or first date typed, update first month
-            if (dateType === 'start' || !picker.selectedStartDate) {
-                // Build displayMonths and monthDates for ALL configured slots.
-                // Previously this only pushed 1–2 entries into displayMonths and
-                // then iterated visibleMonthsCount times, which crashed on
-                // 3+ month layouts (e.g. 2×3 grid → 6) with
-                // `Cannot read properties of undefined (reading 'year')`.
-                picker.displayMonths = [];
-                picker.monthDates = [];
+            // For start date or first date typed, rebuild the month anchor for
+            // ALL configured slots (not just 1–2, which crashed on 3+ month
+            // layouts like a 2×3 grid → 6 columns).
+            if (dateType === 'start' || !picker._selectedStartDate) {
+                picker._monthDates = [];
                 for (let i = 0; i < picker.options.visibleMonthsCount; i++) {
-                    const date = new Date(newYear, newMonth + i, 1);
-                    picker.displayMonths.push({
-                        month: date.getMonth(),
-                        year: date.getFullYear(),
-                    });
-                    picker.monthDates.push(date);
+                    picker._monthDates.push(new Date(newYear, newMonth + i, 1));
                 }
             }
         }
@@ -856,12 +858,17 @@ export function parseAndUpdateSingleDate(picker: any, value: string, dateType: s
     if (year !== null && month !== null && day !== null) {
         const date = new Date(year, month - 1, day);
         if (date.getMonth() === month - 1) { // Validates date
+            // Typing a new date is a selection change — clear any pinned summary
+            // override and any prior multi-range result (typed input doesn't run
+            // the select callback, so it can't re-derive a split).
+            picker.summaryOverride = null;
+            picker._selectedRanges = [];
             if (dateType === 'single') {
-                picker.selectedDate = date;
+                picker._selectedDate = date;
             } else if (dateType === 'start') {
-                picker.selectedStartDate = date;
+                picker._selectedStartDate = date;
             } else if (dateType === 'end') {
-                picker.selectedEndDate = date;
+                picker._selectedEndDate = date;
             }
             picker.renderCalendar();
 
@@ -871,6 +878,55 @@ export function parseAndUpdateSingleDate(picker: any, value: string, dateType: s
             }
 
             interactionLogger.debug(`Set ${dateType} date:`, date);
+            return true;
         }
+    }
+    return false;
+}
+
+/**
+ * A typed range just became complete — run the same validation gate as click /
+ * drag so beforeDateSelectCallback fires and its result (adjustedRanges, adjust,
+ * restore, clear) is honored. Async; guarded against overlapping runs.
+ */
+async function commitTypedRange(picker: any) {
+    if (picker._committingTypedRange) return;
+    picker._committingTypedRange = true;
+
+    // Normalize order (the user may type end-before-start).
+    let startDate = picker._selectedStartDate;
+    let endDate = picker._selectedEndDate;
+    if (startDate > endDate) { [startDate, endDate] = [endDate, startDate]; }
+
+    try {
+        const validation = await validateRangeAsync(picker, startDate, endDate);
+
+        if (!validation.isValid) {
+            if (validation.showInvalidRange && validation.invalidStart && validation.invalidEnd) {
+                picker.invalidRangeStart = validation.invalidStart;
+                picker.invalidRangeEnd = validation.invalidEnd;
+                picker._selectedStartDate = null;
+                picker._selectedEndDate = null;
+            }
+            picker._selectedRanges = [];
+            picker.renderCalendar();
+            picker.updateSummary();
+            return;
+        }
+
+        const selection = applyValidatedRangeSelection(picker, validation, startDate, endDate);
+        if (!validation.message) hideMessage(picker);
+        commitInputValue(picker, formatRangeInput(picker));
+
+        if (picker.requiresApplyButton()) {
+            picker.pendingSelection = selection;
+        } else if (picker.options.onSelect) {
+            picker.options.onSelect(selection);
+        }
+
+        picker.renderCalendar();
+        picker.updateSummary();
+    } finally {
+        picker._committingTypedRange = false;
     }
 }
