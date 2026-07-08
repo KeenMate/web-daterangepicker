@@ -216,6 +216,10 @@
   --drp-opacity-other-month: 0.5;
   --drp-opacity-hover: 0.8;
   --drp-opacity-dragging: 0.7;
+  /* Applied to a region frozen by the scoped read-only lock (see states.css).
+     Defaults to the disabled opacity so a locked region greys out like a
+     disabled control; set to 1 to keep locked regions at full opacity. */
+  --drp-opacity-locked: var(--drp-opacity-disabled, 0.6);
 
   /* ==========================================================================
      INPUT FIELD SEMANTIC VARIABLES

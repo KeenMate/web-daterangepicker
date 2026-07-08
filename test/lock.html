@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Test — scoped read-only lock (lock / unlock / readonly)</title>
+    <link rel="stylesheet" href="test-fixtures.css">
+    <style>
+        web-daterangepicker { display: block; max-width: 640px; }
+    </style>
+</head>
+<body>
+    <h1>scoped read-only lock</h1>
+    <p>Targeted by <code>e2e/lock.spec.ts</code>. Exercises <code>lock()</code> /
+       <code>unlock()</code> / <code>toggleLock()</code>, the per-aspect gating
+       (selection / navigation / actions / open), the <code>readonly</code>
+       attribute, and the fact that the programmatic API stays live while locked.
+       Inline range picker with Apply + Clear shown and two months so the day grid,
+       the <code>&lt; &gt;</code> nav, and the action buttons are all rendered.</p>
+
+    <div class="fixture">
+        <div class="fixture-label">inline range picker — days, nav, and action buttons all present</div>
+        <web-daterangepicker id="lockpick" selection-mode="range"
+            positioning-mode="inline" visible-months-count="2"
+            is-apply-button-shown="true" is-clear-button-shown="true"
+            initial-date="2026-06-15"></web-daterangepicker>
+    </div>
+
+    <div class="fixture">
+        <div class="fixture-label">floating picker for the 'open' aspect</div>
+        <web-daterangepicker id="floatpick" selection-mode="range"
+            placeholder="click to open"></web-daterangepicker>
+    </div>
+
+    <script type="module" src="/src/index.ts"></script>
+</body>
+</html>

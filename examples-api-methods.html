@@ -12,6 +12,52 @@
             gap: 1rem;
         }
 
+        /* Booking-desk lock demo — two columns (calendar | drive-it panel) */
+        .lock-demo {
+            display: grid;
+            grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
+            gap: 1.5rem;
+            align-items: start;
+        }
+        @media (max-width: 820px) {
+            .lock-demo { grid-template-columns: 1fr; }
+        }
+        .lock-demo h4 {
+            margin: 0 0 0.75rem 0;
+            font-size: 0.95rem;
+            color: #1a202c;
+        }
+        .lock-panel p {
+            color: #475569;
+            font-size: 0.9rem;
+            line-height: 1.55;
+            margin: 0 0 1rem 0;
+        }
+        .lock-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+            padding: 0.15rem 0.55rem;
+            border-radius: 999px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            font-family: 'Courier New', monospace;
+            background: #eef2ff;
+            color: #4338ca;
+        }
+        .lock-pill--locked { background: #fef3c7; color: #92400e; }
+        .lock-pill--open   { background: #dcfce7; color: #166534; }
+        .lock-status {
+            margin-top: 1rem;
+            padding: 0.75rem 1rem;
+            border-radius: 8px;
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            font-size: 0.85rem;
+            color: #334155;
+        }
+        .lock-status code { background: #eef2ff; padding: 0.05rem 0.35rem; border-radius: 4px; }
+
         .control-group {
             display: flex;
             flex-wrap: wrap;
@@ -516,10 +562,135 @@ if (picker) {
             </div>
         </section>
 
-        <!-- Section 7: Complete API Reference -->
+        <!-- Section 7: Booking desk — confirm & lock (scoped read-only) -->
         <section class="card">
             <div class="card-header">
-                <h2 class="card-title">7. Complete API Reference</h2>
+                <h2 class="card-title">7. Booking desk — confirm &amp; lock (scoped read-only)</h2>
+                <p class="card-description">
+                    Freeze user interaction while keeping the value <strong>readable</strong> (unlike
+                    <code>disabled</code>, which greys the input out). Each day shows its <strong>nightly rate</strong>
+                    as a badge (via <code>getDateMetadataCallback</code>, the same pricing model as the
+                    <em>Dynamic Calculation</em> badges demo). The flow: the guest picks a range, hits
+                    <strong>Confirm booking</strong>, the app calls the server, and on success the picker is
+                    <strong>locked</strong> so the confirmed range can't change. The summary shows a client-side
+                    <strong>estimate</strong> (sum of the badges) while selecting, then the server's <strong>real
+                    price</strong> — which may land a little higher or lower — once confirmed.
+                    Locking is <strong>scoped</strong> —
+                    freeze everything, or just some of four aspects
+                    (<code>selection</code> · <code>navigation</code> · <code>actions</code> · <code>open</code>).
+                    The programmatic API is never gated; only the end user is.
+                </p>
+            </div>
+            <div class="card-content">
+                <div class="lock-demo">
+                    <!-- Calendar -->
+                    <div class="lock-calendar">
+                        <h4>Inline range picker</h4>
+                        <web-daterangepicker
+                            id="picker-9"
+                            selection-mode="range"
+                            positioning-mode="inline"
+                            visible-months-count="2"
+                            is-apply-button-shown="true"
+                            is-clear-button-shown="true">
+                        </web-daterangepicker>
+                    </div>
+
+                    <!-- Drive-it panel -->
+                    <div class="lock-panel">
+                        <h4>Drive the lock</h4>
+                        <p>
+                            Pick a range &amp; hit Apply — the summary shows an <strong>estimate</strong> (the sum of
+                            the on-screen badges). Then <strong>Confirm booking</strong>: a mock server round-trip
+                            returns the <strong>real price</strong> (which can land a bit higher or lower than the
+                            estimate) plus a reference code, and the whole picker locks
+                            (<span class="lock-pill lock-pill--locked">🔒 read-only</span>). Try clicking a day,
+                            dragging an endpoint, or hitting Apply — nothing moves. <strong>Amend</strong> unlocks it
+                            and drops back to the estimate.
+                        </p>
+
+                        <div class="control-group">
+                            <button id="btn-confirm-9">Confirm booking</button>
+                            <button id="btn-amend-9">Amend booking (unlock)</button>
+                        </div>
+
+                        <p style="margin-top:1rem;">
+                            Or a <strong>partial</strong> lock — freeze the range &amp; buttons but keep the
+                            <code>&lt;</code> <code>&gt;</code> arrows live so the guest can still look around:
+                        </p>
+                        <div class="control-group">
+                            <button id="btn-lock-partial-9">Lock selection + actions</button>
+                            <button id="btn-unlock-9">Unlock everything</button>
+                        </div>
+
+                        <div class="lock-status" id="output-9">
+                            Status: <span id="state-9">unlocked · fully interactive</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="code-block">
+                    <button class="copy-button" onclick="copyCode(this)">Copy</button>
+                    <pre><code>const picker = document.getElementById('picker-9');
+
+// Nightly-rate badges — same getDateMetadataCallback as the
+// "Dynamic Calculation" demo (examples-badges-tooltips.html).
+picker.getDateMetadataCallback = ({ date }) =&gt; {
+    const price = nightlyRate(date);            // your pricing model
+    return { badgeText: `$${price}`, badgeClass: `badge-number ${priceTier(price)}` };
+};
+
+// Estimate: the picker's own summary sums the on-screen badges for any
+// selected range (shows live, including drag preview).
+picker.formatSummaryCallback = ({ startDate, endDate }) =&gt; {
+    if (!startDate || !endDate) return '';
+    return `&lt;b&gt;Estimated&lt;/b&gt; — ~$${bookingTotal({ start: startDate, end: endDate })}`;
+};
+
+// Confirm: the server returns the REAL price (may differ from the estimate),
+// then we lock the picker so the confirmed range can't be changed.
+confirmBtn.addEventListener('click', async () =&gt; {
+    const { selectedStartDate: start, selectedEndDate: end } = picker;
+    if (!start || !end) return;                 // plain range → start/end pair
+    const range = { start, end };
+    const estimate = bookingTotal(range);       // sum of the nightly badges
+    picker.showLoader('calendar');
+    const { code, real } = await sendToServer(range, estimate);  // your API call
+    picker.hideLoader('calendar');
+    const diff = real - estimate;
+    picker.showSummary(`&lt;b&gt;Confirmed&lt;/b&gt; — $${real} (est. $${estimate}, ${diff &gt;= 0 ? '+' : '-'}$${Math.abs(diff)}) · code ${code}`);
+    picker.lock();                              // full read-only lock
+});
+
+// Scoped lock: freeze the range + buttons but let the user
+// still browse other months with the &lt; &gt; arrows.
+picker.lock(['selection', 'actions']);
+
+// Release it all (or a subset)
+picker.unlock();                // everything
+picker.unlock('selection');     // just one aspect
+
+// Declarative full lock via attribute / property
+// &lt;web-daterangepicker readonly&gt;&lt;/web-daterangepicker&gt;
+picker.readonly = true;
+picker.lockedAspects;           // -> ['selection','navigation','actions','open']</code></pre>
+                </div>
+
+                <div class="method-signature">
+                    <div><span class="return-type">void</span> lock(aspects?: LockAspect | LockAspect[])</div>
+                    <div><span class="return-type">void</span> unlock(aspects?: LockAspect | LockAspect[])</div>
+                    <div><span class="return-type">void</span> toggleLock(aspects?: LockAspect | LockAspect[])</div>
+                    <div><span class="return-type">boolean</span> isAspectLocked(aspect: LockAspect)</div>
+                    <div><span class="return-type">LockAspect[]</span> lockedAspects</div>
+                    <div><span class="return-type">boolean</span> readonly</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 8: Complete API Reference -->
+        <section class="card">
+            <div class="card-header">
+                <h2 class="card-title">8. Complete API Reference</h2>
                 <p class="card-description">
                     Full reference of all public methods, properties, and events available on the
                     <code>&lt;web-daterangepicker&gt;</code> component.
@@ -736,10 +907,10 @@ picker.addEventListener('date-select', (event: CustomEvent&lt;DateSelectDetail&g
             </div>
         </section>
 
-        <!-- Section 8: Integration Patterns -->
+        <!-- Section 9: Integration Patterns -->
         <section class="card">
             <div class="card-header">
-                <h2 class="card-title">8. Integration Patterns</h2>
+                <h2 class="card-title">9. Integration Patterns</h2>
                 <p class="card-description">
                     Common patterns for integrating the date picker with forms, frameworks, and application state.
                 </p>
@@ -1091,6 +1262,119 @@ const manager = new DateRangeManager();</code></pre>
                 output6.innerHTML = '<strong style="color: #dc3545;">Picker not initialized</strong>';
             }
         });
+
+        // Section 9: Booking desk — confirm & lock (scoped read-only)
+        const picker9 = document.getElementById('picker-9');
+        const state9 = document.getElementById('state-9');
+
+        // Nightly-rate pricing — same model as the "Dynamic Calculation" badges
+        // demo (examples-badges-tooltips.html): weekends cost more, and every 7th
+        // of the month is a high-demand day.
+        const nightlyRate = (date) => {
+            let price = (date.getDay() === 0 || date.getDay() === 6) ? 220 : 150;
+            if (date.getDate() % 7 === 0) price += 30;
+            return price;
+        };
+        const priceTier = (p) => p >= 220 ? 'price-high' : p >= 180 ? 'price-medium' : 'price-low';
+
+        // Inject the price-tier styles into the shadow DOM and stamp a $-rate
+        // badge onto every day cell (reused verbatim from the badges demo).
+        picker9.customStylesCallback = () => `
+            .price-high   { background-color: #fee2e2 !important; color: #991b1b !important; border: 1px solid #f87171 !important; font-weight: 600; }
+            .price-medium { background-color: #fef3c7 !important; color: #92400e !important; border: 1px solid #fbbf24 !important; font-weight: 600; }
+            .price-low    { background-color: #d1fae5 !important; color: #065f46 !important; border: 1px solid #34d399 !important; font-weight: 600; }
+        `;
+        picker9.getDateMetadataCallback = ({ date }) => {
+            const price = nightlyRate(date);
+            return { badgeText: `$${price}`, badgeClass: `badge-number ${priceTier(price)}`, badgeTooltip: `Nightly rate: $${price}` };
+        };
+
+        // The picker's OWN summary is the live ESTIMATE — the sum of the on-screen
+        // badges — shown automatically for any selected range (including drag preview).
+        // Confirm later paints the server's real price over it via showSummary().
+        picker9.formatSummaryCallback = ({ startDate, endDate, days }) => {
+            if (!startDate || !endDate) return '';
+            const est = bookingTotal({ start: startDate, end: endDate });
+            return `<b>Estimated</b> — ${days} day${days > 1 ? 's' : ''} · ~$${est} ` +
+                   `<span style="opacity:.65">· confirm for the final price</span>`;
+        };
+
+        const refresh9 = () => {
+            const locked = picker9.lockedAspects;
+            if (!locked.length) {
+                state9.innerHTML = '<span class="lock-pill lock-pill--open">● unlocked</span> fully interactive';
+            } else if (locked.length === 4) {
+                state9.innerHTML = '<span class="lock-pill lock-pill--locked">🔒 read-only</span> the whole picker is frozen — try clicking a day, dragging, or Apply';
+            } else {
+                state9.innerHTML = `<span class="lock-pill lock-pill--locked">🔒 partial</span> locked: <code>${locked.join('</code> <code>')}</code> · other aspects still respond`;
+            }
+        };
+
+        // Days in the (inclusive) selection — every highlighted cell counts.
+        const dayCount = (r) => Math.round((r.end - r.start) / 86400000) + 1;
+
+        // Sum the nightly-rate badge of EVERY day in the selection (inclusive of
+        // both check-in and check-out) so the total equals exactly the badges the
+        // guest sees highlighted on the calendar.
+        const bookingTotal = (r) => {
+            let total = 0;
+            for (let d = new Date(r.start); d <= r.end; d.setDate(d.getDate() + 1)) {
+                total += nightlyRate(d);
+            }
+            return total;
+        };
+
+        // Fake "server" round-trip. The client estimate is the sum of the on-screen
+        // badges; the server returns the REAL price, which can drift a little either
+        // way (taxes, live availability, dynamic pricing) — here ±15% of the estimate.
+        const sendToServer = (range, estimate) => new Promise((resolve) => {
+            setTimeout(() => {
+                const real = Math.max(0, Math.round(estimate * (1 + (Math.random() * 0.30 - 0.15))));
+                const code = 'BK-' + (1000 + Math.abs((range.start.getTime() ^ range.end.getTime()) % 9000));
+                resolve({ code, real });
+            }, 700);
+        });
+
+        document.getElementById('btn-confirm-9').addEventListener('click', async () => {
+            // A plain range lives in selectedStartDate / selectedEndDate;
+            // selectedRanges only carries multi-range (adjustedRanges) results.
+            const start = picker9.selectedStartDate, end = picker9.selectedEndDate;
+            if (!start || !end) {
+                picker9.showMessage('Pick a range (and Apply), then confirm the booking.', 'warning', 2500);
+                return;
+            }
+            const range = { start, end };
+            const d = dayCount(range);
+            const estimate = bookingTotal(range);       // client-side sum of the badges
+            picker9.showLoader('calendar');             // spinner over the calendar while the "server" works
+            const { code, real } = await sendToServer(range, estimate);
+            picker9.hideLoader('calendar');
+            const diff = real - estimate;
+            const delta = diff === 0
+                ? 'matches the estimate'
+                : `${diff > 0 ? '+' : '-'}$${Math.abs(diff)} vs estimate`;
+            picker9.showSummary(
+                `✓ <b>Booking confirmed</b> — ${d} day${d > 1 ? 's' : ''} · ` +
+                `<b>$${real}</b> <span style="opacity:.65">(est. $${estimate}, ${delta})</span> · Ref #${code}`
+            );
+            picker9.lock();                             // full read-only lock once the server confirms
+            refresh9();
+        });
+
+        const amend9 = () => {
+            picker9.unlock();
+            picker9.hideSummary();      // drop the confirmed override → re-derives the estimate
+            refresh9();
+        };
+        document.getElementById('btn-amend-9').addEventListener('click', amend9);
+        document.getElementById('btn-unlock-9').addEventListener('click', amend9);
+
+        document.getElementById('btn-lock-partial-9').addEventListener('click', () => {
+            picker9.lock(['selection', 'actions']);     // range + buttons frozen, < > still work
+            refresh9();
+        });
+
+        refresh9();
 
         // Copy code functionality
         window.copyCode = function(button) {

@@ -13,13 +13,14 @@
  * Dependencies: @floating-ui/dom
  */
 
-import type { DatePickerOptions, DateRange, FormatOptions, TimeFormatOptions, SelectedTime, MonthDisplay, DecoratedDate, DayMetadata, LocaleStrings, ActionButton, ActionButtonContext, LoaderTarget, CustomActionEventDetail } from './types';
+import type { DatePickerOptions, DateRange, FormatOptions, TimeFormatOptions, SelectedTime, MonthDisplay, DecoratedDate, DayMetadata, LocaleStrings, ActionButton, ActionButtonContext, LoaderTarget, LockAspect, CustomActionEventDetail } from './types';
 import * as Validation from './date-picker-validation';
 import * as Rendering from './date-picker-rendering';
 import * as Navigation from './date-picker-navigation';
 import * as Selection from './date-picker-selection';
 import * as Interaction from './date-picker-interaction';
 import * as UI from './date-picker-ui';
+import * as Lock from './date-picker-lock';
 import { resolveLocale, getLocaleStrings, getWeekdayNames, getMonthNames } from './date-picker-locales';
 import { drpLogger, navigationLogger, enableLogging, disableLogging } from './logger';
 import { Tooltip } from './tooltip';
@@ -125,6 +126,9 @@ class DateRangePicker {
             this.hide();
         }
     };
+
+    // Scoped read-only lock state. Empty = fully interactive. See date-picker-lock.ts.
+    private _lockedAspects: Set<LockAspect> = new Set();
 
     // Async validation state
     private isValidating: boolean = false;
@@ -1329,6 +1333,9 @@ class DateRangePicker {
 
         // Initialize rolling selector states for each month
         this.rollingSelectorOpenByColumn = new Array(this.options.visibleMonthsCount).fill(false);
+
+        // Re-apply any active lock to the freshly built DOM (classes + input.readOnly).
+        Lock.syncLockUI(this);
     }
 
     attachInputListeners() {
@@ -1414,6 +1421,8 @@ class DateRangePicker {
             // Check for custom action first (using closest to handle clicks on child elements)
             const customActionBtn = target.closest('[data-action="custom"]') as HTMLElement | null;
             if (customActionBtn) {
+                // Custom / preset buttons are an 'actions' interaction — drop when locked.
+                if (this.isAspectLocked('actions')) return;
                 // Collect all data-* attributes (except data-action)
                 const dataAttributes: Record<string, string> = {};
                 for (const [key, value] of Object.entries(customActionBtn.dataset)) {
@@ -1447,6 +1456,18 @@ class DateRangePicker {
                     return;
                 }
             }
+
+            // === Lock gating (user clicks only; the programmatic API bypasses locks) ===
+            // Bucket the click by the interaction family it drives and drop it if that
+            // family is locked. Custom action buttons were already handled (and gated) above.
+            const NAV_ACTIONS = ['prev', 'next', 'unified-prev', 'unified-next', 'toggle-rolling', 'toggle-unified-rolling'];
+            const SEL_ACTIONS = ['today', 'now', 'clear'];
+            const isTimeTarget = !!target.closest('[data-hour],[data-hour12],[data-minute],[data-second],[data-ampm],[data-clock-hour],[data-clock-hour12],[data-clock-minute],[data-clock-step],[data-clock-ampm],[data-wheel-value],[data-compact-field],[data-compact-ampm]');
+            const isDayTarget = !!target.closest('.drp__day:not(.drp__day--disabled)');
+            const isRollingTarget = !!target.closest('[data-year],[data-month]');
+            if (this.isAspectLocked('navigation') && ((action && NAV_ACTIONS.includes(action)) || isRollingTarget)) return;
+            if (this.isAspectLocked('selection') && ((action && SEL_ACTIONS.includes(action)) || isTimeTarget || isDayTarget)) return;
+            if (this.isAspectLocked('actions') && action === 'apply') return;
 
             if (action === 'prev') this.prevMonth(monthIndex);
             else if (action === 'next') this.nextMonth(monthIndex);
@@ -1683,6 +1704,19 @@ class DateRangePicker {
             // Time mode has no calendar grid — allow Escape but skip every grid-relative key.
             // Arrow-keys-step-time is out of scope for v1; revisit later.
             if (this.options.pickerMode === 'time' && e.key !== 'Escape') {
+                return;
+            }
+
+            // Lock gating: block month-navigation keys when navigation is locked.
+            // 't'/Ctrl+Home/End mutate the month view directly here (not via the guarded
+            // navigation module), so they must be caught at the keyboard layer. Selection
+            // commit (Enter) routes through the guarded day-click branch; plain arrows /
+            // Home / End / Tab only move the focus highlight and are left alone. Escape
+            // (close) stays allowed so a locked picker is never a keyboard trap.
+            const isNavKey = e.key === 'PageUp' || e.key === 'PageDown' || e.key === 't' || e.key === 'T'
+                || ((e.ctrlKey || e.metaKey) && ['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(e.key));
+            if (isNavKey && this.isAspectLocked('navigation')) {
+                e.preventDefault();
                 return;
             }
 
@@ -2430,6 +2464,23 @@ class DateRangePicker {
     showLoader(target?: LoaderTarget) { return UI.showLoader(this, target); }
     hideLoader(target?: LoaderTarget) { return UI.hideLoader(this, target); }
     toggleLoader(target?: LoaderTarget) { return UI.toggleLoader(this, target); }
+
+    // Lock methods - scoped read-only. lock()/unlock() with no arg act on every aspect.
+    lock(aspects?: LockAspect | LockAspect[]) { return Lock.lock(this, aspects); }
+    unlock(aspects?: LockAspect | LockAspect[]) { return Lock.unlock(this, aspects); }
+    toggleLock(aspects?: LockAspect | LockAspect[]) {
+        // No-arg toggles the whole lock (on if anything is locked → off, else on).
+        // With an argument, toggles exactly the named aspect(s).
+        const list = aspects === undefined ? Lock.ALL_LOCK_ASPECTS : (Array.isArray(aspects) ? aspects : [aspects]);
+        const anyLocked = list.some(a => this._lockedAspects.has(a));
+        return anyLocked ? Lock.unlock(this, aspects) : Lock.lock(this, aspects);
+    }
+    isAspectLocked(aspect: LockAspect): boolean { return Lock.isAspectLocked(this, aspect); }
+    /** The currently locked aspects (read-only snapshot). */
+    get lockedAspects(): LockAspect[] { return Array.from(this._lockedAspects); }
+    /** Full-lock convenience: `true` when every aspect is locked; setting it locks/unlocks all. */
+    get readonly(): boolean { return Lock.ALL_LOCK_ASPECTS.every(a => this._lockedAspects.has(a)); }
+    set readonly(value: boolean) { if (value) Lock.lock(this); else Lock.unlock(this); }
 
     // Rendering methods - wrappers for pure functions
     renderCalendar() { return Rendering.renderCalendar(this); }

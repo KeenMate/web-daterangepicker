@@ -180,6 +180,13 @@ export function show(picker: any) {
         return;
     }
 
+    // Open lock: refuse to (re)open. Blocks the input focus/click/pointerdown triggers
+    // and typing-triggered opens alike. Closing (hide/Escape) is intentionally NOT gated,
+    // so a locked picker can always be dismissed and never traps the user.
+    if (picker.isAspectLocked('open')) {
+        return;
+    }
+
     // Already visible — skip. Without this guard, repeated show() calls (e.g., focus
     // fires after mousedown on the same click) overwrite originalInputValue with the
     // already-pending value and leak the autoUpdate cleanup function.

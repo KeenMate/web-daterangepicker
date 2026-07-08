@@ -11,6 +11,16 @@ mode out of the box.
 > you must sanitize it yourself. See [HTML Injection (XSS) Notice](#html-injection-xss-notice)
 > for the complete list of affected callbacks and methods.
 
+## What's New in v2.0.0-rc02
+
+- **Scoped read-only lock — `lock()` / `unlock()` / `toggleLock()`** — A new imperative API freezes user interaction while keeping the selected value fully readable, unlike `disabled` (which greys the input out and blocks the whole field). The motivating flow: the user picks a range, a custom confirm button calls the server, and on success you call `lock()` so the confirmed range can no longer be edited. Locks are enforced at every user-interaction choke point across `date-picker.ts`, `date-picker-navigation.ts`, `date-picker-interaction.ts`, and `date-picker-ui.ts`, so day clicks, drag-to-adjust, typed input, keyboard month-crossing, and popover re-opening all respect it.
+
+- **Four independent lock aspects — `selection`, `navigation`, `actions`, `open`** — `lock()` with no argument freezes everything; `lock(aspect | aspect[])` freezes a subset via the new exported `LockAspect` type. `selection` covers day/drag/typed/time picks and flips the `<input>` to `readOnly`; `navigation` covers `<` / `>`, PageUp/Down, Ctrl+arrows and the rolling year/month selector; `actions` covers Apply and custom buttons; `open` blocks re-opening the popover but never blocks closing, so a locked picker is never a keyboard trap. Partial locks compose — `lock(['selection','actions'])` freezes the range and buttons while leaving `<` / `>` live so a user can still browse other months after confirming.
+
+- **Programmatic API stays live — the lock gates the end user, not your code** — Selection setters (`selectedRanges = …`), `clearSelection()`, and the navigation methods all keep working while locked, exactly like a `readOnly` `<input>` is still settable from JS. This keeps server-driven flows (confirm, amend, reset) fully scriptable against a locked picker.
+
+- **Declarative `readonly` attribute + greyed affordance** — `<web-daterangepicker readonly>` or `picker.readonly = true` applies a full lock and survives the attribute-driven rebuild; it reads back `true` only when every aspect is locked. Locked regions grey out like disabled controls via the new `--drp-opacity-locked` token (default `0.6`, inherited from `--drp-opacity-disabled`; set to `1` to disable greying), driven by per-aspect root modifiers `.drp__picker--locked-{aspect}`.
+
 ## What's New in v2.0.0-rc01
 
 - **Callbacks — one typed context object, everywhere** — Every callback now receives a single context object that extends the new exported `PickerContext` (`{ picker }`), replacing the old mix of positional args, raw `picker: any`, and anonymous inline types. `getDateMetadataCallback(date)` becomes `(ctx: DayContext)`; all six `ActionButton` callbacks take `(ctx: ActionButtonContext)` = `{ picker, action, button, data? }`; `beforeDateSelectCallback` reads `ctx.date` / `ctx.range` instead of narrowing a `Date | DateRange` union. The `DayRenderContext` / `SummaryDetail` / `BeforeMonthChangeContext` types were renamed to `DayContext` / `SummaryContext` / `MonthChangeContext`, and the month-header callbacks' anonymous shapes were promoted to exported `MonthHeaderContext` / `UnifiedHeaderContext`. This is a breaking change with a full migration table in the CHANGELOG.
@@ -68,12 +78,6 @@ What makes it different from the rest of the date-picker ecosystem:
 
 For a more honest accessibility audit including current ARIA gaps,
 see [`docs/accessibility.md`](./docs/accessibility.md).
-
-## What's new
-
-**v1.14.0-rc02** (latest) — BlissFramework guidelines alignment +
-sibling-picker overlap fix. See [`CHANGELOG.md`](./CHANGELOG.md) for
-the full migration table and history.
 
 ## Demos & docs
 

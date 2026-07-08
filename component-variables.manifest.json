@@ -119,6 +119,7 @@
     { "name": "drp-opacity-other-month", "category": "opacity", "usage": "Other month day opacity" },
     { "name": "drp-opacity-hover", "category": "opacity", "usage": "Hover state opacity" },
     { "name": "drp-opacity-dragging", "category": "opacity", "usage": "Dragging state opacity" },
+    { "name": "drp-opacity-locked", "category": "opacity", "usage": "Opacity of a region frozen by the scoped read-only lock (defaults to the disabled opacity; set to 1 to keep full opacity)" },
 
     { "name": "drp-input-bg", "category": "input", "usage": "Input background" },
     { "name": "drp-input-color", "category": "input", "usage": "Input text color" },

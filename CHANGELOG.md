@@ -5,6 +5,21 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.0.0-rc02] - 2026-07-08 [PUBLISHED]
+
+### Added — scoped read-only lock
+
+- **New `lock()` / `unlock()` / `toggleLock()` imperative API with four independent lock aspects** — freeze user interaction while keeping the value readable (unlike `disabled`, which greys the input out and only touches the `<input>`). The motivating case: a user selects a range, a custom confirm button calls the server, and on success the picker is locked so the confirmed range can't be changed. `lock()` with no argument locks everything; `lock(aspect | aspect[])` locks a subset. Aspects (new exported `LockAspect` type):
+  - `'selection'` — day clicks, drag-to-adjust endpoints, typed input (input becomes `readOnly`), Today / Now / Clear, and all time-picker interactions.
+  - `'navigation'` — month nav (`<` / `>`), PageUp/Down, Ctrl+arrows, `t`/Ctrl+Home/End, and the rolling year/month selector. Guarded at the navigation module choke points, so keyboard-focus month crossings and drag-over-nav auto-advance are blocked too.
+  - `'actions'` — the Apply button and custom / preset action buttons.
+  - `'open'` — (re)opening the popover in floating & modal modes. Closing (hide / Escape / backdrop) stays allowed so a locked picker is never a keyboard trap.
+- **Partial locks compose**: `lock(['selection', 'actions'])` freezes the range and the buttons while leaving `<` / `>` month navigation live — e.g. let a user browse other months after confirming without being able to alter the confirmed range.
+- **The lock gates the end user only — the programmatic API is never blocked.** Selection setters (`selectedRanges = …`, `clearSelection()`, etc.) keep working while locked, mirroring how a `readOnly` `<input>` is still settable from JS.
+- **Declarative full lock** via the reflected `readonly` boolean attribute / property: `<web-daterangepicker readonly>` or `picker.readonly = true`. Survives the attribute-driven picker rebuild. `readonly` reads back `true` only when every aspect is locked.
+- Read helpers: `isAspectLocked(aspect)` and the `lockedAspects` getter (array snapshot). Available on both the web component and the `DateRangePicker` core class.
+- CSS: per-aspect root modifiers `.drp__picker--locked-{selection,navigation,actions,open}` (plus a `.drp__picker--locked` marker) supply the affordance — the locked region greys out like a disabled control and stops responding to the pointer, while any unlocked aspect on the same calendar stays live and full-opacity. New `--drp-opacity-locked` token (default `0.6`, inherited from `--drp-opacity-disabled`) controls the greying; set it to `1` to disable it.
+
 ## [2.0.0-rc01] - 2026-07-06 [PUBLISHED]
 
 Public-API **signature + naming alignment** sweep — the date-picker equivalent of the `@keenmate/svelte-treeview` rc13 pass. Every callback and every consumer event now takes ONE typed context object drawn from a shared, exported vocabulary (no more positional args, raw `picker: any`, or anonymous inline context types), and the three "feedback" blocks (message / summary / loader) get one symmetric, HTML-accepting imperative API instead of message-only. The loader also becomes a scoped `showLoader(target?)` that can render an in-block spinner in the message or summary block. **Breaking** — no back-compat shims; see the migration table.

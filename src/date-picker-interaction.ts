@@ -21,6 +21,9 @@ export function initDragListeners(picker: any) {
 
         allDays.forEach(day => {
             day.addEventListener('mousedown', (e) => {
+                // Selection lock: a drag adjusts the range, so freeze it here (the
+                // click fallback is separately gated in the calendar click handler).
+                if (picker.isAspectLocked('selection')) return;
                 const mouseEvent = e as MouseEvent;
                 const dayElement = day as HTMLElement;
 

@@ -23,6 +23,7 @@ page see the README quick start; for theming see
   - [Date selection validation (`beforeDateSelectCallback`)](#date-selection-validation-beforedateselectcallback)
   - [Bulk metadata loading (`beforeMonthChangedCallback`)](#bulk-metadata-loading-beforemonthchangedcallback)
   - [Messages & custom actions](#messages--custom-actions)
+  - [Locking (read-only)](#locking-read-only)
 - [Range selection modes](#range-selection-modes)
 
 ## JavaScript instantiation (`DateRangePicker` class)
@@ -195,6 +196,12 @@ Reflect what's currently on screen; change what's shown via navigation, not by a
 | `showLoader(target?)` | Show a spinner — `target`: `'calendar'` (default, overlay) \| `'message'` \| `'summary'` (in-block) |
 | `hideLoader(target?)` | Hide the loader for a target |
 | `toggleLoader(target?)` | Toggle the loader for a target |
+| `lock(aspects?)` | Freeze user interaction. No argument = full lock; pass a `LockAspect` or array to lock a subset. See [Locking](#locking-read-only) |
+| `unlock(aspects?)` | Release the given aspect(s), or the whole lock when called with no argument |
+| `toggleLock(aspects?)` | Toggle the given aspect(s), or the whole lock |
+| `isAspectLocked(aspect)` | `boolean` — whether that aspect is currently locked |
+
+Read-only properties/attributes for locking: `lockedAspects` (`LockAspect[]` getter), `readonly` (boolean property + reflected attribute — full-lock convenience).
 
 ## Events
 
@@ -665,6 +672,67 @@ picker.hideMessage();
 
 - `data-action="close-message"` — closes the message (no event fired).
 - `data-action="custom"` — fires the `custom-action` event; all `data-*` attributes are exposed as camelCase keys under `e.detail.data`.
+
+### Locking (read-only)
+
+Freeze user interaction while keeping the value **readable** — unlike
+`disabled`, which greys the input out and only affects the `<input>`.
+The lock is **scoped**: freeze everything, or just some of four
+independent aspects.
+
+| Aspect | Freezes |
+|---|---|
+| `selection` | day clicks, drag-to-adjust endpoints, typed input (`<input>` becomes read-only), Today / Now / Clear, and all time-picker interactions |
+| `navigation` | month nav (`<` / `>`), PageUp/Down, Ctrl+arrows, `t`, and the rolling year/month selector |
+| `actions` | the Apply button and custom / preset action buttons |
+| `open` | (re)opening the popover (floating & modal). Closing (hide / Escape / backdrop) stays allowed, so a locked picker is never a keyboard trap |
+
+The lock gates the **end user only** — the programmatic API
+(`selectedRanges = …`, `clearSelection()`, `show()`, the nav methods,
+etc.) keeps working while locked, just like a `readOnly` `<input>` is
+still settable from JS.
+
+```js
+const picker = document.querySelector('web-daterangepicker');
+
+// The motivating flow: confirm a range, then lock it.
+confirmBtn.addEventListener('click', async () => {
+  const range = picker.selectedRanges?.[0];
+  if (!range) return;
+  picker.showLoader('calendar');
+  const code = await sendToServer(range);       // your API call
+  picker.hideLoader('calendar');
+  picker.showSummary(`<b>Confirmed</b> — code ${code}`);
+  picker.lock();                                 // full read-only lock
+});
+
+// Scoped: freeze the range + buttons, but let the user still
+// browse other months with the < > arrows.
+picker.lock(['selection', 'actions']);
+
+// Release everything, or a subset.
+picker.unlock();
+picker.unlock('selection');
+
+// Toggle, inspect, or use the declarative attribute.
+picker.toggleLock('navigation');
+picker.isAspectLocked('open');   // -> boolean
+picker.lockedAspects;            // -> LockAspect[]
+picker.readonly = true;          // full lock; reflects to the `readonly` attribute
+```
+
+```html
+<!-- Declarative full lock -->
+<web-daterangepicker readonly></web-daterangepicker>
+```
+
+Each locked aspect adds a `.drp__picker--locked-{aspect}` modifier
+(plus a `.drp__picker--locked` marker) inside the shadow root. A locked
+region greys out like a disabled control and stops responding to the
+pointer, while any unlocked aspect on the same calendar stays live and
+full-opacity. The greying is driven by `--drp-opacity-locked` (default
+`0.6`, inherited from `--drp-opacity-disabled`) — set it to `1` to keep
+locked regions at full opacity.
 
 ## Range selection modes
 

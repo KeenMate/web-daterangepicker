@@ -43,3 +43,38 @@
   display: block;
   box-shadow: none;
 }
+
+/* ==============================================================================
+   SCOPED READ-ONLY LOCK (root state)
+   ==============================================================================
+   Per-aspect modifiers set by lock()/unlock() (see date-picker-lock.ts). Behavior
+   is enforced in JS; these rules supply the visual affordance — each locked region
+   greys out like a disabled control (via `--drp-opacity-locked`, default 0.6) and
+   stops responding to the pointer. Each aspect is independent, so an unlocked region
+   on the same calendar stays fully live and full-opacity. */
+
+/* selection — day grid + every time-picker UI. */
+.drp__picker--locked-selection .drp__days,
+.drp__picker--locked-selection .drp__time-picker,
+.drp__picker--locked-selection .drp__clock-picker,
+.drp__picker--locked-selection .drp__wheel-picker,
+.drp__picker--locked-selection .drp__compact-picker {
+  opacity: var(--drp-opacity-locked);
+  cursor: default;
+}
+
+/* navigation — month nav arrows + the rolling year/month selector */
+.drp__picker--locked-navigation .drp__nav,
+.drp__picker--locked-navigation .drp__month-year,
+.drp__picker--locked-navigation .drp__rolling-selector {
+  opacity: var(--drp-opacity-locked);
+  pointer-events: none;
+  cursor: default;
+}
+
+/* actions — Apply + custom / preset buttons in the action bar */
+.drp__picker--locked-actions .drp__button {
+  opacity: var(--drp-opacity-locked);
+  pointer-events: none;
+  cursor: default;
+}

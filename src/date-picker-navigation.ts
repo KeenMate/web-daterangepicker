@@ -396,11 +396,13 @@ export async function handleBeforeMonthChange(
 }
 
 export function toggleRollingSelector(picker: any, monthIndex: number) {
+    if (picker.isAspectLocked('navigation')) return;
     picker.rollingSelectorOpenByColumn[monthIndex] = !picker.rollingSelectorOpenByColumn[monthIndex];
     picker.renderCalendar();
 }
 
 export async function selectYear(picker: any, year: number, monthIndex: number) {
+    if (picker.isAspectLocked('navigation')) return;
     // Get current month to preserve it
     const currentMonth = picker._monthDates[monthIndex].getMonth();
 
@@ -424,6 +426,7 @@ export async function selectYear(picker: any, year: number, monthIndex: number) 
 }
 
 export async function selectMonth(picker: any, month: number, monthIndex: number) {
+    if (picker.isAspectLocked('navigation')) return;
     // Get current year to preserve it
     const currentYear = picker._monthDates[monthIndex].getFullYear();
 
@@ -496,6 +499,9 @@ export function isSameOrAfterMonth(date1: Date, date2: Date): boolean {
  * and collision propagation against the appropriate neighbour column.
  */
 async function changeMonth(picker: any, monthIndex: number, offset: -1 | 1): Promise<void> {
+    // Navigation lock: block every month step (< > buttons, PageUp/Down, keyboard
+    // focus crossing a month edge, and the drag-over-nav auto-advance all funnel here).
+    if (picker.isAspectLocked('navigation')) return;
     const idx = !isNaN(monthIndex) ? monthIndex : picker.activeMonthIndex;
     const dir = offset > 0 ? 'nextMonth' : 'prevMonth';
 
@@ -777,6 +783,7 @@ export function moveFocus(picker: any, offset: number) {
  * Navigate forward one month in unified mode (affects all visible months)
  */
 export async function unifiedNextMonth(picker: any) {
+    if (picker.isAspectLocked('navigation')) return;
     if (!picker.options.isUnifiedNavigationEnabled) return;
 
     const anchorIndex = picker.options.unifiedNavigationAnchorIndex ?? 0;
@@ -806,6 +813,7 @@ export async function unifiedNextMonth(picker: any) {
  * Navigate backward one month in unified mode (affects all visible months)
  */
 export async function unifiedPrevMonth(picker: any) {
+    if (picker.isAspectLocked('navigation')) return;
     if (!picker.options.isUnifiedNavigationEnabled) return;
 
     const anchorIndex = picker.options.unifiedNavigationAnchorIndex ?? 0;
@@ -836,6 +844,7 @@ export async function unifiedPrevMonth(picker: any) {
  * Updates the anchor month to the selected month, all others follow
  */
 export async function setUnifiedMonth(picker: any, month: number) {
+    if (picker.isAspectLocked('navigation')) return;
     if (!picker.options.isUnifiedNavigationEnabled) return;
 
     const anchorIndex = picker.options.unifiedNavigationAnchorIndex ?? 0;
@@ -861,6 +870,7 @@ export async function setUnifiedMonth(picker: any, month: number) {
  * Toggle unified rolling selector visibility
  */
 export function toggleUnifiedRollingSelector(picker: any) {
+    if (picker.isAspectLocked('navigation')) return;
     if (!picker.options.isUnifiedNavigationEnabled) {
         return;
     }
@@ -875,6 +885,7 @@ export function toggleUnifiedRollingSelector(picker: any) {
  * Updates the anchor month to the selected year, keeping the same month
  */
 export async function setUnifiedYear(picker: any, year: number) {
+    if (picker.isAspectLocked('navigation')) return;
     if (!picker.options.isUnifiedNavigationEnabled) return;
 
     const anchorIndex = picker.options.unifiedNavigationAnchorIndex ?? 0;

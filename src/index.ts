@@ -19,7 +19,7 @@ export type {
     // Shared callback/event context vocabulary
     PickerContext, DayContext, MonthHeaderContext, UnifiedHeaderContext,
     SelectionContext, MonthChangeContext, SummaryContext, ActionButtonContext,
-    SelectEventDetail, CustomActionEventDetail, LoaderTarget,
+    SelectEventDetail, CustomActionEventDetail, LoaderTarget, LockAspect,
     // Supporting types
     DayMetadata, DecoratedDate, ActionButton, BeforeSelectResult,
     BeforeMonthChangeResult, LocaleStrings

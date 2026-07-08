@@ -265,7 +265,7 @@ picker.actionButtons = [
       picker.showLoader();                       // public overlay
       const { start, end } = picker.visibleDateRange;  // what's on screen
       const days = await fetchAvailability(start, end);
-      const fresh = buildMetadata(days);         // Map<'YYYY-MM-DD', DayMetadata>
+      const fresh = buildMetadata(days);         // Map&lt;'YYYY-MM-DD', DayMetadata&gt;
       picker.bulkMetadataCache ??= new Map();
       fresh.forEach((v, k) => picker.bulkMetadataCache.set(k, v));
       picker.renderCalendar();                   // re-render from the fresh cache

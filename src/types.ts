@@ -19,6 +19,21 @@ export interface PickerContext {
 export type LoaderTarget = 'calendar' | 'message' | 'summary';
 
 /**
+ * A lockable interaction family for the scoped read-only lock (see `lock()` / `unlock()`).
+ * Locking freezes user interaction for that aspect while keeping the value readable
+ * (unlike `disabled`, which greys the input out). The programmatic API is not gated —
+ * only user-driven interaction is.
+ *
+ * - 'selection'  — day clicks, drag-to-adjust range endpoints, typed input, Today/Now/Clear, time picks
+ * - 'navigation' — month nav (`<` / `>`), PageUp/Down, Ctrl+arrows, the rolling year/month selector
+ * - 'actions'    — the Apply button and custom / preset action buttons
+ * - 'open'       — (re)opening the popover in floating & modal modes; closing stays allowed so a user is never trapped
+ *
+ * `lock()` with no argument locks every aspect; `lock(aspect | aspect[])` locks a subset.
+ */
+export type LockAspect = 'selection' | 'navigation' | 'actions' | 'open';
+
+/**
  * Result from beforeDateSelectCallback
  * Tells the component what action to take with the proposed selection
  */

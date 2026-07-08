@@ -131,7 +131,7 @@
         <header class="header-card">
             <h1>Web DateRangePicker</h1>
             <p class="subtitle">Lightweight date picker web component with excellent keyboard navigation</p>
-            <span class="version-badge">v1.9.6</span>
+            <span class="version-badge" id="version-badge"></span>
         </header>
 
         <div class="cards" id="cards"></div>
@@ -244,6 +244,13 @@
         }
 
         renderCards()
+    </script>
+    <script type="module">
+        // Show the live package version instead of a hardcoded string.
+        // Vite resolves the JSON import (same toolchain that serves /src/index.ts).
+        import { version } from './package.json';
+        const badge = document.getElementById('version-badge');
+        if (badge) badge.textContent = `v${version}`;
     </script>
 </body>
 </html>

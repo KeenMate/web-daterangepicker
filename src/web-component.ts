@@ -1,5 +1,5 @@
 import { DateRangePicker } from './date-picker';
-import type { DatePickerOptions, DateRange, DecoratedDate, DayMetadata, DayContext, BeforeSelectResult, ActionButton, LocaleStrings, SelectionContext, MonthChangeContext, BeforeMonthChangeResult, SummaryContext, UnifiedHeaderContext, MonthHeaderContext, LoaderTarget, SelectEventDetail, SelectedTime, MonthDisplay } from './types';
+import type { DatePickerOptions, DateRange, DecoratedDate, DayMetadata, DayContext, BeforeSelectResult, ActionButton, LocaleStrings, SelectionContext, MonthChangeContext, BeforeMonthChangeResult, SummaryContext, UnifiedHeaderContext, MonthHeaderContext, LoaderTarget, LockAspect, SelectEventDetail, SelectedTime, MonthDisplay } from './types';
 import styles from './css/main.css?inline';
 
 // =============================================================================
@@ -134,7 +134,7 @@ const ATTRIBUTE_TABLE: AttributeEntry[] = [
 ];
 
 /** Attributes that don't affect the picker itself — handled by surgical `attributeChangedCallback` paths. */
-const NON_PICKER_ATTRIBUTES = ['value', 'placeholder', 'disabled', 'enable-transitions', 'input-size', 'mobile-modal-breakpoint', 'mobile-modal-min-height'] as const;
+const NON_PICKER_ATTRIBUTES = ['value', 'placeholder', 'disabled', 'readonly', 'enable-transitions', 'input-size', 'mobile-modal-breakpoint', 'mobile-modal-min-height'] as const;
 
 /**
  * Options that are reachable both via HTML attribute AND a property setter.
@@ -393,6 +393,16 @@ export class WebDaterangepickerElement extends HTMLElement {
             return;
         }
 
+        // `readonly` is a full-lock toggle. Reflected onto the core lock set without a
+        // picker rebuild (so any selection state survives, unlike most attribute changes).
+        if (name === 'readonly') {
+            if (this.picker) {
+                if (newValue !== null) this.picker.lock();
+                else this.picker.unlock();
+            }
+            return;
+        }
+
         if (!this.picker) return;
 
         // Picker-affecting attribute: parse via the table and try a surgical update.
@@ -506,6 +516,10 @@ export class WebDaterangepickerElement extends HTMLElement {
         const inputElement = display === 'inline' ? null : this.inputElement;
         this.picker = new DateRangePicker(inputElement, options);
         // Calendar is automatically appended to shadow root via container option
+
+        // Re-apply a declarative full lock (survives the destroy()+initializePicker rebuild
+        // that most attribute changes trigger — the attribute is the source of truth).
+        if (this.hasAttribute('readonly')) this.picker.lock();
 
         // No manual re-emit of `custom-action` needed: the picker already
         // dispatches it with { bubbles: true, composed: true }, which crosses
@@ -775,6 +789,49 @@ export class WebDaterangepickerElement extends HTMLElement {
         this.picker.toggleLoader(target);
     }
 
+    /**
+     * Freeze user interaction. With no argument, locks every aspect (a full read-only
+     * lock — e.g. after a server confirmation). Pass an aspect or aspect array to freeze
+     * only part of it, e.g. `lock(['selection', 'actions'])` to lock the range and buttons
+     * while leaving month navigation (`<` / `>`) live. Aspects: 'selection' | 'navigation'
+     * | 'actions' | 'open'. The programmatic API is not affected — only the end user is.
+     */
+    public lock(aspects?: LockAspect | LockAspect[]) {
+        if (!this.picker) {
+            console.warn('[web-daterangepicker] lock() called but picker not initialized yet');
+            return;
+        }
+        this.picker.lock(aspects);
+    }
+
+    /** Release the given aspect(s), or the whole lock when called with no argument. */
+    public unlock(aspects?: LockAspect | LockAspect[]) {
+        if (!this.picker) {
+            console.warn('[web-daterangepicker] unlock() called but picker not initialized yet');
+            return;
+        }
+        this.picker.unlock(aspects);
+    }
+
+    /** Toggle the given aspect(s), or the whole lock when called with no argument. */
+    public toggleLock(aspects?: LockAspect | LockAspect[]) {
+        if (!this.picker) {
+            console.warn('[web-daterangepicker] toggleLock() called but picker not initialized yet');
+            return;
+        }
+        this.picker.toggleLock(aspects);
+    }
+
+    /** True when the given aspect is currently locked. */
+    public isAspectLocked(aspect: LockAspect): boolean {
+        return this.picker?.isAspectLocked(aspect) ?? false;
+    }
+
+    /** The currently locked aspects (read-only snapshot). */
+    public get lockedAspects(): LockAspect[] {
+        return this.picker?.lockedAspects ?? [];
+    }
+
     public getInputValue(): string {
         return this.inputElement?.value || '';
     }
@@ -832,6 +889,24 @@ export class WebDaterangepickerElement extends HTMLElement {
             this.setAttribute('disabled', '');
         } else {
             this.removeAttribute('disabled');
+        }
+    }
+
+    /**
+     * Full read-only lock, reflected to the `readonly` attribute. `true` locks every
+     * aspect; `false` releases the whole lock. For partial locks (e.g. keep `<` / `>`
+     * live) use `lock(['selection', 'actions'])` instead. Reads back `true` only when
+     * every aspect is locked.
+     */
+    get readonly(): boolean {
+        return this.picker ? this.picker.readonly : this.hasAttribute('readonly');
+    }
+
+    set readonly(value: boolean) {
+        if (value) {
+            this.setAttribute('readonly', '');
+        } else {
+            this.removeAttribute('readonly');
         }
     }
 
