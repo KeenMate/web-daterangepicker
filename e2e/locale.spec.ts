@@ -89,3 +89,43 @@ test('week-start-day="1": first weekday header column is Monday', async ({ page 
     const firstWeekday = p.locator('.drp__weekdays > *').first();
     await expect(firstWeekday).toContainText(/Mon|Mon\.|Monday|Mo/i);
 });
+
+// =============================================================================
+// month-names attribute (pipe-delimited)
+// =============================================================================
+
+test('month-names attribute overrides month header (June → "Červen")', async ({ page }) => {
+    const p = await open(page, 'month-names-attr');
+
+    await expect(p.locator('.drp__month-year').first()).toContainText('Červen 2026');
+});
+
+// =============================================================================
+// weekday-names attribute (pipe-delimited, Sunday-first, rotated by week-start-day)
+// =============================================================================
+
+test('weekday-names attribute + week-start-day="0": first column is the [0] entry ("Ne")', async ({ page }) => {
+    const p = await open(page, 'weekday-names-attr');
+
+    const firstWeekday = p.locator('.drp__weekdays > *').first();
+    await expect(firstWeekday).toHaveText('Ne');
+});
+
+test('weekday-names is Sunday-indexed: week-start-day="3" rotates to Wednesday ([3] = "St")', async ({ page }) => {
+    const p = await open(page, 'weekday-names-wed');
+
+    const cols = p.locator('.drp__weekdays > *');
+    // Sunday-first list "Ne|Po|Út|St|Čt|Pá|So" rotated by 3 → St Čt Pá So Ne Po Út
+    await expect(cols.nth(0)).toHaveText('St');
+    await expect(cols.nth(1)).toHaveText('Čt');
+    await expect(cols.nth(6)).toHaveText('Út');
+});
+
+test('weekday-names with wrong segment count is ignored (falls back to locale names)', async ({ page }) => {
+    const p = await open(page, 'weekday-names-bad');
+
+    const firstWeekday = p.locator('.drp__weekdays > *').first();
+    // Bad "Po|Út|St" (3 segments) is dropped → English Sunday-first fallback.
+    await expect(firstWeekday).toContainText(/Sun|Su/i);
+    await expect(firstWeekday).not.toHaveText('Po');
+});

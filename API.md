@@ -94,6 +94,8 @@ All attributes can be set directly on the `<web-daterangepicker>` HTML element.
 | `grid-columns` | `number` | `undefined` | Number of columns for grid layout (e.g., `3` for 2×3 grid) |
 | `calendar-placement` | `string` | Smart default* | Floating UI placement: `'bottom'`, `'top'`, `'left'`, `'right'`, `'bottom-start'`, `'bottom-end'`, `'top-start'`, `'top-end'`, etc. |
 | `locale` | `string \| 'auto'` | `'auto'` | Locale for UI strings and date formatting. Use `'auto'` for browser detection, or specify: `'en'`, `'de'`, `'fr'`, `'es'` |
+| `month-names` | `string` | locale-based | Pipe-delimited month-name override, indexed by month: `[0]`=January … `[11]`=December. Must have exactly 12 segments (e.g. `"Leden\|Únor\|Březen\|…"`); a wrong count or empty segment is ignored with a `console.warn`. Also settable via the `monthNames` property. |
+| `weekday-names` | `string` | locale-based | Pipe-delimited weekday-header override, indexed by day-of-week: `[0]`=Sunday … `[6]`=Saturday. Must have exactly 7 segments (e.g. `"Ne\|Po\|Út\|St\|Čt\|Pá\|So"`); `week-start-day` only rotates the display, not this mapping. A wrong count or empty segment is ignored with a `console.warn`. Also settable via the `weekdayNames` property. |
 | `display-format-mask` | `string` | Same as `date-format-mask` | Localized format mask shown to users (e.g., `'dd/mm/aaaa'` in Spanish). Validation still uses `date-format-mask` |
 | `show-debug-info` | `boolean` | `false` | When present, enables detailed debug logging to browser console. See [Debugging & Logging](#debugging--logging) |
 | `input-size` | `'xs' \| 'sm' \| 'md' \| 'lg' \| 'xl'` | `'md'` | Input field size variant (floating mode only) |
@@ -112,6 +114,27 @@ All attributes can be set directly on the `<web-daterangepicker>` HTML element.
 **Smart default positioning:**
 - Grid layouts: `'bottom'` (centered)
 - Horizontal layouts: `'bottom-start'` (left-aligned)
+
+### Custom month & weekday names
+
+`month-names` and `weekday-names` are **position-indexed to their JavaScript date number**, not to the visible order. You author each list once, in its natural calendar order — the component handles any rotation.
+
+- **`month-names`** → `[0]`=January … `[11]`=December (matches `Date.getMonth()`). No rotation; the list is always Jan→Dec.
+  ```html
+  month-names="Leden|Únor|Březen|Duben|Květen|Červen|Červenec|Srpen|Září|Říjen|Listopad|Prosinec"
+  ```
+- **`weekday-names`** → **always authored Sunday-first**: `[0]`=Sunday … `[6]`=Saturday (matches `Date.getDay()`). `week-start-day` only rotates the *display* — you never re-order the list, and the labels stay aligned to the real days at any start day.
+  ```html
+  <!-- Wednesday-first business week -->
+  <web-daterangepicker
+    week-start-day="3"
+    weekday-names="Ne|Po|Út|St|Čt|Pá|So">
+  </web-daterangepicker>
+  <!-- renders header: St Čt Pá So Ne Po Út  (col 0 = actual Wednesday) -->
+  ```
+  > ⚠️ Do **not** pre-rotate the list to match `week-start-day`. `weekday-names="Po|Út|St|Čt|Pá|So|Ne"` puts Monday at index 0, so the component would label Sunday as "Po". Keep index `[0]` = Sunday and let `week-start-day` do the rotation.
+
+Both accept exactly 12 / 7 pipe-delimited, non-empty segments; anything else is ignored with a `console.warn` and locale names are used. Also settable as arrays via the `monthNames` / `weekdayNames` properties.
 
 ### Range Disabled Modes
 
@@ -214,6 +237,8 @@ When instantiating `PureDatePicker` directly (not using web component), pass the
 | `locale` | `string \| 'auto'` | `'auto'` | Locale for UI strings and Intl date formatting. Built-in: `'en'`, `'de'`, `'fr'`, `'es'` |
 | `displayFormatMask` | `string` | Same as `dateFormatMask` | Localized format mask for display (e.g., `'dd/mm/aaaa'` for Spanish) |
 | `customStrings` | `Partial<LocaleStrings>` | `undefined` | Override built-in UI strings (Today, Clear, Apply, etc.) |
+| `monthNames` | `string[]` | locale-based | Override month names. 12 strings, indexed by month: `[0]`=January … `[11]`=December |
+| `weekdayNames` | `string[]` | locale-based | Override weekday header labels. 7 strings, indexed by day-of-week: `[0]`=Sunday … `[6]`=Saturday (`weekStartDay` only rotates the display, not this mapping) |
 | `formatSummaryCallback` | `(data: SummaryCallbackData) => string` | `undefined` | Custom function to format the summary display (receives all selection data, returns HTML string) |
 
 ### Example Usage

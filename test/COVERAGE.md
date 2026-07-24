@@ -163,7 +163,11 @@ When a row is marked `✓`/`△`, the **Spec** column points at the file under
 | `locale="auto"` detects from browser                          | ✗      |      |         |
 | Explicit `locale="de"` / `"fr"` / etc.                        | ✓      | `locale.spec.ts`             | `locale.html`             |
 | `customStrings` overrides individual UI strings               | ✓      | `locale.spec.ts`             | `locale.html`             |
-| `monthNames` override                                         | ✓      | `locale.spec.ts`             | `locale.html`             |
+| `monthNames` override (property)                              | ✓      | `locale.spec.ts`             | `locale.html`             |
+| `month-names` override (pipe-delimited attribute)             | ✓      | `locale.spec.ts`             | `locale.html`             |
+| `weekday-names` override (pipe-delimited, Sunday-indexed)     | ✓      | `locale.spec.ts`             | `locale.html`             |
+| `weekday-names` rotates by `week-start-day` (Wednesday-first) | ✓      | `locale.spec.ts`             | `locale.html`             |
+| `month-names` / `weekday-names` bad segment count ignored     | ✓      | `locale.spec.ts`             | `locale.html`             |
 | `week-start-day="auto"` follows locale                        | ✗      |      |         |
 | Explicit `week-start-day` integer                             | ✓      | `locale.spec.ts`             | `locale.html`             |
 

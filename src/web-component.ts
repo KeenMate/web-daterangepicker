@@ -55,6 +55,29 @@ const parseDisabledDates: AttrParser = (el, attr) => {
     const parsed = raw.split(',').map(s => s.trim()).filter(Boolean);
     return parsed.length ? parsed : undefined;
 };
+/**
+ * Pipe-delimited list of exactly `count` non-empty strings, position-indexed:
+ *   month-names="Leden|Únor|Březen|…"  → [0]=January … [11]=December (12 items)
+ *   weekday-names="Ne|Po|Út|…"          → [0]=Sunday   … [6]=Saturday  (7 items)
+ * The index is a fixed month/day number — week-start-day only rotates the
+ * on-screen order, never this mapping. Segments are trimmed; a wrong count or
+ * any empty segment yields undefined (attribute ignored, locale names used).
+ */
+const parsePipeDelimitedList = (count: number): AttrParser =>
+    (el, attr) => {
+        const raw = el.getAttribute(attr);
+        if (!raw) return undefined;
+        const parts = raw.split('|').map(s => s.trim());
+        if (parts.length !== count) {
+            console.warn(`[web-daterangepicker] "${attr}" ignored: expected exactly ${count} pipe-delimited segments, got ${parts.length}. Falling back to locale names.`);
+            return undefined;
+        }
+        if (!parts.every(Boolean)) {
+            console.warn(`[web-daterangepicker] "${attr}" ignored: one or more segments are empty. Falling back to locale names.`);
+            return undefined;
+        }
+        return parts;
+    };
 const parseWeekStartDay: AttrParser = (el, attr) => {
     const raw = el.getAttribute(attr);
     if (!raw) return undefined;
@@ -113,6 +136,8 @@ const ATTRIBUTE_TABLE: AttributeEntry[] = [
     { attr: 'disabled-dates-handling',         key: 'disabledDatesHandling',          parser: parseEnum(DISABLED_HANDLING) },
     { attr: 'should-highlight-disabled-in-range',     key: 'shouldHighlightDisabledInRange',       parser: parseTriStateBool },
     { attr: 'locale',                          key: 'locale',                         parser: parseStringWithDefault('auto') },
+    { attr: 'month-names',                     key: 'monthNames',                     parser: parsePipeDelimitedList(12) },
+    { attr: 'weekday-names',                   key: 'weekdayNames',                   parser: parsePipeDelimitedList(7) },
     { attr: 'display-format-mask',             key: 'displayFormatMask',              parser: parseStringOrUndefined },
     { attr: 'show-debug-info',                 key: 'showDebugInfo',                  parser: parseBoolPresence },
     { attr: 'rolling-year-range',              key: 'rollingYearRange',               parser: parseStringOrUndefined },
@@ -151,6 +176,8 @@ const DUAL_PATH_KEYS = new Set<keyof DatePickerOptions>([
     'badgeTooltipMember',
     'dayTooltipMember',
     'isDisabledMember',
+    'monthNames',
+    'weekdayNames',
 ]);
 
 /** Read all picker-affecting attributes from `el` into a partial DatePickerOptions. */
@@ -202,6 +229,7 @@ export class WebDaterangepickerElement extends HTMLElement {
     // a string attribute; held on the element like the other complex options).
     private _customStrings?: Partial<LocaleStrings>;
     private _monthNames?: string[];
+    private _weekdayNames?: string[];
 
     // Deferred re-initialization flag
     private _pendingReinit = false;
@@ -509,7 +537,8 @@ export class WebDaterangepickerElement extends HTMLElement {
             getMonthHeaderCallback: this._getMonthHeaderCallback,
             actionButtons: this._actionButtons,
             customStrings: this._customStrings,
-            monthNames: this._monthNames,
+            monthNames: this._monthNames ?? fromAttributes.monthNames,
+            weekdayNames: this._weekdayNames ?? fromAttributes.weekdayNames,
         };
 
         // For inline mode, pass null as input element
@@ -1283,6 +1312,15 @@ export class WebDaterangepickerElement extends HTMLElement {
     set monthNames(value: string[] | undefined) {
         this._monthNames = value;
         this.applyOptionUpdate('monthNames', value);
+    }
+
+    get weekdayNames(): string[] | undefined {
+        return this._weekdayNames;
+    }
+
+    set weekdayNames(value: string[] | undefined) {
+        this._weekdayNames = value;
+        this.applyOptionUpdate('weekdayNames', value);
     }
 
     // Reactive selection properties (forward to picker)

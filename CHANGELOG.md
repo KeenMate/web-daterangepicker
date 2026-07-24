@@ -5,6 +5,21 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.0.0-rc03] - 2026-07-24 [PUBLISHED]
+
+### Added — custom weekday names + declarative name overrides
+
+- **New `weekdayNames` option** (property / `DatePickerOptions`) to override the weekday header labels, closing the asymmetry with the existing `monthNames` override (issue #5). Falls back to locale-based `Intl` short names when unset. The array is **indexed by day-of-week — `[0]`=Sunday … `[6]`=Saturday (matches `Date.getDay()`)** — and `weekStartDay` only rotates the *display*, never this mapping, so labels stay aligned to the real days at any start day.
+- **Declarative pipe-delimited attributes `month-names` and `weekday-names`** — both name overrides are now settable in plain HTML, not just via JS properties:
+  ```html
+  <web-daterangepicker
+    week-start-day="3"
+    month-names="Leden|Únor|Březen|Duben|Květen|Červen|Červenec|Srpen|Září|Říjen|Listopad|Prosinec"
+    weekday-names="Ne|Po|Út|St|Čt|Pá|So"></web-daterangepicker>
+  ```
+  `month-names` is indexed `[0]`=January … `[11]`=December (matches `Date.getMonth()`); `weekday-names` is Sunday-first as above. Both are dual-path (`ATTRIBUTE_TABLE` + property) — the explicitly-set property wins when both are present — and route through the surgical `updateOptions` path, so changing them re-renders without a full rebuild.
+- **Validation with feedback**: a pipe list without exactly 12 / 7 non-empty segments is ignored (locale names used) and emits a `console.warn` naming the attribute and the offending count — no silent failure, no bad-index crash.
+
 ## [2.0.0-rc02] - 2026-07-08 [PUBLISHED]
 
 ### Added — scoped read-only lock

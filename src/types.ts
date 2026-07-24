@@ -409,6 +409,7 @@ export interface DatePickerOptions {
   displayFormatMask?: string; // Localized format mask for display (e.g., 'dd/mm/aaaa' in Spanish). If not provided, uses dateFormatMask.
   customStrings?: Partial<LocaleStrings>; // Override any UI strings
   monthNames?: string[]; // Custom month names (12 strings). If not provided, uses locale-based names. Examples: ['01', '02', ..., '12'] or ['Jan', 'Feb', ..., 'Dec']
+  weekdayNames?: string[]; // Custom weekday names (7 strings, indexed by day-of-week: [0]=Sunday … [6]=Saturday, ALWAYS — weekStartDay only rotates the display, not this mapping). If not provided, uses locale-based short names. Examples: ['Su', 'Mo', ..., 'Sa'] or ['Ne', 'Po', ..., 'So']
 
   /**
    * Custom function to format the summary display (receives all selection data, returns HTML string).

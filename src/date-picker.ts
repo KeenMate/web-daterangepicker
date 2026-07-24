@@ -217,6 +217,7 @@ class DateRangePicker {
             displayFormatMask: options.displayFormatMask,
             customStrings: options.customStrings,
             monthNames: options.monthNames,
+            weekdayNames: options.weekdayNames,
             formatSummaryCallback: options.formatSummaryCallback,
             beforeDateSelectCallback: options.beforeDateSelectCallback,
             beforeMonthChangedCallback: options.beforeMonthChangedCallback,
@@ -316,7 +317,7 @@ class DateRangePicker {
         // Initialize internationalization
         this.locale = resolveLocale(this.options.locale);
         this.localeStrings = getLocaleStrings(this.locale, this.options.customStrings);
-        this.weekdayNames = getWeekdayNames(this.locale);
+        this.weekdayNames = this.options.weekdayNames || getWeekdayNames(this.locale);
         this.monthNames = this.options.monthNames || getMonthNames(this.locale);
         drpLogger.debug('Locale:', this.locale, 'Weekdays:', this.weekdayNames, 'Months:', this.monthNames);
 
@@ -650,10 +651,10 @@ class DateRangePicker {
         if (has('weekStartDay')) {
             this.weekStartDay = Validation.detectWeekStartDay(this.options.weekStartDay);
         }
-        if (has('locale') || has('customStrings') || has('monthNames')) {
+        if (has('locale') || has('customStrings') || has('monthNames') || has('weekdayNames')) {
             this.locale = resolveLocale(this.options.locale);
             this.localeStrings = getLocaleStrings(this.locale, this.options.customStrings);
-            this.weekdayNames = getWeekdayNames(this.locale);
+            this.weekdayNames = this.options.weekdayNames || getWeekdayNames(this.locale);
             this.monthNames = this.options.monthNames || getMonthNames(this.locale);
         }
         if (has('dateFormatMask')) {

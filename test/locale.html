@@ -42,6 +42,34 @@
             initial-date="2026-06-15" week-start-day="1"></web-daterangepicker>
     </div>
 
+    <div class="fixture">
+        <div class="fixture-label">month-names attribute (pipe-delimited Czech) — June → "Červen"</div>
+        <web-daterangepicker id="month-names-attr" selection-mode="single"
+            initial-date="2026-06-15"
+            month-names="Leden|Únor|Březen|Duben|Květen|Červen|Červenec|Srpen|Září|Říjen|Listopad|Prosinec"></web-daterangepicker>
+    </div>
+
+    <div class="fixture">
+        <div class="fixture-label">weekday-names attribute (Sunday-first Czech) + week-start-day="0" — first column "Ne"</div>
+        <web-daterangepicker id="weekday-names-attr" selection-mode="single"
+            initial-date="2026-06-15" week-start-day="0"
+            weekday-names="Ne|Po|Út|St|Čt|Pá|So"></web-daterangepicker>
+    </div>
+
+    <div class="fixture">
+        <div class="fixture-label">weekday-names (Sunday-first) + week-start-day="3" — Wednesday-first, first column "St"</div>
+        <web-daterangepicker id="weekday-names-wed" selection-mode="single"
+            initial-date="2026-06-15" week-start-day="3"
+            weekday-names="Ne|Po|Út|St|Čt|Pá|So"></web-daterangepicker>
+    </div>
+
+    <div class="fixture">
+        <div class="fixture-label">weekday-names with wrong segment count — ignored, falls back to locale (Su…)</div>
+        <web-daterangepicker id="weekday-names-bad" selection-mode="single"
+            initial-date="2026-06-15" week-start-day="0"
+            weekday-names="Po|Út|St"></web-daterangepicker>
+    </div>
+
     <script type="module">
         // No whenDefined() — _liftPreUpgradeProperties handles late upgrade.
         // Direct property setters; no need to reach into el.picker.
