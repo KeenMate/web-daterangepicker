@@ -193,6 +193,15 @@ function parseAttributesFromTable(el: AttrReader): Partial<DatePickerOptions> {
 }
 
 
+// Manifest note (maintainers): the observed attributes and dispatched events are
+// injected into custom-elements.json from ATTRIBUTE_TABLE / NON_PICKER_ATTRIBUTES
+// by cem/attribute-table-plugin.mjs — their single source of truth. Keep that out
+// of the JSDoc below so it doesn't leak into the consumer-facing tag hover.
+/**
+ * `<web-daterangepicker>` — a lightweight date / range / time picker web
+ * component with keyboard navigation, multi-month layouts, drag-to-adjust
+ * ranges, and CSS-custom-property theming.
+ */
 export class WebDaterangepickerElement extends HTMLElement {
     private picker?: DateRangePicker;
     private inputElement?: HTMLInputElement;

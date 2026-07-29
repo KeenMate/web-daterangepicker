@@ -229,15 +229,23 @@ export type PickerMode = 'date' | 'time' | 'datetime';
 export type TimeDisplay = 'rolls' | 'clock' | 'wheel' | 'compact';
 
 export interface DatePickerOptions {
+  /**
+   * What the picker selects. Default: `single`.
+   *
+   * - `single` — one date
+   * - `range` — a start–end range (two clicks, or drag to adjust)
+   * - `multiple` — several individual dates (requires Apply to commit)
+   */
   selectionMode?: 'single' | 'range' | 'multiple';
   /**
-   * What the picker is selecting:
-   * - 'date' (default): calendar grid only — unchanged historical behavior
-   * - 'time': time rolls only (hours/minutes + optional seconds/AM-PM), no calendar
-   * - 'datetime': calendar grid plus time rolls in a side-by-side popover
+   * What the picker is selecting. Default: `date`.
    *
-   * In v1, 'time' and 'datetime' only support selectionMode 'single' and
-   * 'datetime' is incompatible with monthLayout 'grid' — both fall back with a console warning.
+   * - `date` — calendar grid only
+   * - `time` — time rolls only (hours/minutes + optional seconds/AM-PM), no calendar
+   * - `datetime` — calendar grid plus time rolls in a side-by-side popover
+   *
+   * In v1, `time` and `datetime` only support selectionMode `single`, and
+   * `datetime` is incompatible with monthLayout `grid` — both fall back with a console warning.
    */
   pickerMode?: PickerMode;
   /** Time format for time / datetime modes. Tokens: HH/H, hh/h, mm/m, ss/s, a. Default: 'HH:mm'. */
@@ -246,43 +254,57 @@ export interface DatePickerOptions {
   displayTimeFormatMask?: string;
   /** Minute (and second) increment for the rolls. Default: 1. */
   timeStep?: number;
-  /** 'h24' for 0-23, 'h12' for 1-12 + AM/PM roll. Default: derived from timeFormatMask (h12 if `a` token present, else h24). */
+  /**
+   * Hour numbering for time / datetime modes. Default: derived from timeFormatMask (`h12` if an `a` token is present, else `h24`).
+   *
+   * - `h24` — 0–23
+   * - `h12` — 1–12 with an AM/PM roll
+   */
   hourCycle?: 'h12' | 'h24';
   /** Show a third roll for seconds. Default: derived from timeFormatMask (true if `s` token present). */
   isSecondsShown?: boolean;
   /** Show a "Now" button in time/datetime modes (parallel to isTodayButtonShown). Default: true. Ignored in date mode. */
   isNowButtonShown?: boolean;
   /**
-   * Which UI to use for picking the time portion (time/datetime modes):
-   * - 'rolls' (default): scrollable rolling lists for hours/minutes/seconds/AM-PM (v1.14 default).
-   * - 'clock': Material-style two-step clock face (hours then minutes). h24 uses a dual ring
-   *   (outer 1-12, inner 13-24). Seconds are ignored and `time-step` must divide 60 evenly;
-   *   non-divisor steps fall back to 1 with a console warning.
-   * - 'wheel': iOS-style barrel/wheel picker. Snap-scroll columns for hours, minutes,
-   *   (optional seconds), and AM/PM (h12 only) with a centered selection band and
-   *   top/bottom fade gradients. Supports any `time-step`. Click any visible row to
-   *   center it.
-   * - 'compact': iOS 14+ pill picker. Tappable HH and MM (and optional SS) pills with a
-   *   ':' separator; tap a pill to type a value directly. Optional AM/PM toggle (h12).
-   *   Calmest of the four — basically inline numeric inputs styled as pills.
+   * Which UI to use for picking the time portion (time / datetime modes). Default: `rolls`. Ignored when pickerMode is `date`.
    *
-   * Ignored when `pickerMode === 'date'`.
+   * - `rolls` — scrollable rolling lists for hours/minutes/seconds/AM-PM.
+   * - `clock` — Material-style two-step clock face (hours then minutes). h24 uses a dual ring (outer 1-12, inner 13-24). Seconds are ignored and `time-step` must divide 60 evenly; non-divisor steps fall back to 1 with a console warning.
+   * - `wheel` — iOS-style barrel/wheel picker. Snap-scroll columns for hours, minutes, (optional seconds), and AM/PM (h12 only) with a centered selection band and top/bottom fade gradients. Supports any `time-step`. Click any visible row to center it.
+   * - `compact` — iOS 14+ pill picker. Tappable HH and MM (and optional SS) pills with a ':' separator; tap a pill to type a value directly. Optional AM/PM toggle (h12). Calmest of the four — basically inline numeric inputs styled as pills.
    */
   timeDisplay?: TimeDisplay;
+  /** Floating-UI placement for the popover (e.g. 'bottom-start', 'top-end'). Default: 'bottom-start', flipping/shifting on viewport overflow. */
   calendarPlacement?: string;
+  /** Number of month columns shown side by side. Default: 1. */
   visibleMonthsCount?: number;
+  /** Date format for the input and parsing. Tokens: YYYY/YY, MM/M, DD/D with any separators. Default: 'YYYY-MM-DD'. */
   dateFormatMask?: string;
+  /**
+   * When the calendar opens. Default: `focus`.
+   *
+   * - `focus` — when the input receives focus
+   * - `typing` — once the user starts typing a date
+   * - `manual` — only via the API (`show()`), never automatically
+   */
   calendarOpenTrigger?: 'focus' | 'typing' | 'manual';
   onSelect?: (date: Date | DateRange | DateRange[] | Date[]) => void;
   container?: HTMLElement; // Where to append the calendar (default: document.body)
-  positioningMode?: 'inline' | 'floating' | 'modal'; // Display mode: 'inline' = static block, 'floating' = popup anchored to input, 'modal' = centered overlay with backdrop (default: 'floating')
+  /**
+   * How the calendar is presented. Default: `floating`.
+   *
+   * - `inline` — rendered as a static block (no input, always open)
+   * - `floating` — popover anchored to the input
+   * - `modal` — centered overlay with a backdrop
+   */
+  positioningMode?: 'inline' | 'floating' | 'modal';
 
   /**
-   * Controls when the calendar auto-closes (floating mode only)
-   * - 'never': Never auto-close, not even when Apply is clicked - user must close manually
-   * - 'selection': Close when selection completes (single date click, range completion, drag-adjust) - DEFAULT
-   *                Note: Multiple mode never auto-closes on selection, inherently requires Apply
-   * - 'apply': Only close when Apply button is clicked
+   * When the calendar auto-closes (floating mode only). Default: `selection`.
+   *
+   * - `never` — never auto-close, even on Apply; the user closes it manually
+   * - `selection` — close when a selection completes (single click, range completion, drag-adjust). Note: multiple mode never auto-closes on selection — it requires Apply
+   * - `apply` — close only when the Apply button is clicked
    */
   autoClose?: 'never' | 'selection' | 'apply';
 
@@ -298,10 +320,19 @@ export interface DatePickerOptions {
   shouldCloseOnScroll?: boolean;
 
   // Calendar layout
-  monthLayout?: 'horizontal' | 'grid'; // Layout mode: 'horizontal' = flex row (default), 'grid' = CSS grid
-  gridRows?: number; // Number of rows for grid layout (e.g., 2 for 2x3 grid)
-  gridColumns?: number; // Number of columns for grid layout (e.g., 3 for 2x3 grid)
-  isUnifiedNavigationEnabled?: boolean; // When true, shows single navigation header above all months (for multi-month calendars). Individual month headers show only month/year text without nav buttons. Default: false
+  /**
+   * How multiple months are arranged. Default: `horizontal`.
+   *
+   * - `horizontal` — a flex row of month columns
+   * - `grid` — a CSS grid (see gridRows / gridColumns)
+   */
+  monthLayout?: 'horizontal' | 'grid';
+  /** Number of rows when monthLayout is 'grid' (e.g. 2 for a 2×3 grid). */
+  gridRows?: number;
+  /** Number of columns when monthLayout is 'grid' (e.g. 3 for a 2×3 grid). */
+  gridColumns?: number;
+  /** Show a single navigation header above all months (multi-month calendars); individual month headers become plain month/year text. Default: false. */
+  isUnifiedNavigationEnabled?: boolean;
   /**
    * Which month column serves as the anchor for unified navigation (0-based index)
    * Default: 0 (first month)
@@ -321,20 +352,33 @@ export interface DatePickerOptions {
   isUnifiedHeaderInteractive?: boolean;
 
   // Week start configuration
-  weekStartDay?: 'auto' | 0 | 1 | 2 | 3 | 4 | 5 | 6; // 'auto' = detect from locale, 0 = Sunday, 1 = Monday, etc.
+  /**
+   * First day of the week. Default: `auto`.
+   *
+   * - `auto` — detect from the active locale
+   * - `0`–`6` — fixed day, where 0 = Sunday, 1 = Monday … 6 = Saturday
+   */
+  weekStartDay?: 'auto' | 0 | 1 | 2 | 3 | 4 | 5 | 6;
 
   // Date restrictions
+  /** Earliest selectable date (Date or ISO string). Dates before it are disabled. */
   minDate?: Date | string;
+  /** Latest selectable date (Date or ISO string). Dates after it are disabled. */
   maxDate?: Date | string;
-  disabledDates?: (Date | string)[]; // Specific dates to disable
-  disabledWeekdays?: number[]; // Days of week to disable (0 = Sunday, 6 = Saturday)
+  /** Specific dates to disable (array of Date or ISO strings). */
+  disabledDates?: (Date | string)[];
+  /** Weekdays to disable, by day-of-week number (0 = Sunday … 6 = Saturday). */
+  disabledWeekdays?: number[];
 
   // Initial display date
-  initialDate?: Date | string; // Date to display when calendar opens. If not set, uses today or minDate if constrained.
+  /** Month/date to show when the calendar first opens. If unset, uses today (or minDate when constrained). */
+  initialDate?: Date | string;
 
   // Rolling selector configuration
-  rollingYearRange?: string; // Year range to display in rolling selector. Examples: "2024" (single year), "2022-2026" (range). Default: currentYear ± 50
-  rollingMonthRange?: string; // Month range to display in rolling selector. Format: "MM-MM". Examples: "01-12" (all), "06-08" (summer), "11-12" (year-end). Default: "01-12"
+  /** Year range for the rolling year selector. Examples: "2024" (single) or "2022-2026" (range). Default: current year ± 50. */
+  rollingYearRange?: string;
+  /** Month range for the rolling month selector, format "MM-MM". Examples: "01-12" (all), "06-08" (summer). Default: "01-12". */
+  rollingMonthRange?: string;
 
   // Special dates (holidays, events, etc.)
   specialDates?: DecoratedDate[];
@@ -342,13 +386,20 @@ export interface DatePickerOptions {
   // Property mapping for specialDates array items
   // Specify which properties in your data objects map to DayMetadata fields
   // If not specified, defaults to DayMetadata property names
-  dateMember?: string;              // Property containing the date value (default: 'date')
-  badgeTextMember?: string;         // Property containing badge text (default: 'badgeText')
-  badgeClassMember?: string;        // Property containing badge CSS class (default: 'badgeClass')
-  dayClassMember?: string;          // Property containing day CSS class (default: 'dayClass')
-  badgeTooltipMember?: string;      // Property containing badge tooltip (default: 'badgeTooltip')
-  dayTooltipMember?: string;        // Property containing day tooltip (default: 'dayTooltip')
-  isDisabledMember?: string;        // Property containing disabled flag (default: 'isDisabled')
+  /** Which property in your specialDates objects holds the date value. Default: 'date'. */
+  dateMember?: string;
+  /** Which property holds the badge text. Default: 'badgeText'. */
+  badgeTextMember?: string;
+  /** Which property holds the badge CSS class. Default: 'badgeClass'. */
+  badgeClassMember?: string;
+  /** Which property holds the day-cell CSS class. Default: 'dayClass'. */
+  dayClassMember?: string;
+  /** Which property holds the badge tooltip. Default: 'badgeTooltip'. */
+  badgeTooltipMember?: string;
+  /** Which property holds the day-cell tooltip. Default: 'dayTooltip'. */
+  dayTooltipMember?: string;
+  /** Which property holds the disabled flag. Default: 'isDisabled'. */
+  isDisabledMember?: string;
 
   // Advanced callbacks
   getDateMetadataCallback?: (ctx: DayContext) => DayMetadata | null; // Custom styling/labels
@@ -377,16 +428,19 @@ export interface DatePickerOptions {
   badgeTooltipCallback?: (data: DayContext) => string | null; // Return HTML string for badge hover tooltip (overrides DayMetadata.badgeTooltip)
   dayTooltipCallback?: (data: DayContext) => string | null; // Return HTML string for day cell hover tooltip (overrides DayMetadata.dayTooltip)
 
-  // Range selection behavior over disabled dates
+  /**
+   * How a range that spans disabled dates is handled.
+   *
+   * - 'allow' (default): allow ranges over disabled dates
+   * - 'prevent': block selections that cross disabled dates
+   * - 'block': snap selection to the last enabled date before the disabled gap
+   * - 'split': return multiple ranges split by disabled dates (event formatting only)
+   * - 'individual': return a flat array of enabled dates (event formatting only)
+   */
   disabledDatesHandling?: 'allow' | 'prevent' | 'block' | 'split' | 'individual';
-  // - 'allow': Allow ranges over disabled dates (default)
-  // - 'prevent': Prevent selections that cross disabled dates (selection attempt is blocked)
-  // - 'block': Snap selection to last enabled date before disabled gap
-  // - 'split': Return multiple ranges split by disabled dates (event formatting only)
-  // - 'individual': Return flat array of enabled dates (event formatting only)
 
-  // Visual highlighting of disabled dates in selected range
-  shouldHighlightDisabledInRange?: boolean; // Default: true. Set to false to only highlight enabled dates in range.
+  /** Highlight disabled dates that fall inside a selected range. Default: true; set false to highlight only enabled dates. */
+  shouldHighlightDisabledInRange?: boolean;
 
   // Action button configuration
   /** Array of custom action buttons to display. If not provided, uses default buttons based on selectionMode */
@@ -405,11 +459,16 @@ export interface DatePickerOptions {
   isSummaryShown?: boolean;
 
   // Internationalization
-  locale?: string | 'auto'; // Locale for UI strings and date formatting ('auto' = detect from browser, 'en', 'de', 'fr', 'es', etc.)
-  displayFormatMask?: string; // Localized format mask for display (e.g., 'dd/mm/aaaa' in Spanish). If not provided, uses dateFormatMask.
-  customStrings?: Partial<LocaleStrings>; // Override any UI strings
-  monthNames?: string[]; // Custom month names (12 strings). If not provided, uses locale-based names. Examples: ['01', '02', ..., '12'] or ['Jan', 'Feb', ..., 'Dec']
-  weekdayNames?: string[]; // Custom weekday names (7 strings, indexed by day-of-week: [0]=Sunday … [6]=Saturday, ALWAYS — weekStartDay only rotates the display, not this mapping). If not provided, uses locale-based short names. Examples: ['Su', 'Mo', ..., 'Sa'] or ['Ne', 'Po', ..., 'So']
+  /** Locale for UI strings and date formatting. 'auto' (default) detects from the browser; or pass 'en', 'de', 'fr', 'es', etc. */
+  locale?: string | 'auto';
+  /** Separate format mask for display only (e.g. 'dd/mm/aaaa'). Falls back to dateFormatMask when unset. */
+  displayFormatMask?: string;
+  /** Override any UI strings (buttons, labels) individually. */
+  customStrings?: Partial<LocaleStrings>;
+  /** Custom month names (exactly 12, index 0 = January). Overrides locale names. Example: ['Jan', … , 'Dec']. */
+  monthNames?: string[];
+  /** Custom weekday names (exactly 7, index 0 = Sunday … 6 = Saturday, always — weekStartDay only rotates the display). Overrides locale names. */
+  weekdayNames?: string[];
 
   /**
    * Custom function to format the summary display (receives all selection data, returns HTML string).
@@ -537,7 +596,7 @@ export interface DatePickerOptions {
    */
   beforeMonthChangedCallback?: (context: MonthChangeContext) => Promise<BeforeMonthChangeResult> | BeforeMonthChangeResult;
 
-  // Debug mode - enables detailed console logging for troubleshooting
+  /** Enable detailed console logging for troubleshooting. Default: false. */
   showDebugInfo?: boolean;
 }
 
