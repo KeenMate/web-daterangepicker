@@ -5,6 +5,22 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.0.0-rc04] - 2026-07-29 [PUBLISHED]
+
+### Added — Custom-Elements-Manifest + editor autocomplete
+
+- **Custom-Elements-Manifest (CEM) toolchain wired up** — the package now generates and ships `custom-elements.json`, `web-types.json`, and `vscode.html-custom-data.json` (+ `vscode.css-custom-data.json`), giving `<web-daterangepicker>` full tag / attribute / enum-value autocomplete and hover docs in VS Code (via `html.customData`) and JetBrains IDEs (auto-discovered via the `web-types` field). A new `analyze` script runs as part of `npm run build` so the manifest can't drift; artifacts are gitignored (build output) but published via the `files` field.
+- **Custom analyzer plugin (`cem/attribute-table-plugin.mjs`)** — the element's ~56 attributes live in the runtime `ATTRIBUTE_TABLE`, reached through a `.map()` spread the analyzer can't statically read, so a stock `cem analyze` emitted zero attributes. The plugin reads `ATTRIBUTE_TABLE` + `NON_PICKER_ATTRIBUTES` from the AST, resolves enum union types from the sibling `as const` arrays, harvests attribute descriptions from the `DatePickerOptions` JSDoc, and curates the three public events (`date-select`, `change`, `custom-action`). Single source of truth — the manifest can't drift from the table.
+
+### Changed
+
+- **`DatePickerOptions` JSDoc overhaul** — inline `//` comments and bare members converted to proper `/** */` JSDoc so every attribute carries an editor hover. Enum options use a consistent house style (a summary line ending `` Default: `x`. ``, then a `` - `value` — description `` bullet list) that renders as a formatted markdown list in the IDE hover. Benefits TypeScript consumers of `DatePickerOptions` too.
+
+### Internal
+
+- Added devDependencies: `@custom-elements-manifest/analyzer`, `custom-element-vs-code-integration`, `custom-element-jet-brains-integration`.
+- `package.json`: `customElements` + `web-types` pointer fields, `analyze` script (run first by `build`), manifest artifacts added to `files`, plural `web-components` / `custom-elements` keywords.
+
 ## [2.0.0-rc03] - 2026-07-24 [PUBLISHED]
 
 ### Added — custom weekday names + declarative name overrides

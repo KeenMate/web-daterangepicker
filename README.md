@@ -11,6 +11,14 @@ mode out of the box.
 > you must sanitize it yourself. See [HTML Injection (XSS) Notice](#html-injection-xss-notice)
 > for the complete list of affected callbacks and methods.
 
+## What's New in v2.0.0-rc04
+
+- **Editor autocomplete — full IntelliSense for `<web-daterangepicker>` in VS Code and JetBrains** — the package now generates and publishes a Custom-Elements-Manifest (`custom-elements.json`) plus editor-integration artifacts (`web-types.json`, `vscode.html-custom-data.json`), so dropping the element into an HTML file gives you tag completion, all 56 attributes, enum value completion (typing `selection-mode="` offers `single` / `range` / `multiple`), and hover documentation. VS Code picks it up via `html.customData`; JetBrains IDEs auto-discover it through the `web-types` package.json field. Generation is wired into `npm run build`, so the manifest tracks the source and can't go stale.
+
+- **Zero-drift manifest — attributes derived straight from the runtime attribute table** — the element's entire attribute surface lives in one place (`ATTRIBUTE_TABLE`), which the stock analyzer can't read because it's consumed through a dynamic `.map()` spread. A custom analyzer plugin reads that table (and `NON_PICKER_ATTRIBUTES`) directly from the AST, resolves each enum's allowed values from the source union types, and pulls descriptions from the `DatePickerOptions` JSDoc — so the manifest is built from the same single source of truth the component uses at runtime and can never disagree with it.
+
+- **Richer type docs — every option now has an editor hover** — the `DatePickerOptions` interface got a JSDoc pass: inline comments became proper doc comments, and every enum option (selection mode, picker mode, positioning, time display, and more) is documented with its allowed values and defaults in a consistent, readable format. It surfaces both in the new HTML autocomplete and when hovering `DatePickerOptions` fields in TypeScript.
+
 ## What's New in v2.0.0-rc03
 
 - **Weekday header labels — customizable at last** — The picker gained a `weekdayNames` override (property and `DatePickerOptions`), closing a long-standing asymmetry with the already-overridable `monthNames` (issue #5). Previously weekday headers were locked to whatever `Intl` produced for the locale; now you can supply your own seven short labels. The array is indexed by day-of-week — `[0]`=Sunday … `[6]`=Saturday, matching `Date.getDay()` — and `weekStartDay` only rotates the *display*, never the mapping, so labels stay glued to the correct days at any start-of-week (Monday, Wednesday-first business weeks, whatever).
@@ -18,16 +26,6 @@ mode out of the box.
 - **Declarative name overrides in plain HTML** — Both `month-names` and `weekday-names` are now settable as pipe-delimited attributes (`weekday-names="Ne|Po|Út|St|Čt|Pá|So"`), not just via JS properties — no script needed for static localization. `month-names` is indexed `[0]`=January … `[11]`=December (matches `Date.getMonth()`). Both are dual-path: the explicitly-set property wins when both an attribute and a property are present, and changes route through the surgical `updateOptions` path so they re-render without a full picker rebuild.
 
 - **Malformed name lists fail loudly, not silently** — A pipe list without exactly 12 / 7 non-empty segments is now ignored (locale names used as fallback) and emits a `console.warn` naming the offending attribute and segment count — so a typo'd override surfaces in the console instead of silently doing nothing or crashing on a bad index.
-
-## What's New in v2.0.0-rc02
-
-- **Scoped read-only lock — `lock()` / `unlock()` / `toggleLock()`** — A new imperative API freezes user interaction while keeping the selected value fully readable, unlike `disabled` (which greys the input out and blocks the whole field). The motivating flow: the user picks a range, a custom confirm button calls the server, and on success you call `lock()` so the confirmed range can no longer be edited. Locks are enforced at every user-interaction choke point across `date-picker.ts`, `date-picker-navigation.ts`, `date-picker-interaction.ts`, and `date-picker-ui.ts`, so day clicks, drag-to-adjust, typed input, keyboard month-crossing, and popover re-opening all respect it.
-
-- **Four independent lock aspects — `selection`, `navigation`, `actions`, `open`** — `lock()` with no argument freezes everything; `lock(aspect | aspect[])` freezes a subset via the new exported `LockAspect` type. `selection` covers day/drag/typed/time picks and flips the `<input>` to `readOnly`; `navigation` covers `<` / `>`, PageUp/Down, Ctrl+arrows and the rolling year/month selector; `actions` covers Apply and custom buttons; `open` blocks re-opening the popover but never blocks closing, so a locked picker is never a keyboard trap. Partial locks compose — `lock(['selection','actions'])` freezes the range and buttons while leaving `<` / `>` live so a user can still browse other months after confirming.
-
-- **Programmatic API stays live — the lock gates the end user, not your code** — Selection setters (`selectedRanges = …`), `clearSelection()`, and the navigation methods all keep working while locked, exactly like a `readOnly` `<input>` is still settable from JS. This keeps server-driven flows (confirm, amend, reset) fully scriptable against a locked picker.
-
-- **Declarative `readonly` attribute + greyed affordance** — `<web-daterangepicker readonly>` or `picker.readonly = true` applies a full lock and survives the attribute-driven rebuild; it reads back `true` only when every aspect is locked. Locked regions grey out like disabled controls via the new `--drp-opacity-locked` token (default `0.6`, inherited from `--drp-opacity-disabled`; set to `1` to disable greying), driven by per-aspect root modifiers `.drp__picker--locked-{aspect}`.
 
 ## What is it
 
