@@ -142,9 +142,10 @@
   <div class="demo-section">
     <h2>Overview: Built-in Logging System</h2>
     <div class="info">
-      <strong>Professional debugging with loglevel</strong><br><br>
-      The date picker includes a comprehensive logging system powered by <strong>loglevel</strong> library.
-      Logs are categorized, timestamped, and easy to filter for troubleshooting.
+      <strong>Built-in categorized logging</strong><br><br>
+      The date picker includes a comprehensive logging system provided by
+      <strong>@keenmate/web-components-core</strong>. Logs are grouped into colour-coded
+      <code>DRP:*</code> categories and easy to filter for troubleshooting.
     </div>
     <div class="warning">
       <strong>⚠️ Development Only</strong><br>
@@ -154,7 +155,7 @@
 
   <div class="demo-section">
     <h2>Log Categories</h2>
-    <p>The logging system organizes output into 8 categories:</p>
+    <p>The logging system organizes output into 8 categories. In the console each line is prefixed with the full category name — <code>DRP:GENERAL</code>, <code>DRP:UI</code>, etc. (the short badge below is just the suffix):</p>
     <table>
       <thead>
         <tr>
@@ -165,9 +166,9 @@
       </thead>
       <tbody>
         <tr>
-          <td><code>INIT</code></td>
-          <td><span class="log-category cat-init">INIT</span></td>
-          <td>Component initialization, option parsing, setup</td>
+          <td><code>DRP:GENERAL</code></td>
+          <td><span class="log-category cat-init">GENERAL</span></td>
+          <td>General/initialization, option parsing, setup</td>
         </tr>
         <tr>
           <td><code>NAVIGATION</code></td>
@@ -229,12 +230,12 @@
     </div>
 
     <p style="margin-top: 1.5rem;"><strong>Expected console output:</strong></p>
-    <div class="console-output">[14:23:15.420] [DEBUG] [INIT] Week starts on day: 1
-[14:23:15.425] [DEBUG] [INIT] Creating calendar
-[14:23:15.428] [DEBUG] [RENDERING] renderCalendar() called
-[14:23:15.430] [DEBUG] [UI] show() - adding visible class
-[14:23:15.432] [DEBUG] [UI] Positioning calendar
-[14:23:15.435] [DEBUG] [RENDERING] Rendering month 0: November 2025</div>
+    <div class="console-output">[DRP:GENERAL] Week starts on day: 1
+[DRP:GENERAL] Creating calendar
+[DRP:RENDERING] renderCalendar() called
+[DRP:UI] show() - adding visible class
+[DRP:UI] Positioning calendar
+[DRP:RENDERING] Rendering month 0: November 2025</div>
   </div>
 
   <div class="demo-section">
@@ -256,10 +257,10 @@
     </div>
 
     <p style="margin-top: 1.5rem;"><strong>Expected validation logs:</strong></p>
-    <div class="console-output">[14:23:45.122] [DEBUG] [VALIDATION] validateRangeAsync called - mode: block
-[14:23:45.125] [DEBUG] [VALIDATION] BLOCK mode - adjusted end: Fri Jan 05 2025
-[14:23:45.128] [DEBUG] [SELECTION] Range selected: 2025-01-02 to 2025-01-05
-[14:23:45.130] [DEBUG] [VALIDATION] Validating 4 enabled dates</div>
+    <div class="console-output">[DRP:VALIDATION] validateRangeAsync called - mode: block
+[DRP:VALIDATION] BLOCK mode - adjusted end: Fri Jan 05 2025
+[DRP:SELECTION] Range selected: 2025-01-02 to 2025-01-05
+[DRP:VALIDATION] Validating 4 enabled dates</div>
   </div>
 
   <div class="demo-section">
@@ -279,12 +280,12 @@
     </div>
 
     <p style="margin-top: 1.5rem;"><strong>Expected navigation logs:</strong></p>
-    <div class="console-output">[14:24:10.250] [DEBUG] [NAVIGATION] Next month clicked for index 0
-[14:24:10.253] [DEBUG] [NAVIGATION] New month: December 2025
-[14:24:10.255] [DEBUG] [RENDERING] renderCalendar() called
-[14:24:10.258] [DEBUG] [RENDERING] Rendering month 0: December 2025
-[14:24:10.260] [DEBUG] [RENDERING] Rendering month 1: January 2026
-[14:24:10.262] [DEBUG] [RENDERING] Rendering month 2: February 2026</div>
+    <div class="console-output">[DRP:NAVIGATION] Next month clicked for index 0
+[DRP:NAVIGATION] New month: December 2025
+[DRP:RENDERING] renderCalendar() called
+[DRP:RENDERING] Rendering month 0: December 2025
+[DRP:RENDERING] Rendering month 1: January 2026
+[DRP:RENDERING] Rendering month 2: February 2026</div>
   </div>
 
   <div class="demo-section">
@@ -304,11 +305,11 @@
     </div>
 
     <p style="margin-top: 1.5rem;"><strong>Expected drag logs:</strong></p>
-    <div class="console-output">[14:25:30.100] [DEBUG] [DRAG] Drag started - type: start
-[14:25:30.450] [DEBUG] [DRAG] Dragging over: 2025-11-08
-[14:25:30.455] [DEBUG] [DRAG] Preview range: 2025-11-08 to 2025-11-20
-[14:25:30.800] [DEBUG] [DRAG] Drag ended
-[14:25:30.803] [DEBUG] [SELECTION] Range updated via drag: 2025-11-08 to 2025-11-20</div>
+    <div class="console-output">[DRP:DRAG] Drag started - type: start
+[DRP:DRAG] Dragging over: 2025-11-08
+[DRP:DRAG] Preview range: 2025-11-08 to 2025-11-20
+[DRP:DRAG] Drag ended
+[DRP:SELECTION] Range updated via drag: 2025-11-08 to 2025-11-20</div>
   </div>
 
   <div class="demo-section">
@@ -317,10 +318,11 @@
 
     <h3 style="font-size: 1rem; margin-top: 1.5rem;">Filter by Category</h3>
     <div class="code-block">// In browser console filter box:
-[INIT]          // Only initialization logs
-[VALIDATION]    // Only validation logs
-[SELECTION]     // Only selection logs
-[DRAG]          // Only drag logs</div>
+DRP:GENERAL      // Only general/initialization logs
+DRP:VALIDATION   // Only validation logs
+DRP:SELECTION    // Only selection logs
+DRP:DRAG         // Only drag logs
+DRP:             // All categories</div>
 
     <h3 style="font-size: 1rem; margin-top: 1.5rem;">Filter by Function</h3>
     <div class="code-block">// Filter by function name:
@@ -329,27 +331,29 @@ validateRange   // Only range validation
 selectDate      // Only date selection</div>
 
     <h3 style="font-size: 1rem; margin-top: 1.5rem;">Programmatic Control</h3>
-    <div class="code-block">// Access the picker instance
-const picker = document.querySelector('web-daterangepicker').picker;
+    <div class="code-block">// Logging is controlled globally (not per-element), via the component's
+// entry on window.components — or the named module exports.
+const { logging } = window.components['web-daterangepicker'];
 
-// Enable/disable specific categories
-picker.logger.setLevel('debug');  // Show all
-picker.logger.setLevel('error');  // Errors only
-picker.logger.setLevel('silent'); // Disable all</div>
+logging.enableLogging();              // all categories → debug
+logging.setLogLevel('error');         // all categories → errors only
+logging.disableLogging();             // silence everything
+logging.setCategoryLevel('DRP:UI', 'debug');   // one category (bare 'UI' also works)
+
+// Equivalent named imports:
+// import { enableLogging, setLogLevel, setCategoryLevel } from '@keenmate/web-daterangepicker';</div>
   </div>
 
   <div class="demo-section">
     <h2>Log Message Format</h2>
-    <p>Each log message includes:</p>
-    <div class="code-block">[HH:MM:SS.mmm] [LEVEL] [CATEGORY] Message with context
+    <p>Each log line is prefixed with its colour-coded category, followed by the message:</p>
+    <div class="code-block">[DRP:CATEGORY] Message with context
 
 Example:
-[14:23:15.420] [DEBUG] [INIT] Week starts on day: 1
-    │            │        │       │
-    │            │        │       └─ Message with details
-    │            │        └───────── Category (INIT, UI, etc.)
-    │            └────────────────── Log level (DEBUG, ERROR, etc.)
-    └─────────────────────────────── Timestamp (millisecond precision)</div>
+[DRP:GENERAL] Week starts on day: 1
+ │             │
+ │             └─ Message with details
+ └─────────────── Category label (DRP:GENERAL, DRP:UI, …), colour-coded per category</div>
   </div>
 
   <div class="demo-section">
@@ -359,8 +363,7 @@ Example:
       <li style="margin-bottom: 0.5rem;"><strong>Production:</strong> Always remove <code>show-debug-info</code> attribute</li>
       <li style="margin-bottom: 0.5rem;"><strong>Performance:</strong> Logs are minimal overhead when disabled</li>
       <li style="margin-bottom: 0.5rem;"><strong>Filtering:</strong> Use console filters to reduce noise</li>
-      <li style="margin-bottom: 0.5rem;"><strong>Categories:</strong> Focus on specific categories for targeted debugging</li>
-      <li style="margin-bottom: 0.5rem;"><strong>Timestamps:</strong> Use millisecond precision to measure performance</li>
+      <li style="margin-bottom: 0.5rem;"><strong>Categories:</strong> Focus on specific categories for targeted debugging (filter on <code>DRP:</code>)</li>
     </ul>
   </div>
 
@@ -386,10 +389,8 @@ Example:
   // Programmatic logging control
   setTimeout(() => {
     // Disable logging after 30 seconds
-    if (picker.picker) {
-      picker.picker.logger.setLevel('silent');
-      console.log('Debug logging disabled');
-    }
+    window.components['web-daterangepicker'].logging.disableLogging();
+    console.log('Debug logging disabled');
   }, 30000);
 &lt;/script&gt;</div>
   </div>
@@ -414,7 +415,7 @@ Example:
       console.log('1. Keep this console open (F12)');
       console.log('2. Interact with the date pickers above');
       console.log('3. Watch the categorized log output');
-      console.log('4. Try filtering logs by category: [INIT], [SELECTION], [VALIDATION], etc.');
+      console.log('4. Try filtering logs by category: DRP:GENERAL, DRP:SELECTION, DRP:VALIDATION, etc.');
       console.log('');
       console.log('💡 Each picker on this page has show-debug-info enabled');
       console.log('');

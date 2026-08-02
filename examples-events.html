@@ -131,15 +131,17 @@
   <!-- Events Overview -->
   <div class="card">
     <h2>Events Fired by the Component</h2>
-    <p>The date picker fires two custom events when a date or range is selected:</p>
+    <p>The date picker fires three custom events:</p>
 
     <div class="info-box">
       <strong>Event Names:</strong>
       <ul style="margin: 0.5rem 0 0 1.5rem;">
         <li><code>date-select</code> - Primary event for date selection</li>
         <li><code>change</code> - Alias event (fires simultaneously with date-select)</li>
+        <li><code>custom-action</code> - Fired when a custom action button is clicked (<code>detail.data</code> / <code>detail.picker</code>)</li>
       </ul>
-      <p style="margin-top: 0.5rem;"><strong>Note:</strong> Both events bubble and are composed (cross Shadow DOM boundaries).</p>
+      <p style="margin-top: 0.5rem;"><strong>Note:</strong> All events bubble and are composed (cross Shadow DOM boundaries).</p>
+      <p style="margin-top: 0.5rem;"><strong>Handler properties:</strong> as an alternative to <code>addEventListener</code>, assign <code>onDateSelect</code>, <code>onChange</code>, or <code>onCustomAction</code> — each receives the <code>CustomEvent</code> just like <code>addEventListener</code>; assign <code>null</code> to detach.</p>
     </div>
 
     <h3>Event Detail Structure</h3>

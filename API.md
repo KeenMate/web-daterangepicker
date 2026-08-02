@@ -41,17 +41,24 @@ import '@keenmate/web-daterangepicker/style.css';
 import type { DatePickerOptions, DateRange, DecoratedDate } from '@keenmate/web-daterangepicker';
 ```
 
-### SCSS Customization
+### CSS Customization
 
-```scss
-// Import all SCSS (main entry point)
-@import '@keenmate/web-daterangepicker/scss';
+The component ships **plain CSS** with `--drp-*` custom properties — there is no
+SCSS/preprocessor. Import the source CSS (instead of the compiled bundle) when you
+want to theme via the custom properties:
 
-// Or import specific SCSS modules
-@import '@keenmate/web-daterangepicker/scss/variables';  // SCSS variables only
-@import '@keenmate/web-daterangepicker/scss/base';       // CSS custom properties definitions
-@import '@keenmate/web-daterangepicker/src/scss/_calendar-grid.scss';  // Individual modules
+```css
+/* Import the full source CSS (@layer variables, component, overrides) */
+@import '@keenmate/web-daterangepicker/css';
+
+/* Or import specific layers */
+@import '@keenmate/web-daterangepicker/css/variables';  /* the --drp-* custom properties */
+@import '@keenmate/web-daterangepicker/css/base';       /* base element styles */
+@import '@keenmate/web-daterangepicker/src/css/calendar-grid.css';  /* individual partials */
 ```
+
+Override any `--drp-*` custom property on the host to theme (see
+[CSS Custom Properties](#css-custom-properties)).
 
 ### Available Exports
 
@@ -59,13 +66,13 @@ import type { DatePickerOptions, DateRange, DecoratedDate } from '@keenmate/web-
 |--------|------|-------------|
 | Main component | `@keenmate/web-daterangepicker` | ES module + UMD, auto-registers web component |
 | Compiled CSS | `@keenmate/web-daterangepicker/style.css` | Production-ready CSS bundle |
-| SCSS entry point | `@keenmate/web-daterangepicker/scss` | Main SCSS file importing all modules |
-| SCSS variables | `@keenmate/web-daterangepicker/scss/variables` | SCSS variables (`$drp-*`) |
-| CSS custom properties | `@keenmate/web-daterangepicker/scss/base` | CSS variables (`:host { --drp-* }`) |
-| Individual SCSS files | `@keenmate/web-daterangepicker/src/scss/*` | Any SCSS module by path |
+| Source CSS entry | `@keenmate/web-daterangepicker/css` | `main.css` (`@layer variables, component, overrides`) |
+| CSS variables | `@keenmate/web-daterangepicker/css/variables` | The `--drp-*` custom properties |
+| Base CSS | `@keenmate/web-daterangepicker/css/base` | Base element styles |
+| Individual CSS files | `@keenmate/web-daterangepicker/src/css/*` | Any CSS partial by path |
 | Dist files | `@keenmate/web-daterangepicker/dist/*` | Any dist file by path |
 
-**Note:** When importing SCSS files, you can customize the component by overriding SCSS variables before importing, or by overriding CSS custom properties in your CSS.
+**Note:** Customize by overriding `--drp-*` CSS custom properties on the host element (no build step required).
 
 ---
 
@@ -73,43 +80,67 @@ import type { DatePickerOptions, DateRange, DecoratedDate } from '@keenmate/web-
 
 All attributes can be set directly on the `<web-daterangepicker>` HTML element.
 
+<!-- GEN:attributes:start -->
+<!-- Auto-generated from custom-elements.json — do not edit by hand. Run `npm run docs:api`. -->
 | Attribute | Type | Default | Description |
 |-----------|------|---------|-------------|
-| `selection-mode` | `'single' \| 'range'` | `'single'` | Selection mode: single date or date range |
-| `date-format-mask` | `string` | `'YYYY-MM-DD'` | Date format string. Supports YYYY/YY, MM/M, DD/D with separators `-`, `/`, `.` |
-| `visible-months-count` | `number` | `1` (single), `2` (range) | Number of calendar months to display simultaneously |
-| `calendar-open-trigger` | `'focus' \| 'typing' \| 'manual'` | `'focus'` | Calendar trigger: `'focus'` (opens on input focus), `'typing'` (opens when typing starts), or `'manual'` (opens only via button/code) |
-| `value` | `string` | `''` | Current input value (formatted date string) |
-| `disabled` | `boolean` | `false` | When present, disables the input element |
-| `placeholder` | `string` | `undefined` | Input placeholder text |
-| `week-start-day` | `'auto' \| 0-6` | `'auto'` | First day of week: `'auto'` (locale-based) or `0` (Sunday) through `6` (Saturday) |
-| `min-date` | `string` | `undefined` | Minimum selectable date (YYYY-MM-DD format) |
-| `max-date` | `string` | `undefined` | Maximum selectable date (YYYY-MM-DD format) |
-| `disabled-weekdays` | `string` | `undefined` | Comma-separated days of week to disable (e.g., `"0,6"` for weekends) |
-| `range-disabled-handling` | `'allow' \| 'block' \| 'split' \| 'individual'` | `'allow'` | How to handle disabled dates within ranges (see below) |
-| `should-highlight-disabled-in-range` | `boolean` | `true` | Whether to visually highlight disabled dates within selected range |
-| `positioning-mode` | `'inline' \| 'floating'` | `'floating'` | Display mode: `'inline'` (always visible) or `'floating'` (popup) |
-| `month-layout` | `'horizontal' \| 'grid'` | `'horizontal'` | Layout mode for multiple months |
-| `grid-rows` | `number` | `undefined` | Number of rows for grid layout (e.g., `2` for 2×3 grid) |
-| `grid-columns` | `number` | `undefined` | Number of columns for grid layout (e.g., `3` for 2×3 grid) |
-| `calendar-placement` | `string` | Smart default* | Floating UI placement: `'bottom'`, `'top'`, `'left'`, `'right'`, `'bottom-start'`, `'bottom-end'`, `'top-start'`, `'top-end'`, etc. |
-| `locale` | `string \| 'auto'` | `'auto'` | Locale for UI strings and date formatting. Use `'auto'` for browser detection, or specify: `'en'`, `'de'`, `'fr'`, `'es'` |
-| `month-names` | `string` | locale-based | Pipe-delimited month-name override, indexed by month: `[0]`=January … `[11]`=December. Must have exactly 12 segments (e.g. `"Leden\|Únor\|Březen\|…"`); a wrong count or empty segment is ignored with a `console.warn`. Also settable via the `monthNames` property. |
-| `weekday-names` | `string` | locale-based | Pipe-delimited weekday-header override, indexed by day-of-week: `[0]`=Sunday … `[6]`=Saturday. Must have exactly 7 segments (e.g. `"Ne\|Po\|Út\|St\|Čt\|Pá\|So"`); `week-start-day` only rotates the display, not this mapping. A wrong count or empty segment is ignored with a `console.warn`. Also settable via the `weekdayNames` property. |
-| `display-format-mask` | `string` | Same as `date-format-mask` | Localized format mask shown to users (e.g., `'dd/mm/aaaa'` in Spanish). Validation still uses `date-format-mask` |
-| `show-debug-info` | `boolean` | `false` | When present, enables detailed debug logging to browser console. See [Debugging & Logging](#debugging--logging) |
-| `input-size` | `'xs' \| 'sm' \| 'md' \| 'lg' \| 'xl'` | `'md'` | Input field size variant (floating mode only) |
-| `spacing` | `'xs' \| 'sm' \| 'md' \| 'lg' \| 'xl'` | `'md'` | Calendar spacing scale |
-| `font-size` | `'xs' \| 'sm' \| 'md' \| 'lg' \| 'xl'` | `'md'` | Calendar font size scale |
-| `cell-size` | `'xs' \| 'sm' \| 'md' \| 'lg' \| 'xl'` | `'md'` | Calendar day cell size |
-| `enable-transitions` | `boolean` | `false` | Enable CSS transitions/animations (opt-in for performance) |
-| `picker-mode` | `'date' \| 'time' \| 'datetime'` | `'date'` | What the picker selects. `'date'` (default) is the historical calendar-only behavior. `'time'` shows only the rolling-list time picker (hours/minutes/[seconds]/[AM-PM]). `'datetime'` shows calendar grid + time picker side-by-side. Time/datetime are single-mode only in v1.14; range/multiple falls back with a console warning. |
-| `time-format-mask` | `string` | `'HH:mm'` | Time format for time/datetime modes. Tokens: `HH`/`H` (24h), `hh`/`h` (12h), `mm`/`m`, `ss`/`s`, `a` (AM/PM marker). |
-| `display-time-format-mask` | `string` | falls back to `time-format-mask` | Localized time placeholder, parallel to `display-format-mask`. |
-| `time-step` | `number` | `1` | Minute/second increment shown in the rolls (e.g., `15` shows `00/15/30/45`). |
-| `hour-cycle` | `'h12' \| 'h24'` | derived from mask | Force 12-hour (adds AM/PM column) or 24-hour. Auto-derives `h12` when the `a` token is present in `time-format-mask`. |
-| `is-seconds-shown` | `boolean` | derived from mask | Add a seconds roll. Auto-true when the `s` token is present in `time-format-mask`. |
-| `is-now-button-shown` | `boolean` | `true` (in time/datetime) | Add a "Now" button to the action bar. Ignored in date mode. |
+| `selection-mode` | `'single' \| 'range' \| 'multiple'` | `'single'` | Selection behavior: `single` day, `range`, or `multiple` days/ranges. |
+| `positioning-mode` | `'inline' \| 'floating' \| 'modal'` | `'floating'` | How the calendar is presented: `inline` (always visible, no input), `floating` (popover anchored to an input), or `modal`. |
+| `calendar-open-trigger` | `'focus' \| 'typing' \| 'manual'` | `'focus'` | What opens the floating calendar: `focus`, `typing`, or `manual` (only `show()`). |
+| `visible-months-count` | `number` | — | Number of month columns shown side-by-side. |
+| `month-layout` | `'horizontal' \| 'grid'` | — | Multi-month arrangement: a horizontal row or a `grid` (see grid-rows/grid-columns). |
+| `grid-rows` | `number` | — | Rows in the month grid when month-layout is `grid`. |
+| `grid-columns` | `number` | — | Columns in the month grid when month-layout is `grid`. |
+| `is-unified-navigation-enabled` | `boolean` | — | In grid layouts, drive the whole grid from one anchor month instead of per-column navigation. |
+| `unified-navigation-anchor-index` | `number` | — | Which month index anchors unified navigation. |
+| `picker-mode` | `'date' \| 'time' \| 'datetime'` | `'date'` | Whether the control picks a `date`, a `time`, or a `datetime`. |
+| `is-seconds-shown` | `boolean \| null` | — | Show a seconds field in time/datetime mode. |
+| `hour-cycle` | `'h12' \| 'h24'` | — | 12- or 24-hour clock for time/datetime mode. |
+| `is-summary-shown` | `boolean \| null` | — | Show the range summary (day/night counts) block. |
+| `date-format-mask` | `string` | `'YYYY-MM-DD'` | Parse/format mask for dates (YYYY/YY, MM/M, DD/D with any separators). |
+| `display-format-mask` | `string \| null` | — | Localized format hint shown as the input placeholder (when no explicit `placeholder`). |
+| `is-unified-header-interactive` | `boolean` | — | Make the unified grid header clickable (opens the rolling selector). |
+| `calendar-placement` | `string \| null` | — | Floating-UI placement for the popover (default `bottom-start`). |
+| `week-start-day` | `'auto' \| 0 \| 1 \| 2 \| 3 \| 4 \| 5 \| 6` | — | First column of the week: `auto` (locale) or a weekday index 0 (Sunday)–6 (Saturday). |
+| `min-date` | `string \| null` | — | Earliest selectable date (ISO string). |
+| `max-date` | `string \| null` | — | Latest selectable date (ISO string). |
+| `initial-date` | `string \| null` | — | Month/date the calendar opens on when nothing is selected (ISO string). |
+| `disabled-weekdays` | `number[]` | — | CSV of weekday indices (0=Sunday…6=Saturday) that cannot be selected. |
+| `disabled-dates` | `Array<Date \| string>` | — | Specific dates that cannot be selected. Attribute: CSV of ISO strings; property: array of Date or string. |
+| `disabled-dates-handling` | `'allow' \| 'prevent' \| 'block' \| 'split' \| 'individual'` | — | Strategy for ranges that span disabled dates: `allow`, `prevent`, `block`, `split`, or `individual`. |
+| `should-highlight-disabled-in-range` | `boolean \| null` | — | Visually mark disabled dates that fall inside a selected range. |
+| `locale` | `string` | `'auto'` | BCP-47 locale, or `auto` to detect from the browser. |
+| `month-names` | `string[]` | — | Override month names. Attribute: 12 pipe-delimited names, index 0=January; property: `string[]`. |
+| `weekday-names` | `string[]` | — | Override weekday names. Attribute: 7 pipe-delimited names, index 0=Sunday; property: `string[]`. |
+| `rolling-year-range` | `string \| null` | — | Constrains the rolling year selector (e.g. `-5:+5` or absolute years). |
+| `rolling-month-range` | `string \| null` | — | Constrains the rolling month selector. |
+| `auto-close` | `'never' \| 'selection' \| 'apply'` | — | When the floating calendar closes automatically: `never`, on `selection`, or on `apply`. |
+| `should-close-on-scroll` | `boolean \| null` | — | Close the floating calendar when the page scrolls. |
+| `is-today-button-shown` | `boolean \| null` | — | Show the “Today” action button. |
+| `is-clear-button-shown` | `boolean \| null` | — | Show the “Clear” action button. |
+| `is-apply-button-shown` | `boolean \| null` | — | Show the “Apply” action button (defers events until clicked). |
+| `time-format-mask` | `string` | `'HH:mm'` | Parse/format mask for times (HH/mm/ss). |
+| `display-time-format-mask` | `string \| null` | — | Localized display mask for the time portion. |
+| `time-step` | `number` | — | Minute step for the time picker. |
+| `is-now-button-shown` | `boolean \| null` | — | Show the “Now” button in time/datetime mode. |
+| `time-display` | `'rolls' \| 'clock' \| 'wheel' \| 'compact'` | `'rolls'` | Time-picker UI: `rolls`, `clock`, `wheel`, or `compact`. |
+| `date-member` | `string \| null` | — | Property name on a decorated-date object holding its date. |
+| `badge-text-member` | `string \| null` | — | Property name holding a day badge’s text. |
+| `badge-class-member` | `string \| null` | — | Property name holding a day badge’s CSS class. |
+| `day-class-member` | `string \| null` | — | Property name holding a day cell’s CSS class. |
+| `badge-tooltip-member` | `string \| null` | — | Property name holding a badge tooltip string. |
+| `day-tooltip-member` | `string \| null` | — | Property name holding a day tooltip string. |
+| `is-disabled-member` | `string \| null` | — | Property name flagging a decorated date as disabled. |
+| `value` | `string \| null` | — | Text value of the input (floating/modal modes). Reflected to the live input; read/write via the `value` property. |
+| `placeholder` | `string \| null` | — | Input placeholder (falls back to display-format-mask). |
+| `disabled` | `boolean` | — | Disable the input. |
+| `readonly` | `boolean` | — | Full read-only lock (freezes every interaction aspect). Read/write via the `readonly` property, or use `lock()` for partial locks. |
+| `input-size` | `string` | `'md'` | Input size scale: `xs` \| `sm` \| `md` \| `lg` \| `xl` (floating/modal only). |
+| `enable-transitions` | `boolean` | — | Opt into calendar open/close CSS transitions. |
+| `mobile-modal-breakpoint` | `string \| null` | — | Viewport width below which a floating picker auto-switches to modal (e.g. `640px`). |
+| `mobile-modal-min-height` | `string \| null` | — | Viewport height below which a floating picker auto-switches to modal (e.g. `500px`). |
+| `show-debug-info` | `boolean` | — | Enable the picker’s debug logging. |
+<!-- GEN:attributes:end -->
 
 **Smart default positioning:**
 - Grid layouts: `'bottom'` (centered)
@@ -138,11 +169,12 @@ Both accept exactly 12 / 7 pipe-delimited, non-empty segments; anything else is 
 
 ### Range Disabled Modes
 
-The `range-disabled-handling` attribute controls behavior when selecting ranges that include disabled dates:
+The `disabled-dates-handling` attribute controls behavior when selecting ranges that include disabled dates:
 
 | Mode | Behavior | Use Case |
 |------|----------|----------|
 | `'allow'` | Allows ranges over disabled dates. Event includes `enabledDates` and `disabledDates` arrays | Hotel bookings (allow selecting range, calculate only enabled days) |
+| `'prevent'` | Rejects a range that would span disabled dates (no selection committed) | Strict scheduling |
 | `'block'` | Prevents selections that span disabled dates. Snaps range end to last enabled date before gap | Restricted scheduling (cannot cross blackout dates) |
 | `'split'` | Returns multiple ranges split by disabled dates. Event includes `dateRanges` array | Multi-period bookings (weekdays only) |
 | `'individual'` | Returns flat array of individual enabled dates. Event includes `dates` array | Cherry-picking dates (select range, get individual days) |
@@ -161,7 +193,7 @@ The `range-disabled-handling` attribute controls behavior when selecting ranges 
 <web-daterangepicker
   selection-mode="range"
   disabled-weekdays="0,6"
-  range-disabled-handling="block">
+  disabled-dates-handling="block">
 </web-daterangepicker>
 
 <!-- 6-month grid calendar -->
@@ -203,7 +235,7 @@ The `range-disabled-handling` attribute controls behavior when selecting ranges 
 
 ## DatePicker Options
 
-When instantiating `PureDatePicker` directly (not using web component), pass these options. The web component automatically converts attributes to options.
+When instantiating `DateRangePicker` directly (not using web component), pass these options. The web component automatically converts attributes to options.
 
 | Option | Type | Default | Description |
 |--------|------|---------|-------------|
@@ -244,7 +276,7 @@ When instantiating `PureDatePicker` directly (not using web component), pass the
 ### Example Usage
 
 ```javascript
-const picker = new PureDatePicker(inputElement, {
+const picker = new DateRangePicker(inputElement, {
   selectionMode: 'range',
   dateFormatMask: 'DD/MM/YYYY',
   visibleMonthsCount: 2,
@@ -259,7 +291,7 @@ const picker = new PureDatePicker(inputElement, {
 });
 
 // Spanish localization with custom strings
-const pickerES = new PureDatePicker(inputElement, {
+const pickerES = new DateRangePicker(inputElement, {
   selectionMode: 'single',
   locale: 'es',
   dateFormatMask: 'YYYY-MM-DD',
@@ -283,14 +315,36 @@ const pickerES = new PureDatePicker(inputElement, {
 
 Available on `<web-daterangepicker>` element:
 
+<!-- GEN:methods:start -->
+<!-- Auto-generated from custom-elements.json — do not edit by hand. Run `npm run docs:api`. -->
 | Method | Signature | Description |
 |--------|-----------|-------------|
-| `show()` | `() => void` | Show the calendar (floating mode only) |
-| `hide()` | `() => void` | Hide the calendar (floating mode only) |
-| `toggle()` | `() => void` | Toggle calendar visibility |
-| `clearSelection()` | `() => void` | Clear all selections and reset input |
-| `getInputValue()` | `() => string` | Get current formatted value from input |
-| `setInputValue(value)` | `(value: string) => void` | Set input value and update calendar |
+| `show()` | `() => void` | Open the calendar (floating/modal modes). |
+| `hide()` | `() => void` | Close the calendar (floating/modal modes). |
+| `toggle()` | `() => void` | Toggle the calendar open/closed. |
+| `clearSelection()` | `() => void` | Clear the current selection and reset the input. |
+| `showMessage()` | `(content: string, type?: 'error' \| 'warning' \| 'info' \| 'success', autoHide?: number) => void` | Show an inline message; `autoHide` (ms) dismisses it automatically. |
+| `hideMessage()` | `() => void` | Hide the current inline message. |
+| `toggleMessage()` | `(content?: string, type?: 'error' \| 'warning' \| 'info' \| 'success', autoHide?: number) => void` | Toggle the inline message on/off. |
+| `showSummary()` | `(content: string) => void` | Write custom HTML into the summary block (pins until the next selection change). |
+| `hideSummary()` | `() => void` | Drop any summary override and re-derive from selection state. |
+| `refreshSummary()` | `() => void` | Re-run summary derivation now (respects an active override). |
+| `showLoader()` | `(target?: LoaderTarget) => void` | Show a loader overlay. `target`: `calendar` (default) \| `message` \| `summary`. |
+| `hideLoader()` | `(target?: LoaderTarget) => void` | Hide the loader for the given target (default `calendar`). |
+| `toggleLoader()` | `(target?: LoaderTarget) => void` | Toggle the loader for the given target (default `calendar`). |
+| `lock()` | `(aspects?: LockAspect \| LockAspect[]) => void` | Freeze user interaction. No argument locks every aspect (full read-only lock); pass an aspect or array to freeze only part (`'selection' \| 'navigation' \| 'actions' \| 'open'`). The programmatic API is unaffected. |
+| `unlock()` | `(aspects?: LockAspect \| LockAspect[]) => void` | Release the given aspect(s), or the whole lock when called with no argument. |
+| `toggleLock()` | `(aspects?: LockAspect \| LockAspect[]) => void` | Toggle the given aspect(s), or the whole lock when called with no argument. |
+| `isAspectLocked()` | `(aspect: LockAspect) => boolean` | True when the given aspect is currently locked. |
+| `getInputValue()` | `() => string` | The current text in the input (floating/modal modes); `''` when there is no input. |
+| `setInputValue()` | `(value: string) => void` | Set the input text and reflect it to the `value` attribute. |
+| `setMonthNames()` | `(monthNames: string[]) => void` | Set custom month names. **(deprecated)** |
+| `setRollingItemAlignment()` | `(alignment: 'flex-start' \| 'center' \| 'flex-end') => void` | Align items within the rolling year/month selector (`flex-start` \| `center` \| `flex-end`). |
+<!-- GEN:methods:end -->
+
+You can also reach the underlying engine directly: **`picker.picker`** is a
+read-only getter that returns the live `DateRangePicker` instance (or `undefined`
+before first connect).
 
 **Example:**
 ```javascript
@@ -302,9 +356,9 @@ console.log(picker.getInputValue()); // "2025-12-25"
 picker.clearSelection();
 ```
 
-### PureDatePicker Instance Methods
+### DateRangePicker Instance Methods
 
-Available on `PureDatePicker` instance (accessible via `picker.picker` on web component):
+Available on `DateRangePicker` instance (accessible via `picker.picker` on web component):
 
 | Method | Signature | Description |
 |--------|-----------|-------------|
@@ -327,7 +381,7 @@ Available on `PureDatePicker` instance (accessible via `picker.picker` on web co
 
 **Example:**
 ```javascript
-const picker = new PureDatePicker(input, { mode: 'range' });
+const picker = new DateRangePicker(input, { selectionMode: 'range' });
 
 const start = new Date(2025, 0, 1);
 const end = new Date(2025, 0, 31);
@@ -409,6 +463,28 @@ picker.addEventListener('date-select', (e) => {
 });
 ```
 
+### Event Handler Properties
+
+As an alternative to `addEventListener`, each event exposes a managed `on*`
+handler property. Assigning a function registers a real listener (assigning
+`null` removes it); the handler receives the same `CustomEvent`, so it behaves
+exactly like `addEventListener`:
+
+| Property | Event | Handler receives |
+|----------|-------|------------------|
+| `onDateSelect` | `date-select` | `CustomEvent<DatePickerEventDetail>` |
+| `onChange` | `change` | `CustomEvent<DatePickerEventDetail>` |
+| `onCustomAction` | `custom-action` | `CustomEvent<CustomActionEventDetail>` |
+
+```javascript
+const picker = document.querySelector('web-daterangepicker');
+
+picker.onDateSelect = (e) => console.log('Selected:', e.detail.formattedValue);
+picker.onCustomAction = (e) => console.log('Action:', e.detail.data);
+
+picker.onDateSelect = null; // detach
+```
+
 ### Custom Action Buttons
 
 The picker's built-in action bar (Today / Clear / Apply) can be replaced with custom buttons via the `actionButtons` option. Buttons with `action: 'custom'` fire a `custom-action` event when clicked, and any `data-*` attributes you attach become the event's `detail` payload.
@@ -471,7 +547,7 @@ A live demo lives in `examples-events.html` ("Messages with Custom Actions").
 
 ## Debugging & Logging
 
-The date picker includes a professional logging system powered by [loglevel](https://github.com/pimterry/loglevel) that helps you debug issues during development.
+The date picker includes a professional, categorized logging system provided by [`@keenmate/web-components-core`](https://github.com/keenmate/web-components-core) that helps you debug issues during development. Log lines are grouped into colour-coded `DRP:*` categories (`DRP:GENERAL`, `DRP:RENDERING`, `DRP:INTERACTION`, `DRP:SELECTION`, `DRP:NAVIGATION`, `DRP:UI`, `DRP:VALIDATION`, `DRP:DRAG`).
 
 ### Enabling Debug Logging
 
@@ -483,11 +559,11 @@ Add the `show-debug-info` attribute to any picker instance to enable debug loggi
 
 ### Log Categories
 
-The logging system is organized into specialized categories, each prefixed with a timestamp and category name:
+The logging system is organized into specialized categories, each emitted under a colour-coded `DRP:*` label:
 
 | Category | Logger Name | What It Logs |
 |----------|-------------|--------------|
-| **INIT** | `initLogger` | Component initialization, configuration, and setup |
+| **DRP:GENERAL** | `drpLogger` | General/initialization, configuration, and setup |
 | **NAVIGATION** | `navigationLogger` | Month/year navigation, keyboard focus movement, collision detection |
 | **UI** | `uiLogger` | Calendar show/hide, positioning, floating UI calculations |
 | **RENDERING** | `renderingLogger` | Calendar rendering, DOM updates |
@@ -498,18 +574,18 @@ The logging system is organized into specialized categories, each prefixed with 
 
 ### Log Message Format
 
-All log messages follow a consistent format with function context:
+Each log line is prefixed with its colour-coded category label, followed by the message and any context:
 
 ```
-[HH:mm:ss.SSS] [LEVEL] [CATEGORY] functionName() [context] - message
+[DRP:CATEGORY] functionName() [context] - message
 ```
 
 **Examples:**
 ```
-[14:23:15.842] [DEBUG] [NAVIGATION] moveFocus() Col0 - found 31 days in column
-[14:23:15.845] [DEBUG] [SELECTION] selectDay() Col1 - activeMonthIndex: 1
-[14:23:15.850] [DEBUG] [VALIDATION] validateRangeAsync called - mode: block
-[14:23:15.852] [DEBUG] [DRAG] onDragMove - mode: block, start: Mon Jan 01 2025, end: Fri Jan 05 2025
+[DRP:NAVIGATION] moveFocus() Col0 - found 31 days in column
+[DRP:SELECTION] selectDay() Col1 - activeMonthIndex: 1
+[DRP:VALIDATION] validateRangeAsync called - mode: block
+[DRP:DRAG] onDragMove - mode: block, start: Mon Jan 01 2025, end: Fri Jan 05 2025
 ```
 
 ### Log Levels
@@ -530,21 +606,21 @@ The library uses these log levels:
 When `show-debug-info` is enabled, you'll see detailed logs in your browser console:
 
 ```
-[14:23:15.420] [DEBUG] [INIT] Week starts on day: 1
-[14:23:15.421] [DEBUG] [INIT] disabledDatesHandling: block
-[14:23:15.422] [DEBUG] [INIT] Locale: en Weekdays: (7) ['Mo', 'Tu', ...] Months: (12) ['January', ...]
-[14:23:15.423] [DEBUG] [INIT] Format info: {separator: '-', parts: {...}, maxLength: 10}
-[14:23:15.425] [DEBUG] [INIT] Creating calendar
-[14:23:15.428] [DEBUG] [RENDERING] renderCalendar() called
-[14:23:15.430] [DEBUG] [UI] show() - adding visible class
-[14:23:15.432] [DEBUG] [UI] position() - FloatingUI computed - x: 245, y: 380, placement: 'bottom-start'
+[DRP:GENERAL] Week starts on day: 1
+[DRP:GENERAL] disabledDatesHandling: block
+[DRP:GENERAL] Locale: en Weekdays: (7) ['Mo', 'Tu', ...] Months: (12) ['January', ...]
+[DRP:GENERAL] Format info: {separator: '-', parts: {...}, maxLength: 10}
+[DRP:GENERAL] Creating calendar
+[DRP:RENDERING] renderCalendar() called
+[DRP:UI] show() - adding visible class
+[DRP:UI] position() - FloatingUI computed - x: 245, y: 380, placement: 'bottom-start'
 ```
 
 ### Filtering Logs by Category
 
 You can filter browser console output by category name. In Chrome DevTools Console:
 
-- Filter by category: Type `DRAG` or `SELECTION` in the filter box
+- Filter by category: Type `DRP:DRAG` or `DRP:SELECTION` (or just `DRP:` for all) in the filter box
 - Filter by function: Type `moveFocus()` or `selectDay()`
 - Filter by column: Type `Col0` or `Col1` for multi-month navigation
 
@@ -553,17 +629,24 @@ You can filter browser console output by category name. In Chrome DevTools Conso
 Access the logging system directly via JavaScript:
 
 ```javascript
-import { setLoggingEnabled, setLogLevel } from '@keenmate/web-daterangepicker';
+import { enableLogging, disableLogging, setLogLevel, setCategoryLevel } from '@keenmate/web-daterangepicker';
 
 // Enable/disable all logging
-setLoggingEnabled(true);  // Turn on debug logging
-setLoggingEnabled(false); // Turn off debug logging
+enableLogging();   // Turn on debug logging (all categories → debug)
+disableLogging();  // Turn off all logging (silent)
 
-// Set specific log level
+// Set specific log level (all categories)
 setLogLevel('debug');  // Show debug and above
 setLogLevel('warn');   // Show only warnings and errors
 setLogLevel('silent'); // Disable all logging
+
+// Target one category (bare 'UI' or full 'DRP:UI' both work)
+setCategoryLevel('DRP:UI', 'debug');
 ```
+
+> These same controls are also exposed at runtime on
+> `window.components['web-daterangepicker'].logging` (`enableLogging`,
+> `disableLogging`, `setLogLevel`, `setCategoryLevel`, `getCategories`).
 
 ### Per-Category Loggers
 
@@ -571,7 +654,7 @@ For advanced debugging, import individual category loggers:
 
 ```javascript
 import {
-  initLogger,
+  drpLogger,
   navigationLogger,
   uiLogger,
   renderingLogger,
@@ -1222,28 +1305,97 @@ The web component provides convenient property accessors for JavaScript:
 
 ### Read/Write Properties
 
-| Property | Type | Description |
-|----------|------|-------------|
-| `selectionMode` | `'single' \| 'range'` | Selection mode |
-| `dateFormatMask` | `string` | Date format |
-| `value` | `string` | Current value (formatted string) |
-| `disabled` | `boolean` | Disabled state |
-| `weekStartDay` | `'auto' \| 0-6` | Week start day |
-| `minDate` | `string \| undefined` | Minimum date |
-| `maxDate` | `string \| undefined` | Maximum date |
-| `disabledWeekdays` | `number[] \| undefined` | Disabled weekdays array |
-| `specialDates` | `DecoratedDate[] \| undefined` | Special dates (triggers re-init) |
-| `dateMember` | `string \| undefined` | Property name for date in specialDates objects (triggers re-init) |
-| `badgeTextMember` | `string \| undefined` | Property name for badge text in specialDates objects (triggers re-init) |
-| `badgeClassMember` | `string \| undefined` | Property name for badge class in specialDates objects (triggers re-init) |
-| `dayClassMember` | `string \| undefined` | Property name for day class in specialDates objects (triggers re-init) |
-| `badgeTooltipMember` | `string \| undefined` | Property name for badge tooltip in specialDates objects (triggers re-init) |
-| `dayTooltipMember` | `string \| undefined` | Property name for day tooltip in specialDates objects (triggers re-init) |
-| `isDisabledMember` | `string \| undefined` | Property name for disabled flag in specialDates objects (triggers re-init) |
-| `disabledDates` | `(Date \| string)[] \| undefined` | Disabled dates (triggers re-init) |
-| `getDateMetadataCallback` | `((date: Date) => DateInfo \| null) \| undefined` | Custom date metadata function (triggers re-init) |
+<!-- GEN:properties:start -->
+<!-- Auto-generated from custom-elements.json — do not edit by hand. Run `npm run docs:api`. -->
+| Property | Type | Access | Description |
+|----------|------|--------|-------------|
+| `lockedAspects` | `LockAspect[]` | Read-only | The currently locked aspects (read-only snapshot). |
+| `value` | `string` | Read/Write | Text value of the input. |
+| `readonly` | `boolean` | Read/Write | Full read-only lock, reflected to the `readonly` attribute. Reads back `true` only when every aspect is locked. For partial locks use `lock([...])`. |
+| `selectedRanges` | `DateRange[]` | Read/Write | Committed ranges (range mode). Assigning replaces the selection. |
+| `selectedDates` | `Date[]` | Read/Write | Committed dates (multiple mode). Assigning replaces the selection. |
+| `selectedDate` | `Date \| null` | Read/Write | Committed date (single mode). Assigning replaces the selection. |
+| `selectedStartDate` | `Date \| null` | Read-only | Committed range start (read-only; set a range via `selectedRanges`). |
+| `selectedEndDate` | `Date \| null` | Read-only | Committed range end (read-only; set a range via `selectedRanges`). |
+| `selectedTime` | `SelectedTime \| null` | Read/Write | Selected time (time/datetime modes). |
+| `selectedDatetime` | `Date \| null` | Read/Write | Composed date+time; the setter accepts a Date or ISO string and splits it. |
+| `visibleMonths` | `MonthDisplay[]` | Read-only | Descriptor for each visible month column (read-only). |
+| `visibleMonthDates` | `Date[]` | Read-only | Anchor date (first-of-month) for each visible column (read-only). |
+| `visibleDateRange` | `{ start: Date; end: Date } \| null` | Read-only | The overall date span currently rendered across all columns (read-only). |
+| `today` | `Date` | Read-only | The picker's notion of "today", normalized to 00:00 local. |
+| `isOpen` | `boolean` | Read/Write | Whether the calendar is currently open. Assigning opens/closes it. |
+| `picker` | `DateRangePicker \| undefined` | Read-only | The live `DateRangePicker` engine instance this element wraps (or `undefined` before first connect / while detached). An escape hatch for advanced use — the engine is also a public export — and the same white-box hook the old `private picker` field exposed. Prefer the element's own methods/properties where they exist. |
+| `selectionMode` | `'single' \| 'range' \| 'multiple'` | Read/Write | Selection behavior: `single` day, `range`, or `multiple` days/ranges. |
+| `positioningMode` | `'inline' \| 'floating' \| 'modal'` | Read/Write | How the calendar is presented: `inline` (always visible, no input), `floating` (popover anchored to an input), or `modal`. |
+| `calendarOpenTrigger` | `'focus' \| 'typing' \| 'manual'` | Read/Write | What opens the floating calendar: `focus`, `typing`, or `manual` (only `show()`). |
+| `visibleMonthsCount` | `number` | Read/Write | Number of month columns shown side-by-side. |
+| `monthLayout` | `'horizontal' \| 'grid'` | Read/Write | Multi-month arrangement: a horizontal row or a `grid` (see grid-rows/grid-columns). |
+| `gridRows` | `number` | Read/Write | Rows in the month grid when month-layout is `grid`. |
+| `gridColumns` | `number` | Read/Write | Columns in the month grid when month-layout is `grid`. |
+| `isUnifiedNavigationEnabled` | `boolean` | Read/Write | In grid layouts, drive the whole grid from one anchor month instead of per-column navigation. |
+| `unifiedNavigationAnchorIndex` | `number` | Read/Write | Which month index anchors unified navigation. |
+| `pickerMode` | `'date' \| 'time' \| 'datetime'` | Read/Write | Whether the control picks a `date`, a `time`, or a `datetime`. |
+| `isSecondsShown` | `boolean \| null` | Read/Write | Show a seconds field in time/datetime mode. |
+| `hourCycle` | `'h12' \| 'h24'` | Read/Write | 12- or 24-hour clock for time/datetime mode. |
+| `isSummaryShown` | `boolean \| null` | Read/Write | Show the range summary (day/night counts) block. |
+| `dateFormatMask` | `string` | Read/Write | Parse/format mask for dates (YYYY/YY, MM/M, DD/D with any separators). |
+| `displayFormatMask` | `string \| null` | Read/Write | Localized format hint shown as the input placeholder (when no explicit `placeholder`). |
+| `isUnifiedHeaderInteractive` | `boolean` | Read/Write | Make the unified grid header clickable (opens the rolling selector). |
+| `calendarPlacement` | `string \| null` | Read/Write | Floating-UI placement for the popover (default `bottom-start`). |
+| `weekStartDay` | `'auto' \| 0 \| 1 \| 2 \| 3 \| 4 \| 5 \| 6` | Read/Write | First column of the week: `auto` (locale) or a weekday index 0 (Sunday)–6 (Saturday). |
+| `minDate` | `string \| null` | Read/Write | Earliest selectable date (ISO string). |
+| `maxDate` | `string \| null` | Read/Write | Latest selectable date (ISO string). |
+| `initialDate` | `string \| null` | Read/Write | Month/date the calendar opens on when nothing is selected (ISO string). |
+| `disabledWeekdays` | `number[]` | Read/Write | CSV of weekday indices (0=Sunday…6=Saturday) that cannot be selected. |
+| `disabledDates` | `Array<Date \| string>` | Read/Write | Specific dates that cannot be selected. Attribute: CSV of ISO strings; property: array of Date or string. |
+| `disabledDatesHandling` | `'allow' \| 'prevent' \| 'block' \| 'split' \| 'individual'` | Read/Write | Strategy for ranges that span disabled dates: `allow`, `prevent`, `block`, `split`, or `individual`. |
+| `shouldHighlightDisabledInRange` | `boolean \| null` | Read/Write | Visually mark disabled dates that fall inside a selected range. |
+| `locale` | `string` | Read/Write | BCP-47 locale, or `auto` to detect from the browser. |
+| `monthNames` | `string[]` | Read/Write | Override month names. Attribute: 12 pipe-delimited names, index 0=January; property: `string[]`. |
+| `weekdayNames` | `string[]` | Read/Write | Override weekday names. Attribute: 7 pipe-delimited names, index 0=Sunday; property: `string[]`. |
+| `rollingYearRange` | `string \| null` | Read/Write | Constrains the rolling year selector (e.g. `-5:+5` or absolute years). |
+| `rollingMonthRange` | `string \| null` | Read/Write | Constrains the rolling month selector. |
+| `autoClose` | `'never' \| 'selection' \| 'apply'` | Read/Write | When the floating calendar closes automatically: `never`, on `selection`, or on `apply`. |
+| `shouldCloseOnScroll` | `boolean \| null` | Read/Write | Close the floating calendar when the page scrolls. |
+| `isTodayButtonShown` | `boolean \| null` | Read/Write | Show the “Today” action button. |
+| `isClearButtonShown` | `boolean \| null` | Read/Write | Show the “Clear” action button. |
+| `isApplyButtonShown` | `boolean \| null` | Read/Write | Show the “Apply” action button (defers events until clicked). |
+| `timeFormatMask` | `string` | Read/Write | Parse/format mask for times (HH/mm/ss). |
+| `displayTimeFormatMask` | `string \| null` | Read/Write | Localized display mask for the time portion. |
+| `timeStep` | `number` | Read/Write | Minute step for the time picker. |
+| `isNowButtonShown` | `boolean \| null` | Read/Write | Show the “Now” button in time/datetime mode. |
+| `timeDisplay` | `'rolls' \| 'clock' \| 'wheel' \| 'compact'` | Read/Write | Time-picker UI: `rolls`, `clock`, `wheel`, or `compact`. |
+| `dateMember` | `string \| null` | Read/Write | Property name on a decorated-date object holding its date. |
+| `badgeTextMember` | `string \| null` | Read/Write | Property name holding a day badge’s text. |
+| `badgeClassMember` | `string \| null` | Read/Write | Property name holding a day badge’s CSS class. |
+| `dayClassMember` | `string \| null` | Read/Write | Property name holding a day cell’s CSS class. |
+| `badgeTooltipMember` | `string \| null` | Read/Write | Property name holding a badge tooltip string. |
+| `dayTooltipMember` | `string \| null` | Read/Write | Property name holding a day tooltip string. |
+| `isDisabledMember` | `string \| null` | Read/Write | Property name flagging a decorated date as disabled. |
+| `placeholder` | `string \| null` | Read/Write | Input placeholder (falls back to display-format-mask). |
+| `disabled` | `boolean` | Read/Write | Disable the input. |
+| `inputSize` | `string` | Read/Write | Input size scale: `xs` \| `sm` \| `md` \| `lg` \| `xl` (floating/modal only). |
+| `enableTransitions` | `boolean` | Read/Write | Opt into calendar open/close CSS transitions. |
+| `mobileModalBreakpoint` | `string \| null` | Read/Write | Viewport width below which a floating picker auto-switches to modal (e.g. `640px`). |
+| `mobileModalMinHeight` | `string \| null` | Read/Write | Viewport height below which a floating picker auto-switches to modal (e.g. `500px`). |
+| `showDebugInfo` | `boolean` | Read/Write | Enable the picker’s debug logging. |
+| `specialDates` | `DecoratedDate[]` | Read/Write | Array of decorated-date objects (badges, tooltips, per-day classes). Property-only. |
+| `actionButtons` | `ActionButton[]` | Read/Write | Custom footer action buttons. Property-only; when unset the built-in buttons apply. |
+| `customStrings` | `Partial<LocaleStrings>` | Read/Write | Per-instance locale string overrides. Property-only. |
+| `getDateMetadataCallback` | `(ctx: DayContext) => DayMetadata \| null` | Read/Write | Compute per-day metadata (badges, classes, disabled) dynamically. |
+| `badgeTooltipCallback` | `(ctx: DayContext) => string \| null` | Read/Write | Tooltip text for a day badge. |
+| `dayTooltipCallback` | `(ctx: DayContext) => string \| null` | Read/Write | Tooltip text for a day cell. |
+| `renderDayCallback` | `(ctx: DayContext) => HTMLElement \| string \| null` | Read/Write | Fully custom-render a day cell. |
+| `renderDayContentCallback` | `(ctx: DayContext) => HTMLElement \| string \| null` | Read/Write | Custom-render the content inside a day cell. |
+| `formatSummaryCallback` | `(ctx: SummaryContext) => string` | Read/Write | Render the range summary text. |
+| `getUnifiedHeaderCallback` | `(ctx: UnifiedHeaderContext) => string` | Read/Write | Render the unified grid header label. |
+| `getMonthHeaderCallback` | `(ctx: MonthHeaderContext) => string` | Read/Write | Render a per-column month header label. |
+| `customStylesCallback` | `() => string` | Read/Write | Return a CSS string injected into the component via a replaceable style slot (§12.8). |
+| `beforeDateSelectCallback` | `(ctx: SelectionContext) => BeforeSelectResult \| Promise<BeforeSelectResult>` | Read/Write | Runs before a day is selected; can veto or adjust the selection. |
+| `beforeMonthChangedCallback` | `(ctx: MonthChangeContext) => BeforeMonthChangeResult \| Promise<BeforeMonthChangeResult>` | Read/Write | Runs before month navigation; can veto the change. |
+<!-- GEN:properties:end -->
 
-**Note:** Properties that trigger re-initialization (marked above) will destroy and recreate the calendar when changed.
+**Note:** Property-only inputs and the attribute-backed accessors are all writable; read-only entries (marked _Read-only_) are derived state. Setting an `on:'reinit'` input rebuilds the calendar.
 
 ### Example
 
@@ -1251,7 +1403,7 @@ The web component provides convenient property accessors for JavaScript:
 const picker = document.querySelector('web-daterangepicker');
 
 // Get/set via properties
-picker.mode = 'range';
+picker.selectionMode = 'range';
 picker.minDate = '2025-01-01';
 picker.maxDate = '2025-12-31';
 
@@ -1414,8 +1566,8 @@ picker.picker.options.customStrings = {
   // Other strings inherited from locale
 };
 
-// Or in PureDatePicker:
-const picker = new PureDatePicker(input, {
+// Or in DateRangePicker:
+const picker = new DateRangePicker(input, {
   locale: 'es',
   customStrings: {
     today: 'Ahora',
@@ -1460,7 +1612,7 @@ const picker = new PureDatePicker(input, {
 #### Complete German Example with Custom Strings
 
 ```javascript
-const picker = new PureDatePicker(inputElement, {
+const picker = new DateRangePicker(inputElement, {
   selectionMode: 'single',
   locale: 'de',
   dateFormatMask: 'DD.MM.YYYY',
@@ -1495,7 +1647,7 @@ The `formatSummaryCallback` option allows you to completely customize the summar
 #### Basic Example: Show Only Nights
 
 ```javascript
-const picker = new PureDatePicker(input, {
+const picker = new DateRangePicker(input, {
   selectionMode: 'range',
   formatSummaryCallback: (data) => {
     return `<strong>${data.nights}</strong> ${data.nights === 1 ? data.localeStrings.night : data.localeStrings.nights}`;
@@ -1506,7 +1658,7 @@ const picker = new PureDatePicker(input, {
 #### Example: Add Custom Pricing
 
 ```javascript
-const picker = new PureDatePicker(input, {
+const picker = new DateRangePicker(input, {
   selectionMode: 'range',
   formatSummaryCallback: (data) => {
     const pricePerNight = 150;
@@ -1525,7 +1677,7 @@ const picker = new PureDatePicker(input, {
 #### Example: Handle Multiple Ranges (Split Mode)
 
 ```javascript
-const picker = new PureDatePicker(input, {
+const picker = new DateRangePicker(input, {
   selectionMode: 'range',
   rangeDisabledHandling: 'split',
   disabledWeekdays: [0, 6], // Disable weekends
@@ -1549,7 +1701,7 @@ const picker = new PureDatePicker(input, {
 #### Example: Show Enabled vs Disabled Count (Allow Mode)
 
 ```javascript
-const picker = new PureDatePicker(input, {
+const picker = new DateRangePicker(input, {
   selectionMode: 'range',
   rangeDisabledHandling: 'allow',
   disabledWeekdays: [0, 6],
@@ -1570,7 +1722,7 @@ const picker = new PureDatePicker(input, {
 #### Example: Preview Indicator
 
 ```javascript
-const picker = new PureDatePicker(input, {
+const picker = new DateRangePicker(input, {
   selectionMode: 'range',
   formatSummaryCallback: (data) => {
     const prefix = data.isPreview ?
@@ -1637,9 +1789,9 @@ The component adds minimal decoration to the input:
 </div>
 ```
 
-**Available SCSS variables (for icon only):**
-- `$drp-input-padding-h` - Horizontal padding for icon positioning
-- `$drp-input-icon-opacity` - Opacity of the calendar icon
+**Available CSS custom properties (for icon only):**
+- `--drp-input-padding-h` - Horizontal padding for icon positioning
+- `--drp-input-icon-opacity` - Opacity of the calendar icon
 
 #### How to Style Your Input
 
@@ -1745,7 +1897,7 @@ These approaches **will not work**:
 
 ❌ Trying to style from inside shadow DOM:
 ```css
-/* Inside component SCSS - THIS WON'T WORK */
+/* Inside component styles - THIS WON'T WORK */
 input {
   border: 1px solid red; /* Cannot reach light DOM */
 }
@@ -1832,7 +1984,7 @@ If you're using a design system (Material UI, Bootstrap, Tailwind, etc.), apply 
 
 #### Summary
 
-- ✅ **Calendar styling**: Fully controlled by component SCSS variables and CSS custom properties
+- ✅ **Calendar styling**: Fully controlled by component `--drp-*` CSS custom properties
 - ❌ **Input styling**: Must be handled by you in your application CSS
 - 💡 **Reason**: Shadow DOM encapsulation keeps calendar styles isolated but prevents styling light DOM elements
 - 🎯 **Solution**: Style `web-daterangepicker input` selector in your global/component CSS

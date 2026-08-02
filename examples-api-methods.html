@@ -191,14 +191,8 @@ picker.hide();
 // Toggle calendar
 picker.toggle();
 
-// Listen for state changes
-picker.addEventListener('calendar-open', () => {
-    console.log('Calendar opened');
-});
-
-picker.addEventListener('calendar-close', () => {
-    console.log('Calendar closed');
-});
+// There is no open/close event — read the `isOpen` property instead
+console.log('Calendar open?', picker.isOpen);
 
 // Tip: Add data-calendar-button to external trigger buttons
 // to prevent "click outside" from closing the calendar
@@ -476,18 +470,15 @@ function smartToggle() {
     }
 }
 
-// Track state changes
-picker.addEventListener('calendar-open', () => {
-    console.log('isOpen is now:', picker.isOpen); // true
-});
-
-picker.addEventListener('calendar-close', () => {
-    console.log('isOpen is now:', picker.isOpen); // false
-});</code></pre>
+// There is no open/close event — read `isOpen` after show()/hide()/toggle()
+picker.show();
+console.log('isOpen is now:', picker.isOpen); // true
+picker.hide();
+console.log('isOpen is now:', picker.isOpen); // false</code></pre>
                 </div>
 
                 <div class="method-signature">
-                    <div><span class="return-type">boolean</span> isOpen <em>(read-only)</em></div>
+                    <div><span class="return-type">boolean</span> isOpen <em>(read/write)</em></div>
                 </div>
             </div>
         </section>
@@ -740,7 +731,7 @@ picker.lockedAspects;           // -> ['selection','navigation','actions','open'
                         <tr>
                             <td><code>setMonthNames(names)</code></td>
                             <td><code>void</code></td>
-                            <td>Set custom month names array</td>
+                            <td><em>Deprecated</em> — assign the <code>monthNames</code> property instead</td>
                         </tr>
                     </tbody>
                 </table>
@@ -794,7 +785,7 @@ picker.lockedAspects;           // -> ['selection','navigation','actions','open'
                         </tr>
                         <tr>
                             <td><code>selectionMode</code></td>
-                            <td><code>'single' | 'range'</code></td>
+                            <td><code>'single' | 'range' | 'multiple'</code></td>
                             <td>Read/Write</td>
                             <td>Selection mode</td>
                         </tr>
@@ -858,19 +849,9 @@ picker.lockedAspects;           // -> ['selection','navigation','actions','open'
                             <td>Alias for date-select (same detail)</td>
                         </tr>
                         <tr>
-                            <td><code>calendar-open</code></td>
-                            <td><code>void</code></td>
-                            <td>Fired when calendar opens</td>
-                        </tr>
-                        <tr>
-                            <td><code>calendar-close</code></td>
-                            <td><code>void</code></td>
-                            <td>Fired when calendar closes</td>
-                        </tr>
-                        <tr>
-                            <td><code>input-change</code></td>
-                            <td><code>string</code></td>
-                            <td>Fired when input value changes (typing)</td>
+                            <td><code>custom-action</code></td>
+                            <td><code>CustomActionEventDetail</code></td>
+                            <td>Fired when a custom action button is clicked (<code>detail.data</code> / <code>detail.picker</code>)</td>
                         </tr>
                     </tbody>
                 </table>
@@ -1091,26 +1072,26 @@ const manager = new DateRangeManager();</code></pre>
         const output1 = document.getElementById('output-1');
         const state1 = document.getElementById('state-1');
 
+        // There is no calendar open/close event — read `isOpen` after acting.
+        const renderState1 = () => {
+            const open = picker1.isOpen;
+            state1.textContent = open ? 'open' : 'closed';
+            output1.innerHTML = `Calendar state: <strong style="color: ${open ? '#28a745' : '#6c757d'};">${open ? 'open' : 'closed'}</strong>`;
+        };
+
         document.getElementById('btn-show').addEventListener('click', () => {
             picker1.show();
+            renderState1();
         });
 
         document.getElementById('btn-hide').addEventListener('click', () => {
             picker1.hide();
+            renderState1();
         });
 
         document.getElementById('btn-toggle').addEventListener('click', () => {
             picker1.toggle();
-        });
-
-        picker1.addEventListener('calendar-open', () => {
-            state1.textContent = 'open';
-            output1.innerHTML = 'Calendar state: <strong style="color: #28a745;">open</strong>';
-        });
-
-        picker1.addEventListener('calendar-close', () => {
-            state1.textContent = 'closed';
-            output1.innerHTML = 'Calendar state: <strong style="color: #6c757d;">closed</strong>';
+            renderState1();
         });
 
         // Section 2: Get/Set Input Value
@@ -1223,10 +1204,8 @@ const manager = new DateRangeManager();</code></pre>
 
         document.getElementById('btn-toggle-5').addEventListener('click', () => {
             picker5.toggle();
+            updateState5();
         });
-
-        picker5.addEventListener('calendar-open', updateState5);
-        picker5.addEventListener('calendar-close', updateState5);
 
         // Section 6: Picker Instance Access
         const picker6 = document.getElementById('picker-6');

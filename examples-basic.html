@@ -258,7 +258,7 @@
           display-format-mask="tt.mm.jjjj"
           placeholder="Datumsbereich wählen">
         </web-daterangepicker>
-        <small>German with weekends disabled (custom strings require direct PureDatePicker instantiation)</small>
+        <small>German with weekends disabled (custom strings require the <code>customStrings</code> property or direct <code>DateRangePicker</code> instantiation)</small>
       </div>
     </div>
   </div>
@@ -1564,7 +1564,7 @@ picker.addEventListener('date-select', (e) => {
       text-decoration: line-through;
     }
 
-    /* Note: Badge positioning styles are now in the Shadow DOM (SCSS file) */
+    /* Note: Badge positioning styles are now in the Shadow DOM (component CSS) */
   </style>
   </div>
 </body>
