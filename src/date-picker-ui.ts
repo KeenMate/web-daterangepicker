@@ -6,6 +6,11 @@
  */
 
 import { computePosition, flip, shift, offset, arrow, autoUpdate, size, platform } from '@floating-ui/dom';
+// The fixed-positioning containing-block heuristic (narrowed to what browsers
+// reliably honour for `position: fixed` — ignoring `contain`/`container-type`,
+// the pure-admin `.pa-layout__main` drift case) is now owned by core, shared with
+// the other components. See `@keenmate/web-components-core/positioning`.
+import { getFixedPositionOffsetParent, detectFixedDrift } from '@keenmate/web-components-core/positioning';
 import { uiLogger } from './logger';
 import { handleInitialMonthLoad } from './date-picker-navigation';
 import { updateCalendarFromInput } from './date-picker-interaction';
@@ -13,117 +18,30 @@ import { updateSummary } from './date-picker-rendering';
 import type { LoaderTarget } from './types';
 
 /**
- * Resolve the nearest ancestor that genuinely establishes a containing block for a
- * `position: fixed` descendant — walking across shadow-DOM boundaries. Returns `window`
- * if none is found, matching the browser's actual layout behavior.
- *
- * Per CSS specs, ONLY these properties cause the browser to anchor a fixed-positioned
- * descendant to an ancestor (instead of the viewport):
- *   - `transform` (non-none)
- *   - `perspective` (non-none)
- *   - `filter` / `backdrop-filter` (non-none)
- *   - `will-change: transform | filter | perspective`
- *
- * Floating UI's default `getOffsetParent` ALSO treats `contain: layout|paint|strict|content`
- * and `container-type` as containing-block-establishing for fixed positioning, but those
- * properties only create a CB for *absolute* positioning — the browser keeps fixed elements
- * anchored to the viewport. The mismatch surfaces as the calendar landing `ancestor.x` pixels
- * off from where Floating UI computed it (notably in pure-admin's `.pa-layout__main` wrapper,
- * which uses `container-type: inline-size`).
- *
- * This function intentionally omits `contain` and `container-type` so the result agrees
- * with what the browser actually does, regardless of where the calendar lives in the tree
- * (shadow DOM or light DOM).
- */
-function getFixedPositionOffsetParent(el: Element): Element | Window {
-    let node: Node | null = el;
-    while (node) {
-        if (node === document.body || node === document.documentElement) break;
-        if (node instanceof Element) {
-            const cs = getComputedStyle(node);
-            if (cs.transform !== 'none') return node;
-            if (cs.perspective !== 'none') return node;
-            if (cs.filter !== 'none') return node;
-            const bdf = (cs as any).backdropFilter;
-            if (bdf && bdf !== 'none') return node;
-            if (cs.willChange && /\b(transform|filter|perspective)\b/.test(cs.willChange)) return node;
-        }
-        // Cross shadow root boundary so we see light-DOM ancestors of the host too.
-        const parent = (node as any).parentNode;
-        node = parent instanceof ShadowRoot ? parent.host : parent;
-    }
-    return window;
-}
-
-/**
- * Given an observed drift of the calendar from its expected viewport position, walk up from
- * the input and find the first ancestor whose `getBoundingClientRect().{x,y}` matches the
- * drift. That ancestor is the most likely containing block the browser actually anchored the
- * fixed panel to. Returns null if no match is found (drift caused by something else — visual
- * viewport, iframe, scrollbar gutter, etc.).
- */
-function findDriftCulprit(el: Element, driftX: number, driftY: number): Element | null {
-    let node: Node | null = el;
-    while (node) {
-        if (node === document.body || node === document.documentElement) break;
-        if (node instanceof Element) {
-            const rect = node.getBoundingClientRect();
-            if (Math.abs(rect.x - driftX) < 2 && Math.abs(rect.y - driftY) < 2) return node;
-        }
-        const parent = (node as any).parentNode;
-        node = parent instanceof ShadowRoot ? parent.host : parent;
-    }
-    return null;
-}
-
-/**
- * Report which CB-establishing properties (per Floating UI's `isContainingBlock`) are set on
- * the given element. Used by the drift warning to point at the specific CSS that's likely
- * responsible — so the developer doesn't have to manually inspect computed styles.
- */
-function listContainingBlockProps(el: Element): string {
-    const cs = getComputedStyle(el);
-    const props: string[] = [];
-    if (cs.transform !== 'none') props.push(`transform: ${cs.transform}`);
-    if (cs.perspective !== 'none') props.push(`perspective: ${cs.perspective}`);
-    if (cs.filter !== 'none') props.push(`filter: ${cs.filter}`);
-    const bdf = (cs as any).backdropFilter;
-    if (bdf && bdf !== 'none') props.push(`backdrop-filter: ${bdf}`);
-    if (cs.willChange && /\b(transform|filter|perspective)\b/.test(cs.willChange)) props.push(`will-change: ${cs.willChange}`);
-    if (cs.contain && /\b(paint|layout|strict|content)\b/.test(cs.contain)) props.push(`contain: ${cs.contain}`);
-    if ((cs as any).containerType && (cs as any).containerType !== 'normal') props.push(`container-type: ${(cs as any).containerType}`);
-    return props.join('; ');
-}
-
-/**
- * Sanity-check that the browser placed the calendar where we told it to. With `position: fixed`
- * and no transformed/perspective/filter ancestor, `left: ${x}px` must render at viewport-x = x.
- * If the rendered position drifts, the consumer has an ancestor that establishes a fixed
- * containing block but isn't on our reliable-anchors list (likely `contain: paint|layout|strict`
- * or `container-type` — which the spec says creates a CB but the browser's actual behavior
- * varies across shadow-DOM scenarios). We can't fix it from inside the library, but we can
- * surface a clear warning so the developer knows where to look.
+ * Sanity-check that the browser placed the calendar where we told it to, warning
+ * once if it drifted. The drift math + culprit identification is core's
+ * (`detectFixedDrift`, SPEC §12.2) — shared with the other components; this keeps
+ * only the daterangepicker-specific warning copy. `expectedX`/`expectedY` are the
+ * coordinates Floating UI computed (relative to the calendar's offset parent).
  *
  * Fires at most once per picker instance to avoid flooding the console during autoUpdate.
  */
 function verifyPanelLanded(picker: any, panel: HTMLElement, expectedX: number, expectedY: number): void {
     if (picker.positioningDriftWarned) return;
-    const rect = panel.getBoundingClientRect();
-    const driftX = rect.x - expectedX;
-    const driftY = rect.y - expectedY;
-    if (Math.abs(driftX) < 1 && Math.abs(driftY) < 1) return;
+    const report = detectFixedDrift({
+        panel,
+        reference: picker.input,
+        expectedX,
+        expectedY,
+        offsetParent: getFixedPositionOffsetParent(picker.calendar),
+    });
+    if (!report) return;
 
     picker.positioningDriftWarned = true;
-    const culprit = findDriftCulprit(picker.input, driftX, driftY);
-    const culpritDescription = culprit
-        ? `<${culprit.tagName.toLowerCase()}${culprit.id ? '#' + culprit.id : ''}${typeof culprit.className === 'string' && culprit.className ? '.' + culprit.className.split(/\s+/).filter(Boolean).slice(0, 2).join('.') : ''}>`
-        : 'an ancestor element (could not auto-identify)';
-    const culpritCss = culprit ? listContainingBlockProps(culprit) : '';
-
     console.warn(
-        `[@keenmate/web-daterangepicker] Calendar rendered ${driftX.toFixed(0)}px / ${driftY.toFixed(0)}px ` +
-        `away from where the library positioned it. Most likely culprit: ${culpritDescription}` +
-        (culpritCss ? ` (has ${culpritCss})` : '') + `.\n` +
+        `[@keenmate/web-daterangepicker] Calendar rendered ${report.driftX.toFixed(0)}px / ${report.driftY.toFixed(0)}px ` +
+        `away from where the library positioned it. Most likely culprit: ${report.culpritDescription}` +
+        (report.culpritCss ? ` (has ${report.culpritCss})` : '') + `.\n` +
         `An ancestor of <web-daterangepicker> establishes a fixed-positioning containing block that the library's ` +
         `heuristic doesn't recognize. Fix on your side: replace the property with \`transform: translateZ(0)\` ` +
         `on that ancestor, OR move the trigger out of that ancestor's subtree. If neither is acceptable, ` +
@@ -439,7 +357,9 @@ export async function position(picker: any) {
     // CB. `verifyPanelLanded` below surfaces a one-shot warning if the panel still drifts.
     const customPlatform = {
         ...platform,
-        getOffsetParent: () => getFixedPositionOffsetParent(picker.input)
+        // The offset parent of the FLOATING element (the calendar), not the reference —
+        // that is what Floating UI's coordinates must be measured against.
+        getOffsetParent: () => getFixedPositionOffsetParent(picker.calendar)
     };
 
     // Always allow flip on every reposition. Previously the resolved placement was
@@ -489,10 +409,14 @@ export async function showTooltip(picker: any, element: HTMLElement, content: st
     picker.tooltip.classList.add('drp__tooltip--visible');
 
     // Same custom getOffsetParent rationale as position() — ignore container-type / contain
-    // so the tooltip lands where the browser actually places a fixed element.
+    // so the tooltip lands where the browser actually places a fixed element. Measure the
+    // offset parent of the FLOATING element (the tooltip), NOT the reference `element`: the
+    // reference (a badge cell) can itself be a fixed-positioning containing block (it carries
+    // a `transform`), which would make Floating UI return badge-relative coordinates that then
+    // render off-screen once applied as the tooltip's `position: fixed` left/top.
     const tooltipPlatform = {
         ...platform,
-        getOffsetParent: () => getFixedPositionOffsetParent(element)
+        getOffsetParent: () => getFixedPositionOffsetParent(picker.tooltip)
     };
     const { x, y, placement, middlewareData } = await computePosition(element, picker.tooltip, {
         placement: 'top',

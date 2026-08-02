@@ -32,6 +32,12 @@
     </div>
 
     <div class="fixture">
+        <div class="fixture-label">badge tooltip via specialDates[].badgeTooltip (badge has a :hover transform)</div>
+        <web-daterangepicker id="badge-tip" selection-mode="single"
+            initial-date="2026-06-15"></web-daterangepicker>
+    </div>
+
+    <div class="fixture">
         <div class="fixture-label">picker inside overflow:auto — day tooltip must escape the clip box</div>
         <div class="clip" id="clip">
             <web-daterangepicker id="tip-overflow" selection-mode="single"
@@ -49,6 +55,13 @@
         document.getElementById('action-tip').actionButtons = [
             { action: 'today', text: 'Today', tooltip: 'Jump to today' },
             { action: 'clear', text: 'Clear' }
+        ];
+
+        // Badge with a tooltip. The badge cell gets `transform: scale(1.05)` on hover,
+        // which makes it a fixed-positioning containing block — a regression trap for
+        // tooltip positioning (see e2e/tooltips.spec.ts).
+        document.getElementById('badge-tip').specialDates = [
+            { date: '2026-06-15', badgeText: '★', badgeTooltip: 'Badge tooltip content' }
         ];
 
         document.getElementById('tip-overflow').dayTooltipCallback = ({ dayNumber }) =>

@@ -23,7 +23,7 @@ import * as UI from './date-picker-ui';
 import * as Lock from './date-picker-lock';
 import { resolveLocale, getLocaleStrings, getWeekdayNames, getMonthNames } from './date-picker-locales';
 import { drpLogger, navigationLogger, enableLogging, disableLogging } from './logger';
-import { Tooltip } from './tooltip';
+import { createTooltip, type TooltipHandle } from '@keenmate/web-components-core/positioning';
 import { createScrollEventManager, createClickEventManager, type ScrollEventManager, type ClickEventManager, type ScrollSubscription, type ClickSubscription } from './modules';
 // Import styles for static injection (only used when injectGlobalStyles is called)
 import styles from './css/main.css?inline';
@@ -161,7 +161,7 @@ class DateRangePicker {
     summaryOverride: string | null = null;
 
     // Action button tooltips
-    private actionButtonTooltipInstances: Tooltip[] = [];
+    private actionButtonTooltipInstances: TooltipHandle[] = [];
     actionsContainer: HTMLElement | null = null;
 
     // Event managers (Pub/Sub pattern)
@@ -896,7 +896,17 @@ class DateRangePicker {
             if (!tooltipText) return;
 
             buttonElement.dataset.tooltipId = `action-${index}`;
-            this.actionButtonTooltipInstances.push(new Tooltip(buttonElement, tooltipText, { container }));
+            // Core createTooltip (SPEC §12.2): per-trigger hover tooltip with delay.
+            // Behaviour-equivalent to the former local Tooltip class — same 'drp__tooltip'
+            // styling, 300/100ms show/hide delays, top placement, floating-ui default platform.
+            this.actionButtonTooltipInstances.push(createTooltip({
+                trigger: buttonElement,
+                content: tooltipText,
+                container,
+                delay: { show: 300, hide: 100 },
+                cssClass: 'drp__tooltip',
+                visibleClass: 'drp__tooltip--visible',
+            }));
         });
     }
 

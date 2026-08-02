@@ -84,6 +84,31 @@ test('action-button tooltip appears on hover of a button with a configured toolt
 });
 
 // =============================================================================
+// badge tooltip — regression: a hovered badge carries `transform: scale(1.05)`,
+// which makes it a fixed-positioning containing block. Floating UI must measure
+// the FLOATING element's offset parent (not the transformed reference), or the
+// tooltip lands at negative viewport coordinates (off-screen).
+// =============================================================================
+
+test('badge tooltip shows on hover and lands on-screen (badge :hover transform must not push it off-screen)', async ({ page }) => {
+    const p = await open(page, 'badge-tip');
+
+    const badge = p.locator('.drp__badge-cell', { hasText: '★' });
+    await badge.hover();
+
+    const tip = dayTooltip(p);
+    await expect(tip).toHaveClass(/drp__tooltip--visible/);
+    await expect(tip).toContainText('Badge tooltip content');
+
+    // The regression: before the offset-parent fix the tooltip was placed at
+    // roughly (-56, -82) — off the top-left of the viewport. Assert it is on-screen.
+    const box = await tip.boundingBox();
+    expect(box).not.toBeNull();
+    expect(box!.x).toBeGreaterThanOrEqual(0);
+    expect(box!.y).toBeGreaterThanOrEqual(0);
+});
+
+// =============================================================================
 // tooltip escape from overflow ancestor
 // =============================================================================
 
