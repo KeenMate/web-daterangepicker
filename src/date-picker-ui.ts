@@ -5,12 +5,13 @@
  * and tooltips.
  */
 
-import { computePosition, flip, shift, offset, arrow, autoUpdate, size, platform } from '@floating-ui/dom';
-// The fixed-positioning containing-block heuristic (narrowed to what browsers
-// reliably honour for `position: fixed` — ignoring `contain`/`container-type`,
-// the pure-admin `.pa-layout__main` drift case) is now owned by core, shared with
-// the other components. See `@keenmate/web-components-core/positioning`.
-import { getFixedPositionOffsetParent, detectFixedDrift } from '@keenmate/web-components-core/positioning';
+// All positioning goes through core `@keenmate/web-components-core/positioning`:
+// `anchor()` (the calendar popover + day/badge tooltips), the re-exported
+// floating-ui `platform` (spread into the narrowed container-type platform),
+// `getFixedPositionOffsetParent` (the containing-block heuristic), and
+// `detectFixedDrift` (the drift diagnostic). daterangepicker no longer depends on
+// `@floating-ui/dom` directly.
+import { anchor, platform, getFixedPositionOffsetParent, detectFixedDrift } from '@keenmate/web-components-core/positioning';
 import { uiLogger } from './logger';
 import { handleInitialMonthLoad } from './date-picker-navigation';
 import { updateCalendarFromInput } from './date-picker-interaction';
@@ -49,8 +50,9 @@ function verifyPanelLanded(picker: any, panel: HTMLElement, expectedX: number, e
     );
 }
 
-// Cleanup function for autoUpdate
-let cleanupAutoUpdate: (() => void) | null = null;
+// The calendar's core anchor() handle is stored per-instance on the picker
+// (`picker.calendarAnchor`) — see show()/hide()/position(). (The former
+// module-level autoUpdate cleanup was shared across instances, a latent bug.)
 
 // Window resize handler — registered in floating mode so we can close on
 // viewport changes (since elementResize is disabled on autoUpdate, the picker
@@ -190,10 +192,25 @@ export function show(picker: any) {
         // inputTop − newHeight − offset, sliding the calendar upward and the
         // hovered day with it — which lands the cursor on a different day,
         // re-fires hover, and loops. Anchor once, let the bottom grow downward.
-        position(picker);
-        cleanupAutoUpdate = autoUpdate(picker.input, picker.calendar, () => {
-            position(picker);
-        }, { elementResize: false });
+        picker.calendarAnchor = anchor(picker.calendar, picker.input, {
+            placement: (picker.options.calendarPlacement || 'bottom-start'),
+            strategy: 'fixed',
+            offset: 8,
+            flipPadding: 8,
+            shift: 8,
+            // Cap the calendar to the viewport-available height (it scrolls its
+            // months area internally); header/action bar stay pinned.
+            maxHeight: { padding: 8 },
+            // Narrow the containing-block heuristic to what browsers honour for
+            // `position: fixed` (ignore contain/container-type — the pure-admin
+            // `.pa-layout__main` case); measure the FLOATING element's parent.
+            platform: { ...platform, getOffsetParent: () => getFixedPositionOffsetParent(picker.calendar) },
+            // The calendar's OWN size changes must not re-trigger a reposition
+            // (resize→reposition→re-hover loop); reposition only on scroll/ancestor moves.
+            autoUpdateOptions: { elementResize: false },
+            // One-shot drift warning if an unrecognized ancestor CB still shifts the panel.
+            onComputed: ({ x, y }) => verifyPanelLanded(picker, picker.calendar, x, y),
+        });
 
         // Close on viewport resize (in either direction). With elementResize
         // off, we can't gracefully adapt to a smaller/larger window, so just
@@ -255,9 +272,9 @@ export function hide(picker: any) {
     const isModal = picker.options.positioningMode === 'modal';
 
     // Stop auto-updating position (floating mode only — modal never registers it)
-    if (cleanupAutoUpdate) {
-        cleanupAutoUpdate();
-        cleanupAutoUpdate = null;
+    if (picker.calendarAnchor) {
+        picker.calendarAnchor.destroy();
+        picker.calendarAnchor = null;
     }
 
     if (viewportResizeHandler) {
@@ -337,70 +354,22 @@ export function toggle(picker: any) {
     }
 }
 
-export async function position(picker: any) {
-    if (!picker.input) {
-        return;
-    }
-
-    // Modal mode is centered via CSS — Floating UI shouldn't touch its position.
-    if (picker.options.positioningMode === 'modal') {
-        return;
-    }
-
-    // Floating UI's default `getOffsetParent` walks ancestors looking for any element with
-    // a CB-establishing property, including `contain: layout|paint|strict|content` and
-    // `container-type: <non-normal>`. In some real-world shadow-DOM layouts (e.g. a
-    // <web-daterangepicker> nested under `.pa-layout__main { container-type: inline-size }`)
-    // the browser does NOT actually anchor the calendar to that ancestor, and Floating UI's
-    // resulting coordinates end up offset by the ancestor's viewport-x. The custom platform
-    // narrows the heuristic to properties every browser reliably honors as a fixed-positioning
-    // CB. `verifyPanelLanded` below surfaces a one-shot warning if the panel still drifts.
-    const customPlatform = {
-        ...platform,
-        // The offset parent of the FLOATING element (the calendar), not the reference —
-        // that is what Floating UI's coordinates must be measured against.
-        getOffsetParent: () => getFixedPositionOffsetParent(picker.calendar)
-    };
-
-    // Always allow flip on every reposition. Previously the resolved placement was
-    // cached after the first compute to prevent "jitter" during autoUpdate, but
-    // the cache had a worse failure mode: if the first computePosition read the
-    // calendar before its layout flushed (height = 0), flip wrongly concluded it
-    // fit below, locked there, and the calendar opened off-screen for the rest of
-    // the session. Rely on Floating UI's own scroll-debouncing inside autoUpdate.
-    const result = await computePosition(picker.input, picker.calendar, {
-        placement: (picker.options.calendarPlacement || 'bottom-start') as any,
-        strategy: 'fixed',
-        platform: customPlatform,
-        middleware: [
-            offset(8),
-            flip({ padding: 8 }),
-            shift({ padding: 8 }),
-            // Cap calendar height to whatever the viewport allows on the chosen side.
-            // Scrolling is handled by the inner months container via the flex-column
-            // layout in `base.css` — the calendar itself uses `overflow: hidden` so
-            // header and action bar stay pinned while the months area scrolls.
-            size({
-                padding: 8,
-                apply({ availableHeight, elements }) {
-                    elements.floating.style.maxHeight = `${Math.max(0, availableHeight)}px`;
-                },
-            }),
-        ],
-    });
-
-    uiLogger.debug('position() - x:', result.x, 'y:', result.y, 'placement:', result.placement);
-
-    picker.calendar.style.left = `${result.x}px`;
-    picker.calendar.style.top = `${result.y}px`;
-
-    verifyPanelLanded(picker, picker.calendar, result.x, result.y);
+/**
+ * Recompute the calendar's floating position now. The placement / middleware /
+ * platform / drift-check all live on the core `anchor()` handle created in
+ * show() (`picker.calendarAnchor`); this just asks it to update. No-op in modal
+ * mode (CSS-centered, no anchor) or before the calendar is shown.
+ */
+export function position(picker: any) {
+    if (!picker.input) return;
+    if (picker.options.positioningMode === 'modal') return;
+    picker.calendarAnchor?.update();
 }
 
 /**
  * Show tooltip using Floating UI
  */
-export async function showTooltip(picker: any, element: HTMLElement, content: string) {
+export function showTooltip(picker: any, element: HTMLElement, content: string) {
     if (!picker.tooltip || !picker.tooltipArrow) return;
 
     picker.currentTooltipTarget = element;
@@ -408,53 +377,24 @@ export async function showTooltip(picker: any, element: HTMLElement, content: st
     picker.tooltip.appendChild(picker.tooltipArrow); // Re-append arrow after setting innerHTML
     picker.tooltip.classList.add('drp__tooltip--visible');
 
-    // Same custom getOffsetParent rationale as position() — ignore container-type / contain
-    // so the tooltip lands where the browser actually places a fixed element. Measure the
-    // offset parent of the FLOATING element (the tooltip), NOT the reference `element`: the
-    // reference (a badge cell) can itself be a fixed-positioning containing block (it carries
-    // a `transform`), which would make Floating UI return badge-relative coordinates that then
-    // render off-screen once applied as the tooltip's `position: fixed` left/top.
-    const tooltipPlatform = {
-        ...platform,
-        getOffsetParent: () => getFixedPositionOffsetParent(picker.tooltip)
-    };
-    const { x, y, placement, middlewareData } = await computePosition(element, picker.tooltip, {
+    // Position via core anchor() — offset/flip/shift + arrow, plus the narrowed
+    // container-type platform. Measure the FLOATING element's (the tooltip's)
+    // offset parent, NOT the reference `element`: a badge cell is itself a
+    // fixed-positioning containing block (`transform` on hover), so measuring the
+    // reference would return badge-relative coordinates that render off-screen.
+    // The day/badge tooltip reuses ONE shared element across cells (event
+    // delegation), so replace any prior anchor. autoUpdate:false = single compute,
+    // matching the previous one-shot behaviour (the tooltip lives only while hovered).
+    picker.tooltipAnchor?.destroy();
+    picker.tooltipAnchor = anchor(picker.tooltip, element, {
         placement: 'top',
         strategy: 'fixed',
-        platform: tooltipPlatform,
-        middleware: [
-            offset(6),
-            flip(),
-            shift({ padding: 5 }),
-            arrow({ element: picker.tooltipArrow })
-        ]
+        offset: 6,
+        shift: 5,
+        arrow: { element: picker.tooltipArrow },
+        platform: { ...platform, getOffsetParent: () => getFixedPositionOffsetParent(picker.tooltip) },
+        autoUpdate: false,
     });
-
-    // Position the tooltip
-    Object.assign(picker.tooltip.style, {
-        left: `${x}px`,
-        top: `${y}px`
-    });
-
-    // Position the arrow
-    if (middlewareData.arrow) {
-        const { x: arrowX, y: arrowY } = middlewareData.arrow;
-
-        const staticSide = {
-            top: 'bottom',
-            right: 'left',
-            bottom: 'top',
-            left: 'right'
-        }[placement.split('-')[0] as 'top' | 'right' | 'bottom' | 'left'];
-
-        Object.assign(picker.tooltipArrow.style, {
-            left: arrowX != null ? `${arrowX}px` : '',
-            top: arrowY != null ? `${arrowY}px` : '',
-            right: '',
-            bottom: '',
-            [staticSide!]: '-4px'
-        });
-    }
 }
 
 /**
@@ -462,6 +402,8 @@ export async function showTooltip(picker: any, element: HTMLElement, content: st
  */
 export function hideTooltip(picker: any) {
     if (!picker.tooltip) return;
+    picker.tooltipAnchor?.destroy();
+    picker.tooltipAnchor = undefined;
     picker.tooltip.classList.remove('drp__tooltip--visible');
     picker.currentTooltipTarget = undefined;
 }

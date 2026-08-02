@@ -50,27 +50,34 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `@keenmate/web-components-core` (pre-upgrade property vs. initial attribute
   ordering) rather than with a component-local guard.
 
-### Positioning — shared with `@keenmate/web-components-core/positioning`
+### Positioning — fully routed through `@keenmate/web-components-core/positioning`
+
+**All positioning now goes through core; `@floating-ui/dom` is no longer a direct
+dependency.**
 
 - The generic containing-block / drift logic moved to core: the local
   `getFixedPositionOffsetParent` + drift-culprit helpers are gone, replaced by
   core's `getFixedPositionOffsetParent` + `detectFixedDrift` (one shared, tested
   implementation; the off-screen bug above is fixed there too).
-- **Action-button tooltips now use core `createTooltip()`** — the local
-  `src/tooltip.ts` `Tooltip` class is deleted (behaviour-equivalent: same
-  `drp__tooltip` styling, 300/100 ms delays, top placement).
-- Genuinely component-specific positioning stays local (it needs middleware core's
-  presets don't expose): the calendar popover's viewport-height-capping `size()`
-  middleware, and the day/badge tooltips' `arrow()` + event-delegation + HTML
-  content + narrowed container-type platform. These still consume core's shared
-  offset-parent/drift helpers. `@floating-ui/dom` remains a direct dependency for
-  them.
+- **Action-button tooltips** use core `createTooltip()` — the local
+  `src/tooltip.ts` `Tooltip` class is deleted.
+- **The calendar popover** uses core `anchor()` (with the new `maxHeight`,
+  `flipPadding`, `autoUpdateOptions: { elementResize: false }`, `onComputed` drift
+  check, and the narrowed container-type `platform`). The former module-level
+  autoUpdate cleanup is now a per-instance anchor handle (fixes a latent
+  multi-instance leak).
+- **Day/badge tooltips** use core `anchor()` with the new `arrow` option; the
+  component keeps only what's genuinely its own — the hover event-delegation over
+  one shared tooltip element and the per-cell HTML content.
+- These required additive core enhancements to `anchor()` (arrow / maxHeight /
+  flipPadding / autoUpdateOptions / onComputed) so nothing is hand-rolled here.
 
 ### Dependencies
 
 - Added `@keenmate/web-components-core`. Removed `loglevel`,
-  `loglevel-plugin-prefix`. `@floating-ui/dom` stays (the engine keeps its own
-  positioning).
+  `loglevel-plugin-prefix`, **and `@floating-ui/dom`** — all positioning now goes
+  through core (which owns the single pinned `@floating-ui/dom`). The component
+  has no direct runtime dependency other than core.
 
 ### Docs
 

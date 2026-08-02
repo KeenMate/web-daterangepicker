@@ -90,7 +90,6 @@
     "vite": "^5.0.8"
   },
   "dependencies": {
-    "@floating-ui/dom": "^1.5.3",
     "@keenmate/web-components-core": "file:../web-components-core"
   }
 }
