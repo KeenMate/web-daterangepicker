@@ -6,12 +6,12 @@
  */
 
 // All positioning goes through core `@keenmate/web-components-core/positioning`:
-// `anchor()` (the calendar popover + day/badge tooltips), the re-exported
-// floating-ui `platform` (spread into the narrowed container-type platform),
-// `getFixedPositionOffsetParent` (the containing-block heuristic), and
-// `detectFixedDrift` (the drift diagnostic). daterangepicker no longer depends on
-// `@floating-ui/dom` directly.
-import { anchor, platform, getFixedPositionOffsetParent, detectFixedDrift } from '@keenmate/web-components-core/positioning';
+// `anchor()` (the calendar popover + day/badge tooltips) with its first-class
+// `fixedContainingBlock` (the narrowed containing-block heuristic) + `onDrift` (the
+// drift diagnostic) options — core owns both. This file keeps only the
+// daterangepicker-branded warning copy (see warnDrift). daterangepicker no longer
+// depends on `@floating-ui/dom` directly.
+import { anchor, type DriftReport } from '@keenmate/web-components-core/positioning';
 import { uiLogger } from './logger';
 import { handleInitialMonthLoad } from './date-picker-navigation';
 import { updateCalendarFromInput } from './date-picker-interaction';
@@ -19,25 +19,15 @@ import { updateSummary } from './date-picker-rendering';
 import type { LoaderTarget } from './types';
 
 /**
- * Sanity-check that the browser placed the calendar where we told it to, warning
- * once if it drifted. The drift math + culprit identification is core's
- * (`detectFixedDrift`, SPEC §12.2) — shared with the other components; this keeps
- * only the daterangepicker-specific warning copy. `expectedX`/`expectedY` are the
- * coordinates Floating UI computed (relative to the calendar's offset parent).
- *
- * Fires at most once per picker instance to avoid flooding the console during autoUpdate.
+ * Surface a daterangepicker-branded, once-per-instance warning when core's drift
+ * check (`anchor`'s `onDrift`) reports the calendar didn't land where it was
+ * positioned — an ancestor establishes a fixed containing block the heuristic
+ * doesn't recognize (typically `contain` / `container-type`). Core owns the drift
+ * measurement + culprit identification (`detectFixedDrift`, SPEC §12.2); this keeps
+ * only the daterangepicker-specific warning copy.
  */
-function verifyPanelLanded(picker: any, panel: HTMLElement, expectedX: number, expectedY: number): void {
+function warnDrift(picker: any, report: DriftReport): void {
     if (picker.positioningDriftWarned) return;
-    const report = detectFixedDrift({
-        panel,
-        reference: picker.input,
-        expectedX,
-        expectedY,
-        offsetParent: getFixedPositionOffsetParent(picker.calendar),
-    });
-    if (!report) return;
-
     picker.positioningDriftWarned = true;
     console.warn(
         `[@keenmate/web-daterangepicker] Calendar rendered ${report.driftX.toFixed(0)}px / ${report.driftY.toFixed(0)}px ` +
@@ -203,13 +193,13 @@ export function show(picker: any) {
             maxHeight: { padding: 8 },
             // Narrow the containing-block heuristic to what browsers honour for
             // `position: fixed` (ignore contain/container-type — the pure-admin
-            // `.pa-layout__main` case); measure the FLOATING element's parent.
-            platform: { ...platform, getOffsetParent: () => getFixedPositionOffsetParent(picker.calendar) },
+            // `.pa-layout__main` case), resolved from the FLOATING element (the calendar).
+            fixedContainingBlock: true,
             // The calendar's OWN size changes must not re-trigger a reposition
             // (resize→reposition→re-hover loop); reposition only on scroll/ancestor moves.
             autoUpdateOptions: { elementResize: false },
             // One-shot drift warning if an unrecognized ancestor CB still shifts the panel.
-            onComputed: ({ x, y }) => verifyPanelLanded(picker, picker.calendar, x, y),
+            onDrift: (report) => warnDrift(picker, report),
         });
 
         // Close on viewport resize (in either direction). With elementResize
@@ -378,8 +368,8 @@ export function showTooltip(picker: any, element: HTMLElement, content: string) 
     picker.tooltip.classList.add('drp__tooltip--visible');
 
     // Position via core anchor() — offset/flip/shift + arrow, plus the narrowed
-    // container-type platform. Measure the FLOATING element's (the tooltip's)
-    // offset parent, NOT the reference `element`: a badge cell is itself a
+    // fixed-CB heuristic (`fixedContainingBlock`), resolved from the FLOATING element
+    // (the tooltip), NOT the reference `element`: a badge cell is itself a
     // fixed-positioning containing block (`transform` on hover), so measuring the
     // reference would return badge-relative coordinates that render off-screen.
     // The day/badge tooltip reuses ONE shared element across cells (event
@@ -392,7 +382,7 @@ export function showTooltip(picker: any, element: HTMLElement, content: string) 
         offset: 6,
         shift: 5,
         arrow: { element: picker.tooltipArrow },
-        platform: { ...platform, getOffsetParent: () => getFixedPositionOffsetParent(picker.tooltip) },
+        fixedContainingBlock: true,
         autoUpdate: false,
     });
 }

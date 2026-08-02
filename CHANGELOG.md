@@ -56,21 +56,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 dependency.**
 
 - The generic containing-block / drift logic moved to core: the local
-  `getFixedPositionOffsetParent` + drift-culprit helpers are gone, replaced by
-  core's `getFixedPositionOffsetParent` + `detectFixedDrift` (one shared, tested
-  implementation; the off-screen bug above is fixed there too).
+  `getFixedPositionOffsetParent` + drift-culprit helpers are gone, and the
+  hand-built narrowed-CB platform + drift wiring are replaced by `anchor()`'s
+  first-class `fixedContainingBlock: true` + `onDrift(report)` options (one shared,
+  tested implementation; the off-screen bug above is fixed there too). `warnDrift`
+  keeps only the daterangepicker-branded, once-per-instance message.
 - **Action-button tooltips** use core `createTooltip()` — the local
   `src/tooltip.ts` `Tooltip` class is deleted.
-- **The calendar popover** uses core `anchor()` (with the new `maxHeight`,
-  `flipPadding`, `autoUpdateOptions: { elementResize: false }`, `onComputed` drift
-  check, and the narrowed container-type `platform`). The former module-level
-  autoUpdate cleanup is now a per-instance anchor handle (fixes a latent
-  multi-instance leak).
-- **Day/badge tooltips** use core `anchor()` with the new `arrow` option; the
-  component keeps only what's genuinely its own — the hover event-delegation over
-  one shared tooltip element and the per-cell HTML content.
+- **The calendar popover** uses core `anchor()` (with `maxHeight`, `flipPadding`,
+  `autoUpdateOptions: { elementResize: false }`, `fixedContainingBlock` + `onDrift`
+  drift check). The former module-level autoUpdate cleanup is now a per-instance
+  anchor handle (fixes a latent multi-instance leak).
+- **Day/badge tooltips** use core `anchor()` with the `arrow` +
+  `fixedContainingBlock` options; the component keeps only what's genuinely its
+  own — the hover event-delegation over one shared tooltip element and the per-cell
+  HTML content.
 - These required additive core enhancements to `anchor()` (arrow / maxHeight /
-  flipPadding / autoUpdateOptions / onComputed) so nothing is hand-rolled here.
+  flipPadding / autoUpdateOptions / onComputed / fixedContainingBlock / onDrift) so
+  nothing is hand-rolled here.
 
 ### Dependencies
 
