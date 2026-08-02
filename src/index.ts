@@ -1,11 +1,9 @@
-// Import styles
+// Import styles (produces the shipped dist/style.css via Vite)
 import './css/main.css';
 
-// Import web component for auto-registration
+import { registerComponent } from '@keenmate/web-components-core';
 import { WebDaterangepickerElement } from './web-component';
-
-// Import logging functions
-import { enableLogging, disableLogging, setLogLevel, setCategoryLevel, getCategories } from './logger';
+import { logging } from './logger';
 
 // Export the web component
 export { WebDaterangepickerElement } from './web-component';
@@ -25,77 +23,54 @@ export type {
     BeforeMonthChangeResult, LocaleStrings
 } from './types';
 
-// ==============================================================================
-// GLOBAL API INTERFACE
-// ==============================================================================
+// Export logging utilities for runtime control
+export {
+    enableLogging,
+    disableLogging,
+    setLogLevel,
+    setCategoryLevel,
+    getCategories,
+    LOGGING_CATEGORIES,
+    drpLogger,
+    renderingLogger,
+    interactionLogger,
+    selectionLogger,
+    navigationLogger,
+    uiLogger,
+    validationLogger,
+    dragLogger,
+} from './logger';
 
-export interface GlobalWebDaterangepickerAPI {
-    version: () => string;
+// Type declarations for build-time constants (Vite define)
+declare const __VERSION__: string;
+declare const __PACKAGE_NAME__: string;
+declare const __AUTHOR__: string;
+declare const __LICENSE__: string;
+declare const __REPOSITORY__: string;
+declare const __HOMEPAGE__: string;
+
+// The whole hand-rolled `window.components['web-daterangepicker'] = { … }` block —
+// version/config/logging/register/getInstances — collapses to one core call.
+// registerComponent defines the element, publishes build metadata + the flattened
+// logging controls, and wires getInstances() to the live-instance registry that
+// BlissElement maintains automatically (add on connect / remove on disconnect).
+//
+//   window.components['web-daterangepicker'].getInstances()
+//   window.components['web-daterangepicker'].logging.enableLogging()
+registerComponent('web-daterangepicker', WebDaterangepickerElement as unknown as CustomElementConstructor, {
     config: {
-        name: string;
-        version: string;
-        author: string;
-        license: string;
-        repository: string;
-        homepage: string;
-    };
-    register: () => void;
-    getInstances: () => HTMLElement[];
-    logging: {
-        enableLogging: () => void;
-        disableLogging: () => void;
-        setLogLevel: (level: 'trace' | 'debug' | 'info' | 'warn' | 'error' | 'silent') => void;
-        setCategoryLevel: (category: string, level?: 'trace' | 'debug' | 'info' | 'warn' | 'error' | 'silent') => void;
-        getCategories: () => string[];
-    };
-}
+        name: typeof __PACKAGE_NAME__ !== 'undefined' ? __PACKAGE_NAME__ : '@keenmate/web-daterangepicker',
+        version: typeof __VERSION__ !== 'undefined' ? __VERSION__ : '0.0.0',
+        author: typeof __AUTHOR__ !== 'undefined' ? __AUTHOR__ : 'KeenMate',
+        license: typeof __LICENSE__ !== 'undefined' ? __LICENSE__ : 'MIT',
+        repository: typeof __REPOSITORY__ !== 'undefined' ? __REPOSITORY__ : '',
+        homepage: typeof __HOMEPAGE__ !== 'undefined' ? __HOMEPAGE__ : '',
+    },
+    logging,
+});
 
-// ==============================================================================
-// GLOBAL NAMESPACE REGISTRATION
-// ==============================================================================
-
-// Declare global namespace
 declare global {
-    interface Window {
-        components?: {
-            'web-daterangepicker'?: GlobalWebDaterangepickerAPI;
-        };
+    interface HTMLElementTagNameMap {
+        'web-daterangepicker': WebDaterangepickerElement;
     }
-}
-
-// Helper function to get all instances
-function getAllInstances(): HTMLElement[] {
-    return Array.from(document.querySelectorAll('web-daterangepicker'));
-}
-
-// Initialize global API
-if (typeof window !== 'undefined') {
-    window.components = window.components || {};
-    window.components['web-daterangepicker'] = {
-        version: () => __VERSION__,
-        config: {
-            name: __PACKAGE_NAME__,
-            version: __VERSION__,
-            author: __AUTHOR__,
-            license: __LICENSE__,
-            repository: __REPOSITORY__,
-            homepage: __HOMEPAGE__
-        },
-        register: () => {
-            if (typeof customElements !== 'undefined' && !customElements.get('web-daterangepicker')) {
-                customElements.define('web-daterangepicker', WebDaterangepickerElement);
-            }
-        },
-        getInstances: () => getAllInstances(),
-        logging: {
-            enableLogging,
-            disableLogging,
-            setLogLevel,
-            setCategoryLevel,
-            getCategories
-        }
-    };
-
-    // Auto-register the custom element
-    window.components['web-daterangepicker'].register();
 }

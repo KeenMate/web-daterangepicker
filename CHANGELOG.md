@@ -5,6 +5,94 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.0.0-rc05] - 2026-08-02
+
+### Changed — migrated onto `@keenmate/web-components-core` (`BlissElement`)
+
+- **The custom-element plumbing is now core-owned.** The hand-rolled
+  `ATTRIBUTE_TABLE`, `observedAttributes`, `attributeChangedCallback`, the
+  `AttrParser` helpers, `DUAL_PATH_KEYS`, the microtask reinit batcher, and the
+  ~35 property/callback getter/setter pairs in `web-component.ts` are replaced by
+  one core `static inputs` table + a `static events` table on `BlissElement`.
+  Core owns attribute parsing, property validation, reactivity coalescing,
+  reflection, pre-upgrade property lifting, and the managed `on<Name>` handler
+  properties. The `DateRangePicker` engine and all CSS are unchanged — only the
+  plumbing was swapped. Reactivity is declared per input (`on: 'reinit'` for the
+  engine's structural keys, `on: 'update'` for everything it patches in place)
+  and bridged via `reinit()` / `update()` / `connect()` / `disconnect()`.
+- **New: managed event-handler properties** `onDateSelect`, `onChange`,
+  `onCustomAction` — assigning one behaves exactly like `addEventListener` (the
+  handler receives the `CustomEvent`). The `date-select` / `change` /
+  `custom-action` events themselves are unchanged.
+- **New: `el.picker`** getter exposes the live `DateRangePicker` instance (an
+  escape hatch; the engine is already a public export).
+- **Logging** is now a thin shim over core `createLoggers('DRP', …)`; the
+  vendored `loglevel` + `loglevel-plugin-prefix` dependencies are dropped.
+  Category loggers keep their names (`renderingLogger`, `uiLogger`, …); the old
+  bare `DRP` logger is now `DRP:GENERAL` (`drpLogger`).
+- **Global registration** (`window.components['web-daterangepicker']`) now comes
+  from core `registerComponent()` instead of a hand-rolled block; `getInstances()`
+  is backed by core's live-instance registry.
+- **CEM**: `custom-elements-manifest.config.mjs` uses core's `blissAnalyzerConfig()`
+  (reads the `static inputs`/`static events` tables); the homegrown
+  `cem/attribute-table-plugin.mjs` is removed. Manifest: 56 attributes / 134
+  members / 3 events.
+
+### Fixed
+
+- **Badge tooltips no longer render off-screen.** A hovered badge cell gets
+  `transform: scale(1.05)`, making it a fixed-positioning containing block; the
+  bespoke offset-parent logic returned the badge as its own offset parent (and
+  measured the offset parent from the reference instead of the floating element),
+  so Floating UI produced negative coordinates. Fixed both, plus upstream in core.
+- **`disabledDates` (and other dual-path inputs) property now wins over the
+  attribute** when both are set before upgrade — fixed upstream in
+  `@keenmate/web-components-core` (pre-upgrade property vs. initial attribute
+  ordering) rather than with a component-local guard.
+
+### Positioning — shared with `@keenmate/web-components-core/positioning`
+
+- The generic containing-block / drift logic moved to core: the local
+  `getFixedPositionOffsetParent` + drift-culprit helpers are gone, replaced by
+  core's `getFixedPositionOffsetParent` + `detectFixedDrift` (one shared, tested
+  implementation; the off-screen bug above is fixed there too).
+- **Action-button tooltips now use core `createTooltip()`** — the local
+  `src/tooltip.ts` `Tooltip` class is deleted (behaviour-equivalent: same
+  `drp__tooltip` styling, 300/100 ms delays, top placement).
+- Genuinely component-specific positioning stays local (it needs middleware core's
+  presets don't expose): the calendar popover's viewport-height-capping `size()`
+  middleware, and the day/badge tooltips' `arrow()` + event-delegation + HTML
+  content + narrowed container-type platform. These still consume core's shared
+  offset-parent/drift helpers. `@floating-ui/dom` remains a direct dependency for
+  them.
+
+### Dependencies
+
+- Added `@keenmate/web-components-core`. Removed `loglevel`,
+  `loglevel-plugin-prefix`. `@floating-ui/dom` stays (the engine keeps its own
+  positioning).
+
+### Docs
+
+- **Audited every example page + `API.md` against the real API** and fixed the
+  accumulated drift: removed dead `calendar-open`/`calendar-close`/`input-change`
+  event listeners and table rows (the component only emits `date-select` /
+  `change` / `custom-action`); corrected the logging docs (no more `picker.logger`
+  or `loglevel` — logging is core-provided, `DRP:*` categories); fixed the
+  `PureDatePicker` → `DateRangePicker` class name and `mode` → `selectionMode`;
+  removed the fictional SCSS story (the package is plain `--drp-*` CSS);
+  fixed ActionButton callback signatures (`(picker)` → `(ctx)`/`({ picker })`),
+  enum/default errors (`range-disabled-handling` → `disabled-dates-handling`,
+  removed non-existent `spacing`/`font-size`/`cell-size` attributes), and
+  documented the new `onDateSelect`/`onChange`/`onCustomAction` handler
+  properties and the `el.picker` getter.
+- **`API.md` reference tables are now generated** from `custom-elements.json`
+  (itself generated from the `static inputs`/`static events` tables) via
+  `scripts/gen-api-docs.mjs` (`npm run docs:api`, run by `build` after
+  `analyze`). The Attributes (56), Properties (84), and Methods (21) tables live
+  between `<!-- GEN:… -->` markers and can no longer drift; JSDoc on the public
+  methods/getters now feeds both those tables and IDE IntelliSense.
+
 ## [2.0.0-rc04] - 2026-07-29 [PUBLISHED]
 
 ### Added — Custom-Elements-Manifest + editor autocomplete
