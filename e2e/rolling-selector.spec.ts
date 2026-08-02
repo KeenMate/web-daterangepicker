@@ -69,3 +69,31 @@ test('rolling-list does not extend past its parent rolling-selector container', 
     // Allow sub-pixel rounding (≤ 0.5px) but no more.
     expect(listBottom).toBeLessThanOrEqual(selectorBottom + 0.5);
 });
+
+test('rolling selector is opaque and paints below the sticky month/year header', async ({ page }) => {
+    await openCalendarAndRollingSelector(page);
+
+    // Regression: on a panel short enough to scroll, the selector's `inset: 0`
+    // box slides up under the sticky `.drp__header`. Two prior bugs made the
+    // roller items bleed onto the title: (1) the selector had no background so
+    // its border-only lists were transparent, and (2) the header's z-index (2)
+    // sat *below* the selector's (10), so the selector painted over the header.
+    const selectorBg = await rollingSelector(page).first()
+        .evaluate(el => getComputedStyle(el).backgroundColor);
+
+    // Must be a real, fully-opaque fill — not `transparent` / `rgba(...,0)`.
+    expect(selectorBg).not.toBe('transparent');
+    expect(selectorBg).not.toBe('rgba(0, 0, 0, 0)');
+    const alpha = selectorBg.startsWith('rgba')
+        ? Number(selectorBg.split(',')[3]?.replace(')', '').trim())
+        : 1;
+    expect(alpha).toBe(1);
+
+    // The sticky header must outrank the selector so the title stays readable
+    // when the shorter-than-content panel is scrolled.
+    const headerZ = await picker(page).locator('.drp__month .drp__header').first()
+        .evaluate(el => Number(getComputedStyle(el).zIndex));
+    const selectorZ = await rollingSelector(page).first()
+        .evaluate(el => Number(getComputedStyle(el).zIndex));
+    expect(headerZ).toBeGreaterThan(selectorZ);
+});

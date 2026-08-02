@@ -111,6 +111,12 @@
   display: none;
   z-index: 10; /* Above calendar grid */
   gap: var(--drp-spacing-xs);
+  /* Opaque background so the overlay fully hides the calendar grid below AND
+     so nothing bleeds through the transparent (border-only) rolling lists.
+     Mirrors `.drp__unified-rolling-selector`, which already sets this. Without
+     it, when the panel is short enough to scroll, the roller items showed
+     through onto the sticky month/year header as it slid underneath. */
+  background: var(--drp-dropdown-bg);
 }
 
 .drp__rolling-selector.drp__rolling-selector--visible {

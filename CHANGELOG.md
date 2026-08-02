@@ -40,6 +40,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **Month/year rolling selector no longer bleeds onto the sticky header.** On a
+  panel short enough to scroll, the selector's `inset: 0` overlay slides up under
+  the sticky month/year header. Two issues let the roller items paint over the
+  title: the per-month `.drp__rolling-selector` had no background (its border-only
+  lists were transparent), and the sticky header's `z-index` (2) sat below the
+  selector's (10). Gave the selector an opaque background (parity with the
+  already-fixed unified selector) and lifted the header to `z-index: 11`.
 - **Badge tooltips no longer render off-screen.** A hovered badge cell gets
   `transform: scale(1.05)`, making it a fixed-positioning containing block; the
   bespoke offset-parent logic returned the badge as its own offset parent (and

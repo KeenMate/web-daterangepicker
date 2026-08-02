@@ -87,8 +87,11 @@ web-daterangepicker:not(:defined) {
   top: 0;
   background: var(--drp-dropdown-bg);
   /* Above day cells (z-index: auto = 0) so the days scroll behind the header
-     instead of bleeding through it. */
-  z-index: 2;
+     instead of bleeding through it. Must also sit above the rolling selector
+     (z-index: 10) — when the panel is short enough to scroll, the selector's
+     absolute box slides up under this sticky header; a lower z-index would let
+     the roller items paint over the month/year title. */
+  z-index: 11;
 }
 
 /* Hide by default */
