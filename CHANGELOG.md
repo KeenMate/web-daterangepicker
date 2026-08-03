@@ -5,6 +5,21 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+
+- **Form association.** `<web-daterangepicker>` is now a form-associated custom
+  element (`static formAssociated = true`): it submits its formatted value under
+  its `name`, participates in `form.elements`, clears on `form.reset()`
+  (`formResetCallback`), and — via core's `BlissElement` — exposes `el.form` /
+  `event.target.form`. Host frameworks that route form changes by reading
+  `target.form` (e.g. Phoenix LiveView's `phx-change` delegation) now work
+  without a wrapper-side `.form` polyfill. The submitted value tracks the current
+  selection (and any programmatic `value`). Requires
+  `@keenmate/web-components-core` with the `el.form` getter. Covered by
+  `e2e/form-association.spec.ts`.
+
 ## [2.0.0-rc05] - 2026-08-02
 
 ### Changed — migrated onto `@keenmate/web-components-core` (`BlissElement`)

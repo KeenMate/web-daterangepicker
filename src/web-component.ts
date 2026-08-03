@@ -183,6 +183,13 @@ function hasInput(mode: string): boolean {
 
 // ============================================================================
 export class WebDaterangepickerElement extends BlissElement<DrpEvents> {
+  // Participate in forms: the control submits its formatted value under its
+  // `name`, resets with the form, and — via core's BlissElement — exposes
+  // `el.form` / `event.target.form` (the hook host frameworks like Phoenix
+  // LiveView read for change delegation). Core owns the single attachInternals;
+  // read the value out via `this.internals` (never call attachInternals here).
+  static formAssociated = true;
+
   protected static override inputs = INPUTS;
   protected static override events = EVENTS;
 
@@ -223,7 +230,10 @@ export class WebDaterangepickerElement extends BlissElement<DrpEvents> {
   /** Cosmetic change: element-level side effects, then patch the picker in place. */
   protected override update(partial: Record<string, unknown>): void {
     // Element-level (non-picker) side effects.
-    if ('inputValue' in partial && this.#inputElement) this.#inputElement.value = (partial.inputValue as string | null) ?? '';
+    if ('inputValue' in partial && this.#inputElement) {
+      this.#inputElement.value = (partial.inputValue as string | null) ?? '';
+      this.internals?.setFormValue(this.#inputElement.value); // keep form submission in sync with a programmatic value
+    }
     if ('placeholder' in partial) this.#applyPlaceholder();
     if ('disabled' in partial && this.#inputElement) this.#inputElement.disabled = !!partial.disabled;
     if ('isReadonly' in partial && this.#picker) partial.isReadonly ? this.#picker.lock() : this.#picker.unlock();
@@ -258,6 +268,13 @@ export class WebDaterangepickerElement extends BlissElement<DrpEvents> {
     this.#teardownMobileModalListener();
     this.#picker?.destroy();
     this.#picker = undefined;
+  }
+
+  /** Form reset: clear the selection and the submitted value with the form. */
+  formResetCallback(): void {
+    this.#picker?.clearSelection();
+    if (this.#inputElement) this.#inputElement.value = '';
+    this.internals?.setFormValue('');
   }
 
   // ── picker lifecycle ──────────────────────────────────────────────────────
@@ -303,6 +320,7 @@ export class WebDaterangepickerElement extends BlissElement<DrpEvents> {
     const value = this.config.inputValue as string | null;
     if (value) input.value = value;
     if (this.config.disabled) input.disabled = true;
+    this.internals?.setFormValue(input.value); // seed the initial form value
     this.#shadow.appendChild(input);
     this.#inputElement = input;
     this.#applyInputSizeStyles();
@@ -337,8 +355,7 @@ export class WebDaterangepickerElement extends BlissElement<DrpEvents> {
 
     const picker = this.#picker;
     if (!picker) {
-      this.emit('date-select', detail);
-      this.emit('change', detail);
+      this.#emitSelect(detail);
       return;
     }
 
@@ -388,6 +405,17 @@ export class WebDaterangepickerElement extends BlissElement<DrpEvents> {
         .join(', ');
     }
 
+    this.#emitSelect(detail);
+  }
+
+  /**
+   * Publish the current form value (the formatted selection), then fire the
+   * outward `date-select` + `change` pair. `setFormValue` is what makes the
+   * control submit under its `name` and reset with the form; core lazily
+   * attaches the ElementInternals on first `this.internals` read.
+   */
+  #emitSelect(detail: SelectEventDetail): void {
+    this.internals?.setFormValue(detail.formattedValue ?? '');
     this.emit('date-select', detail);
     this.emit('change', detail);
   }

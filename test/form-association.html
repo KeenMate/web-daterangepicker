@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Test — form association</title>
+    <link rel="stylesheet" href="test-fixtures.css">
+    <style>
+        web-daterangepicker { display: block; max-width: 320px; }
+    </style>
+</head>
+<body>
+    <h1>form association</h1>
+    <p>Targeted by <code>e2e/form-association.spec.ts</code>. The picker is a
+       form-associated custom element: it submits its formatted value under its
+       <code>name</code>, exposes <code>el.form</code>, and clears on
+       <code>form.reset()</code>.</p>
+
+    <div class="fixture">
+        <div class="fixture-label">picker inside a form</div>
+        <form id="f">
+            <web-daterangepicker id="picker" name="range" selection-mode="single"
+                initial-date="2026-06-15"></web-daterangepicker>
+            <button type="reset" id="reset">Reset</button>
+        </form>
+    </div>
+
+    <script type="module" src="/src/index.ts"></script>
+</body>
+</html>
