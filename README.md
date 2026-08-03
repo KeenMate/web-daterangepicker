@@ -140,6 +140,32 @@ Using the `DateRangePicker` class directly (without the custom
 element) is fully supported — see [`docs/usage.md`](./docs/usage.md#javascript-instantiation-datepickerangepicker-class)
 for the CSS-loading caveats.
 
+## Editor IntelliSense
+
+The package ships editor metadata so you get autocomplete and hover docs for the
+element's attributes, events, and all `--drp-*` CSS custom properties. All of it
+is generated from the component's source on every build, so it never drifts.
+
+- **JetBrains** (WebStorm / IntelliJ) — works automatically. The IDE discovers
+  `web-types.json` via the `web-types` field in `package.json`; no setup needed.
+- **VS Code** — the data files ship but VS Code doesn't auto-discover them from a
+  dependency, so point your workspace at them once in `.vscode/settings.json`:
+
+  ```json
+  {
+    "html.customData": [
+      "./node_modules/@keenmate/web-daterangepicker/vscode.html-custom-data.json"
+    ],
+    "css.customData": [
+      "./node_modules/@keenmate/web-daterangepicker/vscode.css-custom-data.json"
+    ]
+  }
+  ```
+
+  `html.customData` powers tag/attribute completion on `<web-daterangepicker>`;
+  `css.customData` powers completion for the `--drp-*` theming variables. Reload
+  the window after adding them.
+
 ## Browser support
 
 Modern browsers with Web Components and CSS `color-mix()` support:
