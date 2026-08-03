@@ -576,8 +576,9 @@ if (picker) {
                     <code>disabled</code>, which greys the input out). Each day shows its <strong>nightly rate</strong>
                     as a badge (via <code>getDateMetadataCallback</code>, the same pricing model as the
                     <em>Dynamic Calculation</em> badges demo). The flow: the guest picks a range, hits
-                    <strong>Confirm booking</strong>, the app calls the server, and on success the picker is
-                    <strong>locked</strong> so the confirmed range can't change. The summary shows a client-side
+                    <strong>Book</strong> in the calendar's own action bar, the app calls the server, and on success
+                    the range is <strong>locked</strong> and the button flips to <strong>Amend</strong> so the
+                    confirmed dates can't change until the guest amends. The summary shows a client-side
                     <strong>estimate</strong> (sum of the badges) while selecting, then the server's <strong>real
                     price</strong> — which may land a little higher or lower — once confirmed.
                     Locking is <strong>scoped</strong> —
@@ -595,9 +596,7 @@ if (picker) {
                             id="picker-9"
                             selection-mode="range"
                             positioning-mode="inline"
-                            visible-months-count="2"
-                            is-apply-button-shown="true"
-                            is-clear-button-shown="true">
+                            visible-months-count="2">
                         </web-daterangepicker>
                     </div>
 
@@ -605,19 +604,15 @@ if (picker) {
                     <div class="lock-panel">
                         <h4>Drive the lock</h4>
                         <p>
-                            Pick a range &amp; hit Apply — the summary shows an <strong>estimate</strong> (the sum of
-                            the on-screen badges). Then <strong>Confirm booking</strong>: a mock server round-trip
-                            returns the <strong>real price</strong> (which can land a bit higher or lower than the
-                            estimate) plus a reference code, and the whole picker locks
-                            (<span class="lock-pill lock-pill--locked">🔒 read-only</span>). Try clicking a day,
-                            dragging an endpoint, or hitting Apply — nothing moves. <strong>Amend</strong> unlocks it
-                            and drops back to the estimate.
+                            Pick a range — the summary shows a live <strong>estimate</strong> (the sum of the
+                            on-screen badges). Then hit <strong>Book</strong> in the calendar's action bar: a mock
+                            server round-trip returns the <strong>real price</strong> (which can land a bit higher or
+                            lower than the estimate) plus a reference code, the confirmed dates
+                            <strong>lock</strong> (<span class="lock-pill lock-pill--locked">🔒 read-only</span>), and
+                            the button flips to <strong>Amend</strong>. Try clicking a day or dragging an endpoint —
+                            nothing moves; only <strong>Amend</strong> stays live (the <code>actions</code> aspect is
+                            left unlocked on purpose). Amend releases the lock and drops back to the estimate.
                         </p>
-
-                        <div class="control-group">
-                            <button id="btn-confirm-9">Confirm booking</button>
-                            <button id="btn-amend-9">Amend booking (unlock)</button>
-                        </div>
 
                         <p style="margin-top:1rem;">
                             Or a <strong>partial</strong> lock — freeze the range &amp; buttons but keep the
@@ -652,9 +647,15 @@ picker.formatSummaryCallback = ({ startDate, endDate }) =&gt; {
     return `&lt;b&gt;Estimated&lt;/b&gt; — ~$${bookingTotal({ start: startDate, end: endDate })}`;
 };
 
-// Confirm: the server returns the REAL price (may differ from the estimate),
-// then we lock the picker so the confirmed range can't be changed.
-confirmBtn.addEventListener('click', async () =&gt; {
+// The calendar's own action bar drives the flow. `actionButtons` REPLACES the
+// built-in buttons, so we express Clear as a preset and Book as a custom action.
+// Booking confirms + locks; amending releases. Swapping the array re-renders the
+// bar, so Book ⇄ Amend is just two arrays.
+const bookActions  = [{ action: 'clear', text: 'Clear' },
+                      { action: 'custom', text: 'Book', onClick: bookNow }];
+const amendActions = [{ action: 'custom', text: 'Amend', onClick: amendNow }];
+
+async function bookNow() {
     const { selectedStartDate: start, selectedEndDate: end } = picker;
     if (!start || !end) return;                 // plain range → start/end pair
     const range = { start, end };
@@ -664,8 +665,19 @@ confirmBtn.addEventListener('click', async () =&gt; {
     picker.hideLoader('calendar');
     const diff = real - estimate;
     picker.showSummary(`&lt;b&gt;Confirmed&lt;/b&gt; — $${real} (est. $${estimate}, ${diff &gt;= 0 ? '+' : '-'}$${Math.abs(diff)}) · code ${code}`);
-    picker.lock();                              // full read-only lock
-});
+    // Lock everything the guest can touch — but NOT 'actions', so the Amend
+    // button we're about to show stays clickable.
+    picker.lock(['selection', 'navigation', 'open']);
+    picker.actionButtons = amendActions;        // Book → Amend
+}
+
+function amendNow() {
+    picker.unlock();                            // release every aspect
+    picker.hideSummary();                       // drop the confirmed price → re-derive the estimate
+    picker.actionButtons = bookActions;         // Amend → Book
+}
+
+picker.actionButtons = bookActions;             // start in "Book" mode
 
 // Scoped lock: freeze the range + buttons but let the user
 // still browse other months with the &lt; &gt; arrows.
@@ -1249,7 +1261,7 @@ const manager = new DateRangeManager();</code></pre>
                     <div>Internal state:</div>
                     <div>• Start date: <strong>${hasStart ? instance.selectedStartDate.toLocaleDateString() : 'null'}</strong></div>
                     <div>• End date: <strong>${hasEnd ? instance.selectedEndDate.toLocaleDateString() : 'null'}</strong></div>
-                    <div>• Format: <strong>${instance.formatInfo.mask}</strong></div>
+                    <div>• Format: <strong>${instance.formatInfo.format}</strong></div>
                 `;
             } else {
                 output6.innerHTML = '<strong style="color: #dc3545;">Picker not initialized</strong>';
@@ -1292,12 +1304,17 @@ const manager = new DateRangeManager();</code></pre>
                    `<span style="opacity:.65">· confirm for the final price</span>`;
         };
 
+        // The Book/Amend toggle is demo state, not something the engine tracks —
+        // a plain flag drives the status line (the lock set alone can't tell a
+        // "booked" lock from a hand-rolled partial lock).
+        let booked9 = false;
+
         const refresh9 = () => {
             const locked = picker9.lockedAspects;
-            if (!locked.length) {
+            if (booked9) {
+                state9.innerHTML = '<span class="lock-pill lock-pill--locked">🔒 booked</span> the dates are frozen — hit <strong>Amend</strong> in the calendar to change them';
+            } else if (!locked.length) {
                 state9.innerHTML = '<span class="lock-pill lock-pill--open">● unlocked</span> fully interactive';
-            } else if (locked.length === 4) {
-                state9.innerHTML = '<span class="lock-pill lock-pill--locked">🔒 read-only</span> the whole picker is frozen — try clicking a day, dragging, or Apply';
             } else {
                 state9.innerHTML = `<span class="lock-pill lock-pill--locked">🔒 partial</span> locked: <code>${locked.join('</code> <code>')}</code> · other aspects still respond`;
             }
@@ -1328,12 +1345,17 @@ const manager = new DateRangeManager();</code></pre>
             }, 700);
         });
 
-        document.getElementById('btn-confirm-9').addEventListener('click', async () => {
+        // Booking runs from the calendar's OWN action bar. `actionButtons` replaces
+        // the built-in buttons, so Clear is a preset entry and Book is a custom
+        // action. Swapping the array re-renders the bar — that's the Book ⇄ Amend
+        // toggle. The confirmed summary survives the re-render (showSummary sets a
+        // persistent override).
+        const bookNow = async () => {
             // A plain range lives in selectedStartDate / selectedEndDate;
             // selectedRanges only carries multi-range (adjustedRanges) results.
             const start = picker9.selectedStartDate, end = picker9.selectedEndDate;
             if (!start || !end) {
-                picker9.showMessage('Pick a range (and Apply), then confirm the booking.', 'warning', 2500);
+                picker9.showMessage('Pick a range first, then hit Book.', 'warning', 2500);
                 return;
             }
             const range = { start, end };
@@ -1350,22 +1372,37 @@ const manager = new DateRangeManager();</code></pre>
                 `✓ <b>Booking confirmed</b> — ${d} day${d > 1 ? 's' : ''} · ` +
                 `<b>$${real}</b> <span style="opacity:.65">(est. $${estimate}, ${delta})</span> · Ref #${code}`
             );
-            picker9.lock();                             // full read-only lock once the server confirms
-            refresh9();
-        });
-
-        const amend9 = () => {
-            picker9.unlock();
-            picker9.hideSummary();      // drop the confirmed override → re-derives the estimate
+            booked9 = true;
+            // Freeze everything the guest touches, but leave 'actions' UNLOCKED so
+            // the Amend button we swap in below stays clickable (a full lock() would
+            // drop custom-button clicks too).
+            picker9.lock(['selection', 'navigation', 'open']);
+            picker9.actionButtons = amendActions;       // Book → Amend
             refresh9();
         };
-        document.getElementById('btn-amend-9').addEventListener('click', amend9);
-        document.getElementById('btn-unlock-9').addEventListener('click', amend9);
+
+        const amendNow = () => {
+            booked9 = false;
+            picker9.unlock();
+            picker9.hideSummary();      // drop the confirmed override → re-derives the estimate
+            picker9.actionButtons = bookActions;        // Amend → Book
+            refresh9();
+        };
+
+        const bookActions = [
+            { action: 'clear', text: 'Clear' },
+            { action: 'custom', text: 'Book', cssClass: 'drp__button--apply', onClick: bookNow } // reuse the primary-action accent
+        ];
+        const amendActions = [
+            { action: 'custom', text: 'Amend', onClick: amendNow }
+        ];
+        picker9.actionButtons = bookActions;            // start in "Book" mode
 
         document.getElementById('btn-lock-partial-9').addEventListener('click', () => {
             picker9.lock(['selection', 'actions']);     // range + buttons frozen, < > still work
             refresh9();
         });
+        document.getElementById('btn-unlock-9').addEventListener('click', amendNow); // full reset (also clears a booking)
 
         refresh9();
 

@@ -18,6 +18,11 @@
   border-top: var(--drp-summary-border);
   font-size: var(--drp-font-size-sm);
   color: var(--drp-summary-text-color);
+  /* The calendar root sets `user-select: none` (so drag-selecting a range never
+     selects text). The summary, though, is informational text — day counts,
+     prices, booking reference codes written via showSummary() — that users
+     legitimately want to copy. Opt it back in. */
+  user-select: text;
 }
 
 .drp__summary--visible {

@@ -40,6 +40,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **The selection summary is now text-selectable.** The calendar root sets
+  `user-select: none` so drag-selecting a range never grabs page text — but that
+  also blocked copying the summary, which carries informational text (day counts,
+  prices, and booking reference codes written via `showSummary()`). `.drp__summary`
+  now opts back in with `user-select: text`; the day grid stays unselectable.
 - **Month/year rolling selector no longer bleeds onto the sticky header.** On a
   panel short enough to scroll, the selector's `inset: 0` overlay slides up under
   the sticky month/year header. Two issues let the roller items paint over the
