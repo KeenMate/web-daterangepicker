@@ -38,6 +38,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `cem/attribute-table-plugin.mjs` is removed. Manifest: 56 attributes / 134
   members / 3 events.
 
+### Added
+
+- **IDE autocomplete for the `--drp-*` theming variables.** The 293 component CSS
+  variables from `component-variables.manifest.json` now flow into the editor
+  outputs — `vscode.css-custom-data.json` (previously an empty stub) and
+  `web-types.json` — so consumers get name + description completion for every
+  `--drp-*` variable in `.css` files (VS Code via `css.customData`, JetBrains via
+  web-types). Wired via core's `cssVariablesFromManifestPlugin()`
+  (`@keenmate/web-components-core/cem`), which reads the manifest as the single
+  source of truth.
+
 ### Fixed
 
 - **The selection summary is now text-selectable.** The calendar root sets
