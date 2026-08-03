@@ -180,7 +180,21 @@
 
                 <div class="code-block">
                     <button class="copy-button" onclick="copyCode(this)">Copy</button>
-                    <pre><code>const picker = document.getElementById('picker-1');
+                    <pre><code>&lt;!-- This demo overrides the default placement (bottom-start).
+     "top" is center-aligned, so the calendar sits in the middle
+     of the wide input (and flips below when space above is tight).
+
+     calendar-placement values (word = side, -suffix = alignment):
+       bottom-start  below, left edge   (default)
+       bottom        below, centered
+       bottom-end    below, right edge
+       top-start     above, left edge
+       top           above, centered
+       top-end       above, right edge
+     All flip/shift automatically when the chosen side runs out of room. --&gt;
+&lt;web-daterangepicker id="picker-1" ... calendar-placement="top"&gt;&lt;/web-daterangepicker&gt;
+
+const picker = document.getElementById('picker-1');
 
 // Show calendar
 picker.show();
