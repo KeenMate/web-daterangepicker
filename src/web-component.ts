@@ -37,6 +37,10 @@ import {
 } from '@keenmate/web-components-core';
 import { DateRangePicker } from './date-picker';
 import { toWeekStartDay, toDisabledWeekdays, toDisabledDates, toPipeList } from './converters';
+import {
+  serializeFormValue, isoDate, isoDateTime, isoTime,
+  type FormValueFormat, type FormValueSelection, type FormValueItem,
+} from './form-value';
 import type {
   DatePickerOptions, DateRange, DecoratedDate, DayContext, DayMetadata, BeforeSelectResult,
   ActionButton, LocaleStrings, SelectionContext, MonthChangeContext, BeforeMonthChangeResult,
@@ -58,6 +62,7 @@ const AUTO_CLOSE = ['never', 'selection', 'apply'] as const;
 const PICKER_MODES = ['date', 'time', 'datetime'] as const;
 const HOUR_CYCLES = ['h12', 'h24'] as const;
 const TIME_DISPLAYS = ['rolls', 'clock', 'wheel', 'compact'] as const;
+const VALUE_FORMATS = ['iso', 'json', 'array'] as const;
 
 /** Any callback input. */
 const cb = (): ReturnType<typeof toFunction> => toFunction();
@@ -119,8 +124,16 @@ const INPUTS: readonly InputDef[] = [
   { configKey: 'dayTooltipMember',             attribute: 'day-tooltip-member',            converter: toText({ isNullable: true }), on: 'update', description: 'Property name holding a day tooltip string.' },
   { configKey: 'isDisabledMember',             attribute: 'is-disabled-member',            converter: toText({ isNullable: true }), on: 'update', description: 'Property name flagging a decorated date as disabled.' },
 
+  // ── Form integration (NON-picker; light-DOM hidden input[s], like web-multiselect) ──
+  { configKey: 'formFieldName',                attribute: 'name',                          converter: toText({ isNullable: true }), on: 'update', description: 'HTML form field name. When set, the control submits its selection as a light-DOM hidden `<input>` (`name[]` inputs for `value-format="array"`). Also read by core for `el.form` / `form.reset()`.' },
+  { configKey: 'valueFormat',                  attribute: 'value-format',                  converter: toEnum(VALUE_FORMATS, { default: 'iso' }), on: 'update', description: `Serialization of the submitted value (stable ISO-8601, independent of the display masks):
+- \`iso\` (default) — one field; a single date/time as-is, a range as \`start/end\`, multiple joined by \`,\`.
+- \`json\` — one field; \`JSON.stringify\` of the selection (scalar/object for single/range, array for multiple).
+- \`array\` — multiple \`name[]\` fields, one per date; a range contributes \`start\` and \`end\`.` },
+  { configKey: 'getValueFormatCallback',       converter: cb(), on: 'update', type: '(selection: FormValueSelection) => string', description: 'Custom serialization of the submitted value; receives the normalized ISO selection snapshot and returns the single hidden-input value. Overrides `value-format`. Property-only.' },
+
   // ── Element-level attributes (NON-picker; handled by this element) ────────
-  { configKey: 'inputValue',                   attribute: 'value',                         converter: toText({ isNullable: true, isEmptyAllowed: true }), on: 'update', description: 'Text value of the input (floating/modal modes). Reflected to the live input; read/write via the `value` property.' },
+  { configKey: 'inputValue',                   attribute: 'value',                         converter: toText({ isNullable: true, isEmptyAllowed: true }), on: 'update', description: 'Text value of the control (the formatted selection). Reflected to the live input in floating/modal modes and to the hidden form-value input in inline mode; read/write via the `value` property.' },
   { configKey: 'placeholder',                  attribute: 'placeholder',                   converter: toText({ isNullable: true }), on: 'update', description: 'Input placeholder (falls back to display-format-mask).' },
   { configKey: 'disabled',                     attribute: 'disabled',                      converter: toBool('presence'), reflect: true, on: 'update', description: 'Disable the input.' },
   { configKey: 'isReadonly',                   attribute: 'readonly',                      converter: toBool('presence'), on: 'update', description: 'Full read-only lock (freezes every interaction aspect). Read/write via the `readonly` property, or use `lock()` for partial locks.' },
@@ -174,6 +187,7 @@ const EVENTS = [
 const NON_PICKER_KEYS = new Set([
   'inputValue', 'placeholder', 'disabled', 'isReadonly', 'inputSize', 'enableTransitions',
   'mobileModalBreakpoint', 'mobileModalMinHeight', 'customStylesCallback',
+  'formFieldName', 'valueFormat', 'getValueFormatCallback',
 ]);
 
 /** Modes that render an input element (inline mode has none). */
@@ -183,11 +197,14 @@ function hasInput(mode: string): boolean {
 
 // ============================================================================
 export class WebDaterangepickerElement extends BlissElement<DrpEvents> {
-  // Participate in forms: the control submits its formatted value under its
-  // `name`, resets with the form, and — via core's BlissElement — exposes
-  // `el.form` / `event.target.form` (the hook host frameworks like Phoenix
-  // LiveView read for change delegation). Core owns the single attachInternals;
-  // read the value out via `this.internals` (never call attachInternals here).
+  // Participate in forms. Submission goes through light-DOM hidden <input>(s)
+  // (see #updateFormValue) — the same model as web-multiselect — carrying a
+  // stable ISO value under `name`, independent of the display masks. Form
+  // association (this flag) is kept ONLY so `form.reset()` reaches
+  // formResetCallback and core's BlissElement can expose `el.form` /
+  // `event.target.form` (the hook host frameworks like Phoenix LiveView read for
+  // change delegation). The host itself never calls setFormValue, so it adds no
+  // second entry under `name`.
   static formAssociated = true;
 
   protected static override inputs = INPUTS;
@@ -202,6 +219,10 @@ export class WebDaterangepickerElement extends BlissElement<DrpEvents> {
   #picker?: DateRangePicker;
   #inputElement?: HTMLInputElement;
   #customStyles: StyleSlot | null = null;
+  // Light-DOM hidden <input>(s) that carry the selection into form submission
+  // (web-multiselect's model). Children of the host, so they sit inside the
+  // <form> and submit under `name`; the host itself never calls setFormValue.
+  #hiddenInputs: HTMLInputElement[] = [];
 
   // mobile-modal auto-engage: matchMedia listeners that flip positioning-mode
   // between the configured value and 'modal' as the viewport crosses a threshold.
@@ -230,9 +251,13 @@ export class WebDaterangepickerElement extends BlissElement<DrpEvents> {
   /** Cosmetic change: element-level side effects, then patch the picker in place. */
   protected override update(partial: Record<string, unknown>): void {
     // Element-level (non-picker) side effects.
-    if ('inputValue' in partial && this.#inputElement) {
-      this.#inputElement.value = (partial.inputValue as string | null) ?? '';
-      this.internals?.setFormValue(this.#inputElement.value); // keep form submission in sync with a programmatic value
+    if ('inputValue' in partial) {
+      if (this.#inputElement) this.#inputElement.value = (partial.inputValue as string | null) ?? '';
+      this.#refreshFormValue(); // keep form submission in sync with a programmatic value
+    }
+    // Form wiring changes (name / serialization) re-render the hidden input(s).
+    if ('formFieldName' in partial || 'valueFormat' in partial || 'getValueFormatCallback' in partial) {
+      this.#refreshFormValue();
     }
     if ('placeholder' in partial) this.#applyPlaceholder();
     if ('disabled' in partial && this.#inputElement) this.#inputElement.disabled = !!partial.disabled;
@@ -274,7 +299,7 @@ export class WebDaterangepickerElement extends BlissElement<DrpEvents> {
   formResetCallback(): void {
     this.#picker?.clearSelection();
     if (this.#inputElement) this.#inputElement.value = '';
-    this.internals?.setFormValue('');
+    this.#updateFormValue(); // selection is now empty → clears the hidden input(s)
   }
 
   // ── picker lifecycle ──────────────────────────────────────────────────────
@@ -288,23 +313,27 @@ export class WebDaterangepickerElement extends BlissElement<DrpEvents> {
   #buildPicker(): void {
     const mode = (this.config.positioningMode as string) ?? 'floating';
 
-    // Reconcile the input shell with the current positioning mode.
-    if (hasInput(mode)) {
-      this.#ensureInput();
-    } else if (this.#inputElement) {
+    // Reconcile the input shell with the current positioning mode. floating/modal
+    // get a visible text input to anchor to; inline gets a hidden input so it still
+    // submits a real value under its `name`. If a mode change flipped the input
+    // kind, drop the stale one so #ensureInput rebuilds the right one.
+    const wantHidden = !hasInput(mode);
+    if (this.#inputElement && (this.#inputElement.type === 'hidden') !== wantHidden) {
       this.#inputElement.remove();
       this.#inputElement = undefined;
     }
-    // floating/modal require the input to anchor to.
-    if (hasInput(mode) && !this.#inputElement) return;
+    this.#ensureInput();
 
     const options = this.#assembleConfig();
-    const inputElement = hasInput(mode) ? this.#inputElement! : null;
-    this.#picker = new DateRangePicker(inputElement, options as DatePickerOptions);
+    this.#picker = new DateRangePicker(this.#inputElement ?? null, options as DatePickerOptions);
 
     // Re-apply a declarative full lock (the attribute is the source of truth and
     // must survive a rebuild).
     if (this.config.isReadonly) this.#picker.lock();
+
+    // Seed the hidden form input(s) (a rebuild starts with an empty selection, so
+    // this reflects any pre-filled `value` or clears stale inputs from a prior mode).
+    this.#refreshFormValue();
 
     this.#applyCustomStyles();
     // Apply transition styles once the calendar DOM exists.
@@ -313,17 +342,27 @@ export class WebDaterangepickerElement extends BlissElement<DrpEvents> {
 
   #ensureInput(): void {
     if (this.#inputElement) return;
+    const mode = (this.config.positioningMode as string) ?? 'floating';
+    // Inline mode renders no visible field, but still needs an input to carry the
+    // form value: the picker writes the formatted selection into `input.value` for
+    // every mode, so a hidden input lets an inline picker submit a real value under
+    // its `name` (a plain `setFormValue(formattedValue)` would be empty — inline has
+    // no text field for the picker to format into).
+    const isHidden = !hasInput(mode);
     const input = document.createElement('input');
-    input.type = 'text';
-    input.classList.add('drp__input');
-    this.#applyPlaceholderTo(input);
+    if (isHidden) {
+      input.type = 'hidden';
+    } else {
+      input.type = 'text';
+      input.classList.add('drp__input');
+      this.#applyPlaceholderTo(input);
+    }
     const value = this.config.inputValue as string | null;
     if (value) input.value = value;
-    if (this.config.disabled) input.disabled = true;
-    this.internals?.setFormValue(input.value); // seed the initial form value
+    if (this.config.disabled && !isHidden) input.disabled = true;
     this.#shadow.appendChild(input);
     this.#inputElement = input;
-    this.#applyInputSizeStyles();
+    if (!isHidden) this.#applyInputSizeStyles();
   }
 
   /**
@@ -409,15 +448,122 @@ export class WebDaterangepickerElement extends BlissElement<DrpEvents> {
   }
 
   /**
-   * Publish the current form value (the formatted selection), then fire the
-   * outward `date-select` + `change` pair. `setFormValue` is what makes the
-   * control submit under its `name` and reset with the form; core lazily
-   * attaches the ElementInternals on first `this.internals` read.
+   * Refresh the hidden form input(s) from the just-committed selection, then fire
+   * the outward `date-select` + `change` pair. The hidden input(s) are what make
+   * the control submit under its `name` (see #updateFormValue) — carrying a stable
+   * ISO value, not the display-formatted string in `detail.formattedValue`.
    */
   #emitSelect(detail: SelectEventDetail): void {
-    this.internals?.setFormValue(detail.formattedValue ?? '');
+    this.#updateFormValue(detail);
     this.emit('date-select', detail);
     this.emit('change', detail);
+  }
+
+  // ── form integration (light-DOM hidden inputs, web-multiselect's model) ─────
+
+  /**
+   * Snapshot the current selection as stable, mask-independent ISO strings — the
+   * single source of truth for the submitted value.
+   *
+   * When called from a just-fired selection, `detail` carries the
+   * disabled-dates-handling breakdown that DOESN'T live in picker state: a range
+   * split across disabled days (`split` → `detail.dateRanges`) or reduced to its
+   * enabled days (`individual`/`block` → `detail.dates`). Prefer those so the form
+   * submits the real sub-ranges/dates, not the whole envelope. Otherwise (reset,
+   * rebuild, programmatic change) read the picker's committed state directly.
+   */
+  #currentSelection(detail?: SelectEventDetail): FormValueSelection {
+    const selectionMode = (this.config.selectionMode as FormValueSelection['selectionMode']) ?? 'single';
+    const pickerMode = (this.config.pickerMode as FormValueSelection['pickerMode']) ?? 'date';
+    const showSeconds = !!this.config.isSecondsShown;
+    const picker = this.#picker;
+    const items: FormValueItem[] = [];
+
+    // Disabled-handling breakdowns only exist on the emitted detail.
+    if (detail?.dateRanges?.length) {
+      for (const r of detail.dateRanges) items.push({ start: isoDate(r.start), end: isoDate(r.end) });
+      return { selectionMode, pickerMode, items };
+    }
+    if (detail?.dates?.length) {
+      for (const d of detail.dates) items.push(isoDate(d));
+      return { selectionMode, pickerMode, items };
+    }
+
+    if (picker) {
+      if (pickerMode === 'time') {
+        const t = picker.selectedTime;
+        if (t && (t.hour != null || t.minute != null)) items.push(isoTime(t, showSeconds));
+      } else if (selectionMode === 'single') {
+        const d = pickerMode === 'datetime' ? picker.selectedDatetime : picker.selectedDate;
+        if (d) items.push(pickerMode === 'datetime' ? isoDateTime(d, showSeconds) : isoDate(d));
+      } else if (selectionMode === 'range') {
+        // selectedRanges is populated when a callback commits independent ranges;
+        // otherwise the plain start..end envelope.
+        const ranges = picker.selectedRanges;
+        if (ranges.length > 0) {
+          for (const r of ranges) items.push({ start: isoDate(r.start), end: isoDate(r.end) });
+        } else {
+          const s = picker.selectedStartDate;
+          const e = picker.selectedEndDate;
+          if (s && e) items.push({ start: isoDate(s), end: isoDate(e) });
+        }
+      } else {
+        // multiple: independent ranges or individual dates (date granularity).
+        const ranges = picker.selectedRanges;
+        if (ranges.length > 0) {
+          for (const r of ranges) items.push({ start: isoDate(r.start), end: isoDate(r.end) });
+        } else {
+          for (const d of picker.selectedDates) items.push(isoDate(d));
+        }
+      }
+    }
+    return { selectionMode, pickerMode, items };
+  }
+
+  /** Re-render the hidden form input(s) from the current selection. */
+  #updateFormValue(detail?: SelectEventDetail): void {
+    const format = (this.config.valueFormat as FormValueFormat) ?? 'iso';
+    const callback = this.config.getValueFormatCallback as ((s: FormValueSelection) => string) | undefined;
+    const values = serializeFormValue(this.#currentSelection(detail), format, callback);
+    this.#renderHiddenInputs(format, values);
+  }
+
+  /**
+   * Refresh the hidden form input(s). A programmatic string `value` set while
+   * nothing is selected has no structured selection to serialize, so it submits
+   * verbatim as a single field; otherwise the picker's selection is the source.
+   */
+  #refreshFormValue(): void {
+    const iv = this.config.inputValue as string | null;
+    if (iv && this.#currentSelection().items.length === 0) {
+      this.#renderHiddenInputs('iso', [iv]);
+      return;
+    }
+    this.#updateFormValue();
+  }
+
+  /**
+   * Replace the light-DOM hidden `<input>`(s) that carry the value into form
+   * submission. Children of the host so they sit inside the `<form>`. `array`
+   * format emits one `name[]` input per value; the others emit a single `name`
+   * input (empty string when nothing is selected). No `name` → no participation.
+   */
+  #renderHiddenInputs(format: FormValueFormat, values: string[]): void {
+    for (const el of this.#hiddenInputs) el.remove();
+    this.#hiddenInputs = [];
+
+    const name = this.config.formFieldName as string | null;
+    if (!name) return;
+
+    const inputName = format === 'array' ? `${name}[]` : name;
+    for (const value of values) {
+      const input = document.createElement('input');
+      input.type = 'hidden';
+      input.name = inputName;
+      input.value = value;
+      this.appendChild(input);
+      this.#hiddenInputs.push(input);
+    }
   }
 
   // ── element-level styling helpers ─────────────────────────────────────────

@@ -13,6 +13,7 @@ page see the README quick start; for theming see
 - [Properties](#properties)
 - [Methods](#methods)
 - [Events](#events)
+- [Form integration](#form-integration)
 - [Working with dates across timezones](#working-with-dates-across-timezones) — **read this** before shipping
 - [Advanced features](#advanced-features)
   - [Week start day](#week-start-day)
@@ -113,6 +114,8 @@ use camelCase (`selectionMode`).
 | `is-summary-shown` | `boolean` | `true` | Show range-mode days/nights summary block. `false` = omit entirely (no empty-div jump). |
 | `input-size` | `'xs' \| 'sm' \| 'md' \| 'lg' \| 'xl'` | `'md'` | Input field size (floating/modal modes only) |
 | `enable-transitions` | `boolean` | `false` | Enable CSS transitions/animations |
+| `name` | `string` | — | HTML form field name. Set it to submit the selection in a `<form>` (see [Form integration](#form-integration)) |
+| `value-format` | `'iso' \| 'json' \| 'array'` | `'iso'` | How the submitted value is serialized (see [Form integration](#form-integration)) |
 | `date-member` | `string` | `'date'` | Field name on `specialDates` objects holding the date. Lets you reuse existing data shapes without renaming keys. |
 | `badge-text-member` | `string` | `'badgeText'` | Field name on `specialDates` objects holding the badge label |
 | `badge-class-member` | `string` | `'badgeClass'` | Field name on `specialDates` objects holding the badge's extra CSS class |
@@ -215,6 +218,49 @@ Read-only properties/attributes for locking: `lockedAspects` (`LockAspect[]` get
 > commits the pending selection and dispatches `change`. Pressing
 > Escape with an uncommitted selection silently restores the input
 > value and fires nothing.
+
+## Form integration
+
+Give the element a `name` and it participates in a `<form>` like a native
+control — no wrapper or manual hidden input needed. It works the same in
+`inline`, `floating`, and `modal` modes:
+
+```html
+<form>
+  <web-daterangepicker name="checkin" selection-mode="single"></web-daterangepicker>
+  <button>Submit</button>
+</form>
+```
+
+Under the hood the control renders a light-DOM hidden `<input>` inside the form
+(the same approach as `<web-multiselect>`) and clears it on `form.reset()`. It
+also exposes `el.form` / `event.target.form`, so frameworks that delegate form
+changes by reading `target.form` (e.g. Phoenix LiveView's `phx-change`) resolve
+the parent form correctly.
+
+**The submitted value is always stable ISO-8601** — independent of
+`date-format-mask` / `display-format-mask`, so a locale display mask never leaks
+into your form data. `value-format` picks how the selection is serialized:
+
+| `value-format` | Single | Range | Multiple |
+|---|---|---|---|
+| `iso` (default) | `2026-06-15` | `2026-06-15/2026-06-20` | comma-joined |
+| `json` | `"2026-06-15"` | `{"start":"…","end":"…"}` | JSON array |
+| `array` | one `name[]` field | two `name[]` fields (`start`, `end`) | one `name[]` per item |
+
+- `datetime` mode submits `YYYY-MM-DDTHH:mm[:ss]`; `time` mode submits
+  `HH:mm[:ss]` (seconds when `is-seconds-shown`).
+- The submitted value tracks the *real* selection, not the drawn envelope: a range
+  broken over disabled days with `disabled-dates-handling="split"` submits each
+  sub-range (`…/…,…/…`), and `"individual"` / `"block"` submit the enabled days.
+- For full control, set the **`getValueFormatCallback`** property — it receives
+  the normalized ISO selection snapshot (`{ selectionMode, pickerMode, items }`,
+  where each item is an ISO string or `{ start, end }`) and returns the single
+  field value:
+
+  ```js
+  picker.getValueFormatCallback = ({ items }) => items.join('|');
+  ```
 
 ## Working with dates across timezones
 

@@ -23,6 +23,9 @@ export type {
     BeforeMonthChangeResult, LocaleStrings
 } from './types';
 
+// Form-value serialization types (for typing getValueFormatCallback / value-format)
+export type { FormValueFormat, FormValueItem, FormValueSelection } from './form-value';
+
 // Export logging utilities for runtime control
 export {
     enableLogging,

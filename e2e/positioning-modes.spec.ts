@@ -35,9 +35,12 @@ test.describe('inline mode', () => {
         await expect(calendarOf(p)).toBeVisible();
     });
 
-    test('inline mode does not render the input element', async ({ page }) => {
+    test('inline mode renders no visible input (only a hidden form-value field)', async ({ page }) => {
         const p = pickerById(page, 'inline');
-        await expect(p.locator('input')).toHaveCount(0);
+        // No visible text input to anchor a popover to...
+        await expect(p.locator('input:not([type="hidden"])')).toHaveCount(0);
+        // ...but a hidden input carries the selection into form submission.
+        await expect(p.locator('input[type="hidden"]')).toHaveCount(1);
     });
 
     test('calendar root carries the --inline modifier class', async ({ page }) => {

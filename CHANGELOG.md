@@ -9,16 +9,40 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- **Form association.** `<web-daterangepicker>` is now a form-associated custom
-  element (`static formAssociated = true`): it submits its formatted value under
-  its `name`, participates in `form.elements`, clears on `form.reset()`
-  (`formResetCallback`), and — via core's `BlissElement` — exposes `el.form` /
-  `event.target.form`. Host frameworks that route form changes by reading
-  `target.form` (e.g. Phoenix LiveView's `phx-change` delegation) now work
-  without a wrapper-side `.form` polyfill. The submitted value tracks the current
-  selection (and any programmatic `value`). Requires
-  `@keenmate/web-components-core` with the `el.form` getter. Covered by
-  `e2e/form-association.spec.ts`.
+- **Form association.** `<web-daterangepicker>` now participates in forms and,
+  via core's `BlissElement`, exposes `el.form` / `event.target.form` — the hook
+  host frameworks that route form changes by reading `target.form` (e.g. Phoenix
+  LiveView's `phx-change` delegation) depend on. Requires
+  `@keenmate/web-components-core` with the `el.form` getter.
+- **Submission via a light-DOM hidden `<input>`** (web-multiselect's model).
+  When `name` is set, the control renders a hidden `<input>` inside the `<form>`
+  carrying its selection, and clears with `form.reset()` (`formResetCallback`).
+  This works uniformly across `inline` / `floating` / `modal` — including inline
+  pickers, which have no visible input and previously submitted nothing.
+- **Stable, mask-independent ISO submission value.** The submitted value is
+  ISO-8601, not the display-formatted string, so `display-format-mask` /
+  `date-format-mask` never leak into form data (a single date → `2026-06-15`; a
+  range → `2026-06-15/2026-06-20`).
+- **`value-format` attribute** (`iso` | `json` | `array`, default `iso`) and the
+  **`getValueFormatCallback`** property choose the serialization, mirroring
+  web-multiselect: `json` emits `JSON.stringify` of the selection; `array` emits
+  multiple `name[]` inputs (a range flattens to `start`, `end`); the callback
+  receives the normalized ISO selection snapshot and returns the field value.
+- The submitted value reflects the **real** selection under
+  `disabled-dates-handling`, not the drawn envelope: `"split"` submits each
+  sub-range, `"individual"` / `"block"` submit the enabled days — so disabled days
+  in a range's gap are never submitted. Covered by `e2e/form-association.spec.ts`.
+
+### Changed
+
+- **Inline mode now renders a hidden `<input>`** so the picker can format its
+  selection into it (populating `date-select`'s `formattedValue` and enabling
+  programmatic `value` / `getInputValue()` for inline). Its e2e assertion changed
+  from "inline renders no input" to "no *visible* input + one hidden field".
+- **Form submission no longer uses `ElementInternals.setFormValue`.** The host
+  is still form-associated (for `el.form` + `form.reset()` delegation) but never
+  sets a form value itself, so it adds no second entry under `name`; the light-DOM
+  hidden input is the single submitted entry.
 
 ## [2.0.0-rc05] - 2026-08-02
 

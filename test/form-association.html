@@ -10,13 +10,15 @@
 </head>
 <body>
     <h1>form association</h1>
-    <p>Targeted by <code>e2e/form-association.spec.ts</code>. The picker is a
-       form-associated custom element: it submits its formatted value under its
-       <code>name</code>, exposes <code>el.form</code>, and clears on
-       <code>form.reset()</code>.</p>
+    <p>Targeted by <code>e2e/form-association.spec.ts</code>. The control submits
+       a stable ISO value under its <code>name</code> via a light-DOM hidden
+       <code>&lt;input&gt;</code> (web-multiselect's model), exposes
+       <code>el.form</code>, and clears on <code>form.reset()</code>. The
+       <code>value-format</code> attribute (and <code>getValueFormatCallback</code>)
+       control the serialization.</p>
 
     <div class="fixture">
-        <div class="fixture-label">picker inside a form</div>
+        <div class="fixture-label">floating, single — default iso format</div>
         <form id="f">
             <web-daterangepicker id="picker" name="range" selection-mode="single"
                 initial-date="2026-06-15"></web-daterangepicker>
@@ -24,6 +26,66 @@
         </form>
     </div>
 
-    <script type="module" src="/src/index.ts"></script>
+    <div class="fixture">
+        <div class="fixture-label">inline, single (no visible input)</div>
+        <form id="fi">
+            <web-daterangepicker id="picker-inline" name="range" selection-mode="single"
+                positioning-mode="inline" initial-date="2026-06-15"></web-daterangepicker>
+            <button type="reset" id="reset-inline">Reset</button>
+        </form>
+    </div>
+
+    <div class="fixture">
+        <div class="fixture-label">inline, range — iso "start/end"</div>
+        <form id="fr">
+            <web-daterangepicker id="picker-range" name="range" selection-mode="range"
+                positioning-mode="inline" initial-date="2026-06-15"></web-daterangepicker>
+        </form>
+    </div>
+
+    <div class="fixture">
+        <div class="fixture-label">inline, range + split handling — multiple ISO intervals</div>
+        <form id="fs">
+            <web-daterangepicker id="picker-split" name="range" selection-mode="range"
+                positioning-mode="inline" disabled-dates-handling="split"
+                disabled-dates="2026-06-17,2026-06-18"
+                initial-date="2026-06-15"></web-daterangepicker>
+        </form>
+    </div>
+
+    <div class="fixture">
+        <div class="fixture-label">inline, single — value-format="json"</div>
+        <form id="fj">
+            <web-daterangepicker id="picker-json" name="range" selection-mode="single"
+                positioning-mode="inline" value-format="json"
+                initial-date="2026-06-15"></web-daterangepicker>
+        </form>
+    </div>
+
+    <div class="fixture">
+        <div class="fixture-label">inline, range — value-format="array" (name[] start/end)</div>
+        <form id="fa">
+            <web-daterangepicker id="picker-array" name="range" selection-mode="range"
+                positioning-mode="inline" value-format="array"
+                initial-date="2026-06-15"></web-daterangepicker>
+        </form>
+    </div>
+
+    <div class="fixture">
+        <div class="fixture-label">inline, single — getValueFormatCallback</div>
+        <form id="fc">
+            <web-daterangepicker id="picker-cb" name="range" selection-mode="single"
+                positioning-mode="inline" initial-date="2026-06-15"></web-daterangepicker>
+        </form>
+    </div>
+
+    <script type="module">
+        import '/src/index.ts';
+        customElements.whenDefined('web-daterangepicker').then(() => {
+            // Custom serialization: prefix the ISO atom(s).
+            document.getElementById('picker-cb').getValueFormatCallback =
+                (selection) => 'D:' + selection.items.join('|');
+        });
+    </script>
 </body>
 </html>
