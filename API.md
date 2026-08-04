@@ -131,7 +131,9 @@ All attributes can be set directly on the `<web-daterangepicker>` HTML element.
 | `badge-tooltip-member` | `string \| null` | — | Property name holding a badge tooltip string. |
 | `day-tooltip-member` | `string \| null` | — | Property name holding a day tooltip string. |
 | `is-disabled-member` | `string \| null` | — | Property name flagging a decorated date as disabled. |
-| `value` | `string \| null` | — | Text value of the input (floating/modal modes). Reflected to the live input; read/write via the `value` property. |
+| `name` | `string \| null` | — | HTML form field name. When set, the control submits its selection as a light-DOM hidden `<input>` (`name[]` inputs for `value-format="array"`). Also read by core for `el.form` / `form.reset()`. |
+| `value-format` | `'iso' \| 'json' \| 'array'` | `'iso'` | Serialization of the submitted value (stable ISO-8601, independent of the display masks): - `iso` (default) — one field; a single date/time as-is, a range as `start/end`, multiple joined by `,`. - `json` — one field; `JSON.stringify` of the selection (scalar/object for single/range, array for multiple). - `array` — multiple `name[]` fields, one per date; a range contributes `start` and `end`. |
+| `value` | `string \| null` | — | Text value of the control (the formatted selection). Reflected to the live input in floating/modal modes and to the hidden form-value input in inline mode; read/write via the `value` property. |
 | `placeholder` | `string \| null` | — | Input placeholder (falls back to display-format-mask). |
 | `disabled` | `boolean` | — | Disable the input. |
 | `readonly` | `boolean` | — | Full read-only lock (freezes every interaction aspect). Read/write via the `readonly` property, or use `lock()` for partial locks. |
@@ -319,6 +321,7 @@ Available on `<web-daterangepicker>` element:
 <!-- Auto-generated from custom-elements.json — do not edit by hand. Run `npm run docs:api`. -->
 | Method | Signature | Description |
 |--------|-----------|-------------|
+| `formResetCallback()` | `() => void` | Form reset: clear the selection and the submitted value with the form. |
 | `show()` | `() => void` | Open the calendar (floating/modal modes). |
 | `hide()` | `() => void` | Close the calendar (floating/modal modes). |
 | `toggle()` | `() => void` | Toggle the calendar open/closed. |
@@ -1372,6 +1375,9 @@ The web component provides convenient property accessors for JavaScript:
 | `badgeTooltipMember` | `string \| null` | Read/Write | Property name holding a badge tooltip string. |
 | `dayTooltipMember` | `string \| null` | Read/Write | Property name holding a day tooltip string. |
 | `isDisabledMember` | `string \| null` | Read/Write | Property name flagging a decorated date as disabled. |
+| `formFieldName` | `string \| null` | Read/Write | HTML form field name. When set, the control submits its selection as a light-DOM hidden `<input>` (`name[]` inputs for `value-format="array"`). Also read by core for `el.form` / `form.reset()`. |
+| `valueFormat` | `'iso' \| 'json' \| 'array'` | Read/Write | Serialization of the submitted value (stable ISO-8601, independent of the display masks): - `iso` (default) — one field; a single date/time as-is, a range as `start/end`, multiple joined by `,`. - `json` — one field; `JSON.stringify` of the selection (scalar/object for single/range, array for multiple). - `array` — multiple `name[]` fields, one per date; a range contributes `start` and `end`. |
+| `getValueFormatCallback` | `(selection: FormValueSelection) => string` | Read/Write | Custom serialization of the submitted value; receives the normalized ISO selection snapshot and returns the single hidden-input value. Overrides `value-format`. Property-only. |
 | `placeholder` | `string \| null` | Read/Write | Input placeholder (falls back to display-format-mask). |
 | `disabled` | `boolean` | Read/Write | Disable the input. |
 | `inputSize` | `string` | Read/Write | Input size scale: `xs` \| `sm` \| `md` \| `lg` \| `xl` (floating/modal only). |
