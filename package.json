@@ -1,6 +1,6 @@
 {
   "name": "@keenmate/web-daterangepicker",
-  "version": "2.0.0-rc05",
+  "version": "2.0.0-rc06",
   "description": "Lightweight date picker web component with excellent keyboard navigation and range selection",
   "type": "module",
   "main": "./dist/web-daterangepicker.umd.js",
@@ -90,6 +90,6 @@
     "vite": "^5.0.8"
   },
   "dependencies": {
-    "@keenmate/web-components-core": "file:../web-components-core"
+    "@keenmate/web-components-core": "^1.0.0-rc02"
   }
 }

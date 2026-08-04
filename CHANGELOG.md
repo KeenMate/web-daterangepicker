@@ -5,7 +5,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [2.0.0-rc06] - 2026-08-04
 
 ### Added
 
@@ -44,7 +44,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   sets a form value itself, so it adds no second entry under `name`; the light-DOM
   hidden input is the single submitted entry.
 
-## [2.0.0-rc05] - 2026-08-02
+## [2.0.0-rc05] - 2026-08-02 [PUBLISHED]
 
 ### Changed — migrated onto `@keenmate/web-components-core` (`BlissElement`)
 
