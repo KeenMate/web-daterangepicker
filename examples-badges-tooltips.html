@@ -6,9 +6,10 @@
   <title>Badges & Tooltips Examples - Date Range Picker</title>
   <link rel="stylesheet" href="examples-shared.css">
   <style>
-    /* Page-specific styles only - base styles come from examples-shared.css */
-
-    /* Method/function note styling */
+    /* Page-unique only — base styles come from examples-shared.css.
+       .method-note is a compact inline "Uses: <api>" annotation chip that sits
+       under each demo's label. It's intentionally small and inline-block, unlike
+       the shared block-level `.note.info` callout, so it has no shared equivalent. */
     .method-note {
       display: block;
       margin-top: 0.5rem;
@@ -25,29 +26,6 @@
       padding: 0.125rem 0.25rem;
       border-radius: 0.125rem;
       font-weight: 600;
-    }
-
-    .comparison-table {
-      width: 100%;
-      border-collapse: collapse;
-      margin: 1rem 0;
-    }
-
-    .comparison-table th,
-    .comparison-table td {
-      padding: 0.75rem;
-      text-align: left;
-      border-bottom: 1px solid #e5e7eb;
-    }
-
-    .comparison-table th {
-      background: #f9fafb;
-      font-weight: 600;
-      color: #374151;
-    }
-
-    .comparison-table code {
-      white-space: nowrap;
     }
   </style>
 </head>
@@ -70,7 +48,7 @@
       The component provides multiple approaches to display badges and tooltips, each with different use cases and capabilities.
     </p>
 
-    <table class="comparison-table">
+    <table class="reference-table">
       <thead>
         <tr>
           <th>Method</th>
@@ -101,10 +79,10 @@
       </tbody>
     </table>
 
-    <div class="info-box">
+    <div class="note info">
       <strong>New in latest version:</strong>
       The <code>DateInfo</code> interface has been refactored for clarity:
-      <ul style="margin: 0.5rem 0 0 1.5rem;">
+      <ul>
         <li><code>disabled</code> → <code>isDisabled</code></li>
         <li><code>label</code> → <code>badgeText</code></li>
         <li><code>tooltip</code> → <code>badgeTooltip</code> + <code>dayTooltip</code></li>
@@ -274,7 +252,7 @@ picker.actionButtons = [
   { action: 'apply', text: 'Apply' }
 ];</code></pre>
 
-    <div class="info-box">
+    <div class="note info">
       <strong>Why this and not <code>getDateMetadataCallback</code>?</strong>
       The per-day metadata callback is synchronous and runs ~42 times per month — you can't <code>await</code> inside it.
       <code>beforeMonthChangedCallback</code> is the async, once-per-month hook: it fills
@@ -320,9 +298,9 @@ picker.isDisabledMember = 'disabled';       // Which property contains the disab
 // Assign your data as-is!
 picker.specialDates = myHolidays;</code></pre>
 
-    <div class="info-box">
+    <div class="note info">
       <strong>Available Member Properties:</strong>
-      <ul style="margin: 0.5rem 0 0 1.5rem; line-height: 1.8;">
+      <ul>
         <li><code>dateMember</code> - Property containing the date (default: 'date')</li>
         <li><code>badgeTextMember</code> - Property containing badge text (default: 'badgeText')</li>
         <li><code>badgeClassMember</code> - Property containing badge CSS class (default: 'badgeClass')</li>
@@ -392,9 +370,9 @@ picker.getDateMetadataCallback = ({ date }) => {
   return null;
 };</code></pre>
 
-    <div class="info-box">
+    <div class="note info">
       <strong>Return Value:</strong> The callback returns a <code>DateInfo</code> object with these properties:
-      <ul style="margin: 0.5rem 0 0 1.5rem;">
+      <ul>
         <li><code>badgeText</code> - Text shown in badge row</li>
         <li><code>badgeClass</code> - CSS class for badge cell</li>
         <li><code>badgeTooltip</code> - Plain text tooltip for badge</li>
@@ -476,7 +454,7 @@ picker.dayTooltipCallback = (data) => {
   return null;
 };</code></pre>
 
-    <div class="warning-box">
+    <div class="note warning">
       <strong>Security Note:</strong> Tooltip callbacks return HTML that is rendered with <code>innerHTML</code>.
       Always sanitize user-generated content to prevent XSS attacks. Only use trusted data in tooltips.
     </div>
@@ -533,9 +511,9 @@ picker.dayTooltipCallback = (data) => {
   return null;
 };</code></pre>
 
-    <div class="info-box">
+    <div class="note info">
       <strong>Priority:</strong> When multiple methods provide data for the same date:
-      <ul style="margin: 0.5rem 0 0 1.5rem;">
+      <ul>
         <li><code>specialDates</code> is checked first</li>
         <li><code>getDateMetadataCallback</code> is checked if no special date found</li>
         <li><code>*TooltipCallback</code> functions override text tooltips from above methods</li>
@@ -552,10 +530,10 @@ picker.dayTooltipCallback = (data) => {
       You drive the styling from data — the component itself never decides what a date "means".
     </p>
 
-    <div class="info-box">
+    <div class="note info">
       <strong>Built-in conventions:</strong> the shipped CSS includes default styling for five
       common consumer-data class names so you get something polished without writing CSS:
-      <ul style="margin: 0.5rem 0 0 1.5rem;">
+      <ul>
         <li><code>dayClass: 'holiday'</code> — tints the whole day cell red (consumes <code>--drp-holiday-color</code>)</li>
         <li><code>dayClass: 'event'</code> — tints the whole day cell green (consumes <code>--drp-event-color</code>)</li>
         <li><code>badgeClass: 'badge-number'</code> — accent-colored numeric badge (consumes <code>--drp-badge-number-bg</code> / <code>--drp-badge-number-color</code>)</li>
@@ -645,7 +623,7 @@ picker.specialDates = [
   { date: dayOffset(10), dayClass: 'rumba',   dayTooltip: 'Rumba show night' },
 ];</code></pre>
 
-    <div class="info-box">
+    <div class="note info">
       <strong>Why <code>customStylesCallback</code> instead of a regular stylesheet?</strong>
       The picker lives inside a shadow DOM, so document-level CSS can't reach
       <code>.drp__day</code>. Either inject your styles via this callback (recommended for component-scoped
@@ -659,7 +637,7 @@ picker.specialDates = [
     <h2>Tooltip Best Practices</h2>
 
     <h3>When to Use Each Tooltip Type</h3>
-    <table class="comparison-table">
+    <table class="reference-table">
       <thead>
         <tr>
           <th>Tooltip Type</th>

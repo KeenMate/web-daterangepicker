@@ -6,7 +6,10 @@
   <title>Custom Rendering - Date Range Picker Examples</title>
   <link rel="stylesheet" href="examples-shared.css">
   <style>
-    /* Page-specific styles only - base styles come from examples-shared.css */
+    /* Page-unique custom day-cell styling ONLY: these classes style the bespoke
+       markup injected into day cells via declarative slots (custom-day-content,
+       badges, price tags, emoji). Generic page layout — cards, notes, code blocks,
+       forms — comes from examples-shared.css. */
 
     /* Custom day cell styles for examples */
     .event-dot {
@@ -46,6 +49,16 @@
       font-size: 18px;
       line-height: 1;
     }
+
+    /* Small annotation text inside slotted day cells */
+    .day-note-due {
+      font-size: 10px;
+      color: #dc2626;
+    }
+
+    .day-note-small {
+      font-size: 9px;
+    }
   </style>
 </head>
 <body>
@@ -82,7 +95,7 @@
         <!-- Deadline on Jan 25 -->
         <div slot="day-2025-01-25" class="custom-day-content">
           <strong>25</strong>
-          <span style="font-size: 10px; color: #dc2626;">⚠️ Due</span>
+          <span class="day-note-due">⚠️ Due</span>
         </div>
       </web-daterangepicker>
     </div>
@@ -248,7 +261,7 @@ picker.getDateMetadataCallback = ({ date }) => {
         <!-- Slot for specific holiday -->
         <div slot="day-2025-05-25" class="custom-day-content">
           <span class="emoji-day">🎖️</span>
-          <small style="font-size: 9px;">Memorial</small>
+          <small class="day-note-small">Memorial</small>
         </div>
       </web-daterangepicker>
     </div>
@@ -282,7 +295,7 @@ picker.renderDayContentCallback = (data) => {
       <web-daterangepicker id="booking-system" selection-mode="range" date-format-mask="YYYY-MM-DD"></web-daterangepicker>
     </div>
 
-    <div id="booking-info" style="margin-top: 1rem; padding: 1rem; background: #f3f4f6; border-radius: 0.5rem; display: none;">
+    <div id="booking-info" class="note" style="display: none;">
       <strong>Booking Details:</strong>
       <div id="booking-details"></div>
     </div>

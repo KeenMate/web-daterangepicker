@@ -5,19 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Time / Datetime Picker Examples</title>
   <link rel="stylesheet" href="examples-shared.css">
-  <style>
-    .out {
-      margin-top: 0.5rem;
-      padding: 0.5rem 0.75rem;
-      background: #f3f4f6;
-      border: 1px solid #e5e7eb;
-      border-radius: 0.375rem;
-      font-family: ui-monospace, Menlo, monospace;
-      font-size: 0.875rem;
-      color: #111827;
-      min-height: 1.25rem;
-    }
-  </style>
 </head>
 <body>
   <div class="container">
@@ -32,7 +19,7 @@
       <div class="form-group">
         <label>Pick a time</label>
         <web-daterangepicker id="t1" picker-mode="time" placeholder="HH:mm"></web-daterangepicker>
-        <div class="out" id="t1-out">No selection yet</div>
+        <div class="log-panel mt-1" id="t1-out">No selection yet</div>
       </div>
     </div>
 
@@ -46,7 +33,7 @@
           time-format-mask="hh:mm a"
           placeholder="hh:mm AM/PM">
         </web-daterangepicker>
-        <div class="out" id="t2-out">No selection yet</div>
+        <div class="log-panel mt-1" id="t2-out">No selection yet</div>
       </div>
     </div>
 
@@ -60,7 +47,7 @@
           time-step="15"
           placeholder="HH:mm">
         </web-daterangepicker>
-        <div class="out" id="t3-out">No selection yet</div>
+        <div class="log-panel mt-1" id="t3-out">No selection yet</div>
       </div>
     </div>
 
@@ -74,7 +61,7 @@
           time-format-mask="HH:mm:ss"
           placeholder="HH:mm:ss">
         </web-daterangepicker>
-        <div class="out" id="t4-out">No selection yet</div>
+        <div class="log-panel mt-1" id="t4-out">No selection yet</div>
       </div>
     </div>
 
@@ -87,7 +74,7 @@
           picker-mode="datetime"
           placeholder="YYYY-MM-DD HH:mm">
         </web-daterangepicker>
-        <div class="out" id="d1-out">No selection yet</div>
+        <div class="log-panel mt-1" id="d1-out">No selection yet</div>
       </div>
     </div>
 
@@ -101,7 +88,7 @@
           time-format-mask="hh:mm:ss a"
           placeholder="date and time">
         </web-daterangepicker>
-        <div class="out" id="d2-out">No selection yet</div>
+        <div class="log-panel mt-1" id="d2-out">No selection yet</div>
       </div>
     </div>
 
@@ -115,7 +102,7 @@
           selection-mode="range"
           placeholder="should be a date range">
         </web-daterangepicker>
-        <div class="out" id="d3-out">Selection logged here. Check console for a single fallback warning.</div>
+        <div class="log-panel mt-1" id="d3-out">Selection logged here. Check console for a single fallback warning.</div>
       </div>
     </div>
 
@@ -129,11 +116,11 @@
           initial-date="2026-05-23T14:30:00"
           placeholder="should pre-fill date and time">
         </web-daterangepicker>
-        <div class="out" id="d4-out">Should display 2026-05-23 14:30 on first render</div>
+        <div class="log-panel mt-1" id="d4-out">Should display 2026-05-23 14:30 on first render</div>
       </div>
     </div>
 
-    <header style="margin-top: 3rem;">
+    <header class="mt-1">
       <h2>Clock face &mdash; <code>time-display="clock"</code></h2>
       <p class="subtitle">Material-style two-step face: pick the hour, the dial flips to minutes. Click the HH or MM digit in the header to jump back.</p>
     </header>
@@ -149,7 +136,7 @@
           time-format-mask="hh:mm a"
           placeholder="hh:mm AM/PM">
         </web-daterangepicker>
-        <div class="out" id="c1-out">No selection yet</div>
+        <div class="log-panel mt-1" id="c1-out">No selection yet</div>
       </div>
     </div>
 
@@ -163,7 +150,7 @@
           time-display="clock"
           placeholder="HH:mm">
         </web-daterangepicker>
-        <div class="out" id="c2-out">Inner ring shows 13..24 with 24 at the top</div>
+        <div class="log-panel mt-1" id="c2-out">Inner ring shows 13..24 with 24 at the top</div>
       </div>
     </div>
 
@@ -178,7 +165,7 @@
           time-step="15"
           placeholder="HH:mm">
         </web-daterangepicker>
-        <div class="out" id="c3-out">Minute face shows :00 :15 :30 :45 only</div>
+        <div class="log-panel mt-1" id="c3-out">Minute face shows :00 :15 :30 :45 only</div>
       </div>
     </div>
 
@@ -193,7 +180,7 @@
           time-step="7"
           placeholder="HH:mm">
         </web-daterangepicker>
-        <div class="out" id="c4-out">60 % 7 !== 0 &rarr; console.warn fires; step becomes 1</div>
+        <div class="log-panel mt-1" id="c4-out">60 % 7 !== 0 &rarr; console.warn fires; step becomes 1</div>
       </div>
     </div>
 
@@ -208,11 +195,11 @@
           hour-cycle="h12"
           placeholder="YYYY-MM-DD hh:mm">
         </web-daterangepicker>
-        <div class="out" id="c5-out">Calendar + clock face in one popover</div>
+        <div class="log-panel mt-1" id="c5-out">Calendar + clock face in one popover</div>
       </div>
     </div>
 
-    <header style="margin-top: 3rem;">
+    <header class="mt-1">
       <h2>Wheel barrel &mdash; <code>time-display="wheel"</code></h2>
       <p class="subtitle">iOS UIPickerView aesthetic: snap-scrolling columns with a center selection band and top/bottom fade. Scroll a column or click any visible row to center it.</p>
     </header>
@@ -227,7 +214,7 @@
           time-display="wheel"
           placeholder="HH:mm">
         </web-daterangepicker>
-        <div class="out" id="w1-out">No selection yet</div>
+        <div class="log-panel mt-1" id="w1-out">No selection yet</div>
       </div>
     </div>
 
@@ -242,7 +229,7 @@
           time-format-mask="hh:mm a"
           placeholder="hh:mm AM/PM">
         </web-daterangepicker>
-        <div class="out" id="w2-out">No selection yet</div>
+        <div class="log-panel mt-1" id="w2-out">No selection yet</div>
       </div>
     </div>
 
@@ -257,7 +244,7 @@
           time-format-mask="HH:mm:ss"
           placeholder="HH:mm:ss">
         </web-daterangepicker>
-        <div class="out" id="w3-out">Wheel supports seconds (clock does not)</div>
+        <div class="log-panel mt-1" id="w3-out">Wheel supports seconds (clock does not)</div>
       </div>
     </div>
 
@@ -272,7 +259,7 @@
           time-step="5"
           placeholder="HH:mm">
         </web-daterangepicker>
-        <div class="out" id="w4-out">Minute column shows :00 :05 :10 ... :55</div>
+        <div class="log-panel mt-1" id="w4-out">Minute column shows :00 :05 :10 ... :55</div>
       </div>
     </div>
 
@@ -286,11 +273,11 @@
           time-display="wheel"
           placeholder="YYYY-MM-DD HH:mm">
         </web-daterangepicker>
-        <div class="out" id="w5-out">Calendar + wheel in one popover</div>
+        <div class="log-panel mt-1" id="w5-out">Calendar + wheel in one popover</div>
       </div>
     </div>
 
-    <header style="margin-top: 3rem;">
+    <header class="mt-1">
       <h2>Compact pills &mdash; <code>time-display="compact"</code></h2>
       <p class="subtitle">iOS 14+ aesthetic: tap a pill to type a value. Enter commits, Escape reverts, &uarr;/&darr; nudge by step. Calmest of the four time UIs.</p>
     </header>
@@ -305,7 +292,7 @@
           time-display="compact"
           placeholder="HH:mm">
         </web-daterangepicker>
-        <div class="out" id="p1-out">No selection yet &mdash; tap a pill and type</div>
+        <div class="log-panel mt-1" id="p1-out">No selection yet &mdash; tap a pill and type</div>
       </div>
     </div>
 
@@ -320,7 +307,7 @@
           time-format-mask="hh:mm a"
           placeholder="hh:mm AM/PM">
         </web-daterangepicker>
-        <div class="out" id="p2-out">No selection yet</div>
+        <div class="log-panel mt-1" id="p2-out">No selection yet</div>
       </div>
     </div>
 
@@ -335,7 +322,7 @@
           time-format-mask="HH:mm:ss"
           placeholder="HH:mm:ss">
         </web-daterangepicker>
-        <div class="out" id="p3-out">Third pill appears for seconds</div>
+        <div class="log-panel mt-1" id="p3-out">Third pill appears for seconds</div>
       </div>
     </div>
 
@@ -350,7 +337,7 @@
           time-step="15"
           placeholder="HH:mm">
         </web-daterangepicker>
-        <div class="out" id="p4-out">Type :22 &rarr; commits to :15; arrow keys jump by 15</div>
+        <div class="log-panel mt-1" id="p4-out">Type :22 &rarr; commits to :15; arrow keys jump by 15</div>
       </div>
     </div>
 
@@ -365,7 +352,7 @@
           hour-cycle="h12"
           placeholder="YYYY-MM-DD hh:mm">
         </web-daterangepicker>
-        <div class="out" id="p5-out">Calendar + compact pills in one popover</div>
+        <div class="log-panel mt-1" id="p5-out">Calendar + compact pills in one popover</div>
       </div>
     </div>
   </div>

@@ -5,76 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Localization &amp; Custom Names - Date Range Picker</title>
   <link rel="stylesheet" href="examples-shared.css">
-  <style>
-    /* Page-specific styles only - base styles come from examples-shared.css */
-
-    .grid-wide {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-      gap: 1.5rem;
-      margin: 1rem 0;
-    }
-
-    .code {
-      background: #1f2937;
-      color: #e5e7eb;
-      border-radius: 0.375rem;
-      padding: 1rem;
-      margin: 1rem 0;
-      font-family: 'Monaco', 'Consolas', monospace;
-      font-size: 0.8125rem;
-      overflow-x: auto;
-      white-space: pre;
-    }
-
-    .code .comment { color: #6b7280; }
-    .code .property { color: #93c5fd; }
-    .code .value { color: #86efac; }
-    .code .selector { color: #fde047; }
-
-    /* Day-of-week index legend table */
-    .index-table {
-      width: 100%;
-      border-collapse: collapse;
-      margin: 1rem 0;
-      font-size: 0.875rem;
-    }
-    .index-table th,
-    .index-table td {
-      border: 1px solid #e5e7eb;
-      padding: 0.4rem 0.6rem;
-      text-align: center;
-    }
-    .index-table th { background: #f3f4f6; }
-    .index-table td:first-child,
-    .index-table th:first-child { text-align: left; font-weight: 600; background: #f9fafb; }
-
-    /* Callout boxes + badge (not in shared CSS) */
-    .info-box {
-      background: #eff6ff;
-      border-left: 4px solid #3b82f6;
-      padding: 1rem;
-      margin: 1rem 0;
-      border-radius: 0.25rem;
-    }
-    .warning-box {
-      background: #fef3c7;
-      border-left: 4px solid #f59e0b;
-      padding: 1rem;
-      margin: 1rem 0;
-      border-radius: 0.25rem;
-    }
-    .badge {
-      display: inline-block;
-      background: #f56565;
-      color: white;
-      padding: 0.15rem 0.5rem;
-      border-radius: 6px;
-      font-size: 0.65rem;
-      vertical-align: middle;
-      margin-left: 0.4rem;
-    }
-  </style>
 </head>
 <body>
   <div class="container">
@@ -84,14 +14,14 @@
       <p class="subtitle">Built-in locales, week-start-day, and full control over month &amp; weekday labels</p>
     </header>
 
-  <div class="info-box">
+  <div class="note info">
     <strong>Two override surfaces:</strong> the <code>month-names</code> and <code>weekday-names</code>
     <strong>HTML attributes</strong> take a pipe-delimited (<code>|</code>) list, and the
     <code>monthNames</code> / <code>weekdayNames</code> <strong>JS properties</strong> take a string array.
     When both are set, the property wins.
   </div>
 
-  <div class="warning-box">
+  <div class="note warning">
     <strong>Indexing is fixed to the JS date number, not the visible order:</strong>
     <code>month-names</code> is <code>[0]</code>=January … <code>[11]</code>=December (matches
     <code>Date.getMonth()</code>), and <code>weekday-names</code> is <strong>always authored Sunday-first</strong>:
@@ -106,7 +36,7 @@
       month/weekday names. Built-ins: <code>en</code>, <code>de</code>, <code>fr</code>, <code>es</code>
       (<code>auto</code> detects from the browser).</p>
 
-    <div class="grid-wide">
+    <div class="grid" style="--grid-min: 320px; --grid-gap: 1.5rem">
       <div class="form-group">
         <label>English (locale="en")</label>
         <web-daterangepicker selection-mode="single" initial-date="2026-06-15"
@@ -129,7 +59,7 @@
       </div>
     </div>
 
-    <div class="code"><span class="selector">&lt;web-daterangepicker</span> <span class="property">locale</span>=<span class="value">"de"</span><span class="selector">&gt;&lt;/web-daterangepicker&gt;</span></div>
+    <div class="code-block"><code><span class="keyword">&lt;web-daterangepicker</span> <span class="property">locale</span>=<span class="string">"de"</span><span class="keyword">&gt;&lt;/web-daterangepicker&gt;</span></code></div>
   </div>
 
   <!-- week-start-day -->
@@ -139,7 +69,7 @@
       (<code>0</code>=Sunday … <code>6</code>=Saturday). It rotates which day column comes first — the
       day cells underneath stay aligned.</p>
 
-    <div class="grid-wide">
+    <div class="grid" style="--grid-min: 320px; --grid-gap: 1.5rem">
       <div class="form-group">
         <label>Sunday first (week-start-day="0")</label>
         <web-daterangepicker selection-mode="single" initial-date="2026-06-15"
@@ -160,13 +90,13 @@
 
   <!-- weekday-names attribute -->
   <div class="card">
-    <h2>Custom Weekday Names <span class="badge">v2.0</span></h2>
+    <h2>Custom Weekday Names <span class="badge new">v2.0</span></h2>
     <p>The <code>weekday-names</code> attribute overrides the header labels with a pipe-delimited list of
       exactly 7 entries, <strong>authored Sunday-first</strong>. Here the same Czech list
       <code>Ne|Po|Út|St|Čt|Pá|So</code> is reused across three different start days — note you
       <strong>never re-order the list</strong>; the component rotates it and the labels stay glued to the right days.</p>
 
-    <div class="grid-wide">
+    <div class="grid" style="--grid-min: 320px; --grid-gap: 1.5rem">
       <div class="form-group">
         <label>Czech + Sunday first → Ne Po Út St Čt Pá So</label>
         <web-daterangepicker selection-mode="single" initial-date="2026-06-15"
@@ -190,12 +120,12 @@
       </div>
     </div>
 
-    <div class="code"><span class="comment">&lt;!-- Always Sunday-first: [0]=Sun … [6]=Sat. week-start-day rotates the display. --&gt;</span>
-<span class="selector">&lt;web-daterangepicker</span>
-  <span class="property">week-start-day</span>=<span class="value">"3"</span>
-  <span class="property">weekday-names</span>=<span class="value">"Ne|Po|Út|St|Čt|Pá|So"</span><span class="selector">&gt;&lt;/web-daterangepicker&gt;</span></div>
+    <div class="code-block"><code><span class="comment">&lt;!-- Always Sunday-first: [0]=Sun … [6]=Sat. week-start-day rotates the display. --&gt;</span>
+<span class="keyword">&lt;web-daterangepicker</span>
+  <span class="property">week-start-day</span>=<span class="string">"3"</span>
+  <span class="property">weekday-names</span>=<span class="string">"Ne|Po|Út|St|Čt|Pá|So"</span><span class="keyword">&gt;&lt;/web-daterangepicker&gt;</span></code></div>
 
-    <table class="index-table">
+    <table class="reference-table">
       <thead>
         <tr><th>List position</th><th>[0]</th><th>[1]</th><th>[2]</th><th>[3]</th><th>[4]</th><th>[5]</th><th>[6]</th></tr>
       </thead>
@@ -208,12 +138,12 @@
 
   <!-- month-names attribute -->
   <div class="card">
-    <h2>Custom Month Names <span class="badge">v2.0</span></h2>
+    <h2>Custom Month Names <span class="badge new">v2.0</span></h2>
     <p>The <code>month-names</code> attribute overrides month labels with a pipe-delimited list of exactly 12
       entries, in calendar order (<code>[0]</code>=January … <code>[11]</code>=December). No rotation —
       the list is always January → December.</p>
 
-    <div class="grid-wide">
+    <div class="grid" style="--grid-min: 320px; --grid-gap: 1.5rem">
       <div class="form-group">
         <label>Czech month names</label>
         <web-daterangepicker selection-mode="single" initial-date="2026-06-15"
@@ -230,8 +160,8 @@
       </div>
     </div>
 
-    <div class="code"><span class="selector">&lt;web-daterangepicker</span>
-  <span class="property">month-names</span>=<span class="value">"Leden|Únor|Březen|Duben|Květen|Červen|Červenec|Srpen|Září|Říjen|Listopad|Prosinec"</span><span class="selector">&gt;&lt;/web-daterangepicker&gt;</span></div>
+    <div class="code-block"><code><span class="keyword">&lt;web-daterangepicker</span>
+  <span class="property">month-names</span>=<span class="string">"Leden|Únor|Březen|Duben|Květen|Červen|Červenec|Srpen|Září|Říjen|Listopad|Prosinec"</span><span class="keyword">&gt;&lt;/web-daterangepicker&gt;</span></code></div>
   </div>
 
   <!-- Combined full Czech -->
@@ -267,14 +197,14 @@
         week-start-day="1" positioning-mode="inline"></web-daterangepicker>
     </div>
 
-    <div class="code"><span class="selector">const</span> el = document.getElementById(<span class="value">'js-names'</span>);
+    <div class="code-block"><code><span class="keyword">const</span> el = document.getElementById(<span class="string">'js-names'</span>);
 
 <span class="comment">// [0]=January … [11]=December</span>
-el.<span class="property">monthNames</span> = [<span class="value">'Styczeń','Luty','Marzec','Kwiecień','Maj','Czerwiec',
+el.<span class="property">monthNames</span> = [<span class="string">'Styczeń','Luty','Marzec','Kwiecień','Maj','Czerwiec',
                  'Lipiec','Sierpień','Wrzesień','Październik','Listopad','Grudzień'</span>];
 
 <span class="comment">// [0]=Sunday … [6]=Saturday</span>
-el.<span class="property">weekdayNames</span> = [<span class="value">'Nd','Pn','Wt','Śr','Cz','Pt','So'</span>];</div>
+el.<span class="property">weekdayNames</span> = [<span class="string">'Nd','Pn','Wt','Śr','Cz','Pt','So'</span>];</code></div>
   </div>
 
   <!-- Validation -->
@@ -292,9 +222,9 @@ el.<span class="property">weekdayNames</span> = [<span class="value">'Nd','Pn','
         positioning-mode="inline"></web-daterangepicker>
     </div>
 
-    <div class="code"><span class="comment">// Console output:</span>
+    <div class="code-block"><code><span class="comment">// Console output:</span>
 <span class="comment">// [web-daterangepicker] "weekday-names" ignored: expected exactly 7</span>
-<span class="comment">//   pipe-delimited segments, got 3. Falling back to locale names.</span></div>
+<span class="comment">//   pipe-delimited segments, got 3. Falling back to locale names.</span></code></div>
   </div>
 
   <script type="module" src="/src/index.ts"></script>

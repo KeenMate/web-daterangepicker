@@ -8,15 +8,9 @@
   <link rel="stylesheet" href="examples-shared.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
   <style>
-    /* All common styles moved to examples-shared.css */
-    .picker-with-clear {
-      display: flex;
-      align-items: flex-start;
-      gap: 0.5rem;
-    }
-    .picker-with-clear web-daterangepicker {
-      flex: 1;
-    }
+    /* Page-specific bespoke widget only — the small red square "clear" icon button
+       sitting next to a picker. Layout/containers use shared classes
+       (.field-row, .controls, .code-block, …) from examples-shared.css. */
     .clear-btn {
       background: #ef4444;
       color: white;
@@ -119,7 +113,7 @@
           selection-mode="range"
           positioning-mode="modal">
         </web-daterangepicker>
-        <button onclick="document.querySelector('#modal-single').isOpen = true" style="margin-top: 0.5rem;">Open modal</button>
+        <button class="mt-1" onclick="document.querySelector('#modal-single').isOpen = true">Open modal</button>
       </div>
 
       <div class="form-group">
@@ -131,7 +125,7 @@
           positioning-mode="modal"
           visible-months-count="3">
         </web-daterangepicker>
-        <button onclick="document.querySelector('#modal-multi').isOpen = true" style="margin-top: 0.5rem;">Open modal</button>
+        <button class="mt-1" onclick="document.querySelector('#modal-multi').isOpen = true">Open modal</button>
       </div>
 
       <div class="form-group">
@@ -147,7 +141,7 @@
           grid-columns="3"
           is-unified-navigation-enabled="true">
         </web-daterangepicker>
-        <button onclick="document.querySelector('#modal-grid').isOpen = true" style="margin-top: 0.5rem;">Open modal</button>
+        <button class="mt-1" onclick="document.querySelector('#modal-grid').isOpen = true">Open modal</button>
       </div>
 
       <div class="form-group">
@@ -187,8 +181,9 @@
       <div class="form-group">
         <label>auto-close="never" (Manual Close Only)</label>
         <small>Calendar NEVER auto-closes, not even with Apply button - user must close manually</small>
-        <div class="picker-with-clear">
+        <div class="field-row">
           <web-daterangepicker
+            class="field-grow"
             id="autoclose-never"
             selection-mode="range"
             auto-close="never"
@@ -203,8 +198,9 @@
       <div class="form-group">
         <label>auto-close="selection" (Auto-Close on Selection) - DEFAULT</label>
         <small>Closes when selection completes (click, drag-adjust). Note: Multiple mode never auto-closes</small>
-        <div class="picker-with-clear">
+        <div class="field-row">
           <web-daterangepicker
+            class="field-grow"
             id="autoclose-selection"
             selection-mode="range"
             auto-close="selection">
@@ -216,8 +212,9 @@
       <div class="form-group">
         <label>auto-close="apply" (Only Apply Closes)</label>
         <small>Only the Apply button closes the calendar</small>
-        <div class="picker-with-clear">
+        <div class="field-row">
           <web-daterangepicker
+            class="field-grow"
             id="autoclose-apply"
             selection-mode="range"
             auto-close="apply">
@@ -300,7 +297,7 @@ picker.actionButtons = [
         positioning-mode="inline"
         visible-months-count="2">
       </web-daterangepicker>
-      <div class="output-box" id="multi-output">No selections yet</div>
+      <div class="log-panel mt-1" id="multi-output">No selections yet</div>
     </div>
 
     <div class="code-block"><code><span class="comment">// Multiple mode: click dates to toggle selection</span>
@@ -322,14 +319,14 @@ picker.actionButtons = [
       <label>Picker Controlled by External Buttons</label>
       <small>Use the buttons below to set ranges programmatically</small>
 
-      <div class="external-buttons">
+      <div class="controls">
         <button onclick="setToday()">Today</button>
         <button onclick="setYesterday()">Yesterday</button>
         <button onclick="setLastWeek()">Last 7 Days</button>
         <button onclick="setThisMonth()">This Month</button>
         <button onclick="setLastMonth()">Last Month</button>
         <button onclick="setQuarter()">This Quarter</button>
-        <button class="clear" onclick="clearExternal()">Clear</button>
+        <button class="btn-secondary" onclick="clearExternal()">Clear</button>
       </div>
 
       <web-daterangepicker
@@ -339,7 +336,7 @@ picker.actionButtons = [
         visible-months-count="2">
       </web-daterangepicker>
 
-      <div class="output-box" id="external-output">No selection</div>
+      <div class="log-panel mt-1" id="external-output">No selection</div>
     </div>
 
     <div class="code-block"><code><span class="comment">// Programmatic control via web component properties</span>
@@ -582,7 +579,7 @@ picker.actionButtons = [
     <h2>11. Combined Features & Priority System</h2>
     <p>Demonstrates callback priority: <code>*Callback</code> functions override static properties when both are present.</p>
 
-    <div class="info-box">
+    <div class="note info">
       <strong>Priority Chain:</strong><br>
       • Visibility: <code>isVisibleCallback → isVisible → true</code><br>
       • Disabled: <code>isDisabledCallback → isDisabled → false</code><br>
@@ -710,7 +707,7 @@ picker.actionButtons = [
     <h2>13. Icons in Buttons (Font Awesome)</h2>
     <p>Add icons to buttons using HTML in the <code>text</code> property. Works with Font Awesome, Material Icons, or any icon library.</p>
 
-    <div class="info-box">
+    <div class="note info">
       <strong>Note:</strong> Since the calendar uses Shadow DOM, you must import Font Awesome inside the shadow root using <code>@import</code> in <code>customStylesCallback</code>. The <code>text</code> property accepts HTML, allowing you to include <code>&lt;i&gt;</code> or <code>&lt;svg&gt;</code> elements.
     </div>
 
@@ -772,109 +769,109 @@ picker.customStylesCallback = <span class="keyword">(</span>{ picker }<span clas
     <p>Complete reference for all <code>ActionButton</code> interface properties. Every callback receives a single <code>ctx</code> (<code>ActionButtonContext</code>) argument — <code>{ picker, action, button, data }</code> — so destructure what you need, e.g. <code>({ picker }) =&gt; …</code>.</p>
 
     <h3>Core Properties</h3>
-    <table style="width: 100%; border-collapse: collapse; margin: 1rem 0;">
+    <table class="reference-table">
       <thead>
-        <tr style="background: #f3f4f6; text-align: left;">
-          <th style="padding: 0.75rem; border: 1px solid #e5e7eb;">Property</th>
-          <th style="padding: 0.75rem; border: 1px solid #e5e7eb;">Type</th>
-          <th style="padding: 0.75rem; border: 1px solid #e5e7eb;">Required</th>
-          <th style="padding: 0.75rem; border: 1px solid #e5e7eb;">Description</th>
+        <tr>
+          <th>Property</th>
+          <th>Type</th>
+          <th>Required</th>
+          <th>Description</th>
         </tr>
       </thead>
       <tbody>
         <tr>
-          <td style="padding: 0.75rem; border: 1px solid #e5e7eb;"><code>action</code></td>
-          <td style="padding: 0.75rem; border: 1px solid #e5e7eb;"><code>'today' | 'clear' | 'apply' | 'custom'</code></td>
-          <td style="padding: 0.75rem; border: 1px solid #e5e7eb;">✓</td>
-          <td style="padding: 0.75rem; border: 1px solid #e5e7eb;">Button action type. Use 'custom' for custom onClick handlers.</td>
+          <td><code>action</code></td>
+          <td><code>'today' | 'clear' | 'apply' | 'custom'</code></td>
+          <td>✓</td>
+          <td>Button action type. Use 'custom' for custom onClick handlers.</td>
         </tr>
         <tr>
-          <td style="padding: 0.75rem; border: 1px solid #e5e7eb;"><code>text</code></td>
-          <td style="padding: 0.75rem; border: 1px solid #e5e7eb;"><code>string</code></td>
-          <td style="padding: 0.75rem; border: 1px solid #e5e7eb;">✓</td>
-          <td style="padding: 0.75rem; border: 1px solid #e5e7eb;">Button label (supports HTML for icons).</td>
+          <td><code>text</code></td>
+          <td><code>string</code></td>
+          <td>✓</td>
+          <td>Button label (supports HTML for icons).</td>
         </tr>
         <tr>
-          <td style="padding: 0.75rem; border: 1px solid #e5e7eb;"><code>onClick</code></td>
-          <td style="padding: 0.75rem; border: 1px solid #e5e7eb;"><code>(ctx) =>void</code></td>
-          <td style="padding: 0.75rem; border: 1px solid #e5e7eb;"></td>
-          <td style="padding: 0.75rem; border: 1px solid #e5e7eb;">Custom click handler (required for action: 'custom').</td>
+          <td><code>onClick</code></td>
+          <td><code>(ctx) =>void</code></td>
+          <td></td>
+          <td>Custom click handler (required for action: 'custom').</td>
         </tr>
       </tbody>
     </table>
 
     <h3>Static Properties</h3>
-    <table style="width: 100%; border-collapse: collapse; margin: 1rem 0;">
+    <table class="reference-table">
       <thead>
-        <tr style="background: #f3f4f6; text-align: left;">
-          <th style="padding: 0.75rem; border: 1px solid #e5e7eb;">Property</th>
-          <th style="padding: 0.75rem; border: 1px solid #e5e7eb;">Type</th>
-          <th style="padding: 0.75rem; border: 1px solid #e5e7eb;">Default</th>
-          <th style="padding: 0.75rem; border: 1px solid #e5e7eb;">Description</th>
+        <tr>
+          <th>Property</th>
+          <th>Type</th>
+          <th>Default</th>
+          <th>Description</th>
         </tr>
       </thead>
       <tbody>
         <tr>
-          <td style="padding: 0.75rem; border: 1px solid #e5e7eb;"><code>cssClass</code></td>
-          <td style="padding: 0.75rem; border: 1px solid #e5e7eb;"><code>string</code></td>
-          <td style="padding: 0.75rem; border: 1px solid #e5e7eb;"><code>''</code></td>
-          <td style="padding: 0.75rem; border: 1px solid #e5e7eb;">CSS class name(s) to apply to button.</td>
+          <td><code>cssClass</code></td>
+          <td><code>string</code></td>
+          <td><code>''</code></td>
+          <td>CSS class name(s) to apply to button.</td>
         </tr>
         <tr>
-          <td style="padding: 0.75rem; border: 1px solid #e5e7eb;"><code>tooltip</code></td>
-          <td style="padding: 0.75rem; border: 1px solid #e5e7eb;"><code>string</code></td>
-          <td style="padding: 0.75rem; border: 1px solid #e5e7eb;"><code>''</code></td>
-          <td style="padding: 0.75rem; border: 1px solid #e5e7eb;">Tooltip text shown on hover.</td>
+          <td><code>tooltip</code></td>
+          <td><code>string</code></td>
+          <td><code>''</code></td>
+          <td>Tooltip text shown on hover.</td>
         </tr>
         <tr>
-          <td style="padding: 0.75rem; border: 1px solid #e5e7eb;"><code>isVisible</code></td>
-          <td style="padding: 0.75rem; border: 1px solid #e5e7eb;"><code>boolean</code></td>
-          <td style="padding: 0.75rem; border: 1px solid #e5e7eb;"><code>true</code></td>
-          <td style="padding: 0.75rem; border: 1px solid #e5e7eb;">Whether button is visible.</td>
+          <td><code>isVisible</code></td>
+          <td><code>boolean</code></td>
+          <td><code>true</code></td>
+          <td>Whether button is visible.</td>
         </tr>
         <tr>
-          <td style="padding: 0.75rem; border: 1px solid #e5e7eb;"><code>isDisabled</code></td>
-          <td style="padding: 0.75rem; border: 1px solid #e5e7eb;"><code>boolean</code></td>
-          <td style="padding: 0.75rem; border: 1px solid #e5e7eb;"><code>false</code></td>
-          <td style="padding: 0.75rem; border: 1px solid #e5e7eb;">Whether button is disabled.</td>
+          <td><code>isDisabled</code></td>
+          <td><code>boolean</code></td>
+          <td><code>false</code></td>
+          <td>Whether button is disabled.</td>
         </tr>
       </tbody>
     </table>
 
     <h3>Dynamic Callbacks (Override Static Properties)</h3>
-    <table style="width: 100%; border-collapse: collapse; margin: 1rem 0;">
+    <table class="reference-table">
       <thead>
-        <tr style="background: #f3f4f6; text-align: left;">
-          <th style="padding: 0.75rem; border: 1px solid #e5e7eb;">Property</th>
-          <th style="padding: 0.75rem; border: 1px solid #e5e7eb;">Type</th>
-          <th style="padding: 0.75rem; border: 1px solid #e5e7eb;">Description</th>
+        <tr>
+          <th>Property</th>
+          <th>Type</th>
+          <th>Description</th>
         </tr>
       </thead>
       <tbody>
         <tr>
-          <td style="padding: 0.75rem; border: 1px solid #e5e7eb;"><code>isVisibleCallback</code></td>
-          <td style="padding: 0.75rem; border: 1px solid #e5e7eb;"><code>(ctx) =>boolean</code></td>
-          <td style="padding: 0.75rem; border: 1px solid #e5e7eb;">Dynamic visibility control based on picker state.</td>
+          <td><code>isVisibleCallback</code></td>
+          <td><code>(ctx) =>boolean</code></td>
+          <td>Dynamic visibility control based on picker state.</td>
         </tr>
         <tr>
-          <td style="padding: 0.75rem; border: 1px solid #e5e7eb;"><code>isDisabledCallback</code></td>
-          <td style="padding: 0.75rem; border: 1px solid #e5e7eb;"><code>(ctx) =>boolean</code></td>
-          <td style="padding: 0.75rem; border: 1px solid #e5e7eb;">Dynamic disabled state based on picker state.</td>
+          <td><code>isDisabledCallback</code></td>
+          <td><code>(ctx) =>boolean</code></td>
+          <td>Dynamic disabled state based on picker state.</td>
         </tr>
         <tr>
-          <td style="padding: 0.75rem; border: 1px solid #e5e7eb;"><code>getTextCallback</code></td>
-          <td style="padding: 0.75rem; border: 1px solid #e5e7eb;"><code>(ctx) =>string</code></td>
-          <td style="padding: 0.75rem; border: 1px solid #e5e7eb;">Dynamic button text based on picker state.</td>
+          <td><code>getTextCallback</code></td>
+          <td><code>(ctx) =>string</code></td>
+          <td>Dynamic button text based on picker state.</td>
         </tr>
         <tr>
-          <td style="padding: 0.75rem; border: 1px solid #e5e7eb;"><code>getClassCallback</code></td>
-          <td style="padding: 0.75rem; border: 1px solid #e5e7eb;"><code>(ctx) =>string | string[]</code></td>
-          <td style="padding: 0.75rem; border: 1px solid #e5e7eb;">Dynamic CSS classes (single string or array).</td>
+          <td><code>getClassCallback</code></td>
+          <td><code>(ctx) =>string | string[]</code></td>
+          <td>Dynamic CSS classes (single string or array).</td>
         </tr>
         <tr>
-          <td style="padding: 0.75rem; border: 1px solid #e5e7eb;"><code>getTooltipCallback</code></td>
-          <td style="padding: 0.75rem; border: 1px solid #e5e7eb;"><code>(ctx) =>string</code></td>
-          <td style="padding: 0.75rem; border: 1px solid #e5e7eb;">Dynamic tooltip text based on picker state.</td>
+          <td><code>getTooltipCallback</code></td>
+          <td><code>(ctx) =>string</code></td>
+          <td>Dynamic tooltip text based on picker state.</td>
         </tr>
       </tbody>
     </table>
@@ -889,37 +886,37 @@ getClassCallback → cssClass → <span class="string">''</span>
 getTooltipCallback → tooltip → <span class="string">''</span></code></div>
 
     <h3>Picker Instance Methods (for onClick handlers)</h3>
-    <table style="width: 100%; border-collapse: collapse; margin: 1rem 0;">
+    <table class="reference-table">
       <thead>
-        <tr style="background: #f3f4f6; text-align: left;">
-          <th style="padding: 0.75rem; border: 1px solid #e5e7eb;">Method/Property</th>
-          <th style="padding: 0.75rem; border: 1px solid #e5e7eb;">Description</th>
+        <tr>
+          <th>Method/Property</th>
+          <th>Description</th>
         </tr>
       </thead>
       <tbody>
         <tr>
-          <td style="padding: 0.75rem; border: 1px solid #e5e7eb;"><code>picker.selectedStartDate</code></td>
-          <td style="padding: 0.75rem; border: 1px solid #e5e7eb;">Get/set start date (range mode).</td>
+          <td><code>picker.selectedStartDate</code></td>
+          <td>Get/set start date (range mode).</td>
         </tr>
         <tr>
-          <td style="padding: 0.75rem; border: 1px solid #e5e7eb;"><code>picker.selectedEndDate</code></td>
-          <td style="padding: 0.75rem; border: 1px solid #e5e7eb;">Get/set end date (range mode).</td>
+          <td><code>picker.selectedEndDate</code></td>
+          <td>Get/set end date (range mode).</td>
         </tr>
         <tr>
-          <td style="padding: 0.75rem; border: 1px solid #e5e7eb;"><code>picker.selectedDate</code></td>
-          <td style="padding: 0.75rem; border: 1px solid #e5e7eb;">Get/set selected date (single mode).</td>
+          <td><code>picker.selectedDate</code></td>
+          <td>Get/set selected date (single mode).</td>
         </tr>
         <tr>
-          <td style="padding: 0.75rem; border: 1px solid #e5e7eb;"><code>picker.renderCalendar()</code></td>
-          <td style="padding: 0.75rem; border: 1px solid #e5e7eb;">Re-render calendar (call after changing dates).</td>
+          <td><code>picker.renderCalendar()</code></td>
+          <td>Re-render calendar (call after changing dates).</td>
         </tr>
         <tr>
-          <td style="padding: 0.75rem; border: 1px solid #e5e7eb;"><code>picker.updateSummary()</code></td>
-          <td style="padding: 0.75rem; border: 1px solid #e5e7eb;">Update summary text (call after changing dates).</td>
+          <td><code>picker.updateSummary()</code></td>
+          <td>Update summary text (call after changing dates).</td>
         </tr>
         <tr>
-          <td style="padding: 0.75rem; border: 1px solid #e5e7eb;"><code>picker.clearSelection()</code></td>
-          <td style="padding: 0.75rem; border: 1px solid #e5e7eb;">Clear all selections.</td>
+          <td><code>picker.clearSelection()</code></td>
+          <td>Clear all selections.</td>
         </tr>
       </tbody>
     </table>

@@ -6,42 +6,18 @@
   <title>Calendar Sizing Examples - Date Range Picker</title>
   <link rel="stylesheet" href="examples-shared.css">
   <style>
-    /* Page-specific styles only - base styles come from examples-shared.css */
+    /* Page-unique only: the --drp-* preset classes applied to specific demo
+       instances (scale / spacing / font / responsive sets) plus the slider
+       panel. Layout, cards, notes, and code blocks come from examples-shared.css. */
 
-    .grid-wide {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
-      gap: 1.5rem;
-      margin: 1rem 0;
-    }
-
-    .code {
-      background: #1f2937;
-      color: #e5e7eb;
-      border-radius: 0.375rem;
-      padding: 1rem;
-      margin: 1rem 0;
-      font-family: 'Monaco', 'Consolas', monospace;
-      font-size: 0.8125rem;
-      overflow-x: auto;
-      white-space: pre;
-    }
-
-    .code .comment { color: #6b7280; }
-    .code .property { color: #93c5fd; }
-    .code .value { color: #86efac; }
-    .code .selector { color: #fde047; }
-
-    /* Target web-daterangepicker elements directly for CSS variable overrides */
-    /* This is how you style web components with shadow DOM! */
-
+    /* Global-scale presets (--drp-rem) applied per demo instance. */
     .scale-xs { --drp-rem: 6px; }
     .scale-sm { --drp-rem: 8px; }
     .scale-md { --drp-rem: 10px; }
     .scale-lg { --drp-rem: 15px; }
     .scale-xl { --drp-rem: 20px; }
 
-    /* Spacing overrides */
+    /* Spacing-token overrides applied per demo instance. */
     .spacing-compact {
       --drp-spacing-xs: 1px;
       --drp-spacing-sm: 2px;
@@ -58,7 +34,7 @@
       --drp-spacing-xl: 32px;
     }
 
-    /* Font size overrides */
+    /* Font-size-token overrides applied per demo instance. */
     .fonts-small {
       --drp-font-size-2xs: 8px;
       --drp-font-size-xs: 9px;
@@ -77,7 +53,8 @@
       --drp-font-size-xl: 24px;
     }
 
-    /* Responsive sizing - target the element directly */
+    /* Responsive --drp-rem preset — the whole point of the responsive demo, so
+       the media queries must target the element directly (Shadow DOM). */
     @media (max-width: 768px) {
       .responsive-calendar {
         --drp-rem: 8px;
@@ -96,24 +73,8 @@
       }
     }
 
-    /* Interactive demo controls */
-    .demo-controls {
-      display: flex;
-      gap: 1rem;
-      flex-wrap: wrap;
-      margin-bottom: 1rem;
-      padding: 1rem;
-      background: #f3f4f6;
-      border-radius: 0.375rem;
-    }
-
-    .demo-controls label {
-      display: inline-flex;
-      align-items: center;
-      gap: 0.5rem;
-      margin-bottom: 0;
-    }
-
+    /* Slider panel: shared `.controls` gives the flex row; these bits (range
+       width + monospace output pill) are page-unique. */
     .demo-controls input[type="range"] {
       width: 150px;
     }
@@ -135,13 +96,13 @@
       <p class="subtitle">Control calendar size with the unified density system for fonts, spacing, and cell dimensions</p>
     </header>
 
-  <div class="info-box">
+  <div class="note info">
     <strong>How it works:</strong> The calendar uses <code>--drp-rem</code> (default: 10px) as a base unit.
     All spacing, fonts, and sizes derive from this. Change <code>--drp-rem</code> to scale everything proportionally,
     or override individual CSS variables for fine-grained control.
   </div>
 
-  <div class="warning-box">
+  <div class="note warning">
     <strong>Shadow DOM Note:</strong> CSS variables must be set directly on the <code>&lt;web-daterangepicker&gt;</code>
     element (via inline style or CSS selector), not on a wrapper div. This is because the component uses Shadow DOM.
   </div>
@@ -193,8 +154,8 @@
       </div>
     </div>
 
-    <div class="code"><span class="comment">/* Usage */</span>
-<span class="selector">&lt;web-daterangepicker</span> <span class="property">input-size</span>=<span class="value">"lg"</span><span class="selector">&gt;&lt;/web-daterangepicker&gt;</span></div>
+    <div class="code-block"><span class="comment">/* Usage */</span>
+<span class="keyword">&lt;web-daterangepicker</span> <span class="property">input-size</span>=<span class="string">"lg"</span><span class="keyword">&gt;&lt;/web-daterangepicker&gt;</span></div>
   </div>
 
   <!-- Global Scaling via --drp-rem -->
@@ -247,17 +208,17 @@
       <small>Touch-friendly, accessibility, kiosks</small>
     </div>
 
-    <div class="code"><span class="comment">/* Option 1: CSS class targeting the element */</span>
-<span class="selector">web-daterangepicker.scale-sm</span> {
-  <span class="property">--drp-rem</span>: <span class="value">8px</span>;
+    <div class="code-block"><span class="comment">/* Option 1: CSS class targeting the element */</span>
+<span class="keyword">web-daterangepicker.scale-sm</span> {
+  <span class="property">--drp-rem</span>: <span class="string">8px</span>;
 }
 
 <span class="comment">/* Option 2: Inline style */</span>
-<span class="selector">&lt;web-daterangepicker</span> <span class="property">style</span>=<span class="value">"--drp-rem: 8px"</span><span class="selector">&gt;</span>
+<span class="keyword">&lt;web-daterangepicker</span> <span class="property">style</span>=<span class="string">"--drp-rem: 8px"</span><span class="keyword">&gt;</span>
 
 <span class="comment">/* Option 3: ID selector */</span>
-<span class="selector">#my-calendar</span> {
-  <span class="property">--drp-rem</span>: <span class="value">15px</span>;
+<span class="keyword">#my-calendar</span> {
+  <span class="property">--drp-rem</span>: <span class="string">15px</span>;
 }</div>
   </div>
 
@@ -268,7 +229,7 @@
       and font size from <code>--drp-rem</code> (and the spacing/font tokens it drives). Change <code>--drp-rem</code>
       and the whole time picker scales.</p>
 
-    <div class="grid-wide">
+    <div class="card-grid" style="--grid-min: 400px; --grid-gap: 1.5rem;">
       <div class="form-group">
         <label>Extra Small (--drp-rem: 6px)</label>
         <web-daterangepicker
@@ -370,7 +331,7 @@
       <code>--drp-rem</code> via <code>calc()</code>, so the whole face scales
       proportionally without breaking the angle math.</p>
 
-    <div class="grid-wide">
+    <div class="card-grid" style="--grid-min: 400px; --grid-gap: 1.5rem;">
       <div class="form-group">
         <label>Small (--drp-rem: 8px) &mdash; h12</label>
         <web-daterangepicker
@@ -419,7 +380,7 @@
       from <code>--drp-rem</code>, so all three sizes feel identical at their
       respective scales.</p>
 
-    <div class="grid-wide">
+    <div class="card-grid" style="--grid-min: 400px; --grid-gap: 1.5rem;">
       <div class="form-group">
         <label>Small (--drp-rem: 8px) &mdash; h12</label>
         <web-daterangepicker
@@ -468,7 +429,7 @@
       padding, and AM/PM toggle scale with <code>--drp-rem</code> so the row
       stays proportionate to the surrounding input.</p>
 
-    <div class="grid-wide">
+    <div class="card-grid" style="--grid-min: 400px; --grid-gap: 1.5rem;">
       <div class="form-group">
         <label>Small (--drp-rem: 8px) &mdash; h12</label>
         <web-daterangepicker
@@ -516,7 +477,7 @@
     <h2>Interactive Scale Demo</h2>
     <p>Drag the slider to see live scaling:</p>
 
-    <div class="demo-controls">
+    <div class="controls demo-controls">
       <label>
         --drp-rem:
         <input type="range" id="remSlider" min="5" max="25" value="10" step="1">
@@ -531,9 +492,9 @@
       positioning-mode="inline"
       visible-months-count="2"></web-daterangepicker>
 
-    <div class="code"><span class="comment">/* The CSS variable being changed: */</span>
-<span class="selector">#interactive-demo</span> {
-  <span class="property">--drp-rem</span>: <span class="value" id="codeRemValue">10px</span>;
+    <div class="code-block"><span class="comment">/* The CSS variable being changed: */</span>
+<span class="keyword">#interactive-demo</span> {
+  <span class="property">--drp-rem</span>: <span class="string" id="codeRemValue">10px</span>;
 }</div>
   </div>
 
@@ -542,7 +503,7 @@
     <h2>Custom Spacing</h2>
     <p>Override spacing variables for fine-grained control over gaps and padding:</p>
 
-    <div class="grid-wide">
+    <div class="card-grid" style="--grid-min: 400px; --grid-gap: 1.5rem;">
       <div class="form-group">
         <label>Compact Spacing</label>
         <web-daterangepicker
@@ -562,21 +523,21 @@
       </div>
     </div>
 
-    <div class="code"><span class="comment">/* Target the element directly */</span>
-<span class="selector">web-daterangepicker.compact</span> {
-  <span class="property">--drp-spacing-xs</span>: <span class="value">1px</span>;
-  <span class="property">--drp-spacing-sm</span>: <span class="value">2px</span>;
-  <span class="property">--drp-spacing-md</span>: <span class="value">4px</span>;
-  <span class="property">--drp-spacing-lg</span>: <span class="value">6px</span>;
-  <span class="property">--drp-spacing-xl</span>: <span class="value">8px</span>;
+    <div class="code-block"><span class="comment">/* Target the element directly */</span>
+<span class="keyword">web-daterangepicker.compact</span> {
+  <span class="property">--drp-spacing-xs</span>: <span class="string">1px</span>;
+  <span class="property">--drp-spacing-sm</span>: <span class="string">2px</span>;
+  <span class="property">--drp-spacing-md</span>: <span class="string">4px</span>;
+  <span class="property">--drp-spacing-lg</span>: <span class="string">6px</span>;
+  <span class="property">--drp-spacing-xl</span>: <span class="string">8px</span>;
 }
 
-<span class="selector">web-daterangepicker.spacious</span> {
-  <span class="property">--drp-spacing-xs</span>: <span class="value">6px</span>;
-  <span class="property">--drp-spacing-sm</span>: <span class="value">10px</span>;
-  <span class="property">--drp-spacing-md</span>: <span class="value">16px</span>;
-  <span class="property">--drp-spacing-lg</span>: <span class="value">24px</span>;
-  <span class="property">--drp-spacing-xl</span>: <span class="value">32px</span>;
+<span class="keyword">web-daterangepicker.spacious</span> {
+  <span class="property">--drp-spacing-xs</span>: <span class="string">6px</span>;
+  <span class="property">--drp-spacing-sm</span>: <span class="string">10px</span>;
+  <span class="property">--drp-spacing-md</span>: <span class="string">16px</span>;
+  <span class="property">--drp-spacing-lg</span>: <span class="string">24px</span>;
+  <span class="property">--drp-spacing-xl</span>: <span class="string">32px</span>;
 }</div>
   </div>
 
@@ -585,7 +546,7 @@
     <h2>Custom Font Sizes</h2>
     <p>Override font size variables independently from the overall scale:</p>
 
-    <div class="grid-wide">
+    <div class="card-grid" style="--grid-min: 400px; --grid-gap: 1.5rem;">
       <div class="form-group">
         <label>Small Fonts</label>
         <web-daterangepicker
@@ -605,14 +566,14 @@
       </div>
     </div>
 
-    <div class="code"><span class="comment">/* Custom font sizes */</span>
-<span class="selector">web-daterangepicker.large-fonts</span> {
-  <span class="property">--drp-font-size-2xs</span>: <span class="value">12px</span>;
-  <span class="property">--drp-font-size-xs</span>: <span class="value">14px</span>;
-  <span class="property">--drp-font-size-sm</span>: <span class="value">16px</span>;
-  <span class="property">--drp-font-size-base</span>: <span class="value">18px</span>;
-  <span class="property">--drp-font-size-lg</span>: <span class="value">20px</span>;
-  <span class="property">--drp-font-size-xl</span>: <span class="value">24px</span>;
+    <div class="code-block"><span class="comment">/* Custom font sizes */</span>
+<span class="keyword">web-daterangepicker.large-fonts</span> {
+  <span class="property">--drp-font-size-2xs</span>: <span class="string">12px</span>;
+  <span class="property">--drp-font-size-xs</span>: <span class="string">14px</span>;
+  <span class="property">--drp-font-size-sm</span>: <span class="string">16px</span>;
+  <span class="property">--drp-font-size-base</span>: <span class="string">18px</span>;
+  <span class="property">--drp-font-size-lg</span>: <span class="string">20px</span>;
+  <span class="property">--drp-font-size-xl</span>: <span class="string">24px</span>;
 }</div>
   </div>
 
@@ -631,11 +592,11 @@
       <small>Big cells but tight layout with readable text</small>
     </div>
 
-    <div class="code"><span class="comment">/* Combine multiple classes */</span>
-<span class="selector">&lt;web-daterangepicker class=</span><span class="value">"scale-lg spacing-compact fonts-large"</span><span class="selector">&gt;</span>
+    <div class="code-block"><span class="comment">/* Combine multiple classes */</span>
+<span class="keyword">&lt;web-daterangepicker class=</span><span class="string">"scale-lg spacing-compact fonts-large"</span><span class="keyword">&gt;</span>
 
 <span class="comment">/* Or use inline style for quick one-offs */</span>
-<span class="selector">&lt;web-daterangepicker</span> <span class="property">style</span>=<span class="value">"--drp-rem: 15px; --drp-spacing-xs: 2px;"</span><span class="selector">&gt;</span></div>
+<span class="keyword">&lt;web-daterangepicker</span> <span class="property">style</span>=<span class="string">"--drp-rem: 15px; --drp-spacing-xs: 2px;"</span><span class="keyword">&gt;</span></div>
   </div>
 
   <!-- Responsive Example -->
@@ -653,22 +614,22 @@
       <small>8px on mobile, 10px on tablet, 12px on desktop</small>
     </div>
 
-    <div class="code"><span class="comment">/* Responsive scaling with media queries */</span>
-<span class="selector">@media (max-width: 768px)</span> {
-  <span class="selector">web-daterangepicker.responsive-calendar</span> {
-    <span class="property">--drp-rem</span>: <span class="value">8px</span>;
+    <div class="code-block"><span class="comment">/* Responsive scaling with media queries */</span>
+<span class="keyword">@media (max-width: 768px)</span> {
+  <span class="keyword">web-daterangepicker.responsive-calendar</span> {
+    <span class="property">--drp-rem</span>: <span class="string">8px</span>;
   }
 }
 
-<span class="selector">@media (min-width: 769px) and (max-width: 1200px)</span> {
-  <span class="selector">web-daterangepicker.responsive-calendar</span> {
-    <span class="property">--drp-rem</span>: <span class="value">10px</span>;
+<span class="keyword">@media (min-width: 769px) and (max-width: 1200px)</span> {
+  <span class="keyword">web-daterangepicker.responsive-calendar</span> {
+    <span class="property">--drp-rem</span>: <span class="string">10px</span>;
   }
 }
 
-<span class="selector">@media (min-width: 1201px)</span> {
-  <span class="selector">web-daterangepicker.responsive-calendar</span> {
-    <span class="property">--drp-rem</span>: <span class="value">12px</span>;
+<span class="keyword">@media (min-width: 1201px)</span> {
+  <span class="keyword">web-daterangepicker.responsive-calendar</span> {
+    <span class="property">--drp-rem</span>: <span class="string">12px</span>;
   }
 }</div>
   </div>
@@ -711,30 +672,31 @@
     <p>All available CSS variables for sizing. Set these on the <code>&lt;web-daterangepicker&gt;</code> element:</p>
 
     <h3>Base Unit</h3>
-    <div class="code"><span class="property">--drp-rem</span>: <span class="value">10px</span>;  <span class="comment">/* Base unit - change this to scale everything */</span></div>
+    <div class="code-block"><span class="property">--drp-rem</span>: <span class="string">10px</span>;  <span class="comment">/* Base unit - change this to scale everything */</span></div>
 
     <h3>Spacing Variables</h3>
-    <div class="code"><span class="property">--drp-spacing-xs</span>: <span class="value">4px</span>;   <span class="comment">/* Extra small gaps */</span>
-<span class="property">--drp-spacing-sm</span>: <span class="value">8px</span>;   <span class="comment">/* Small gaps */</span>
-<span class="property">--drp-spacing-md</span>: <span class="value">16px</span>;  <span class="comment">/* Medium gaps */</span>
-<span class="property">--drp-spacing-lg</span>: <span class="value">24px</span>;  <span class="comment">/* Large gaps */</span>
-<span class="property">--drp-spacing-xl</span>: <span class="value">32px</span>;  <span class="comment">/* Extra large gaps */</span></div>
+    <div class="code-block"><span class="property">--drp-spacing-xs</span>: <span class="string">4px</span>;   <span class="comment">/* Extra small gaps */</span>
+<span class="property">--drp-spacing-sm</span>: <span class="string">8px</span>;   <span class="comment">/* Small gaps */</span>
+<span class="property">--drp-spacing-md</span>: <span class="string">16px</span>;  <span class="comment">/* Medium gaps */</span>
+<span class="property">--drp-spacing-lg</span>: <span class="string">24px</span>;  <span class="comment">/* Large gaps */</span>
+<span class="property">--drp-spacing-xl</span>: <span class="string">32px</span>;  <span class="comment">/* Extra large gaps */</span></div>
 
     <h3>Font Size Variables</h3>
-    <div class="code"><span class="property">--drp-font-size-2xs</span>: <span class="value">10px</span>;   <span class="comment">/* Badges */</span>
-<span class="property">--drp-font-size-xs</span>: <span class="value">12px</span>;    <span class="comment">/* Small labels */</span>
-<span class="property">--drp-font-size-sm</span>: <span class="value">14px</span>;    <span class="comment">/* Day numbers */</span>
-<span class="property">--drp-font-size-base</span>: <span class="value">16px</span>;  <span class="comment">/* Header text */</span>
-<span class="property">--drp-font-size-lg</span>: <span class="value">18px</span>;    <span class="comment">/* Large text */</span>
-<span class="property">--drp-font-size-xl</span>: <span class="value">20px</span>;    <span class="comment">/* Unified header */</span></div>
+    <div class="code-block"><span class="property">--drp-font-size-2xs</span>: <span class="string">10px</span>;   <span class="comment">/* Badges */</span>
+<span class="property">--drp-font-size-xs</span>: <span class="string">12px</span>;    <span class="comment">/* Small labels */</span>
+<span class="property">--drp-font-size-sm</span>: <span class="string">14px</span>;    <span class="comment">/* Day numbers */</span>
+<span class="property">--drp-font-size-base</span>: <span class="string">16px</span>;  <span class="comment">/* Header text */</span>
+<span class="property">--drp-font-size-lg</span>: <span class="string">18px</span>;    <span class="comment">/* Large text */</span>
+<span class="property">--drp-font-size-xl</span>: <span class="string">20px</span>;    <span class="comment">/* Unified header */</span></div>
 
     <h3>Input Size Variables</h3>
-    <div class="code"><span class="comment">/* These are set automatically by input-size attribute */</span>
-<span class="property">--drp-input-size-xs-height</span>: <span class="value">31px</span>;
-<span class="property">--drp-input-size-sm-height</span>: <span class="value">33px</span>;
-<span class="property">--drp-input-size-md-height</span>: <span class="value">35px</span>;
-<span class="property">--drp-input-size-lg-height</span>: <span class="value">38px</span>;
-<span class="property">--drp-input-size-xl-height</span>: <span class="value">41px</span>;</div>
+    <div class="code-block"><span class="comment">/* These are set automatically by input-size attribute */</span>
+<span class="property">--drp-input-size-xs-height</span>: <span class="string">31px</span>;
+<span class="property">--drp-input-size-sm-height</span>: <span class="string">33px</span>;
+<span class="property">--drp-input-size-md-height</span>: <span class="string">35px</span>;
+<span class="property">--drp-input-size-lg-height</span>: <span class="string">38px</span>;
+<span class="property">--drp-input-size-xl-height</span>: <span class="string">41px</span>;</div>
+  </div>
   </div>
 
   <script type="module" src="/src/index.ts"></script>

@@ -5,63 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Date Range Picker Web Component Demo</title>
   <link rel="stylesheet" href="examples-shared.css">
-  <style>
-    /* Page-specific styles only - common styles moved to examples-shared.css */
-
-    /* Custom input styles for date picker */
-    .drp__input {
-      width: 100%;
-      padding: 0.5rem 0.75rem;
-      border: 1px solid #d1d5db;
-      border-radius: 0.375rem;
-      font-size: 1rem;
-      transition: border-color 150ms;
-    }
-
-    .drp__input:focus {
-      outline: none;
-      border-color: #3b82f6;
-      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
-    }
-
-    .drp__input:disabled {
-      background: #f3f4f6;
-      cursor: not-allowed;
-    }
-
-    /* Custom code block style for this page */
-    .code {
-      background: #f3f4f6;
-      border: 1px solid #e5e7eb;
-      border-radius: 0.375rem;
-      padding: 1rem;
-      margin: 1rem 0;
-      font-family: 'Courier New', monospace;
-      font-size: 0.875rem;
-      overflow-x: auto;
-    }
-
-    /* Features list */
-    .features {
-      list-style-position: inside;
-      color: #374151;
-    }
-
-    .features li {
-      margin-bottom: 0.5rem;
-    }
-
-    /* Date input group with button */
-    .date-input-group {
-      display: flex;
-      gap: 0.5rem;
-      align-items: stretch;
-    }
-
-    .date-input-group web-daterangepicker {
-      flex: 1;
-    }
-  </style>
 </head>
 <body>
   <div class="container">
@@ -94,8 +37,9 @@
     <div class="grid">
       <div class="form-group">
         <label>Focus Mode (default)</label>
-        <div class="date-input-group">
+        <div class="field-row">
           <web-daterangepicker
+            class="field-grow"
             id="picker-focus"
             selection-mode="single"
             date-format-mask="YYYY-MM-DD"
@@ -115,8 +59,9 @@
 
       <div class="form-group">
         <label>Typing Mode</label>
-        <div class="date-input-group">
+        <div class="field-row">
           <web-daterangepicker
+            class="field-grow"
             id="picker-typing"
             selection-mode="single"
             date-format-mask="YYYY-MM-DD"
@@ -136,8 +81,9 @@
 
       <div class="form-group">
         <label>Manual Mode</label>
-        <div class="date-input-group">
+        <div class="field-row">
           <web-daterangepicker
+            class="field-grow"
             id="picker-manual"
             selection-mode="single"
             date-format-mask="YYYY-MM-DD"
@@ -155,7 +101,7 @@
         <small>🔘 Calendar only opens via button click or .show()/.toggle()</small>
       </div>
     </div>
-    <p style="margin-top: 1rem; padding: 0.75rem; background: #eff6ff; border-left: 3px solid #3b82f6; border-radius: 0.25rem; font-size: 0.875rem;">
+    <p class="note info">
       <strong>💡 Trigger Modes:</strong><br>
       • <code>focus</code> - Opens on input focus (default behavior)<br>
       • <code>typing</code> - Opens when user starts typing in the input<br>
@@ -453,7 +399,7 @@
           disabled-dates-handling="allow"
           placeholder="Select range"></web-daterangepicker>
         <small>Allows range over disabled dates. Returns enabled/disabled arrays.</small>
-        <div id="mode-allow-output" style="margin-top: 8px; font-size: 0.875rem; color: #666;"></div>
+        <div id="mode-allow-output" class="output"></div>
       </div>
 
       <div class="form-group">
@@ -467,7 +413,7 @@
           show-debug-info
           placeholder="Select range"></web-daterangepicker>
         <small>Blocks range from crossing disabled dates. Snaps to last enabled date. (Sundays, Wednesdays, Saturdays disabled)</small>
-        <div id="mode-block-output" style="margin-top: 8px; font-size: 0.875rem; color: #666;"></div>
+        <div id="mode-block-output" class="output"></div>
       </div>
 
       <div class="form-group">
@@ -481,7 +427,7 @@
           should-highlight-disabled-in-range="false"
           placeholder="Select range"></web-daterangepicker>
         <small>Returns multiple ranges split by disabled dates. Weekends not highlighted.</small>
-        <div id="mode-split-output" style="margin-top: 8px; font-size: 0.875rem; color: #666;"></div>
+        <div id="mode-split-output" class="output"></div>
       </div>
 
       <div class="form-group">
@@ -495,14 +441,14 @@
           should-highlight-disabled-in-range="false"
           placeholder="Select range"></web-daterangepicker>
         <small>Returns flat array of individual enabled dates. Weekends not highlighted.</small>
-        <div id="mode-individual-output" style="margin-top: 8px; font-size: 0.875rem; color: #666;"></div>
+        <div id="mode-individual-output" class="output"></div>
       </div>
     </div>
   </div>
 
   <div class="card">
     <h2>Week-Snapping Selection (<code>adjustedRanges</code>)</h2>
-    <p style="color:#666; font-size:0.9rem; margin-top:-8px;">
+    <p>
       A <code>beforeDateSelectCallback</code> that rewrites the raw selection into
       whole weeks. For every week the selection touches, it counts the selected
       <strong>work days (Mon–Fri)</strong>: if <strong>2 or more</strong> land in
@@ -520,7 +466,7 @@
         week-start-day="1"
         placeholder="Select range"></web-daterangepicker>
       <small>Select Mon–Tue of a week → snaps to the full week. Select a lone Friday → dropped (0 days).</small>
-      <div id="week-snap-output" style="margin-top: 8px; font-size: 0.875rem; color: #666;"></div>
+      <div id="week-snap-output" class="output"></div>
     </div>
   </div>
 
@@ -585,7 +531,7 @@
           selection-mode="single"
           positioning-mode="inline"></web-daterangepicker>
         <small>No input field - calendar always visible</small>
-        <div id="inline-single-output" style="margin-top: 8px; font-size: 0.875rem; color: #666;"></div>
+        <div id="inline-single-output" class="output"></div>
       </div>
 
       <div class="form-group">
@@ -596,7 +542,7 @@
           positioning-mode="inline"
           visible-months-count="2"></web-daterangepicker>
         <small>Perfect for booking widgets and dashboards</small>
-        <div id="inline-range-output" style="margin-top: 8px; font-size: 0.875rem; color: #666;"></div>
+        <div id="inline-range-output" class="output"></div>
       </div>
 
       <div class="form-group">
@@ -608,7 +554,7 @@
           disabled-weekdays="0,6"
           disabled-dates-handling="block"></web-daterangepicker>
         <small>Great for business day selection</small>
-        <div id="inline-disabled-output" style="margin-top: 8px; font-size: 0.875rem; color: #666;"></div>
+        <div id="inline-disabled-output" class="output"></div>
       </div>
     </div>
 
@@ -620,7 +566,7 @@
           id="inline-holidays"
           selection-mode="single"
           positioning-mode="inline"></web-daterangepicker>
-        <div id="inline-holidays-output" style="margin-top: 8px; font-size: 0.875rem; color: #666;"></div>
+        <div id="inline-holidays-output" class="output"></div>
       </div>
 
       <div class="form-group">
@@ -631,7 +577,7 @@
           selection-mode="range"
           positioning-mode="inline"
           visible-months-count="2"></web-daterangepicker>
-        <div id="inline-messages-output" style="margin-top: 8px; font-size: 0.875rem; color: #666;"></div>
+        <div id="inline-messages-output" class="output"></div>
       </div>
 
       <div class="form-group">
@@ -642,7 +588,7 @@
           selection-mode="range"
           positioning-mode="inline"
           visible-months-count="2"></web-daterangepicker>
-        <div id="inline-async-price-output" style="margin-top: 8px; font-size: 0.875rem; color: #666;"></div>
+        <div id="inline-async-price-output" class="output"></div>
       </div>
     </div>
 
@@ -660,7 +606,7 @@
           is-unified-navigation-enabled>
         </web-daterangepicker>
         <small>One navigation header controls all 6 months. Click the date range to open month/year selector.</small>
-        <div id="inline-unified-grid-output" style="margin-top: 8px; font-size: 0.875rem; color: #666;"></div>
+        <div id="inline-unified-grid-output" class="output"></div>
       </div>
     </div>
 
@@ -675,7 +621,7 @@
           is-unified-navigation-enabled>
         </web-daterangepicker>
         <small>Three months side-by-side with unified controls. Individual month headers show only static month/year labels.</small>
-        <div id="inline-unified-horizontal-output" style="margin-top: 8px; font-size: 0.875rem; color: #666;"></div>
+        <div id="inline-unified-horizontal-output" class="output"></div>
       </div>
     </div>
 
@@ -694,7 +640,7 @@
           unified-navigation-anchor-index="4">
         </web-daterangepicker>
         <small>Navigation uses the CENTER month (May) as anchor. Click prev/next to see all months shift around it.</small>
-        <div id="inline-unified-center-output" style="margin-top: 8px; font-size: 0.875rem; color: #666;"></div>
+        <div id="inline-unified-center-output" class="output"></div>
       </div>
     </div>
 
@@ -713,7 +659,7 @@
           is-unified-header-interactive>
         </web-daterangepicker>
         <small>Click the unified header range display to open month/year selector (rolling list).</small>
-        <div id="inline-unified-interactive-output" style="margin-top: 8px; font-size: 0.875rem; color: #666;"></div>
+        <div id="inline-unified-interactive-output" class="output"></div>
       </div>
     </div>
 
@@ -734,7 +680,7 @@
           rolling-month-range="6-8">
         </web-daterangepicker>
         <small>Limited to years 2026-2027 and summer months (June, July, August) with 3x3 grid layout. Tests fixed year range behavior.</small>
-        <div id="inline-unified-custom-range-output" style="margin-top: 8px; font-size: 0.875rem; color: #666;"></div>
+        <div id="inline-unified-custom-range-output" class="output"></div>
       </div>
     </div>
 
@@ -753,7 +699,7 @@
           unified-navigation-anchor-index="4">
         </web-daterangepicker>
         <small>Uses getUnifiedHeaderCallback to display only the center (anchor) month instead of full range.</small>
-        <div id="inline-unified-custom-header-output" style="margin-top: 8px; font-size: 0.875rem; color: #666;"></div>
+        <div id="inline-unified-custom-header-output" class="output"></div>
       </div>
     </div>
   </div>
@@ -859,17 +805,16 @@
     <div class="form-group">
       <label>API Demo</label>
       <web-daterangepicker id="api-demo" selection-mode="range"></web-daterangepicker>
-      <div style="margin-top: 1rem; display: flex; gap: 0.5rem;">
-        <button onclick="document.getElementById('api-demo').show()" style="padding: 0.5rem 1rem; border: 1px solid #d1d5db; border-radius: 0.375rem; cursor: pointer;">Show</button>
-        <button onclick="document.getElementById('api-demo').hide()" style="padding: 0.5rem 1rem; border: 1px solid #d1d5db; border-radius: 0.375rem; cursor: pointer;">Hide</button>
-        <button onclick="document.getElementById('api-demo').toggle()" style="padding: 0.5rem 1rem; border: 1px solid #d1d5db; border-radius: 0.375rem; cursor: pointer;">Toggle</button>
-        <button onclick="document.getElementById('api-demo').clearSelection()" style="padding: 0.5rem 1rem; border: 1px solid #d1d5db; border-radius: 0.375rem; cursor: pointer;">Clear</button>
-        <button onclick="alert(document.getElementById('api-demo').getInputValue())" style="padding: 0.5rem 1rem; border: 1px solid #d1d5db; border-radius: 0.375rem; cursor: pointer;">Get Value</button>
+      <div class="controls mt-1">
+        <button class="btn-outline" onclick="document.getElementById('api-demo').show()">Show</button>
+        <button class="btn-outline" onclick="document.getElementById('api-demo').hide()">Hide</button>
+        <button class="btn-outline" onclick="document.getElementById('api-demo').toggle()">Toggle</button>
+        <button class="btn-outline" onclick="document.getElementById('api-demo').clearSelection()">Clear</button>
+        <button class="btn-outline" onclick="alert(document.getElementById('api-demo').getInputValue())">Get Value</button>
       </div>
     </div>
 
-    <div class="code">
-const picker = document.querySelector('web-daterangepicker');
+    <div class="code-block"><pre>const picker = document.querySelector('web-daterangepicker');
 
 // Methods
 picker.show();        // Show calendar
@@ -887,14 +832,12 @@ picker.value = '2025-11-15';
 // Events
 picker.addEventListener('date-select', (e) => {
   console.log('Selected:', e.detail);
-});
-    </div>
+});</pre></div>
   </div>
 
   <div class="card">
     <h2>Usage</h2>
-    <div class="code">
-&lt;!-- HTML --&gt;
+    <div class="code-block"><pre>&lt;!-- HTML --&gt;
 &lt;web-daterangepicker
   selection-mode="range"
   date-format-mask="YYYY-MM-DD"
@@ -909,8 +852,7 @@ picker.addEventListener('date-select', (e) => {
   picker.addEventListener('date-select', (e) => {
     console.log('Date selected:', e.detail.formattedValue);
   });
-&lt;/script&gt;
-    </div>
+&lt;/script&gt;</pre></div>
   </div>
 
   <script type="module" src="/src/index.ts"></script>
@@ -1556,16 +1498,6 @@ picker.addEventListener('date-select', (e) => {
       }
     });
   </script>
-
-  <style>
-    /* Custom styling for booked dates in cottage demo */
-    .drp__day.booked {
-      background-color: rgba(239, 68, 68, 0.15);
-      text-decoration: line-through;
-    }
-
-    /* Note: Badge positioning styles are now in the Shadow DOM (component CSS) */
-  </style>
   </div>
 </body>
 </html>

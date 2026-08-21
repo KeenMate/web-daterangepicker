@@ -6,38 +6,6 @@
   <title>Responsive Behavior - Date Range Picker</title>
   <link rel="stylesheet" href="dist/style.css">
   <link rel="stylesheet" href="examples-shared.css">
-  <style>
-    /* Visual emphasis for the breakpoint table */
-    .tier-table {
-      width: 100%;
-      border-collapse: collapse;
-      margin: 1rem 0;
-    }
-    .tier-table th, .tier-table td {
-      text-align: left;
-      padding: 0.5rem 0.75rem;
-      border-bottom: 1px solid #e5e7eb;
-      font-size: 0.875rem;
-    }
-    .tier-table th {
-      background: #f3f4f6;
-      font-weight: 600;
-    }
-    .tier-table code {
-      font-size: 0.85em;
-    }
-    .note {
-      background: #eff6ff;
-      border-left: 3px solid #3b82f6;
-      padding: 0.75rem 1rem;
-      margin: 1rem 0;
-      border-radius: 0.25rem;
-      font-size: 0.875rem;
-    }
-    .note strong {
-      color: #1e40af;
-    }
-  </style>
 </head>
 <body>
   <div class="container">
@@ -67,7 +35,7 @@
             selection-mode="range"
             positioning-mode="modal">
           </web-daterangepicker>
-          <button onclick="document.querySelector('#modal-single').isOpen = true" style="margin-top: 0.5rem;">Open modal</button>
+          <button onclick="document.querySelector('#modal-single').isOpen = true" class="mt-1">Open modal</button>
         </div>
 
         <div class="form-group">
@@ -78,7 +46,7 @@
             positioning-mode="modal"
             visible-months-count="3">
           </web-daterangepicker>
-          <button onclick="document.querySelector('#modal-multi').isOpen = true" style="margin-top: 0.5rem;">Open modal</button>
+          <button onclick="document.querySelector('#modal-multi').isOpen = true" class="mt-1">Open modal</button>
         </div>
 
         <div class="form-group">
@@ -93,7 +61,7 @@
             grid-columns="3"
             is-unified-navigation-enabled="true">
           </web-daterangepicker>
-          <button onclick="document.querySelector('#modal-grid').isOpen = true" style="margin-top: 0.5rem;">Open modal</button>
+          <button onclick="document.querySelector('#modal-grid').isOpen = true" class="mt-1">Open modal</button>
         </div>
       </div>
 
@@ -110,7 +78,7 @@
       <h2>3. Modal Width Tiers</h2>
       <p>The modal's outer width adapts to viewport size, picking from four CSS variables. Breakpoints align with the rest of the codebase (480 / 768 / 1200, same as <code>base.css</code> and the Responsive Sizing demo's <code>--drp-rem</code> scaling).</p>
 
-      <table class="tier-table">
+      <table class="reference-table">
         <thead>
           <tr>
             <th>Tier</th>
@@ -150,13 +118,13 @@
       <p>Override per-instance via the host element. The breakpoints themselves are hardcoded in <code>modal.css</code> because CSS media queries cannot read CSS variables — only the widths inside each rule are variable-driven.</p>
 
       <div class="code-block"><code><span class="comment">/* Custom widths per tier */</span>
-<span class="selector">web-daterangepicker</span> {
+<span class="keyword">web-daterangepicker</span> {
   <span class="property">--drp-modal-width-md</span>: <span class="string">75vw</span>;
   <span class="property">--drp-modal-width-lg</span>: <span class="string">1300px</span>;
 }
 
 <span class="comment">/* Other modal hooks */</span>
-<span class="selector">:root</span> {
+<span class="keyword">:root</span> {
   <span class="property">--drp-modal-gap</span>: <span class="string">16px</span>;                    <span class="comment">/* viewport-edge gap */</span>
   <span class="property">--drp-modal-backdrop-bg</span>: <span class="string">rgba(0, 0, 0, 0.45)</span>; <span class="comment">/* scrim color */</span>
   <span class="property">--drp-modal-transition</span>: <span class="string">150ms ease-out</span>;     <span class="comment">/* fade timing */</span>
@@ -170,7 +138,7 @@
       <h2>4. Progressive Inner-Content Layout</h2>
       <p>Beyond just sizing the outer modal, the inner multi-month layout scales based on the modal's <strong>actual width</strong> via CSS container queries. The visible month count and grid columns adapt without any JS.</p>
 
-      <table class="tier-table">
+      <table class="reference-table">
         <thead>
           <tr>
             <th>Modal width</th>
@@ -202,70 +170,43 @@
         </tbody>
       </table>
 
-      <div class="note">
+      <div class="note info">
         <strong>Why grid keeps all months visible:</strong> a 2×3 configuration is a deliberate layout choice — collapsing it to "show fewer months" would surprise the user. Instead, narrow grid modals just stack the same months into more rows (2×3 → 3×2 at 601–900px, etc.). Only at the very narrow ≤600px tier do we hide siblings, since 6 months stacked vertically would be unusably tall on a phone.
       </div>
 
       <p>Hidden columns (when present) still update in lockstep through the existing collision-resolve navigation logic — range selection across "more months than are visible" continues to work; the user just navigates time linearly with the visible month's prev/next.</p>
     </div>
 
-    <!-- 5. Auto-engage -->
+    <!-- 5. Device-adaptive presentation -->
     <div class="card">
-      <h2>5. Auto-Engage on Small Viewports</h2>
-      <p>For pickers that should be floating on desktop but modal on phones/tablets, set one or both of these attributes on a <code>positioning-mode="floating"</code> picker:</p>
-
-      <table class="tier-table">
-        <thead>
-          <tr>
-            <th>Attribute</th>
-            <th>Triggers modal when</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td><code>mobile-modal-breakpoint="640px"</code></td>
-            <td>viewport <strong>width</strong> ≤ value</td>
-          </tr>
-          <tr>
-            <td><code>mobile-modal-min-height="500px"</code></td>
-            <td>viewport <strong>height</strong> ≤ value</td>
-          </tr>
-        </tbody>
-      </table>
-
-      <p>If both are set, they OR — modal engages when <strong>either</strong> matches, switches back to floating only when <strong>both</strong> are clear. Either attribute alone works on its own.</p>
+      <h2>5. Device-Adaptive Presentation (recommended)</h2>
+      <p>You usually don't need to pick <code>modal</code> by hand. A <code>floating</code> picker adapts to the device automatically via <code>mobile-presentation="auto"</code> (the default): floating on desktop, a centered <strong>modal</strong> on tablets, and an edge-to-edge <strong>full-screen</strong> overlay on phones. The classification is capability-based and orientation-robust (it uses the shorter viewport side, so a landscape phone still reads as a phone).</p>
 
       <div class="form-group">
-        <label>Live demo (resize the window to test)</label>
-        <p style="font-size: 0.875rem; color: #6b7280; margin-bottom: 0.5rem;">
-          Floating below 768px wide OR 500px tall → switches to modal. Resize horizontally and vertically.
+        <label>Live demo (default <code>mobile-presentation="auto"</code>)</label>
+        <p class="form-text">
+          Open devtools, toggle the device toolbar, and pick a phone preset — this floating picker opens full-screen.
         </p>
         <web-daterangepicker
-          id="modal-auto"
+          id="adaptive"
           selection-mode="range"
-          positioning-mode="floating"
-          mobile-modal-breakpoint="768px"
-          mobile-modal-min-height="500px"
           visible-months-count="2">
         </web-daterangepicker>
       </div>
 
       <div class="code-block"><code><span class="keyword">&lt;web-daterangepicker</span>
   <span class="property">selection-mode</span>=<span class="string">"range"</span>
-  <span class="property">positioning-mode</span>=<span class="string">"floating"</span>
-  <span class="property">mobile-modal-breakpoint</span>=<span class="string">"768px"</span>
-  <span class="property">mobile-modal-min-height</span>=<span class="string">"500px"</span>
   <span class="property">visible-months-count</span>=<span class="string">"2"</span><span class="keyword">&gt;&lt;/web-daterangepicker&gt;</span></code></div>
 
-      <div class="note">
-        <strong>How it works internally:</strong> a <code>matchMedia</code> listener flips the <code>positioning-mode</code> attribute between the configured value (<code>floating</code>) and <code>modal</code> as the viewport crosses the threshold. The reactive attribute path triggers the picker's destroy + re-init cycle, but selection survives because the input value persists across the rebuild and the fresh init re-parses it.
+      <div class="note info">
+        <strong>See the dedicated page:</strong> <a href="examples-mobile.html">Mobile &amp; Full-Screen</a> covers the full ladder, forcing a presentation, the <code>fullscreen-title</code> / <code>fullscreen-autofocus</code> options, and a "preview as full-screen" toggle for inspecting the phone sheet on a desktop.
       </div>
     </div>
 
     <!-- 6. Behavior details -->
     <div class="card">
       <h2>6. Modal Behavior Details</h2>
-      <ul style="line-height: 1.8;">
+      <ul>
         <li><strong>Closes on:</strong> Escape, backdrop click, Apply button (range mode), or completing a selection (when <code>auto-close="selection"</code>, the default).</li>
         <li><strong>Body scroll is locked</strong> while the modal is open. Reference-counted so multiple modal pickers don't fight over <code>document.body.style.overflow</code>.</li>
         <li><strong>Input is <code>blur()</code>-ed</strong> when the modal opens. This suppresses the mobile soft keyboard, which would otherwise overlap the modal. Focus is restored to the input on close.</li>

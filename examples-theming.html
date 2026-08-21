@@ -6,47 +6,10 @@
   <title>Theming Showcase - Date Range Picker</title>
   <link rel="stylesheet" href="examples-shared.css">
   <style>
-    /* Page-specific styles only - base styles come from examples-shared.css */
-
-    .test-section {
-      background: white;
-      margin-bottom: 2rem;
-      padding: 1.5rem;
-      border: 1px solid #e5e7eb;
-      border-radius: 0.5rem;
-      box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1);
-    }
-
-    .test-section h2 {
-      margin-top: 0;
-      margin-bottom: 0.5rem;
-      font-size: 1.25rem;
-      color: #111827;
-    }
-
-    .test-section p {
-      margin-bottom: 1rem;
-      color: #6b7280;
-    }
-
-    .success {
-      margin-top: 1rem;
-      padding: 0.75rem;
-      background-color: #d1fae5;
-      border: 1px solid #10b981;
-      border-radius: 0.375rem;
-      color: #065f46;
-      font-weight: 500;
-    }
-
-    .info {
-      margin-top: 1rem;
-      padding: 0.75rem;
-      background-color: #dbeafe;
-      border: 1px solid #3b82f6;
-      border-radius: 0.375rem;
-      color: #1e40af;
-    }
+    /* Page-unique theming ONLY: each rule sets component --drp-* CSS variables on a
+       picker instance — this is the POINT of the page (mirrors multiselect's approach
+       of keeping only theme color-scheme declarations here). All generic layout,
+       card, note, and code-block styling comes from examples-shared.css. */
 
     /* Default picker - no overrides */
     web-daterangepicker.default {
@@ -173,12 +136,12 @@
       <p class="subtitle">Customize appearance with CSS custom properties and see multiple themes in action</p>
     </header>
 
-  <div class="test-section">
+  <div class="card">
     <h2>Overview: How CSS Variable Theming Works</h2>
-    <div class="info">
+    <div class="note info">
       <strong>✅ Shadow DOM + CSS Variables = Powerful Theming</strong><br><br>
       This component uses <strong>:host</strong> to define CSS variables inside the shadow DOM. This means:
-      <ul style="margin: 0.5rem 0 0 1.5rem;">
+      <ul>
         <li>Variables are accessible to component styles</li>
         <li>You can override them from your page CSS</li>
         <li>Each instance can have a different theme</li>
@@ -190,7 +153,7 @@ web-daterangepicker.theme-green {
   --drp-accent-color-hover: #059669;
 }</div>
 
-    <div class="info" style="margin-top: 1rem;">
+    <div class="note info">
       <strong>🎬 Shared rich demo:</strong> Every calendar picker on this page (Tests&nbsp;1–7 and the dynamic switcher) renders the
       <em>same</em> set of demo data &mdash; emoji badges for events 🎂&nbsp;☕&nbsp;🎉&nbsp;🎤&nbsp;🎬, disabled holidays 🎄&nbsp;🥳,
       dynamic weekend / weekday price badges, and rich HTML tooltips on hover. Open any picker to compare how
@@ -198,7 +161,7 @@ web-daterangepicker.theme-green {
     </div>
   </div>
 
-  <div class="test-section">
+  <div class="card">
     <h2>✅ Test 1: Default Theme (Blue)</h2>
     <p>Uses component's default CSS variables</p>
     <label>Select a date range:</label>
@@ -208,12 +171,12 @@ web-daterangepicker.theme-green {
       visible-months-count="2" data-rich-demo
       placeholder="Default theme">
     </web-daterangepicker>
-    <div class="success">
+    <div class="note success">
       ✓ If this picker appears with blue accent color, defaults are working
     </div>
   </div>
 
-  <div class="test-section">
+  <div class="card">
     <h2>✅ Test 2: Color Theme Overrides</h2>
     <p>Override --drp-accent-color to change the theme color</p>
 
@@ -225,7 +188,7 @@ web-daterangepicker.theme-green {
       placeholder="Green theme">
     </web-daterangepicker>
 
-    <label style="margin-top: 1rem;">Purple Theme:</label>
+    <label class="mt-1">Purple Theme:</label>
     <web-daterangepicker
       class="theme-purple"
       selection-mode="range"
@@ -233,7 +196,7 @@ web-daterangepicker.theme-green {
       placeholder="Purple theme">
     </web-daterangepicker>
 
-    <label style="margin-top: 1rem;">Red Theme:</label>
+    <label class="mt-1">Red Theme:</label>
     <web-daterangepicker
       class="theme-red"
       selection-mode="range"
@@ -241,7 +204,7 @@ web-daterangepicker.theme-green {
       placeholder="Red theme">
     </web-daterangepicker>
 
-    <label style="margin-top: 1rem;">Orange Theme:</label>
+    <label class="mt-1">Orange Theme:</label>
     <web-daterangepicker
       class="theme-orange"
       selection-mode="range"
@@ -249,12 +212,12 @@ web-daterangepicker.theme-green {
       placeholder="Orange theme">
     </web-daterangepicker>
 
-    <div class="success">
+    <div class="note success">
       ✓ If selected dates appear in different colors, CSS variable override is working!
     </div>
   </div>
 
-  <div class="test-section">
+  <div class="card">
     <h2>✅ Test 3: Dark Theme (Multiple Variables)</h2>
     <p>Overrides multiple variables for complete dark mode</p>
     <label>Select a date range:</label>
@@ -264,7 +227,7 @@ web-daterangepicker.theme-green {
       visible-months-count="2" data-rich-demo
       placeholder="Dark theme">
     </web-daterangepicker>
-    <div class="success">
+    <div class="note success">
       ✓ If calendar has dark background and light text, multiple variable override is working!
     </div>
     <div class="code-block">web-daterangepicker.theme-dark {
@@ -281,7 +244,7 @@ web-daterangepicker.theme-green {
 }</div>
   </div>
 
-  <div class="test-section">
+  <div class="card">
     <h2>✅ Test 4: Custom Sizing & Spacing</h2>
     <p>Overrides spacing, font size, and border radius</p>
     <label>Large with rounded corners:</label>
@@ -292,7 +255,7 @@ web-daterangepicker.theme-green {
       placeholder="Custom large theme">
     </web-daterangepicker>
 
-    <label style="margin-top: 1rem;">Compact theme:</label>
+    <label class="mt-1">Compact theme:</label>
     <web-daterangepicker
       class="theme-compact"
       selection-mode="range"
@@ -300,12 +263,12 @@ web-daterangepicker.theme-green {
       placeholder="Compact theme">
     </web-daterangepicker>
 
-    <div class="success">
+    <div class="note success">
       ✓ If calendars have different sizes and spacing, sizing overrides are working!
     </div>
   </div>
 
-  <div class="test-section">
+  <div class="card">
     <h2>✅ Test 5: Range Mode with Themes</h2>
     <p>Range selection works with all themes</p>
 
@@ -317,7 +280,7 @@ web-daterangepicker.theme-green {
       placeholder="Range with green theme">
     </web-daterangepicker>
 
-    <label style="margin-top: 1rem;">Dark theme range:</label>
+    <label class="mt-1">Dark theme range:</label>
     <web-daterangepicker
       class="theme-dark"
       selection-mode="range"
@@ -325,12 +288,12 @@ web-daterangepicker.theme-green {
       placeholder="Range with dark theme">
     </web-daterangepicker>
 
-    <div class="success">
+    <div class="note success">
       ✓ If range selections appear in themed colors, CSS variables work in range mode too!
     </div>
   </div>
 
-  <div class="test-section">
+  <div class="card">
     <h2>✅ Test 6: Selection Hover States</h2>
     <p>Override hover colors for selected days and range start/end independently from the generic day hover</p>
 
@@ -342,7 +305,7 @@ web-daterangepicker.theme-green {
       placeholder="Select a range and hover over start/end">
     </web-daterangepicker>
 
-    <label style="margin-top: 1rem;">Black selection with gray hover (single):</label>
+    <label class="mt-1">Black selection with gray hover (single):</label>
     <web-daterangepicker
       class="theme-selection-hover"
       selection-mode="single"
@@ -350,7 +313,7 @@ web-daterangepicker.theme-green {
       placeholder="Select a date and hover over it">
     </web-daterangepicker>
 
-    <label style="margin-top: 1rem;">Red selection with light-red hover (range):</label>
+    <label class="mt-1">Red selection with light-red hover (range):</label>
     <web-daterangepicker
       class="theme-selection-contrast"
       selection-mode="range"
@@ -358,7 +321,7 @@ web-daterangepicker.theme-green {
       placeholder="Select a range and hover over start/end">
     </web-daterangepicker>
 
-    <div class="success">
+    <div class="note success">
       ✓ Hover over the range start/end days - they should change to the hover color, NOT the generic day hover
     </div>
     <div class="code-block">/* Full color inversion on hover */
@@ -388,7 +351,7 @@ web-daterangepicker.theme-selection-hover {
    --drp-day-range-color-hover      Range start/end hover text color */</div>
   </div>
 
-  <div class="test-section">
+  <div class="card">
     <h2>✅ Test 7: Pastel Theme (Custom Background)</h2>
     <p>Completely custom color scheme</p>
     <label>Pastel theme:</label>
@@ -398,12 +361,12 @@ web-daterangepicker.theme-selection-hover {
       visible-months-count="2" data-rich-demo
       placeholder="Pastel theme">
     </web-daterangepicker>
-    <div class="success">
+    <div class="note success">
       ✓ Background, borders, and accents all customized
     </div>
   </div>
 
-  <div class="test-section">
+  <div class="card">
     <h2>&#9989; Test 8: Time Picker Theming (all four UIs)</h2>
     <p>All four time UIs &mdash; rolls, clock, wheel, compact &mdash; consume the same
       <code>--drp-accent-color</code> token used elsewhere. Selected hour/minute, the
@@ -411,7 +374,7 @@ web-daterangepicker.theme-selection-hover {
       backgrounds and focus ring &mdash; all follow it automatically. No
       display-specific overrides needed for color theming.</p>
 
-    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1rem; margin-top: 1rem;">
+    <div class="card-grid mt-1" style="--grid-gap: 1rem">
       <div>
         <label>Rolls &mdash; default (blue)</label>
         <web-daterangepicker
@@ -435,7 +398,7 @@ web-daterangepicker.theme-selection-hover {
       </div>
     </div>
 
-    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1rem; margin-top: 1.5rem;">
+    <div class="card-grid mt-1" style="--grid-gap: 1rem">
       <div>
         <label>Clock &mdash; default (blue)</label>
         <web-daterangepicker
@@ -463,7 +426,7 @@ web-daterangepicker.theme-selection-hover {
       </div>
     </div>
 
-    <div style="margin-top: 1.5rem;">
+    <div class="mt-1">
       <label>Dark theme &mdash; rolls + datetime side by side</label>
       <web-daterangepicker
         class="theme-dark"
@@ -471,7 +434,7 @@ web-daterangepicker.theme-selection-hover {
         positioning-mode="inline"></web-daterangepicker>
     </div>
 
-    <div style="margin-top: 1.5rem;">
+    <div class="mt-1">
       <label>Pastel theme &mdash; clock + datetime</label>
       <web-daterangepicker
         class="theme-pastel"
@@ -481,7 +444,7 @@ web-daterangepicker.theme-selection-hover {
         positioning-mode="inline"></web-daterangepicker>
     </div>
 
-    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1rem; margin-top: 1.5rem;">
+    <div class="card-grid mt-1" style="--grid-gap: 1rem">
       <div>
         <label>Wheel &mdash; default (blue)</label>
         <web-daterangepicker
@@ -508,7 +471,7 @@ web-daterangepicker.theme-selection-hover {
       </div>
     </div>
 
-    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1rem; margin-top: 1.5rem;">
+    <div class="card-grid mt-1" style="--grid-gap: 1rem">
       <div>
         <label>Compact &mdash; default (blue)</label>
         <web-daterangepicker
@@ -535,11 +498,11 @@ web-daterangepicker.theme-selection-hover {
       </div>
     </div>
 
-    <div class="success">
+    <div class="note success">
       &check; Accent, background, border, and text-on-accent tokens cascade into all four time pickers without extra overrides.
     </div>
 
-    <div class="info" style="margin-top: 1rem;">
+    <div class="note info">
       <strong>For fine-grained control</strong>, override the time/clock-specific tokens directly &mdash; e.g.,
       <code>--drp-clock-hand-color</code> for a different hand color than the accent,
       <code>--drp-clock-face-bg</code> for the dial background,
@@ -547,7 +510,7 @@ web-daterangepicker.theme-selection-hover {
     </div>
   </div>
 
-  <div class="test-section">
+  <div class="card">
     <h2>&check; Test 9: Classifier Retheming (dayClass / badgeClass conventions)</h2>
     <p>
       The picker ships default styling for five consumer-data class names
@@ -564,7 +527,7 @@ web-daterangepicker.theme-selection-hover {
       placeholder="Default classifier theme">
     </web-daterangepicker>
 
-    <label style="margin-top: 1rem;">Corporate (slate holidays, sky-blue events):</label>
+    <label class="mt-1">Corporate (slate holidays, sky-blue events):</label>
     <web-daterangepicker
       id="classifier-corporate"
       class="theme-classifier-corporate"
@@ -572,7 +535,7 @@ web-daterangepicker.theme-selection-hover {
       placeholder="Corporate classifier theme">
     </web-daterangepicker>
 
-    <label style="margin-top: 1rem;">Festival (fuchsia + amber, stronger tints):</label>
+    <label class="mt-1">Festival (fuchsia + amber, stronger tints):</label>
     <web-daterangepicker
       id="classifier-festival"
       class="theme-classifier-festival"
@@ -580,7 +543,7 @@ web-daterangepicker.theme-selection-hover {
       placeholder="Festival classifier theme">
     </web-daterangepicker>
 
-    <div class="success">
+    <div class="note success">
       &check; All three pickers receive the same <code>specialDates</code> data; only the variable overrides differ.
     </div>
 
@@ -600,18 +563,18 @@ web-daterangepicker.theme-classifier-corporate {
 --drp-badge-count-bg,  --drp-badge-count-color
 --drp-badge-text-bg,   --drp-badge-text-color</div>
 
-    <div class="info" style="margin-top: 1rem;">
+    <div class="note info">
       <strong>Custom classifier names</strong> (e.g., <code>dayClass: 'salsa'</code>) live outside this convention &mdash;
       you ship the CSS via <code>customStylesCallback</code> instead. See the
       <a href="examples-badges-tooltips.html">Badges &amp; Tooltips examples</a> for the custom-classifier demo.
     </div>
   </div>
 
-  <div class="test-section">
+  <div class="card">
     <h2>Available CSS Custom Properties</h2>
     <p>All variables you can override with <code>--drp-</code> prefix:</p>
 
-    <h3 style="margin-top: 1.5rem; font-size: 1.1rem;">Colors</h3>
+    <h3 class="subsection">Colors</h3>
     <div class="code-block">--drp-dropdown-bg           /* Calendar background */
 --drp-border-color          /* Border color */
 --drp-primary-bg            /* Primary background (hover states) */
@@ -622,14 +585,14 @@ web-daterangepicker.theme-classifier-corporate {
 --drp-text-secondary        /* Secondary text color */
 --drp-text-color-on-accent  /* Text on accent backgrounds */</div>
 
-    <h3 style="margin-top: 1.5rem; font-size: 1.1rem;">Spacing</h3>
+    <h3 class="subsection">Spacing</h3>
     <div class="code-block">--drp-spacing-xs            /* Extra small spacing */
 --drp-spacing-sm            /* Small spacing */
 --drp-spacing-md            /* Medium spacing */
 --drp-spacing-lg            /* Large spacing */
 --drp-spacing-xl            /* Extra large spacing */</div>
 
-    <h3 style="margin-top: 1.5rem; font-size: 1.1rem;">Typography</h3>
+    <h3 class="subsection">Typography</h3>
     <div class="code-block">--drp-font-size-2xs         /* Extra extra small */
 --drp-font-size-xs          /* Extra small */
 --drp-font-size-sm          /* Small */
@@ -640,13 +603,13 @@ web-daterangepicker.theme-classifier-corporate {
 --drp-font-weight-medium    /* Medium weight */
 --drp-font-weight-semibold  /* Semibold weight */</div>
 
-    <h3 style="margin-top: 1.5rem; font-size: 1.1rem;">Borders & Other</h3>
+    <h3 class="subsection">Borders & Other</h3>
     <div class="code-block">--drp-border-width-base     /* Base border width */
 --drp-border-radius         /* Border radius */
 --drp-shadow-xl             /* Extra large shadow */
 --drp-transition-fast       /* Fast transition duration */</div>
 
-    <h3 style="margin-top: 1.5rem; font-size: 1.1rem;">Time Picker (rolls)</h3>
+    <h3 class="subsection">Time Picker (rolls)</h3>
     <div class="code-block">--drp-time-picker-gap              /* Gap between roll columns */
 --drp-time-picker-padding          /* Padding around the time picker block */
 --drp-time-picker-roll-min-width   /* Minimum column width */
@@ -656,7 +619,7 @@ web-daterangepicker.theme-classifier-corporate {
 --drp-time-picker-main-gap         /* Gap between calendar and rolls in datetime mode */
 --drp-datetime-min-width           /* Popover width floor in datetime mode (560px default) */</div>
 
-    <h3 style="margin-top: 1.5rem; font-size: 1.1rem;">Clock Picker (Material face)</h3>
+    <h3 class="subsection">Clock Picker (Material face)</h3>
     <div class="code-block">--drp-clock-size                       /* Dial square size (280px default) */
 --drp-clock-face-bg                    /* Dial background circle */
 --drp-clock-radius-outer               /* Outer hour-ring radius */
@@ -675,7 +638,7 @@ web-daterangepicker.theme-classifier-corporate {
 --drp-clock-header-digit-color-active  /* Active digit (current step) color */
 --drp-clock-ampm-bg-selected           /* AM/PM toggle selected background */</div>
 
-    <h3 style="margin-top: 1.5rem; font-size: 1.1rem;">Wheel Picker (iOS barrel)</h3>
+    <h3 class="subsection">Wheel Picker (iOS barrel)</h3>
     <div class="code-block">--drp-wheel-bg                         /* Barrel background (whole row) */
 --drp-wheel-band-bg                    /* Center selection band fill */
 --drp-wheel-item-height                /* Per-item row height (also drives band height + fade) */
@@ -689,7 +652,7 @@ web-daterangepicker.theme-classifier-corporate {
 --drp-wheel-min-height                 /* Barrel height (~180px default — 5-6 items visible) */
 --drp-wheel-fade-height                /* Top/bottom gradient height */</div>
 
-    <h3 style="margin-top: 1.5rem; font-size: 1.1rem;">Compact Picker (iOS pills)</h3>
+    <h3 class="subsection">Compact Picker (iOS pills)</h3>
     <div class="code-block">--drp-compact-pill-bg                  /* Pill background (defaults to accent @ 12% alpha) */
 --drp-compact-pill-bg-hover            /* Pill hover background */
 --drp-compact-pill-color               /* Committed pill text (defaults to accent) */
@@ -705,7 +668,7 @@ web-daterangepicker.theme-classifier-corporate {
 --drp-compact-ampm-color-selected      /* AM/PM selected text */</div>
   </div>
 
-  <div class="test-section">
+  <div class="card">
     <h2>Dynamic Theme Switching</h2>
     <p>Change themes at runtime with JavaScript</p>
     <label>Dynamic theme picker:</label>
@@ -716,14 +679,14 @@ web-daterangepicker.theme-classifier-corporate {
       visible-months-count="2" data-rich-demo
       placeholder="Dynamic theme">
     </web-daterangepicker>
-    <div style="margin-top: 1rem; display: flex; gap: 0.5rem; flex-wrap: wrap;">
-      <button onclick="switchTheme('default')" style="padding: 0.5rem 1rem; border: 1px solid #d1d5db; border-radius: 0.375rem; cursor: pointer; background: #3b82f6; color: white;">Blue</button>
-      <button onclick="switchTheme('theme-green')" style="padding: 0.5rem 1rem; border: 1px solid #d1d5db; border-radius: 0.375rem; cursor: pointer; background: #10b981; color: white;">Green</button>
-      <button onclick="switchTheme('theme-purple')" style="padding: 0.5rem 1rem; border: 1px solid #d1d5db; border-radius: 0.375rem; cursor: pointer; background: #8b5cf6; color: white;">Purple</button>
-      <button onclick="switchTheme('theme-red')" style="padding: 0.5rem 1rem; border: 1px solid #d1d5db; border-radius: 0.375rem; cursor: pointer; background: #ef4444; color: white;">Red</button>
-      <button onclick="switchTheme('theme-dark')" style="padding: 0.5rem 1rem; border: 1px solid #d1d5db; border-radius: 0.375rem; cursor: pointer; background: #1f2937; color: white;">Dark</button>
+    <div class="controls">
+      <button onclick="switchTheme('default')" class="swatch--blue">Blue</button>
+      <button onclick="switchTheme('theme-green')" class="swatch--green">Green</button>
+      <button onclick="switchTheme('theme-purple')" class="swatch--purple">Purple</button>
+      <button onclick="switchTheme('theme-red')" class="swatch--red">Red</button>
+      <button onclick="switchTheme('theme-dark')" class="swatch--dark">Dark</button>
     </div>
-    <div class="code-block" style="margin-top: 1rem;">// Switch theme dynamically
+    <div class="code-block">// Switch theme dynamically
 const picker = document.getElementById('dynamic-picker');
 
 function switchTheme(newTheme) {

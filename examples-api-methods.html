@@ -6,95 +6,10 @@
     <title>API Methods - Web Daterangepicker</title>
     <link rel="stylesheet" href="examples-shared.css">
     <style>
-        .api-demo {
-            display: flex;
-            flex-direction: column;
-            gap: 1rem;
-        }
-
-        /* Booking-desk lock demo — two columns (calendar | drive-it panel) */
-        .lock-demo {
-            display: grid;
-            grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
-            gap: 1.5rem;
-            align-items: start;
-        }
-        @media (max-width: 820px) {
-            .lock-demo { grid-template-columns: 1fr; }
-        }
-        .lock-demo h4 {
-            margin: 0 0 0.75rem 0;
-            font-size: 0.95rem;
-            color: #1a202c;
-        }
-        .lock-panel p {
-            color: #475569;
-            font-size: 0.9rem;
-            line-height: 1.55;
-            margin: 0 0 1rem 0;
-        }
-        .lock-pill {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.35rem;
-            padding: 0.15rem 0.55rem;
-            border-radius: 999px;
-            font-size: 0.75rem;
-            font-weight: 600;
-            font-family: 'Courier New', monospace;
-            background: #eef2ff;
-            color: #4338ca;
-        }
-        .lock-pill--locked { background: #fef3c7; color: #92400e; }
-        .lock-pill--open   { background: #dcfce7; color: #166534; }
-        .lock-status {
-            margin-top: 1rem;
-            padding: 0.75rem 1rem;
-            border-radius: 8px;
-            background: #f8fafc;
-            border: 1px solid #e2e8f0;
-            font-size: 0.85rem;
-            color: #334155;
-        }
-        .lock-status code { background: #eef2ff; padding: 0.05rem 0.35rem; border-radius: 4px; }
-
-        .control-group {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 0.5rem;
-            align-items: center;
-        }
-
-        .control-group button {
-            padding: 0.5rem 1rem;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-            background: white;
-            color: #374151;
-            cursor: pointer;
-            font-size: 0.875rem;
-        }
-
-        .control-group button:hover {
-            background: #f5f5f5;
-            color: #374151;
-        }
-
-        .control-group button:active {
-            background: #e0e0e0;
-            color: #374151;
-        }
-
-        .output-display {
-            padding: 1rem;
-            background: #f8f9fa;
-            border: 1px solid #dee2e6;
-            border-radius: 4px;
-            font-family: 'Courier New', monospace;
-            font-size: 0.875rem;
-            min-height: 2.5rem;
-        }
-
+        /* Page-unique only — everything else comes from examples-shared.css.
+           .method-signature / .return-type / .param-name are a bespoke way to
+           typeset method signatures (monospace box + colored return/param tokens);
+           there is no shared equivalent. */
         .method-signature {
             background: #f1f3f5;
             padding: 0.75rem 1rem;
@@ -114,30 +29,25 @@
             color: #c92a2a;
         }
 
-        .api-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin: 1rem 0;
-        }
-
-        .api-table th,
-        .api-table td {
-            padding: 0.75rem;
-            text-align: left;
-            border-bottom: 1px solid #dee2e6;
-        }
-
-        .api-table th {
-            background: #f8f9fa;
+        /* Status pill used inside the booking-desk status line. The static
+           markup uses the shared `.pill`/`.pill--ok`/`.pill--warn`, but the
+           JS (refresh9) rebuilds this line via innerHTML with these class
+           names — and the JS must not be changed — so the equivalents are
+           kept here. */
+        .lock-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+            padding: 0.15rem 0.55rem;
+            border-radius: 999px;
+            font-size: 0.75rem;
             font-weight: 600;
+            font-family: ui-monospace, SFMono-Regular, Menlo, 'Courier New', monospace;
+            background: #e5e7eb;
+            color: #374151;
         }
-
-        .api-table code {
-            background: #f1f3f5;
-            padding: 0.2rem 0.4rem;
-            border-radius: 3px;
-            font-size: 0.875rem;
-        }
+        .lock-pill--locked { background: #fef3c7; color: #92400e; }
+        .lock-pill--open   { background: #dcfce7; color: #166534; }
     </style>
 </head>
 <body>
@@ -158,7 +68,7 @@
                 </p>
             </div>
             <div class="card-content">
-                <div class="api-demo">
+                <div class="demo-area">
                     <web-daterangepicker
                         id="picker-1"
                         selection-mode="single"
@@ -167,13 +77,13 @@
                         placeholder="Click buttons to control visibility">
                     </web-daterangepicker>
 
-                    <div class="control-group">
+                    <div class="controls">
                         <button id="btn-show" data-calendar-button>Show Calendar</button>
                         <button id="btn-hide" data-calendar-button>Hide Calendar</button>
                         <button id="btn-toggle" data-calendar-button>Toggle Calendar</button>
                     </div>
 
-                    <div class="output-display" id="output-1">
+                    <div class="log-panel" id="output-1">
                         Calendar state: <span id="state-1">closed</span>
                     </div>
                 </div>
@@ -231,10 +141,10 @@ console.log('Calendar open?', picker.isOpen);
                 </p>
             </div>
             <div class="card-content">
-                <div class="api-demo">
-                    <div style="display: flex; gap: 1rem;">
-                        <div style="flex: 1;">
-                            <label style="display: block; margin-bottom: 0.5rem; font-weight: 600;">Single Date (YYYY-MM-DD)</label>
+                <div class="demo-area">
+                    <div class="field-row">
+                        <div class="field-grow">
+                            <label class="demo-label">Single Date (YYYY-MM-DD)</label>
                             <web-daterangepicker
                                 id="picker-2a"
                                 selection-mode="single"
@@ -242,8 +152,8 @@ console.log('Calendar open?', picker.isOpen);
                                 placeholder="YYYY-MM-DD">
                             </web-daterangepicker>
                         </div>
-                        <div style="flex: 1;">
-                            <label style="display: block; margin-bottom: 0.5rem; font-weight: 600;">Date Range (MM/DD/YYYY)</label>
+                        <div class="field-grow">
+                            <label class="demo-label">Date Range (MM/DD/YYYY)</label>
                             <web-daterangepicker
                                 id="picker-2b"
                                 selection-mode="range"
@@ -253,14 +163,14 @@ console.log('Calendar open?', picker.isOpen);
                         </div>
                     </div>
 
-                    <div class="control-group">
+                    <div class="controls">
                         <button id="btn-get-single">Get Single Value</button>
                         <button id="btn-set-single">Set Single (2025-03-15)</button>
                         <button id="btn-get-range">Get Range Value</button>
                         <button id="btn-set-range">Set Range (01/01/2025 - 01/31/2025)</button>
                     </div>
 
-                    <div class="output-display" id="output-2">
+                    <div class="log-panel" id="output-2">
                         Click buttons to get/set values...
                     </div>
                 </div>
@@ -303,16 +213,16 @@ rangePicker.setInputValue('');</code></pre>
                 </p>
             </div>
             <div class="card-content">
-                <div class="api-demo">
-                    <div style="display: flex; gap: 1rem;">
-                        <div style="flex: 1;">
+                <div class="demo-area">
+                    <div class="field-row">
+                        <div class="field-grow">
                             <web-daterangepicker
                                 id="picker-3a"
                                 selection-mode="single"
                                 placeholder="Select a date">
                             </web-daterangepicker>
                         </div>
-                        <div style="flex: 1;">
+                        <div class="field-grow">
                             <web-daterangepicker
                                 id="picker-3b"
                                 selection-mode="range"
@@ -322,13 +232,13 @@ rangePicker.setInputValue('');</code></pre>
                         </div>
                     </div>
 
-                    <div class="control-group">
+                    <div class="controls">
                         <button id="btn-clear-single">Clear Single Picker</button>
                         <button id="btn-clear-range">Clear Range Picker</button>
                         <button id="btn-clear-both">Clear Both</button>
                     </div>
 
-                    <div class="output-display" id="output-3">
+                    <div class="log-panel" id="output-3">
                         Selections will be cleared...
                     </div>
                 </div>
@@ -364,18 +274,18 @@ picker.setInputValue('2025-12-25');</code></pre>
                 </p>
             </div>
             <div class="card-content">
-                <div class="api-demo">
-                    <div style="display: flex; gap: 1rem;">
-                        <div style="flex: 1;">
-                            <label style="display: block; margin-bottom: 0.5rem; font-weight: 600;">Single Mode</label>
+                <div class="demo-area">
+                    <div class="field-row">
+                        <div class="field-grow">
+                            <label class="demo-label">Single Mode</label>
                             <web-daterangepicker
                                 id="picker-4a"
                                 selection-mode="single"
                                 placeholder="Single date picker">
                             </web-daterangepicker>
                         </div>
-                        <div style="flex: 1;">
-                            <label style="display: block; margin-bottom: 0.5rem; font-weight: 600;">Range Mode</label>
+                        <div class="field-grow">
+                            <label class="demo-label">Range Mode</label>
                             <web-daterangepicker
                                 id="picker-4b"
                                 selection-mode="range"
@@ -385,14 +295,14 @@ picker.setInputValue('2025-12-25');</code></pre>
                         </div>
                     </div>
 
-                    <div class="control-group">
+                    <div class="controls">
                         <button id="btn-get-date">Get Single Date</button>
                         <button id="btn-set-today">Set Today</button>
                         <button id="btn-get-ranges">Get Ranges</button>
                         <button id="btn-set-this-week">Set This Week</button>
                     </div>
 
-                    <div class="output-display" id="output-4">
+                    <div class="log-panel" id="output-4">
                         Click buttons to interact with reactive properties...
                     </div>
                 </div>
@@ -443,21 +353,21 @@ rangePicker.selectedRanges = [];</code></pre>
                 </p>
             </div>
             <div class="card-content">
-                <div class="api-demo">
-                    <div style="display: flex; gap: 1rem; align-items: flex-start;">
+                <div class="demo-area">
+                    <div class="field-row">
                         <web-daterangepicker
                             id="picker-5"
                             selection-mode="single"
                             placeholder="Click input or buttons">
                         </web-daterangepicker>
 
-                        <div class="control-group">
+                        <div class="controls">
                             <button id="btn-check-state" data-calendar-button>Check State</button>
                             <button id="btn-toggle-5" data-calendar-button>Toggle Calendar</button>
                         </div>
                     </div>
 
-                    <div class="output-display" id="output-5">
+                    <div class="log-panel" id="output-5">
                         Calendar state: <span id="state-5">unknown</span>
                     </div>
                 </div>
@@ -507,7 +417,7 @@ console.log('isOpen is now:', picker.isOpen); // false</code></pre>
                 </p>
             </div>
             <div class="card-content">
-                <div class="api-demo">
+                <div class="demo-area">
                     <web-daterangepicker
                         id="picker-6"
                         selection-mode="range"
@@ -515,12 +425,12 @@ console.log('isOpen is now:', picker.isOpen); // false</code></pre>
                         placeholder="Advanced picker">
                     </web-daterangepicker>
 
-                    <div class="control-group">
+                    <div class="controls">
                         <button id="btn-get-instance">Get Picker Instance</button>
                         <button id="btn-get-internal-state">Get Internal State</button>
                     </div>
 
-                    <div class="output-display" id="output-6">
+                    <div class="log-panel" id="output-6">
                         Click buttons to explore picker instance...
                     </div>
                 </div>
@@ -556,9 +466,9 @@ if (picker) {
                     <div><span class="return-type">DateRangePicker | null</span> picker <em>(read-only)</em></div>
                 </div>
 
-                <div style="background: #fff3cd; border: 1px solid #ffc107; border-radius: 4px; padding: 1rem; margin-top: 1rem;">
+                <div class="note warning">
                     <strong>⚠️ Advanced API Warning:</strong>
-                    <p style="margin: 0.5rem 0 0 0; font-size: 0.875rem;">
+                    <p>
                         Direct picker instance access is provided for advanced use cases. Modifying internal state
                         directly may cause unexpected behavior. Always prefer web component methods and properties
                         when available.
@@ -588,9 +498,9 @@ if (picker) {
                 </p>
             </div>
             <div class="card-content">
-                <div class="lock-demo">
+                <div class="grid" style="--grid-min: 320px">
                     <!-- Calendar -->
-                    <div class="lock-calendar">
+                    <div class="demo-card">
                         <h4>Inline range picker</h4>
                         <web-daterangepicker
                             id="picker-9"
@@ -601,29 +511,29 @@ if (picker) {
                     </div>
 
                     <!-- Drive-it panel -->
-                    <div class="lock-panel">
+                    <div class="demo-card">
                         <h4>Drive the lock</h4>
                         <p>
                             Pick a range — the summary shows a live <strong>estimate</strong> (the sum of the
                             on-screen badges). Then hit <strong>Book</strong> in the calendar's action bar: a mock
                             server round-trip returns the <strong>real price</strong> (which can land a bit higher or
                             lower than the estimate) plus a reference code, the confirmed dates
-                            <strong>lock</strong> (<span class="lock-pill lock-pill--locked">🔒 read-only</span>), and
+                            <strong>lock</strong> (<span class="pill pill--warn">🔒 read-only</span>), and
                             the button flips to <strong>Amend</strong>. Try clicking a day or dragging an endpoint —
                             nothing moves; only <strong>Amend</strong> stays live (the <code>actions</code> aspect is
                             left unlocked on purpose). Amend releases the lock and drops back to the estimate.
                         </p>
 
-                        <p style="margin-top:1rem;">
+                        <p class="mt-1">
                             Or a <strong>partial</strong> lock — freeze the range &amp; buttons but keep the
                             <code>&lt;</code> <code>&gt;</code> arrows live so the guest can still look around:
                         </p>
-                        <div class="control-group">
+                        <div class="controls">
                             <button id="btn-lock-partial-9">Lock selection + actions</button>
                             <button id="btn-unlock-9">Unlock everything</button>
                         </div>
 
-                        <div class="lock-status" id="output-9">
+                        <div class="note" id="output-9">
                             Status: <span id="state-9">unlocked · fully interactive</span>
                         </div>
                     </div>
@@ -714,8 +624,8 @@ picker.lockedAspects;           // -> ['selection','navigation','actions','open'
                 </p>
             </div>
             <div class="card-content">
-                <h3 style="margin-top: 0;">Methods</h3>
-                <table class="api-table">
+                <h3>Methods</h3>
+                <table class="reference-table">
                     <thead>
                         <tr>
                             <th>Method</th>
@@ -763,7 +673,7 @@ picker.lockedAspects;           // -> ['selection','navigation','actions','open'
                 </table>
 
                 <h3>Properties</h3>
-                <table class="api-table">
+                <table class="reference-table">
                     <thead>
                         <tr>
                             <th>Property</th>
@@ -855,7 +765,7 @@ picker.lockedAspects;           // -> ['selection','navigation','actions','open'
                 </table>
 
                 <h3>Events</h3>
-                <table class="api-table">
+                <table class="reference-table">
                     <thead>
                         <tr>
                             <th>Event</th>
@@ -923,7 +833,7 @@ picker.addEventListener('date-select', (event: CustomEvent&lt;DateSelectDetail&g
                 </p>
             </div>
             <div class="card-content">
-                <h3 style="margin-top: 0;">Form Integration</h3>
+                <h3>Form Integration</h3>
                 <div class="code-block">
                     <button class="copy-button" onclick="copyCode(this)">Copy</button>
                     <pre><code>&lt;form id="booking-form"&gt;

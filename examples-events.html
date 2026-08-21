@@ -6,23 +6,15 @@
   <title>Events & Callbacks - Date Range Picker</title>
   <link rel="stylesheet" href="examples-shared.css">
   <style>
-    /* Page-specific styles only - base styles come from examples-shared.css */
-
-    .event-log {
-      background: #1f2937;
-      color: #f3f4f6;
-      border-radius: 0.5rem;
-      padding: 1rem;
-      margin-top: 1rem;
-      font-family: 'Courier New', monospace;
-      font-size: 0.875rem;
-      max-height: 300px;
-      overflow-y: auto;
-    }
-
+    /* Page-specific log entry-token colors only. These color the tokens the
+       logEvent() script writes into each `.log-panel--dark` box (timestamp,
+       event name, JSON payload) and the divider between stacked entries. Not a
+       shared concern — every log-driven page styles its own entry tokens.
+       All layout / cards / notes / tables / status dots come from
+       examples-shared.css. */
     .event-log-item {
-      padding: 0.5rem;
       border-bottom: 1px solid #374151;
+      padding-bottom: 0.5rem;
       margin-bottom: 0.5rem;
     }
 
@@ -30,94 +22,9 @@
       border-bottom: none;
     }
 
-    .event-name {
-      color: #34d399;
-      font-weight: 600;
-    }
-
-    .event-time {
-      color: #9ca3af;
-      font-size: 0.75rem;
-    }
-
-    .event-data {
-      color: #fbbf24;
-      margin-top: 0.25rem;
-    }
-
-    .info-box {
-      background: #eff6ff;
-      border-left: 4px solid #3b82f6;
-      padding: 1rem;
-      margin: 1rem 0;
-      border-radius: 0.25rem;
-    }
-
-    .warning-box {
-      background: #fef3c7;
-      border-left: 4px solid #f59e0b;
-      padding: 1rem;
-      margin: 1rem 0;
-      border-radius: 0.25rem;
-    }
-
-    .success-box {
-      background: #d1fae5;
-      border-left: 4px solid #10b981;
-      padding: 1rem;
-      margin: 1rem 0;
-      border-radius: 0.25rem;
-    }
-
-    .error-box {
-      background: #fee2e2;
-      border-left: 4px solid #ef4444;
-      padding: 1rem;
-      margin: 1rem 0;
-      border-radius: 0.25rem;
-    }
-
-    pre {
-      background: #f3f4f6;
-      border: 1px solid #e5e7eb;
-      border-radius: 0.5rem;
-      padding: 1rem;
-      overflow-x: auto;
-      font-size: 0.875rem;
-    }
-
-    code {
-      font-family: 'Courier New', monospace;
-      background: #f3f4f6;
-      padding: 0.125rem 0.25rem;
-      border-radius: 0.25rem;
-      font-size: 0.875rem;
-    }
-
-    pre code {
-      background: none;
-      padding: 0;
-    }
-
-    .status-indicator {
-      display: inline-block;
-      width: 8px;
-      height: 8px;
-      border-radius: 50%;
-      margin-right: 0.5rem;
-    }
-
-    .status-allowed {
-      background: #10b981;
-    }
-
-    .status-blocked {
-      background: #ef4444;
-    }
-
-    .status-adjusted {
-      background: #f59e0b;
-    }
+    .event-name { color: #34d399; font-weight: 600; }
+    .event-time { color: #9ca3af; font-size: 0.75rem; }
+    .event-data { color: #fbbf24; margin-top: 0.25rem; }
   </style>
 </head>
 <body>
@@ -133,15 +40,15 @@
     <h2>Events Fired by the Component</h2>
     <p>The date picker fires three custom events:</p>
 
-    <div class="info-box">
+    <div class="note info">
       <strong>Event Names:</strong>
-      <ul style="margin: 0.5rem 0 0 1.5rem;">
+      <ul>
         <li><code>date-select</code> - Primary event for date selection</li>
         <li><code>change</code> - Alias event (fires simultaneously with date-select)</li>
         <li><code>custom-action</code> - Fired when a custom action button is clicked (<code>detail.data</code> / <code>detail.picker</code>)</li>
       </ul>
-      <p style="margin-top: 0.5rem;"><strong>Note:</strong> All events bubble and are composed (cross Shadow DOM boundaries).</p>
-      <p style="margin-top: 0.5rem;"><strong>Handler properties:</strong> as an alternative to <code>addEventListener</code>, assign <code>onDateSelect</code>, <code>onChange</code>, or <code>onCustomAction</code> — each receives the <code>CustomEvent</code> just like <code>addEventListener</code>; assign <code>null</code> to detach.</p>
+      <p><strong>Note:</strong> All events bubble and are composed (cross Shadow DOM boundaries).</p>
+      <p><strong>Handler properties:</strong> as an alternative to <code>addEventListener</code>, assign <code>onDateSelect</code>, <code>onChange</code>, or <code>onCustomAction</code> — each receives the <code>CustomEvent</code> just like <code>addEventListener</code>; assign <code>null</code> to detach.</p>
     </div>
 
     <h3>Event Detail Structure</h3>
@@ -168,16 +75,16 @@
       <div class="form-group">
         <label>Single Mode Event Demo</label>
         <web-daterangepicker id="event-single"></web-daterangepicker>
-        <div id="event-log-single" class="event-log">
-          <div style="color: #9ca3af;">Select a date to see events...</div>
+        <div id="event-log-single" class="log-panel log-panel--dark" style="--log-max-height: 300px">
+          <div class="muted">Select a date to see events...</div>
         </div>
       </div>
 
       <div class="form-group">
         <label>Range Mode Event Demo</label>
         <web-daterangepicker id="event-range" selection-mode="range" visible-months-count="2"></web-daterangepicker>
-        <div id="event-log-range" class="event-log">
-          <div style="color: #9ca3af;">Select a range to see events...</div>
+        <div id="event-log-range" class="log-panel log-panel--dark" style="--log-max-height: 300px">
+          <div class="muted">Select a range to see events...</div>
         </div>
       </div>
     </div>
@@ -206,9 +113,9 @@ picker.addEventListener('date-select', (event) => {
       It allows you to validate, block, adjust, or clear selections based on your business logic.
     </p>
 
-    <div class="info-box">
+    <div class="note info">
       <strong>Key Features:</strong>
-      <ul style="margin: 0.5rem 0 0 1.5rem;">
+      <ul>
         <li>Works for both <strong>single</strong> and <strong>range</strong> modes</li>
         <li>Supports <strong>synchronous</strong> and <strong>asynchronous</strong> validation</li>
         <li>Can <strong>block</strong>, <strong>adjust</strong>, <strong>restore</strong>, or <strong>clear</strong> selections</li>
@@ -218,34 +125,34 @@ picker.addEventListener('date-select', (event) => {
     </div>
 
     <h3>Return Value Actions</h3>
-    <table style="width: 100%; border-collapse: collapse; margin: 1rem 0;">
+    <table class="reference-table">
       <thead>
-        <tr style="background: #f3f4f6;">
-          <th style="padding: 0.75rem; text-align: left; border: 1px solid #e5e7eb;">Action</th>
-          <th style="padding: 0.75rem; text-align: left; border: 1px solid #e5e7eb;">Description</th>
-          <th style="padding: 0.75rem; text-align: left; border: 1px solid #e5e7eb;">Use Case</th>
+        <tr>
+          <th>Action</th>
+          <th>Description</th>
+          <th>Use Case</th>
         </tr>
       </thead>
       <tbody>
         <tr>
-          <td style="padding: 0.75rem; border: 1px solid #e5e7eb;"><code>'accept'</code></td>
-          <td style="padding: 0.75rem; border: 1px solid #e5e7eb;">Allow the selection as-is</td>
-          <td style="padding: 0.75rem; border: 1px solid #e5e7eb;">Validation passed</td>
+          <td><code>'accept'</code></td>
+          <td>Allow the selection as-is</td>
+          <td>Validation passed</td>
         </tr>
         <tr>
-          <td style="padding: 0.75rem; border: 1px solid #e5e7eb;"><code>'adjust'</code></td>
-          <td style="padding: 0.75rem; border: 1px solid #e5e7eb;">Modify the selected date(s)</td>
-          <td style="padding: 0.75rem; border: 1px solid #e5e7eb;">Round to business days, snap to availability</td>
+          <td><code>'adjust'</code></td>
+          <td>Modify the selected date(s)</td>
+          <td>Round to business days, snap to availability</td>
         </tr>
         <tr>
-          <td style="padding: 0.75rem; border: 1px solid #e5e7eb;"><code>'restore'</code></td>
-          <td style="padding: 0.75rem; border: 1px solid #e5e7eb;">Reject and revert to previous selection</td>
-          <td style="padding: 0.75rem; border: 1px solid #e5e7eb;">Validation failed, keep previous state</td>
+          <td><code>'restore'</code></td>
+          <td>Reject and revert to previous selection</td>
+          <td>Validation failed, keep previous state</td>
         </tr>
         <tr>
-          <td style="padding: 0.75rem; border: 1px solid #e5e7eb;"><code>'clear'</code></td>
-          <td style="padding: 0.75rem; border: 1px solid #e5e7eb;">Clear the selection entirely</td>
-          <td style="padding: 0.75rem; border: 1px solid #e5e7eb;">Hard reset on validation failure</td>
+          <td><code>'clear'</code></td>
+          <td>Clear the selection entirely</td>
+          <td>Hard reset on validation failure</td>
         </tr>
       </tbody>
     </table>
@@ -259,52 +166,52 @@ picker.addEventListener('date-select', (event) => {
       <!-- Example 1: Block Weekends -->
       <div class="form-group">
         <label>
-          <span class="status-indicator status-blocked"></span>
+          <span class="status-dot status-dot--err"></span>
           Block Weekends
         </label>
         <web-daterangepicker id="single-block-weekends"></web-daterangepicker>
         <small>Try selecting Saturday or Sunday</small>
-        <div id="log-single-weekends" class="event-log" style="max-height: 150px;">
-          <div style="color: #9ca3af;">Waiting for selection...</div>
+        <div id="log-single-weekends" class="log-panel log-panel--dark" style="--log-max-height: 150px">
+          <div class="muted">Waiting for selection...</div>
         </div>
       </div>
 
       <!-- Example 2: Block Past Dates -->
       <div class="form-group">
         <label>
-          <span class="status-indicator status-blocked"></span>
+          <span class="status-dot status-dot--err"></span>
           Block Past Dates
         </label>
         <web-daterangepicker id="single-block-past"></web-daterangepicker>
         <small>Only future dates allowed</small>
-        <div id="log-single-past" class="event-log" style="max-height: 150px;">
-          <div style="color: #9ca3af;">Waiting for selection...</div>
+        <div id="log-single-past" class="log-panel log-panel--dark" style="--log-max-height: 150px">
+          <div class="muted">Waiting for selection...</div>
         </div>
       </div>
 
       <!-- Example 3: Adjust to Next Business Day -->
       <div class="form-group">
         <label>
-          <span class="status-indicator status-adjusted"></span>
+          <span class="status-dot status-dot--warn"></span>
           Adjust to Business Day
         </label>
         <web-daterangepicker id="single-adjust-business"></web-daterangepicker>
         <small>Weekends auto-adjust to Monday</small>
-        <div id="log-single-adjust" class="event-log" style="max-height: 150px;">
-          <div style="color: #9ca3af;">Waiting for selection...</div>
+        <div id="log-single-adjust" class="log-panel log-panel--dark" style="--log-max-height: 150px">
+          <div class="muted">Waiting for selection...</div>
         </div>
       </div>
 
       <!-- Example 4: Async API Validation -->
       <div class="form-group">
         <label>
-          <span class="status-indicator status-allowed"></span>
+          <span class="status-dot status-dot--ok"></span>
           Async API Validation
         </label>
         <web-daterangepicker id="single-async"></web-daterangepicker>
         <small>Simulates API call (500ms delay)</small>
-        <div id="log-single-async" class="event-log" style="max-height: 150px;">
-          <div style="color: #9ca3af;">Waiting for selection...</div>
+        <div id="log-single-async" class="log-panel log-panel--dark" style="--log-max-height: 150px">
+          <div class="muted">Waiting for selection...</div>
         </div>
       </div>
     </div>
@@ -354,52 +261,52 @@ picker.beforeDateSelectCallback = async (date) => {
       <!-- Example 5: Minimum Nights -->
       <div class="form-group">
         <label>
-          <span class="status-indicator status-blocked"></span>
+          <span class="status-dot status-dot--err"></span>
           Minimum 2 Nights
         </label>
         <web-daterangepicker id="range-min-nights" selection-mode="range" visible-months-count="2"></web-daterangepicker>
         <small>Requires at least 2 nights</small>
-        <div id="log-range-min" class="event-log" style="max-height: 150px;">
-          <div style="color: #9ca3af;">Waiting for selection...</div>
+        <div id="log-range-min" class="log-panel log-panel--dark" style="--log-max-height: 150px">
+          <div class="muted">Waiting for selection...</div>
         </div>
       </div>
 
       <!-- Example 6: Maximum Nights (with showInvalidRange) -->
       <div class="form-group">
         <label>
-          <span class="status-indicator status-blocked"></span>
+          <span class="status-dot status-dot--err"></span>
           Maximum 7 Nights (showInvalidRange)
         </label>
         <web-daterangepicker id="range-max-nights" selection-mode="range" visible-months-count="2"></web-daterangepicker>
         <small>Cannot exceed 7 nights. Uses <code>showInvalidRange: true</code> to keep invalid range visible with error styling.</small>
-        <div id="log-range-max" class="event-log" style="max-height: 150px;">
-          <div style="color: #9ca3af;">Waiting for selection...</div>
+        <div id="log-range-max" class="log-panel log-panel--dark" style="--log-max-height: 150px">
+          <div class="muted">Waiting for selection...</div>
         </div>
       </div>
 
       <!-- Example 7: Adjust End Date -->
       <div class="form-group">
         <label>
-          <span class="status-indicator status-adjusted"></span>
+          <span class="status-dot status-dot--warn"></span>
           Auto-Adjust to Checkout Day
         </label>
         <web-daterangepicker id="range-adjust-checkout" selection-mode="range" visible-months-count="2"></web-daterangepicker>
         <small>End date must be Sunday (checkout day)</small>
-        <div id="log-range-adjust" class="event-log" style="max-height: 150px;">
-          <div style="color: #9ca3af;">Waiting for selection...</div>
+        <div id="log-range-adjust" class="log-panel log-panel--dark" style="--log-max-height: 150px">
+          <div class="muted">Waiting for selection...</div>
         </div>
       </div>
 
       <!-- Example 8: Async Availability with Custom Message -->
       <div class="form-group">
         <label>
-          <span class="status-indicator status-allowed"></span>
+          <span class="status-dot status-dot--ok"></span>
           Check Availability (Custom Message)
         </label>
         <web-daterangepicker id="range-async" selection-mode="range" visible-months-count="2"></web-daterangepicker>
         <small>Select more than 5 nights to see custom HTML error with alternatives. Uses <code>showMessage(html)</code> for full control.</small>
-        <div id="log-range-async" class="event-log" style="max-height: 150px;">
-          <div style="color: #9ca3af;">Waiting for selection...</div>
+        <div id="log-range-async" class="log-panel log-panel--dark" style="--log-max-height: 150px">
+          <div class="muted">Waiting for selection...</div>
         </div>
       </div>
     </div>
@@ -519,7 +426,7 @@ picker.addEventListener('custom-action', (e) => {
       <code>getDateMetadataCallback</code> 35-42 times per month.
     </p>
 
-    <div class="info-box" style="margin: 1rem 0;">
+    <div class="note info">
       <strong>Performance:</strong> 1 API call per month vs 35-42 calls with per-day callbacks
     </div>
 
@@ -531,21 +438,21 @@ picker.addEventListener('custom-action', (e) => {
         </label>
         <web-daterangepicker id="month-bulk-pricing" selection-mode="range" visible-months-count="2"></web-daterangepicker>
         <small>Navigate months to see bulk metadata loading in action. Check console for logs.</small>
-        <div id="log-month-bulk" class="event-log" style="max-height: 200px;">
-          <div style="color: #9ca3af;">Navigate to a month to see bulk loading...</div>
+        <div id="log-month-bulk" class="log-panel log-panel--dark" style="--log-max-height: 200px">
+          <div class="muted">Navigate to a month to see bulk loading...</div>
         </div>
       </div>
 
       <!-- Example 10: Block Navigation -->
       <div class="form-group">
         <label>
-          <span class="status-indicator status-blocked"></span>
+          <span class="status-dot status-dot--err"></span>
           Block Future Months
         </label>
         <web-daterangepicker id="month-block-future" selection-mode="single"></web-daterangepicker>
         <small>Try navigating more than 2 months into the future - navigation will be blocked</small>
-        <div id="log-month-block" class="event-log" style="max-height: 200px;">
-          <div style="color: #9ca3af;">Try navigating to future months...</div>
+        <div id="log-month-block" class="log-panel log-panel--dark" style="--log-max-height: 200px">
+          <div class="muted">Try navigating to future months...</div>
         </div>
       </div>
     </div>
@@ -553,7 +460,7 @@ picker.addEventListener('custom-action', (e) => {
     <!-- New row for unified grid example -->
     <div class="grid">
       <!-- Example 11: Unified 3×2 Grid with Anchor Index 2 -->
-      <div class="form-group" style="grid-column: 1 / -1;">
+      <div class="form-group col-span-full">
         <label>
           Unified 3×2 Grid (Anchor: Index 2)
         </label>
@@ -570,8 +477,8 @@ picker.addEventListener('custom-action', (e) => {
           is-unified-header-interactive="true">
         </web-daterangepicker>
         <small>Anchor month at index 2 (top-right). Navigation loads all 6 months at once. Try navigating beyond ±3 months to see blocking.</small>
-        <div id="log-unified-grid" class="event-log" style="max-height: 200px;">
-          <div style="color: #9ca3af;">Navigate to see unified loading...</div>
+        <div id="log-unified-grid" class="log-panel log-panel--dark" style="--log-max-height: 200px">
+          <div class="muted">Navigate to see unified loading...</div>
         </div>
       </div>
     </div>
@@ -585,13 +492,13 @@ picker.addEventListener('custom-action', (e) => {
       like room availability, occupancy rates, or any business-specific data.
     </p>
 
-    <div class="info-box">
+    <div class="note info">
       <strong>Two Approaches:</strong>
-      <ul style="margin: 0.5rem 0 0 1.5rem;">
+      <ul>
         <li><code>getMonthHeaderCallback</code> - Callback to generate header on-the-fly</li>
         <li><code>monthHeaders</code> in <code>beforeMonthChangedCallback</code> result - Return headers with async-loaded data</li>
       </ul>
-      <p style="margin-top: 0.5rem;"><strong>Priority:</strong> monthHeaders &gt; getMonthHeaderCallback &gt; default format</p>
+      <p><strong>Priority:</strong> monthHeaders &gt; getMonthHeaderCallback &gt; default format</p>
     </div>
 
     <div class="grid">
@@ -600,8 +507,8 @@ picker.addEventListener('custom-action', (e) => {
         <label>Working Days in Headers</label>
         <web-daterangepicker id="header-callback" selection-mode="range" visible-months-count="2"></web-daterangepicker>
         <small>Headers show working day counts (excludes weekends &amp; holidays)</small>
-        <div id="log-header-callback" class="event-log" style="max-height: 150px;">
-          <div style="color: #9ca3af;">Headers will update as you navigate...</div>
+        <div id="log-header-callback" class="log-panel log-panel--dark" style="--log-max-height: 150px">
+          <div class="muted">Headers will update as you navigate...</div>
         </div>
       </div>
 
@@ -610,8 +517,8 @@ picker.addEventListener('custom-action', (e) => {
         <label>Headers from Async Data</label>
         <web-daterangepicker id="header-async" selection-mode="range" visible-months-count="2"></web-daterangepicker>
         <small>Headers loaded with pricing data</small>
-        <div id="log-header-async" class="event-log" style="max-height: 150px;">
-          <div style="color: #9ca3af;">Navigate to load headers with data...</div>
+        <div id="log-header-async" class="log-panel log-panel--dark" style="--log-max-height: 150px">
+          <div class="muted">Navigate to load headers with data...</div>
         </div>
       </div>
     </div>
@@ -619,13 +526,13 @@ picker.addEventListener('custom-action', (e) => {
     <div class="grid">
       <div class="form-group">
         <label>
-          <span class="status-indicator status-blocked"></span>
+          <span class="status-dot status-dot--err"></span>
           Block Navigation (3 months max)
         </label>
         <web-daterangepicker id="header-block" selection-mode="range" visible-months-count="1"></web-daterangepicker>
         <small>Cannot navigate more than 3 months ahead</small>
-        <div id="log-header-block" class="event-log" style="max-height: 150px;">
-          <div style="color: #9ca3af;">Try navigating past 3 months...</div>
+        <div id="log-header-block" class="log-panel log-panel--dark" style="--log-max-height: 150px">
+          <div class="muted">Try navigating past 3 months...</div>
         </div>
       </div>
 
@@ -638,8 +545,8 @@ picker.addEventListener('custom-action', (e) => {
           is-unified-navigation-enabled="true"
         ></web-daterangepicker>
         <small>Headers show occupancy rates with icons</small>
-        <div id="log-header-grid" class="event-log" style="max-height: 150px;">
-          <div style="color: #9ca3af;">Headers show occupancy percentage...</div>
+        <div id="log-header-grid" class="log-panel log-panel--dark" style="--log-max-height: 150px">
+          <div class="muted">Headers show occupancy percentage...</div>
         </div>
       </div>
     </div>
