@@ -110,7 +110,9 @@
      so consumers themeing several KeenMate components can declare one shared
      elevated surface. */
   --drp-dropdown-bg: var(--base-dropdown-bg, var(--base-elevated-bg, light-dark(#ffffff, #1a1a1a)));
-  --drp-border-color: var(--base-border-color, light-dark(#e5e7eb, #3a3a3a));
+  /* Default kept in step with web-multiselect's rc07 contrast fix — the old
+     light-dark(#e5e7eb, #3a3a3a) was near-invisible on both schemes. */
+  --drp-border-color: var(--base-border-color, light-dark(#cbd5e1, #52525b));
   /* Full border string - inherits from theme-designer --base-border */
   --drp-border: var(--base-border, var(--drp-border-width-base) solid var(--drp-border-color));
   /* Hover / active surface backgrounds. --drp-primary-bg paints hover states
@@ -179,7 +181,12 @@
   --drp-z-index-dropdown: 9500;
   --drp-z-index-modal-backdrop: 9700;
   --drp-z-index-modal: 9800;
-  --drp-z-index-tooltip: 9999;
+  --drp-z-index-fullscreen: 10001;                    /* phone full-screen overlay (above modal) */
+  /* Tooltip is a SIBLING of the calendar (both children of the container), not a
+     child of the sheet — so in full-screen mode it competes with the sheet in the
+     same stacking context. It must top every open surface, including the
+     full-screen overlay, or a tap-opened day/badge tooltip renders BEHIND the sheet. */
+  --drp-z-index-tooltip: 10002;
 
   /* Modal mode (positioning-mode="modal") */
   --drp-modal-gap: 16px;                              /* gap between calendar and viewport edges */
@@ -201,6 +208,54 @@
   --drp-modal-width-sm: calc(100vw - 2 * var(--drp-modal-gap));   /* same — small screens want the room */
   --drp-modal-width-md: 900px;                                    /* desktop-ish: 2 columns comfortably, grid wraps to 2-col */
   --drp-modal-width-lg: 1100px;                                   /* wide desktop: 3 month columns, 2×3 grid renders as configured */
+  --drp-modal-width-single: 360px;                                /* a lone single-month modal — natural width, normal-sized day cells */
+
+  /* Phone full-screen overlay (mobile-presentation="fullscreen" / auto on phones).
+     The sheet re-scales the whole calendar by overriding --drp-rem to
+     --drp-fullscreen-rem (≈1.2× the 10px base) so touch targets, text, and
+     spacing all grow together — see fullscreen.css. */
+  --drp-fullscreen-rem: 12px;
+  --drp-fullscreen-bg: var(--drp-dropdown-bg);
+  --drp-fullscreen-text-color: var(--drp-text-primary);
+  --drp-fullscreen-header-bg: var(--drp-fullscreen-bg);
+  --drp-fullscreen-header-border: 1px solid var(--drp-border-color);
+  --drp-fullscreen-header-gap: calc(0.8 * var(--drp-fullscreen-rem));
+  /* Split v/h so the close-button hit area (fullscreen.css) can reclaim the header
+     padding to reach the sheet's physical corner. */
+  --drp-fullscreen-header-padding-v: calc(0.8 * var(--drp-fullscreen-rem));
+  --drp-fullscreen-header-padding-h: calc(1.2 * var(--drp-fullscreen-rem));
+  --drp-fullscreen-header-padding: var(--drp-fullscreen-header-padding-v) var(--drp-fullscreen-header-padding-h);
+  /* Horizontal gutter for the sheet's scrolling content (month header + day grid)
+     so it doesn't hug the physical edges — matches the multiselect overlay's
+     header padding (1.2 × rem) for a consistent mobile chrome across the two
+     components. The floated ✕ (merged, title-less mode) is positioned to sit just
+     past this gutter, exactly like multiselect's close button. */
+  --drp-fullscreen-content-padding-h: calc(1.2 * var(--drp-fullscreen-rem));
+  /* Top breathing room above the content in merged (title-less) mode, where there
+     is no header bar to supply it — so the ‹ month › nav row starts a comfortable
+     gap below the sheet's top edge instead of hugging it, matching where the
+     multiselect overlay's search field starts under its header padding. Applied to
+     the SHEET's padding box so the floated ✕ (positioned from that box) shifts down
+     in lockstep with the nav row and stays vertically aligned with it. */
+  --drp-fullscreen-content-padding-top: calc(1.4 * var(--drp-fullscreen-rem));
+  --drp-fullscreen-header-min-height: calc(5.2 * var(--drp-fullscreen-rem));
+  --drp-fullscreen-title-font-size: calc(1.7 * var(--drp-fullscreen-rem));
+  --drp-fullscreen-title-color: var(--drp-fullscreen-text-color);
+  --drp-fullscreen-close-size: calc(3.6 * var(--drp-fullscreen-rem));
+  --drp-fullscreen-close-icon-size: calc(1.6 * var(--drp-fullscreen-rem));
+  --drp-fullscreen-close-color: var(--drp-fullscreen-text-color);
+  /* Close (✕) is a fixed-size chip: the defaults keep a bare round glyph, but set
+     these to make it a bordered command-palette-style button, e.g.
+     --drp-fullscreen-close-border: 1px solid var(--drp-border-color);
+     --drp-fullscreen-close-border-radius: calc(0.8 * var(--drp-fullscreen-rem));
+     --drp-fullscreen-close-bg: var(--drp-dropdown-bg); */
+  --drp-fullscreen-close-bg: transparent;
+  --drp-fullscreen-close-border: none;
+  --drp-fullscreen-close-border-radius: 50%;
+  --drp-fullscreen-close-bg-hover: rgba(0, 0, 0, 0.06);
+  /* How far the ✕ slides toward the sheet's trailing edge (its tap area reaches the
+     physical corner regardless — see the ::after hit area in fullscreen.css). */
+  --drp-fullscreen-close-edge-nudge: calc(0.8 * var(--drp-fullscreen-rem));
 
   /* ==========================================================================
      LAYOUT & DIMENSIONS
@@ -237,6 +292,42 @@
   --drp-input-focus-shadow-color: rgba(59, 130, 246, 0.1);
   --drp-input-focus-shadow-size: 3px;
   --drp-input-icon-opacity: 0.6;
+
+  /* Inline clear (✕) button — appears at the trailing edge of the input while it
+     holds a value; clears the selection + value. Mirrors web-multiselect's search
+     clear affordance. */
+  --drp-input-clear-size: calc(2.4 * var(--drp-rem));
+  --drp-input-clear-icon-size: calc(1.4 * var(--drp-rem));
+  --drp-input-clear-inset: calc(0.6 * var(--drp-rem));
+  --drp-input-clear-color: var(--base-input-clear-color, var(--drp-text-secondary));
+  --drp-input-clear-bg-hover: var(--base-input-clear-bg-hover, var(--drp-primary-bg));
+  /* ==========================================================================
+     ICONS
+     ==========================================================================
+     Every icon is drawn as a CSS mask (background-color: currentColor + mask),
+     NOT a font glyph — so it is pixel-identical across fonts/OSes (an emoji or
+     ‹ › renders differently per platform) and tints with the element's `color`.
+     Consume via the pattern:
+       content: ''; background-color: currentColor;
+       -webkit-mask: var(--drp-icon-X) center / contain no-repeat;
+               mask: var(--drp-icon-X) center / contain no-repeat;
+     (with an explicit width/height for the pseudo-element).
+
+     SOURCE: all icons are from the **Lucide** set via the pure-admin-icons MCP —
+     one set for the whole component (and the wider pure-admin family). Each SVG
+     is verbatim Lucide (24×24, fill=none, stroke, width 2, round caps/joins);
+     `stroke='black'` only makes the mask alpha opaque — the visible color comes
+     from `currentColor`. To add/replace an icon, pull it from the same Lucide set
+     (do not hand-draw or mix sets). */
+  /* Lucide `x` — the shared close/clear glyph. */
+  --drp-icon-input-clear: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M18 6 6 18'/><path d='m6 6 12 12'/></svg>");
+  --drp-icon-close: var(--drp-icon-input-clear);
+  /* Lucide `chevron-left` / `chevron-right` — prev/next month nav. */
+  --drp-icon-chevron-left: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='m15 18-6-6 6-6'/></svg>");
+  --drp-icon-chevron-right: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='m9 18 6-6-6-6'/></svg>");
+  /* Lucide `calendar` — the input affordance (replaces the 📅 emoji, whose shape
+     and color varied per OS). */
+  --drp-icon-calendar: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M8 2v3'/><path d='M16 2v3'/><rect x='3' y='3' width='18' height='18' rx='2'/><path d='M3 9h18'/></svg>");
 
   /* ==========================================================================
      INPUT SIZE VARIANTS (BASE VALUES)
@@ -290,6 +381,7 @@
 
   /* Navigation Button Dimensions */
   --drp-nav-size: calc(3.2 * var(--drp-rem));  /* 32px */
+  --drp-nav-icon-size: calc(1.8 * var(--drp-rem));  /* prev/next chevron mask */
 
   /* Time Picker (pickerMode: time / datetime) */
   --drp-time-picker-gap: var(--drp-spacing-sm);

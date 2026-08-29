@@ -117,6 +117,30 @@ test('an explicit placeholder attribute wins over display-format-mask', async ({
     await expect(inputOf(p)).toHaveAttribute('placeholder', 'Vyberte datum');
 });
 
+// a plain single date picker auto-derives the format hint from date-format-mask
+// (no explicit placeholder / display-format-mask needed).
+test('single mode: placeholder auto-derives from the default date-format-mask', async ({ page }) => {
+    const p = pickerById(page, 'single-default');
+    await expect(inputOf(p)).toHaveAttribute('placeholder', 'YYYY-MM-DD');
+});
+
+// range mode doubles the format hint around " - " so the placeholder shows the
+// user must type BOTH a start and an end date.
+test('range mode: placeholder doubles the default date-format-mask hint', async ({ page }) => {
+    const p = pickerById(page, 'range-hint-default');
+    await expect(inputOf(p)).toHaveAttribute('placeholder', 'YYYY-MM-DD - YYYY-MM-DD');
+});
+
+test('range mode: placeholder doubles the localized display-format-mask hint', async ({ page }) => {
+    const p = pickerById(page, 'range-hint-display');
+    await expect(inputOf(p)).toHaveAttribute('placeholder', 'dd.mm.rrrr - dd.mm.rrrr');
+});
+
+test('range mode: an explicit placeholder wins verbatim (not doubled)', async ({ page }) => {
+    const p = pickerById(page, 'range-placeholder-wins');
+    await expect(inputOf(p)).toHaveAttribute('placeholder', 'Vyberte rozsah');
+});
+
 // =============================================================================
 // v2.0.0 state-accessor alignment — DISPLAYED getters + settable selectedDatetime
 // =============================================================================

@@ -148,6 +148,7 @@ export function renderNormalView(picker: any, monthIndex: number) {
             // Use callback to generate header
             headerText = picker.options.getMonthHeaderCallback({
                 picker,
+                ...picker.presentationCtx(),
                 month: date,
                 monthIndex: monthIndex,
                 monthName: monthName,
@@ -178,6 +179,7 @@ export function renderNormalView(picker: any, monthIndex: number) {
         if (picker.options.getUnifiedHeaderCallback) {
             const headerText = picker.options.getUnifiedHeaderCallback({
                 picker,
+                ...picker.presentationCtx(),
                 firstMonth,
                 lastMonth,
                 anchorMonth,
@@ -380,6 +382,7 @@ export function renderDays(picker: any, monthIndex: number, date: Date) {
             if (picker.options.badgeTooltipCallback && dateInfo?.badgeText) {
                 // Build DayRenderContext for callback (minimal version for badge context)
                 const dayRenderData = {
+                    ...picker.presentationCtx(),
                     date: dayData.date,
                     dateString: Validation.formatDateKey(dayData.date),
                     dayNumber: dayData.day,
@@ -533,6 +536,7 @@ export function renderDays(picker: any, monthIndex: number, date: Date) {
             if (picker.options.dayTooltipCallback) {
                 // Build DayRenderContext for callback
                 const dayRenderData = {
+                    ...picker.presentationCtx(),
                     date: dayData.date,
                     dateString: dateStr,
                     dayNumber: dayData.day,
@@ -616,6 +620,7 @@ function processRenderCallbacks(picker: any, monthIndex: number, daysContainer: 
         const isInRange = picker.options.selectionMode === 'range' && picker.isInCommittedRange(date);
 
         const renderData = {
+            ...picker.presentationCtx(),
             date: date,
             dateString: dateStr,
             dayNumber: dayNumber,
@@ -1416,6 +1421,7 @@ export function updateSummary(picker: any) {
         if (picker.options.formatSummaryCallback) {
             const callbackData: any = {
                 picker,
+                ...picker.presentationCtx(),
                 days,
                 nights,
                 startDate: picker._selectedStartDate,
@@ -1516,6 +1522,7 @@ export function updateSummaryWithPreview(picker: any) {
         if (picker.options.formatSummaryCallback) {
             const callbackData: any = {
                 picker,
+                ...picker.presentationCtx(),
                 days,
                 nights,
                 startDate: picker.dragPreviewStart,

@@ -45,6 +45,29 @@
             placeholder="Vyberte datum"></web-daterangepicker>
     </div>
 
+    <div class="fixture">
+        <div class="fixture-label">single mode — placeholder auto-derives from default date-format-mask</div>
+        <web-daterangepicker id="single-default" selection-mode="single"></web-daterangepicker>
+    </div>
+
+    <div class="fixture">
+        <div class="fixture-label">range mode — placeholder hint is doubled around " - " (default date-format-mask)</div>
+        <web-daterangepicker id="range-hint-default" selection-mode="range"></web-daterangepicker>
+    </div>
+
+    <div class="fixture">
+        <div class="fixture-label">range mode — doubled display-format-mask hint</div>
+        <web-daterangepicker id="range-hint-display" selection-mode="range"
+            date-format-mask="DD.MM.YYYY"
+            display-format-mask="dd.mm.rrrr"></web-daterangepicker>
+    </div>
+
+    <div class="fixture">
+        <div class="fixture-label">range mode — explicit placeholder wins verbatim (not doubled)</div>
+        <web-daterangepicker id="range-placeholder-wins" selection-mode="range"
+            placeholder="Vyberte rozsah"></web-daterangepicker>
+    </div>
+
     <script type="module" src="/src/index.ts"></script>
 </body>
 </html>

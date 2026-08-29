@@ -11,7 +11,7 @@
  * and the managed `on<Name>` handler properties. This file keeps only what is
  * genuinely daterangepicker-specific: the bridge from the merged `config` to the
  * real calendar engine (`DateRangePicker` in `date-picker.ts`), the input-element
- * shell, the mobile-modal matchMedia auto-engage, and the imperative API.
+ * shell, the device-adaptive presentation (SPEC §12.9), and the imperative API.
  *
  * Reactivity is declared per input via `on:`, derived from the engine's own
  * `updateOptions()` STRUCTURAL_KEYS:
@@ -32,8 +32,13 @@ import {
   toValue,
   adoptStyles,
   createStyleSlot,
+  getEnvironment,
+  resolvePresentation,
   type InputDef,
   type StyleSlot,
+  type EnvironmentSnapshot,
+  type ElementSize,
+  type MobilePresentation,
 } from '@keenmate/web-components-core';
 import { DateRangePicker } from './date-picker';
 import { toWeekStartDay, toDisabledWeekdays, toDisabledDates, toPipeList } from './converters';
@@ -57,8 +62,9 @@ const SELECTION_MODES = ['single', 'range', 'multiple'] as const;
 const TRIGGERS = ['focus', 'typing', 'manual'] as const;
 const MONTH_LAYOUTS = ['horizontal', 'grid'] as const;
 const POSITIONING_MODES = ['inline', 'floating', 'modal'] as const;
+const MOBILE_PRESENTATIONS = ['auto', 'floating', 'modal', 'fullscreen'] as const;
 const DISABLED_HANDLING = ['allow', 'prevent', 'block', 'split', 'individual'] as const;
-const AUTO_CLOSE = ['never', 'selection', 'apply'] as const;
+const COMMIT_MODE = ['selection', 'apply', 'manual'] as const;
 const PICKER_MODES = ['date', 'time', 'datetime'] as const;
 const HOUR_CYCLES = ['h12', 'h24'] as const;
 const TIME_DISPLAYS = ['rolls', 'clock', 'wheel', 'compact'] as const;
@@ -88,7 +94,7 @@ const INPUTS: readonly InputDef[] = [
 
   // ── In-place (→ update): the engine patches these without a rebuild ───────
   { configKey: 'dateFormatMask',               attribute: 'date-format-mask',              converter: toText({ default: 'YYYY-MM-DD' }), on: 'update', description: 'Parse/format mask for dates (YYYY/YY, MM/M, DD/D with any separators).' },
-  { configKey: 'displayFormatMask',            attribute: 'display-format-mask',           converter: toText({ isNullable: true }), on: 'update', description: 'Localized format hint shown as the input placeholder (when no explicit `placeholder`).' },
+  { configKey: 'displayFormatMask',            attribute: 'display-format-mask',           converter: toText({ isNullable: true }), on: 'update', description: 'Localized format hint shown as the input placeholder (when no explicit `placeholder`). In `range` mode the hint is doubled around " - " (e.g. `YYYY-MM-DD - YYYY-MM-DD`).' },
   { configKey: 'isUnifiedHeaderInteractive',   attribute: 'is-unified-header-interactive', converter: toBool('presence'), on: 'update', description: 'Make the unified grid header clickable (opens the rolling selector).' },
   { configKey: 'calendarPlacement',            attribute: 'calendar-placement',            converter: toText({ isNullable: true }), on: 'update', description: 'Floating-UI placement for the popover (default `bottom-start`).' },
   { configKey: 'weekStartDay',                 attribute: 'week-start-day',                converter: toWeekStartDay(), on: 'update', type: "'auto' | 0 | 1 | 2 | 3 | 4 | 5 | 6", description: 'First column of the week: `auto` (locale) or a weekday index 0 (Sunday)–6 (Saturday).' },
@@ -104,11 +110,10 @@ const INPUTS: readonly InputDef[] = [
   { configKey: 'weekdayNames',                 attribute: 'weekday-names',                 converter: toPipeList(7), on: 'update', type: 'string[]', description: 'Override weekday names. Attribute: 7 pipe-delimited names, index 0=Sunday; property: `string[]`.' },
   { configKey: 'rollingYearRange',             attribute: 'rolling-year-range',            converter: toText({ isNullable: true }), on: 'update', description: 'Constrains the rolling year selector (e.g. `-5:+5` or absolute years).' },
   { configKey: 'rollingMonthRange',            attribute: 'rolling-month-range',           converter: toText({ isNullable: true }), on: 'update', description: 'Constrains the rolling month selector.' },
-  { configKey: 'autoClose',                    attribute: 'auto-close',                    converter: toEnum(AUTO_CLOSE), on: 'update', description: 'When the floating calendar closes automatically: `never`, on `selection`, or on `apply`.' },
+  { configKey: 'commitMode',                   attribute: 'commit-mode',                   converter: toEnum(COMMIT_MODE), on: 'update', description: 'How a selection is committed + the calendar dismissed: `selection` (commit & close on pick), `apply` (Apply button commits), or `manual` (app-driven, no built-in button).' },
   { configKey: 'shouldCloseOnScroll',          attribute: 'should-close-on-scroll',        converter: toBool('tristate'), on: 'update', description: 'Close the floating calendar when the page scrolls.' },
   { configKey: 'isTodayButtonShown',           attribute: 'is-today-button-shown',         converter: toBool('tristate'), on: 'update', description: 'Show the “Today” action button.' },
   { configKey: 'isClearButtonShown',           attribute: 'is-clear-button-shown',         converter: toBool('tristate'), on: 'update', description: 'Show the “Clear” action button.' },
-  { configKey: 'isApplyButtonShown',           attribute: 'is-apply-button-shown',         converter: toBool('tristate'), on: 'update', description: 'Show the “Apply” action button (defers events until clicked).' },
   { configKey: 'timeFormatMask',               attribute: 'time-format-mask',              converter: toText({ default: 'HH:mm' }), on: 'update', description: 'Parse/format mask for times (HH/mm/ss).' },
   { configKey: 'displayTimeFormatMask',        attribute: 'display-time-format-mask',      converter: toText({ isNullable: true }), on: 'update', description: 'Localized display mask for the time portion.' },
   { configKey: 'timeStep',                     attribute: 'time-step',                     converter: toInt({ min: 1 }), on: 'update', description: 'Minute step for the time picker.' },
@@ -134,14 +139,17 @@ const INPUTS: readonly InputDef[] = [
 
   // ── Element-level attributes (NON-picker; handled by this element) ────────
   { configKey: 'inputValue',                   attribute: 'value',                         converter: toText({ isNullable: true, isEmptyAllowed: true }), on: 'update', description: 'Text value of the control (the formatted selection). Reflected to the live input in floating/modal modes and to the hidden form-value input in inline mode; read/write via the `value` property.' },
-  { configKey: 'placeholder',                  attribute: 'placeholder',                   converter: toText({ isNullable: true }), on: 'update', description: 'Input placeholder (falls back to display-format-mask).' },
+  { configKey: 'placeholder',                  attribute: 'placeholder',                   converter: toText({ isNullable: true }), on: 'update', description: 'Input placeholder. When unset, plain date pickers auto-derive it from display-format-mask / date-format-mask (`YYYY-MM-DD`), doubled in `range` mode (`YYYY-MM-DD - YYYY-MM-DD`).' },
   { configKey: 'disabled',                     attribute: 'disabled',                      converter: toBool('presence'), reflect: true, on: 'update', description: 'Disable the input.' },
   { configKey: 'isReadonly',                   attribute: 'readonly',                      converter: toBool('presence'), on: 'update', description: 'Full read-only lock (freezes every interaction aspect). Read/write via the `readonly` property, or use `lock()` for partial locks.' },
   { configKey: 'inputSize',                    attribute: 'input-size',                    converter: toText({ default: 'md' }), on: 'update', description: 'Input size scale: `xs` | `sm` | `md` | `lg` | `xl` (floating/modal only).' },
   { configKey: 'enableTransitions',            attribute: 'enable-transitions',            converter: toBool('presence'), reflect: true, on: 'update', description: 'Opt into calendar open/close CSS transitions.' },
-  { configKey: 'mobileModalBreakpoint',        attribute: 'mobile-modal-breakpoint',       converter: toText({ isNullable: true }), on: 'update', description: 'Viewport width below which a floating picker auto-switches to modal (e.g. `640px`).' },
-  { configKey: 'mobileModalMinHeight',         attribute: 'mobile-modal-min-height',       converter: toText({ isNullable: true }), on: 'update', description: 'Viewport height below which a floating picker auto-switches to modal (e.g. `500px`).' },
+  { configKey: 'mobilePresentation',           attribute: 'mobile-presentation',           converter: toEnum(MOBILE_PRESENTATIONS, { default: 'auto' }), reflect: true, on: 'update', description: 'How a `floating` picker adapts to the device (SPEC §12.9, via web-components-core). `auto` (default) keeps the floating popover on desktop, uses a centered `modal` on tablets, and a full-screen overlay on phones (touch-primary + shorter viewport side < 600px, orientation-robust). `floating`/`modal`/`fullscreen` force that presentation on any device (handy for previews/testing). Only adapts a floating picker — an explicit `positioning-mode` of `inline` or `modal` is left as authored. Resolved reactively from the device/viewport environment.' },
+  { configKey: 'fullscreenAutofocus',          attribute: 'fullscreen-autofocus',          converter: toBool('presence'), on: 'update', description: 'In the phone full-screen overlay, focus the date input on open (pops the soft keyboard for type-to-fill). Default off: the sheet opens with the calendar visible and the keyboard closed. No effect in floating/modal presentations.' },
+  { configKey: 'fullscreenTitle',              attribute: 'fullscreen-title',              converter: toText({ isNullable: true }), on: 'update', description: 'Optional heading shown in the phone full-screen overlay header, next to the close (✕) button. When unset the header shows just the close button.' },
+  { configKey: 'fullscreenInput',              attribute: 'fullscreen-input',              converter: toBool('presence'), on: 'update', description: 'In the phone full-screen overlay, relocate the date input into the header so it is visible and typeable above the sheet (with a numeric keypad; the mask supplies the separators). Takes over the header row, so fullscreen-title is not shown alongside it. No effect in floating/modal presentations.' },
   { configKey: 'showDebugInfo',                attribute: 'show-debug-info',               converter: toBool('presence'), on: 'update', description: 'Enable the picker’s debug logging.' },
+  { configKey: 'compactBelow',                 attribute: 'compact-below',                 converter: toInt({ min: 0 }), on: 'update', description: 'Container-responsive compaction threshold in CSS px. When the element’s OWN box is narrower than this, the calendar collapses to a single month and hides the Today/Clear buttons — keyed on the element box (core’s shared ResizeObserver), not the viewport, so a picker in a narrow column/sidebar compacts even on a wide monitor. Unset or `0` disables it. Purely presentational tweaks (padding, label→icon) belong in CSS `@container`; this drives the structural month-count change.' },
 
   // ── Complex property data (property-only) ─────────────────────────────────
   { configKey: 'specialDates',                 converter: toObjectArray(), on: 'update', type: 'DecoratedDate[]', description: 'Array of decorated-date objects (badges, tooltips, per-day classes). Property-only.' },
@@ -181,14 +189,31 @@ const EVENTS = [
 
 /**
  * configKeys that are NOT part of the picker's `DatePickerOptions` — handled by
- * this element directly (input shell, mobile-modal, custom styles). Stripped
+ * this element directly (input shell, presentation policy, custom styles). Stripped
  * before the merged config is handed to the picker.
  */
 const NON_PICKER_KEYS = new Set([
   'inputValue', 'placeholder', 'disabled', 'isReadonly', 'inputSize', 'enableTransitions',
-  'mobileModalBreakpoint', 'mobileModalMinHeight', 'customStylesCallback',
+  'mobilePresentation', 'customStylesCallback', 'compactBelow',
   'formFieldName', 'valueFormat', 'getValueFormatCallback',
 ]);
+
+/**
+ * A committed-selection snapshot, taken before a structural rebuild (e.g. the
+ * responsive month-count flip) and restored after, so a resize never silently
+ * drops the user's dates. Covers every selection mode; the restore reads
+ * selectionMode/pickerMode to pick the right accessor.
+ */
+type SelectionSnapshot = {
+  date: Date | null;
+  dates: Date[];
+  ranges: DateRange[];
+  startDate: Date | null;
+  endDate: Date | null;
+  time: SelectedTime | null;
+  datetime: Date | null;
+  inputText: string;
+};
 
 /** Modes that render an input element (inline mode has none). */
 function hasInput(mode: string): boolean {
@@ -218,17 +243,22 @@ export class WebDaterangepickerElement extends BlissElement<DrpEvents> {
   #shadow: ShadowRoot;
   #picker?: DateRangePicker;
   #inputElement?: HTMLInputElement;
+  // Positioned wrapper around the visible input + its inline ✕ clear button.
+  #inputWrapper?: HTMLDivElement;
+  #inputClearButton?: HTMLButtonElement;
   #customStyles: StyleSlot | null = null;
   // Light-DOM hidden <input>(s) that carry the selection into form submission
   // (web-multiselect's model). Children of the host, so they sit inside the
   // <form> and submit under `name`; the host itself never calls setFormValue.
   #hiddenInputs: HTMLInputElement[] = [];
 
-  // mobile-modal auto-engage: matchMedia listeners that flip positioning-mode
-  // between the configured value and 'modal' as the viewport crosses a threshold.
-  #mobileModalMqls: MediaQueryList[] = [];
-  #mobileModalListener: (() => void) | null = null;
-  #configuredPositioningMode: string | null = null;
+  // Container-responsive compaction (core rc09 `resized` hook). `#narrowMax` is the
+  // px threshold derived from `compact-below` (0 = disabled); `#isNarrow` is the
+  // current state. When narrow, #assembleConfig layers a compact override (1 month,
+  // no Today/Clear) on top of the pristine base config — the config itself is never
+  // mutated, so widening back restores exactly what the consumer authored.
+  #narrowMax = 0;
+  #isNarrow = false;
 
   constructor() {
     super();
@@ -254,20 +284,33 @@ export class WebDaterangepickerElement extends BlissElement<DrpEvents> {
     if ('inputValue' in partial) {
       if (this.#inputElement) this.#inputElement.value = (partial.inputValue as string | null) ?? '';
       this.#refreshFormValue(); // keep form submission in sync with a programmatic value
+      this.#updateInputClear();
     }
     // Form wiring changes (name / serialization) re-render the hidden input(s).
     if ('formFieldName' in partial || 'valueFormat' in partial || 'getValueFormatCallback' in partial) {
       this.#refreshFormValue();
     }
     if ('placeholder' in partial) this.#applyPlaceholder();
-    if ('disabled' in partial && this.#inputElement) this.#inputElement.disabled = !!partial.disabled;
-    if ('isReadonly' in partial && this.#picker) partial.isReadonly ? this.#picker.lock() : this.#picker.unlock();
+    if ('disabled' in partial && this.#inputElement) { this.#inputElement.disabled = !!partial.disabled; this.#updateInputClear(); }
+    if ('isReadonly' in partial && this.#picker) { partial.isReadonly ? this.#picker.lock() : this.#picker.unlock(); this.#updateInputClear(); }
     if ('inputSize' in partial) this.#applyInputSizeStyles();
     if ('enableTransitions' in partial) this.#applyTransitionStyles();
     if ('displayFormatMask' in partial) this.#applyPlaceholder();
+    // date-format-mask feeds the range-mode placeholder fallback, so re-derive the
+    // hint when it changes at runtime (no-op for an explicit placeholder).
+    if ('dateFormatMask' in partial) this.#applyPlaceholder();
     if ('customStylesCallback' in partial) this.#applyCustomStyles();
-    if (('mobileModalBreakpoint' in partial || 'mobileModalMinHeight' in partial) && this.#picker) {
-      this.#setupMobileModalListener();
+    if ('mobilePresentation' in partial && this.#picker) {
+      // Presentation policy changed at runtime — the environment observable won't
+      // re-fire on its own, so re-resolve against the current environment now.
+      this.#applyPresentation(getEnvironment());
+    }
+    if ('compactBelow' in partial) {
+      // Re-evaluate the compaction threshold against the current box; a flip of the
+      // compact state requires a rebuild (month-count is structural).
+      const prev = this.#isNarrow;
+      this.#measureNarrow();
+      if (this.#isNarrow !== prev) this.#rebuildPreservingSelection();
     }
 
     // Everything else goes to the live picker as an in-place patch; null clears
@@ -285,12 +328,13 @@ export class WebDaterangepickerElement extends BlissElement<DrpEvents> {
   /** Activate: ensure the picker exists (a DOM move destroyed it in disconnect()). */
   protected override connect(): void {
     if (!this.#picker) this.#buildPicker();
-    this.#setupMobileModalListener();
+    // The device-adaptive presentation runs off core's environment observable,
+    // which BlissElement (un)subscribes automatically because we override
+    // environmentChanged() — no per-connect wiring needed here.
   }
 
   /** Deactivate: tear the picker down (rebuilt on the next connect). */
   protected override disconnect(): void {
-    this.#teardownMobileModalListener();
     this.#picker?.destroy();
     this.#picker = undefined;
   }
@@ -299,6 +343,7 @@ export class WebDaterangepickerElement extends BlissElement<DrpEvents> {
   formResetCallback(): void {
     this.#picker?.clearSelection();
     if (this.#inputElement) this.#inputElement.value = '';
+    this.#updateInputClear();
     this.#updateFormValue(); // selection is now empty → clears the hidden input(s)
   }
 
@@ -319,10 +364,19 @@ export class WebDaterangepickerElement extends BlissElement<DrpEvents> {
     // kind, drop the stale one so #ensureInput rebuilds the right one.
     const wantHidden = !hasInput(mode);
     if (this.#inputElement && (this.#inputElement.type === 'hidden') !== wantHidden) {
-      this.#inputElement.remove();
+      // Remove the wrapper (visible input) or the bare hidden input, and reset refs
+      // so #ensureInput rebuilds the right shell.
+      (this.#inputWrapper ?? this.#inputElement).remove();
       this.#inputElement = undefined;
+      this.#inputWrapper = undefined;
+      this.#inputClearButton = undefined;
     }
     this.#ensureInput();
+
+    // Seed the responsive-compaction state from the current box BEFORE assembling
+    // config: `resized()` fires only after layout, so the first build must measure
+    // directly, otherwise a narrow container would flash the wide layout then rebuild.
+    this.#measureNarrow();
 
     const options = this.#assembleConfig();
     this.#picker = new DateRangePicker(this.#inputElement ?? null, options as DatePickerOptions);
@@ -336,6 +390,11 @@ export class WebDaterangepickerElement extends BlissElement<DrpEvents> {
     this.#refreshFormValue();
 
     this.#applyCustomStyles();
+    // Resolve the device presentation for the freshly built picker. A rebuild via
+    // reinit (e.g. positioning-mode change) does NOT re-fire environmentChanged, so
+    // seed it here; on a plain connect this is a harmless no-op before the hook's
+    // own immediate fire.
+    this.#applyPresentation(getEnvironment());
     // Apply transition styles once the calendar DOM exists.
     setTimeout(() => this.#applyTransitionStyles(), 0);
   }
@@ -360,9 +419,57 @@ export class WebDaterangepickerElement extends BlissElement<DrpEvents> {
     const value = this.config.inputValue as string | null;
     if (value) input.value = value;
     if (this.config.disabled && !isHidden) input.disabled = true;
-    this.#shadow.appendChild(input);
+
+    if (isHidden) {
+      this.#shadow.appendChild(input);
+    } else {
+      // Wrap the visible input so the inline ✕ clear button can pin to its trailing
+      // edge. The clear appears only while the field holds a value (see
+      // #updateInputClear) and clears the selection without stealing focus.
+      const wrapper = document.createElement('div');
+      wrapper.className = 'drp__input-wrapper';
+      const clear = document.createElement('button');
+      clear.type = 'button';
+      clear.className = 'drp__input-clear';
+      clear.setAttribute('aria-label', 'Clear');
+      clear.tabIndex = -1;
+      // mousedown+preventDefault so the tap doesn't blur the field first; the clear
+      // runs on click and re-focuses the input.
+      clear.addEventListener('mousedown', (e) => e.preventDefault());
+      clear.addEventListener('click', () => this.#clearInput());
+      // Toggle the clear's visibility as the user types (mask handler dispatches
+      // 'input' too), and keep the form value fresh on manual edits.
+      input.addEventListener('input', () => this.#updateInputClear());
+      wrapper.appendChild(input);
+      wrapper.appendChild(clear);
+      this.#shadow.appendChild(wrapper);
+      this.#inputWrapper = wrapper;
+      this.#inputClearButton = clear;
+    }
+
     this.#inputElement = input;
-    if (!isHidden) this.#applyInputSizeStyles();
+    if (!isHidden) {
+      this.#applyInputSizeStyles();
+      this.#updateInputClear();
+    }
+  }
+
+  /** Show the inline ✕ only while the visible field holds a value and is editable. */
+  #updateInputClear(): void {
+    const btn = this.#inputClearButton;
+    const input = this.#inputElement;
+    if (!btn || !input) return;
+    const show = !!input.value && !input.disabled && !input.readOnly;
+    btn.classList.toggle('drp__input-clear--visible', show);
+  }
+
+  /** Clear the selection + input value, refresh the submitted value, and refocus. */
+  #clearInput(): void {
+    this.#picker?.clearSelection();
+    if (this.#inputElement) this.#inputElement.value = '';
+    this.#refreshFormValue();
+    this.#updateInputClear();
+    this.#inputElement?.focus();
   }
 
   /**
@@ -378,6 +485,14 @@ export class WebDaterangepickerElement extends BlissElement<DrpEvents> {
       if (cfg[key] === null) delete cfg[key];
     }
 
+    // Container-responsive compaction: layer the compact override on top of the
+    // pristine base (this.config is never mutated, so widening restores it verbatim).
+    if (this.#isNarrow) {
+      cfg.visibleMonthsCount = 1;
+      cfg.isTodayButtonShown = false;
+      cfg.isClearButtonShown = false;
+    }
+
     cfg.onSelect = (date: Date | DateRange | DateRange[] | Date[]) => this.#handleDateSelect(date);
     cfg.container = this.#shadow as unknown as HTMLElement;
     return cfg;
@@ -386,6 +501,8 @@ export class WebDaterangepickerElement extends BlissElement<DrpEvents> {
   // ── event bridge ──────────────────────────────────────────────────────────
 
   #handleDateSelect(date: Date | DateRange | DateRange[] | Date[]): void {
+    // A calendar/drag selection writes into input.value — reflect it on the clear ✕.
+    this.#updateInputClear();
     const detail: SelectEventDetail = {
       date: date instanceof Date ? date : undefined,
       dateRange: date instanceof Date ? undefined : (Array.isArray(date) ? undefined : date),
@@ -573,9 +690,22 @@ export class WebDaterangepickerElement extends BlissElement<DrpEvents> {
   }
 
   #applyPlaceholderTo(input: HTMLInputElement): void {
-    // Explicit placeholder wins; otherwise fall back to display-format-mask.
-    const placeholder = (this.config.placeholder as string | null) ?? (this.config.displayFormatMask as string | null);
-    input.placeholder = placeholder ?? '';
+    // Explicit placeholder wins verbatim (including an intentional empty string).
+    const explicit = this.config.placeholder as string | null;
+    if (explicit != null) { input.placeholder = explicit; return; }
+
+    // Otherwise derive a format hint. Prefer the localized display-format-mask; for
+    // plain date pickers fall back to the parse mask so a hint always shows without
+    // the consumer hardcoding one. (Time/datetime need an explicit placeholder or
+    // display-format-mask — the date mask alone is an incomplete hint.) Range mode
+    // doubles the hint around the canonical " - " separator (mirroring the committed
+    // range form) so users see they type a start AND an end — e.g.
+    // "YYYY-MM-DD - YYYY-MM-DD" for range vs the single-date "YYYY-MM-DD".
+    const isRange = (this.config.selectionMode as string) === 'range';
+    const isDateMode = ((this.config.pickerMode as string) ?? 'date') === 'date';
+    const base = (this.config.displayFormatMask as string | null)
+      ?? (isDateMode ? (this.config.dateFormatMask as string | null) : null);
+    input.placeholder = base ? (isRange ? `${base} - ${base}` : base) : '';
   }
 
   #applyInputSizeStyles(): void {
@@ -608,51 +738,126 @@ export class WebDaterangepickerElement extends BlissElement<DrpEvents> {
     }
   }
 
-  // ── mobile-modal auto-engage ──────────────────────────────────────────────
+  // ── responsive presentation (SPEC §12.9) ──────────────────────────────────
 
   /**
-   * Set up matchMedia listeners that auto-switch positioning-mode to 'modal'
-   * when ANY configured viewport threshold matches, and back to the configured
-   * mode when none do. Only engages when the configured mode is 'floating'.
+   * Adapt the presentation to the device, driven by core's environment observable
+   * (SPEC §12.9). Overriding this hook opts the element into the observable:
+   * BlissElement subscribes on connect (firing immediately with the current
+   * snapshot) and on every change (an orientation flip / resize re-fires), and
+   * unsubscribes on disconnect.
    */
-  #setupMobileModalListener(): void {
-    this.#teardownMobileModalListener();
-
-    const widthRaw = this.config.mobileModalBreakpoint as string | null;
-    const heightRaw = this.config.mobileModalMinHeight as string | null;
-    if (!widthRaw && !heightRaw) return;
-
-    // Auto-engage only from 'floating'. `_configuredPositioningMode` remembers the
-    // origin so later flips can restore it (config.positioningMode becomes 'modal').
-    const configured = this.#configuredPositioningMode ?? ((this.config.positioningMode as string) || 'floating');
-    if (configured !== 'floating') return;
-    this.#configuredPositioningMode = configured;
-
-    const normalize = (raw: string) => (/^\d+$/.test(raw) ? `${raw}px` : raw);
-    const queries: string[] = [];
-    if (widthRaw) queries.push(`(max-width: ${normalize(widthRaw)})`);
-    if (heightRaw) queries.push(`(max-height: ${normalize(heightRaw)})`);
-    if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') return;
-
-    this.#mobileModalMqls = queries.map((q) => window.matchMedia(q));
-
-    const apply = () => {
-      const anyMatch = this.#mobileModalMqls.some((mql) => mql.matches);
-      const target = anyMatch ? 'modal' : (this.#configuredPositioningMode || 'floating');
-      if (this.getAttribute('positioning-mode') !== target) this.setAttribute('positioning-mode', target);
-    };
-    apply();
-    this.#mobileModalListener = apply;
-    this.#mobileModalMqls.forEach((mql) => mql.addEventListener('change', this.#mobileModalListener!));
+  protected override environmentChanged(env: EnvironmentSnapshot): void {
+    this.#applyPresentation(env);
   }
 
-  #teardownMobileModalListener(): void {
-    if (this.#mobileModalListener) {
-      this.#mobileModalMqls.forEach((mql) => mql.removeEventListener('change', this.#mobileModalListener!));
+  /**
+   * Resolve the concrete presentation for the current device and push it to the
+   * live picker (in place — no rebuild). Only a `floating`-configured picker
+   * adapts; `inline` and an explicit `modal` base are left exactly as authored.
+   *
+   * The class→presentation policy is core's `resolvePresentation` with our one
+   * override, `{ tablet: 'modal' }`, giving the three-tier ladder:
+   *   - phone   (touch, shorter side < 600px) → `fullscreen`
+   *   - tablet  (touch, shorter side ≥ 600px) → `modal`
+   *   - desktop (fine pointer, any width)      → `floating`
+   * A forced `mobile-presentation` (`floating`/`modal`/`fullscreen`) wins on any
+   * device — handy for previewing the phone overlay on a desktop.
+   */
+  #applyPresentation(env: EnvironmentSnapshot): void {
+    if (!this.#picker) return;
+    if ((this.config.positioningMode as string) !== 'floating') return;
+    const mode = (this.config.mobilePresentation as MobilePresentation | null) ?? 'auto';
+    this.#picker.setPresentation(resolvePresentation(mode, env, { tablet: 'modal' }));
+  }
+
+  // ── container-responsive compaction (SPEC §12.9, core `resized` hook) ──────
+
+  /**
+   * React to THIS element's own box changing (core's shared, per-element
+   * ResizeObserver), as distinct from the viewport. When the box crosses the
+   * `compact-below` threshold we swap between the authored month layout and a
+   * compact one (single month, no wide Today/Clear buttons) so a picker in a
+   * narrow column stays usable — the container-query companion to the
+   * environment-driven `mobilePresentation`.
+   *
+   * Month-column count is a STRUCTURAL engine option (no in-place patch), so a
+   * threshold cross rebuilds the picker; the committed selection is snapshotted
+   * and restored so a resize never drops the user's dates. Merely overriding this
+   * hook subscribes the element to the observer (core wires it on connect and
+   * tears it down on disconnect) — cheap even for pickers that never opt in.
+   */
+  protected override resized({ width }: ElementSize): void {
+    if (width <= 0) return;                       // detached / pre-layout measure
+    const narrow = this.#narrowMax > 0 && width < this.#narrowMax;
+    if (narrow === this.#isNarrow) return;        // no threshold cross → nothing to do
+    this.#isNarrow = narrow;
+    this.#rebuildPreservingSelection();
+  }
+
+  /**
+   * Sync `#narrowMax` from `compact-below` and re-measure the current box into
+   * `#isNarrow`. The single source of truth for the compaction state, called at
+   * build time (before assembling config) and whenever the threshold changes.
+   */
+  #measureNarrow(): void {
+    this.#narrowMax = (this.config.compactBelow as number | null) ?? 0;
+    if (this.#narrowMax <= 0) { this.#isNarrow = false; return; }
+    const width = this.getBoundingClientRect().width;
+    if (width > 0) this.#isNarrow = width < this.#narrowMax;
+  }
+
+  /** Rebuild the picker while carrying the committed selection across (used by the
+   *  structural responsive flip, where the engine can't patch in place). */
+  #rebuildPreservingSelection(): void {
+    const snap = this.#snapshotSelection();
+    this.#rebuildPicker();
+    this.#restoreSelection(snap);
+    this.#refreshFormValue(); // re-seed the hidden form input(s) from the restored selection
+  }
+
+  /** Snapshot the committed selection (every mode) ahead of a structural rebuild. */
+  #snapshotSelection(): SelectionSnapshot | null {
+    const p = this.#picker;
+    if (!p) return null;
+    return {
+      date: p.selectedDate,
+      dates: p.selectedDates,
+      ranges: p.selectedRanges,
+      startDate: p.selectedStartDate,
+      endDate: p.selectedEndDate,
+      time: p.selectedTime,
+      datetime: p.selectedDatetime,
+      inputText: this.#inputElement?.value ?? '',
+    };
+  }
+
+  /** Restore a {@link SelectionSnapshot} onto the freshly rebuilt picker. */
+  #restoreSelection(snap: SelectionSnapshot | null): void {
+    const p = this.#picker;
+    if (!p || !snap) return;
+    const mode = (this.config.selectionMode as string) ?? 'single';
+    const pmode = (this.config.pickerMode as string) ?? 'date';
+
+    if (pmode === 'time') {
+      if (snap.time) p.selectedTime = snap.time;
+    } else if (mode === 'range') {
+      if (snap.ranges.length) p.selectedRanges = snap.ranges;
+      else if (snap.startDate && snap.endDate) p.selectedRanges = [{ start: snap.startDate, end: snap.endDate }];
+    } else if (mode === 'multiple') {
+      if (snap.ranges.length) p.selectedRanges = snap.ranges;
+      else if (snap.dates.length) p.selectedDates = snap.dates;
+    } else if (pmode === 'datetime') {
+      if (snap.datetime) p.selectedDatetime = snap.datetime;
+    } else if (snap.date) {
+      p.selectedDate = snap.date;
     }
-    this.#mobileModalMqls = [];
-    this.#mobileModalListener = null;
-    this.#configuredPositioningMode = null;
+
+    // Multiple-mode (and Apply-mode) leave the input text to the commit path, which
+    // a rebuild doesn't re-run — restore the prior text if nothing rewrote it.
+    if (this.#inputElement && !this.#inputElement.value && snap.inputText) {
+      this.#inputElement.value = snap.inputText;
+    }
   }
 
   // ── imperative API (flush pending writes, then delegate to the picker) ─────

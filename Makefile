@@ -1,11 +1,21 @@
-.PHONY: help setup dev build package publish publish-rc publish-dry clean test test-e2e test-e2e-ui test-e2e-headed test-e2e-install lint
+.PHONY: help setup dev kill-port build package publish publish-rc publish-dry clean clean-dist preview test test-e2e test-e2e-ui test-e2e-headed test-e2e-install lint image-build image-run image-stop image-clean
 
 # Use bash-compatible commands for Git Bash on Windows
 SHELL := /bin/bash
 
+# Per-developer overrides (container runner, image name, port). Optional: the
+# leading `-` means it's fine if the file is absent. Defaults below apply when a
+# value isn't set, so `image-*` works out of the box. Copy or edit .makefile.env
+# to switch the runner (e.g. DOCKER_RUNNER = docker).
+-include .makefile.env
+DOCKER_RUNNER  ?= podman
+IMAGE_NAME     ?= registry.km8.es/web-daterangepicker-examples:prod
+CONTAINER_NAME ?= web-daterangepicker-examples
+IMAGE_PORT     ?= 12310
+
 help: ## Show this help message
 	@echo "Available targets:"
-	@grep -E '^[a-zA-Z0-9_-]+:.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "  %-18s %s\n", $$1, $$2}'
+	@grep -hE '^[a-zA-Z0-9_-]+:.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "  %-18s %s\n", $$1, $$2}'
 
 setup: ## Install dependencies and prepare project
 	@echo "Installing dependencies..."
@@ -15,6 +25,20 @@ setup: ## Install dependencies and prepare project
 dev: ## Start development server with hot reload
 	@echo "Starting development server..."
 	npm run dev
+
+# Free the vite dev-server ports. Vite starts at 12300 and hops to the next free
+# port when one is busy, so a stale run can hold any of 12300-12305. Kills whatever
+# is LISTENING on those ports, covering both IPv4 and IPv6 (vite binds [::1] too).
+# Recipes here run under Git Bash (SHELL := /bin/bash), so the sh recipe calls the
+# Windows netstat/taskkill directly.
+kill-port: ## Free the vite dev-server ports (12300-12305)
+	@echo "Freeing ports 12300-12305..."
+ifeq ($(OS),Windows_NT)
+	-@netstat -ano | grep -E ':1230[0-5][^0-9]' | grep LISTENING | awk '{print $$5}' | sort -u | while read pid; do MSYS_NO_PATHCONV=1 taskkill /F /PID $$pid; done
+else
+	-@for p in 12300 12301 12302 12303 12304 12305; do lsof -ti tcp:$$p | xargs -r kill -9; done
+endif
+	@echo "Ports 12300-12305 are free"
 
 build: ## Build for production
 	@echo "Building for production..."
@@ -95,6 +119,30 @@ install-dev: ## Install as local dev dependency (for testing)
 	npm pack
 	@echo "Package created - Look for keenmate-web-daterangepicker-*.tgz file"
 	@echo "Install in another project with: npm install <path-to-tgz>"
+
+# ── Container image (examples site) ──────────────────────────────────────────
+# Runner is configurable via .makefile.env (DOCKER_RUNNER); defaults to podman.
+
+image-build: ## Build the examples container image (build + serve stages)
+	@echo "Building $(IMAGE_NAME) with $(DOCKER_RUNNER)..."
+	$(DOCKER_RUNNER) build -t $(IMAGE_NAME) .
+	@echo "Image built: $(IMAGE_NAME)"
+
+image-run: ## Run the examples image (serves on IMAGE_PORT, default 12310)
+	@echo "Starting $(CONTAINER_NAME) on http://localhost:$(IMAGE_PORT) ..."
+	-@$(DOCKER_RUNNER) rm -f $(CONTAINER_NAME) >/dev/null 2>&1
+	$(DOCKER_RUNNER) run -d --name $(CONTAINER_NAME) -p $(IMAGE_PORT):80 $(IMAGE_NAME)
+	@echo "Serving examples at http://localhost:$(IMAGE_PORT)"
+
+image-stop: ## Stop and remove the examples container
+	@echo "Stopping $(CONTAINER_NAME)..."
+	-@$(DOCKER_RUNNER) rm -f $(CONTAINER_NAME) >/dev/null 2>&1
+	@echo "Stopped"
+
+image-clean: image-stop ## Remove the examples container and image
+	@echo "Removing image $(IMAGE_NAME)..."
+	-@$(DOCKER_RUNNER) rmi $(IMAGE_NAME) >/dev/null 2>&1
+	@echo "Image removed"
 
 # Default target
 .DEFAULT_GOAL := help

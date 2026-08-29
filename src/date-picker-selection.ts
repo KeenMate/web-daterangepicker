@@ -501,8 +501,10 @@ export async function selectDay(picker: any, dayElement: HTMLElement) {
                 if (picker.options.onSelect) picker.options.onSelect(selection);
             }
 
-            // Auto-close handling
-            if (picker.options.positioningMode === 'floating' && picker.shouldAutoClose()) {
+            // Auto-close handling. Floating closes on range-completion; modal and
+            // fullscreen stay open until the user explicitly dismisses (backdrop /
+            // ✕ / Apply), matching their heavier, deliberate presentation.
+            if (picker.presentation === 'floating' && picker.shouldAutoClose()) {
                 picker.hide();
             }
         }

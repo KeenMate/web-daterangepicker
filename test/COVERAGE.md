@@ -23,7 +23,7 @@ When a row is marked `✓`/`△`, the **Spec** column points at the file under
 | Range: drag-to-adjust end                                     | ✓      | `drag-adjust.spec.ts`        | `drag-adjust.html`        |
 | Multiple-date selection (toggle individual days)              | ✓      | `selection-modes.spec.ts`    | `selection-modes.html`    |
 | Apply-required: cancel restores `originalInputValue`          | ✓      | `selection-modes.spec.ts`    | `selection-modes.html`    |
-| `autoClose`: `'never'` / `'selection'` (default) / `'apply'`  | △      | `selection-modes.spec.ts`    | `selection-modes.html`    |
+| `commitMode`: `'selection'` (default) / `'apply'` / `'manual'`  | △      | `selection-modes.spec.ts`    | `selection-modes.html`    |
 
 ## 2. Positioning modes
 
@@ -124,7 +124,7 @@ When a row is marked `✓`/`△`, the **Spec** column points at the file under
 | Today button jumps + selects today                            | ✓      | `action-buttons.spec.ts`     | `action-buttons.html`     |
 | Clear button clears selection + input                         | ✓      | `action-buttons.spec.ts`     | `action-buttons.html`     |
 | Apply commits pending selection, closes picker                | ✓      | `selection-modes.spec.ts`    | `selection-modes.html`    |
-| `is-today-button-shown` / `is-clear-button-shown` / `is-apply-button-shown` | ✓    | `action-buttons.spec.ts`     | `action-buttons.html`     |
+| `is-today-button-shown` / `is-clear-button-shown` / `commit-mode="apply"` (Apply button) | ✓    | `action-buttons.spec.ts`     | `action-buttons.html`     |
 | Custom `actionButtons` array (incl. `custom-action` event)    | ✓      | `events-api.spec.ts`         | `events-api.html`         |
 | Action-button tooltip on hover                                | ✓      | `tooltips.spec.ts`           | `tooltips.html`           |
 | `is-summary-shown="false"` omits summary block entirely           | ✓      | `action-buttons.spec.ts`     | `action-buttons.html`     |

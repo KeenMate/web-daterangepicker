@@ -98,7 +98,7 @@ All attributes can be set directly on the `<web-daterangepicker>` HTML element.
 | `hour-cycle` | `'h12' \| 'h24'` | — | 12- or 24-hour clock for time/datetime mode. |
 | `is-summary-shown` | `boolean \| null` | — | Show the range summary (day/night counts) block. |
 | `date-format-mask` | `string` | `'YYYY-MM-DD'` | Parse/format mask for dates (YYYY/YY, MM/M, DD/D with any separators). |
-| `display-format-mask` | `string \| null` | — | Localized format hint shown as the input placeholder (when no explicit `placeholder`). |
+| `display-format-mask` | `string \| null` | — | Localized format hint shown as the input placeholder (when no explicit `placeholder`). In `range` mode the hint is doubled around " - " (e.g. `YYYY-MM-DD - YYYY-MM-DD`). |
 | `is-unified-header-interactive` | `boolean` | — | Make the unified grid header clickable (opens the rolling selector). |
 | `calendar-placement` | `string \| null` | — | Floating-UI placement for the popover (default `bottom-start`). |
 | `week-start-day` | `'auto' \| 0 \| 1 \| 2 \| 3 \| 4 \| 5 \| 6` | — | First column of the week: `auto` (locale) or a weekday index 0 (Sunday)–6 (Saturday). |
@@ -114,11 +114,10 @@ All attributes can be set directly on the `<web-daterangepicker>` HTML element.
 | `weekday-names` | `string[]` | — | Override weekday names. Attribute: 7 pipe-delimited names, index 0=Sunday; property: `string[]`. |
 | `rolling-year-range` | `string \| null` | — | Constrains the rolling year selector (e.g. `-5:+5` or absolute years). |
 | `rolling-month-range` | `string \| null` | — | Constrains the rolling month selector. |
-| `auto-close` | `'never' \| 'selection' \| 'apply'` | — | When the floating calendar closes automatically: `never`, on `selection`, or on `apply`. |
+| `commit-mode` | `'selection' \| 'apply' \| 'manual'` | — | How a selection is committed + the calendar dismissed: `selection` (commit & close on pick), `apply` (Apply button commits), or `manual` (app-driven, no built-in button). |
 | `should-close-on-scroll` | `boolean \| null` | — | Close the floating calendar when the page scrolls. |
 | `is-today-button-shown` | `boolean \| null` | — | Show the “Today” action button. |
 | `is-clear-button-shown` | `boolean \| null` | — | Show the “Clear” action button. |
-| `is-apply-button-shown` | `boolean \| null` | — | Show the “Apply” action button (defers events until clicked). |
 | `time-format-mask` | `string` | `'HH:mm'` | Parse/format mask for times (HH/mm/ss). |
 | `display-time-format-mask` | `string \| null` | — | Localized display mask for the time portion. |
 | `time-step` | `number` | — | Minute step for the time picker. |
@@ -134,14 +133,17 @@ All attributes can be set directly on the `<web-daterangepicker>` HTML element.
 | `name` | `string \| null` | — | HTML form field name. When set, the control submits its selection as a light-DOM hidden `<input>` (`name[]` inputs for `value-format="array"`). Also read by core for `el.form` / `form.reset()`. |
 | `value-format` | `'iso' \| 'json' \| 'array'` | `'iso'` | Serialization of the submitted value (stable ISO-8601, independent of the display masks): - `iso` (default) — one field; a single date/time as-is, a range as `start/end`, multiple joined by `,`. - `json` — one field; `JSON.stringify` of the selection (scalar/object for single/range, array for multiple). - `array` — multiple `name[]` fields, one per date; a range contributes `start` and `end`. |
 | `value` | `string \| null` | — | Text value of the control (the formatted selection). Reflected to the live input in floating/modal modes and to the hidden form-value input in inline mode; read/write via the `value` property. |
-| `placeholder` | `string \| null` | — | Input placeholder (falls back to display-format-mask). |
+| `placeholder` | `string \| null` | — | Input placeholder. When unset, plain date pickers auto-derive it from display-format-mask / date-format-mask (`YYYY-MM-DD`), doubled in `range` mode (`YYYY-MM-DD - YYYY-MM-DD`). |
 | `disabled` | `boolean` | — | Disable the input. |
 | `readonly` | `boolean` | — | Full read-only lock (freezes every interaction aspect). Read/write via the `readonly` property, or use `lock()` for partial locks. |
 | `input-size` | `string` | `'md'` | Input size scale: `xs` \| `sm` \| `md` \| `lg` \| `xl` (floating/modal only). |
 | `enable-transitions` | `boolean` | — | Opt into calendar open/close CSS transitions. |
-| `mobile-modal-breakpoint` | `string \| null` | — | Viewport width below which a floating picker auto-switches to modal (e.g. `640px`). |
-| `mobile-modal-min-height` | `string \| null` | — | Viewport height below which a floating picker auto-switches to modal (e.g. `500px`). |
+| `mobile-presentation` | `'auto' \| 'floating' \| 'modal' \| 'fullscreen'` | `'auto'` | How a `floating` picker adapts to the device (SPEC §12.9, via web-components-core). `auto` (default) keeps the floating popover on desktop, uses a centered `modal` on tablets, and a full-screen overlay on phones (touch-primary + shorter viewport side < 600px, orientation-robust). `floating`/`modal`/`fullscreen` force that presentation on any device (handy for previews/testing). Only adapts a floating picker — an explicit `positioning-mode` of `inline` or `modal` is left as authored. Resolved reactively from the device/viewport environment. |
+| `fullscreen-autofocus` | `boolean` | — | In the phone full-screen overlay, focus the date input on open (pops the soft keyboard for type-to-fill). Default off: the sheet opens with the calendar visible and the keyboard closed. No effect in floating/modal presentations. |
+| `fullscreen-title` | `string \| null` | — | Optional heading shown in the phone full-screen overlay header, next to the close (✕) button. When unset the header shows just the close button. |
+| `fullscreen-input` | `boolean` | — | In the phone full-screen overlay, relocate the date input into the header so it is visible and typeable above the sheet (with a numeric keypad; the mask supplies the separators). Takes over the header row, so fullscreen-title is not shown alongside it. No effect in floating/modal presentations. |
 | `show-debug-info` | `boolean` | — | Enable the picker’s debug logging. |
+| `compact-below` | `number` | — | Container-responsive compaction threshold in CSS px. When the element’s OWN box is narrower than this, the calendar collapses to a single month and hides the Today/Clear buttons — keyed on the element box (core’s shared ResizeObserver), not the viewport, so a picker in a narrow column/sidebar compacts even on a wide monitor. Unset or `0` disables it. Purely presentational tweaks (padding, label→icon) belong in CSS `@container`; this drives the structural month-count change. |
 <!-- GEN:attributes:end -->
 
 **Smart default positioning:**
@@ -1342,7 +1344,7 @@ The web component provides convenient property accessors for JavaScript:
 | `hourCycle` | `'h12' \| 'h24'` | Read/Write | 12- or 24-hour clock for time/datetime mode. |
 | `isSummaryShown` | `boolean \| null` | Read/Write | Show the range summary (day/night counts) block. |
 | `dateFormatMask` | `string` | Read/Write | Parse/format mask for dates (YYYY/YY, MM/M, DD/D with any separators). |
-| `displayFormatMask` | `string \| null` | Read/Write | Localized format hint shown as the input placeholder (when no explicit `placeholder`). |
+| `displayFormatMask` | `string \| null` | Read/Write | Localized format hint shown as the input placeholder (when no explicit `placeholder`). In `range` mode the hint is doubled around " - " (e.g. `YYYY-MM-DD - YYYY-MM-DD`). |
 | `isUnifiedHeaderInteractive` | `boolean` | Read/Write | Make the unified grid header clickable (opens the rolling selector). |
 | `calendarPlacement` | `string \| null` | Read/Write | Floating-UI placement for the popover (default `bottom-start`). |
 | `weekStartDay` | `'auto' \| 0 \| 1 \| 2 \| 3 \| 4 \| 5 \| 6` | Read/Write | First column of the week: `auto` (locale) or a weekday index 0 (Sunday)–6 (Saturday). |
@@ -1358,11 +1360,10 @@ The web component provides convenient property accessors for JavaScript:
 | `weekdayNames` | `string[]` | Read/Write | Override weekday names. Attribute: 7 pipe-delimited names, index 0=Sunday; property: `string[]`. |
 | `rollingYearRange` | `string \| null` | Read/Write | Constrains the rolling year selector (e.g. `-5:+5` or absolute years). |
 | `rollingMonthRange` | `string \| null` | Read/Write | Constrains the rolling month selector. |
-| `autoClose` | `'never' \| 'selection' \| 'apply'` | Read/Write | When the floating calendar closes automatically: `never`, on `selection`, or on `apply`. |
+| `commitMode` | `'selection' \| 'apply' \| 'manual'` | Read/Write | How a selection is committed + the calendar dismissed: `selection` (commit & close on pick), `apply` (Apply button commits), or `manual` (app-driven, no built-in button). |
 | `shouldCloseOnScroll` | `boolean \| null` | Read/Write | Close the floating calendar when the page scrolls. |
 | `isTodayButtonShown` | `boolean \| null` | Read/Write | Show the “Today” action button. |
 | `isClearButtonShown` | `boolean \| null` | Read/Write | Show the “Clear” action button. |
-| `isApplyButtonShown` | `boolean \| null` | Read/Write | Show the “Apply” action button (defers events until clicked). |
 | `timeFormatMask` | `string` | Read/Write | Parse/format mask for times (HH/mm/ss). |
 | `displayTimeFormatMask` | `string \| null` | Read/Write | Localized display mask for the time portion. |
 | `timeStep` | `number` | Read/Write | Minute step for the time picker. |
@@ -1378,13 +1379,16 @@ The web component provides convenient property accessors for JavaScript:
 | `formFieldName` | `string \| null` | Read/Write | HTML form field name. When set, the control submits its selection as a light-DOM hidden `<input>` (`name[]` inputs for `value-format="array"`). Also read by core for `el.form` / `form.reset()`. |
 | `valueFormat` | `'iso' \| 'json' \| 'array'` | Read/Write | Serialization of the submitted value (stable ISO-8601, independent of the display masks): - `iso` (default) — one field; a single date/time as-is, a range as `start/end`, multiple joined by `,`. - `json` — one field; `JSON.stringify` of the selection (scalar/object for single/range, array for multiple). - `array` — multiple `name[]` fields, one per date; a range contributes `start` and `end`. |
 | `getValueFormatCallback` | `(selection: FormValueSelection) => string` | Read/Write | Custom serialization of the submitted value; receives the normalized ISO selection snapshot and returns the single hidden-input value. Overrides `value-format`. Property-only. |
-| `placeholder` | `string \| null` | Read/Write | Input placeholder (falls back to display-format-mask). |
+| `placeholder` | `string \| null` | Read/Write | Input placeholder. When unset, plain date pickers auto-derive it from display-format-mask / date-format-mask (`YYYY-MM-DD`), doubled in `range` mode (`YYYY-MM-DD - YYYY-MM-DD`). |
 | `disabled` | `boolean` | Read/Write | Disable the input. |
 | `inputSize` | `string` | Read/Write | Input size scale: `xs` \| `sm` \| `md` \| `lg` \| `xl` (floating/modal only). |
 | `enableTransitions` | `boolean` | Read/Write | Opt into calendar open/close CSS transitions. |
-| `mobileModalBreakpoint` | `string \| null` | Read/Write | Viewport width below which a floating picker auto-switches to modal (e.g. `640px`). |
-| `mobileModalMinHeight` | `string \| null` | Read/Write | Viewport height below which a floating picker auto-switches to modal (e.g. `500px`). |
+| `mobilePresentation` | `'auto' \| 'floating' \| 'modal' \| 'fullscreen'` | Read/Write | How a `floating` picker adapts to the device (SPEC §12.9, via web-components-core). `auto` (default) keeps the floating popover on desktop, uses a centered `modal` on tablets, and a full-screen overlay on phones (touch-primary + shorter viewport side < 600px, orientation-robust). `floating`/`modal`/`fullscreen` force that presentation on any device (handy for previews/testing). Only adapts a floating picker — an explicit `positioning-mode` of `inline` or `modal` is left as authored. Resolved reactively from the device/viewport environment. |
+| `fullscreenAutofocus` | `boolean` | Read/Write | In the phone full-screen overlay, focus the date input on open (pops the soft keyboard for type-to-fill). Default off: the sheet opens with the calendar visible and the keyboard closed. No effect in floating/modal presentations. |
+| `fullscreenTitle` | `string \| null` | Read/Write | Optional heading shown in the phone full-screen overlay header, next to the close (✕) button. When unset the header shows just the close button. |
+| `fullscreenInput` | `boolean` | Read/Write | In the phone full-screen overlay, relocate the date input into the header so it is visible and typeable above the sheet (with a numeric keypad; the mask supplies the separators). Takes over the header row, so fullscreen-title is not shown alongside it. No effect in floating/modal presentations. |
 | `showDebugInfo` | `boolean` | Read/Write | Enable the picker’s debug logging. |
+| `compactBelow` | `number` | Read/Write | Container-responsive compaction threshold in CSS px. When the element’s OWN box is narrower than this, the calendar collapses to a single month and hides the Today/Clear buttons — keyed on the element box (core’s shared ResizeObserver), not the viewport, so a picker in a narrow column/sidebar compacts even on a wide monitor. Unset or `0` disables it. Purely presentational tweaks (padding, label→icon) belong in CSS `@container`; this drives the structural month-count change. |
 | `specialDates` | `DecoratedDate[]` | Read/Write | Array of decorated-date objects (badges, tooltips, per-day classes). Property-only. |
 | `actionButtons` | `ActionButton[]` | Read/Write | Custom footer action buttons. Property-only; when unset the built-in buttons apply. |
 | `customStrings` | `Partial<LocaleStrings>` | Read/Write | Per-instance locale string overrides. Property-only. |

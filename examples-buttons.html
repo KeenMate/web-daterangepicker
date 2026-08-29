@@ -46,31 +46,30 @@
     <div class="grid">
       <div class="form-group">
         <label>No Buttons (Manual Close Only)</label>
-        <small>is-today-button-shown="false" is-clear-button-shown="false" is-apply-button-shown="false"</small>
+        <small>commit-mode="manual" is-today-button-shown="false" is-clear-button-shown="false"</small>
         <web-daterangepicker
           selection-mode="range"
+          commit-mode="manual"
           is-today-button-shown="false"
-          is-clear-button-shown="false"
-          is-apply-button-shown="false">
+          is-clear-button-shown="false">
         </web-daterangepicker>
       </div>
 
       <div class="form-group">
         <label>Only Clear Button</label>
-        <small>is-today-button-shown="false" is-apply-button-shown="false"</small>
+        <small>is-today-button-shown="false" (Apply is off by default in selection mode)</small>
         <web-daterangepicker
           selection-mode="range"
-          is-today-button-shown="false"
-          is-apply-button-shown="false">
+          is-today-button-shown="false">
         </web-daterangepicker>
       </div>
 
       <div class="form-group">
         <label>Only Apply Button</label>
-        <small>auto-close="apply" is-today-button-shown="false" is-clear-button-shown="false"</small>
+        <small>commit-mode="apply" is-today-button-shown="false" is-clear-button-shown="false"</small>
         <web-daterangepicker
           selection-mode="range"
-          auto-close="apply"
+          commit-mode="apply"
           is-today-button-shown="false"
           is-clear-button-shown="false">
         </web-daterangepicker>
@@ -86,11 +85,12 @@
       </div>
     </div>
 
-    <div class="code-block"><code><span class="comment">// HTML attributes control built-in button visibility</span>
+    <div class="code-block"><code><span class="comment">// HTML attributes control built-in button visibility.</span>
+<span class="comment">// The Apply button is driven by commit-mode="apply" (not a separate flag).</span>
 <span class="keyword">&lt;web-daterangepicker</span>
   <span class="property">is-today-button-shown</span>=<span class="string">"false"</span>
   <span class="property">is-clear-button-shown</span>=<span class="string">"false"</span>
-  <span class="property">is-apply-button-shown</span>=<span class="string">"false"</span><span class="keyword">&gt;</span>
+  <span class="property">commit-mode</span>=<span class="string">"manual"</span><span class="keyword">&gt;</span>
 <span class="keyword">&lt;/web-daterangepicker&gt;</span>
 
 <span class="comment">// Range mode: hide the days/nights summary block entirely</span>
@@ -174,60 +174,59 @@
 
   <!-- 2. Auto-Close Control -->
   <div class="card">
-    <h2>2. Auto-Close Behavior</h2>
-    <p>Control when the calendar automatically closes with the <code>auto-close</code> attribute.</p>
+    <h2>2. Commit Mode (when the pick commits &amp; the calendar closes)</h2>
+    <p>The <code>commit-mode</code> attribute governs how a selection is committed and the calendar dismissed — it merges the old <code>auto-close</code> and <code>is-apply-button-shown</code> into one axis.</p>
 
     <div class="grid">
       <div class="form-group">
-        <label>auto-close="never" (Manual Close Only)</label>
-        <small>Calendar NEVER auto-closes, not even with Apply button - user must close manually</small>
+        <label>commit-mode="manual" (App-Driven)</label>
+        <small>Never auto-commits or auto-closes, and shows no built-in Apply button — you drive close via your own buttons</small>
         <div class="field-row">
           <web-daterangepicker
             class="field-grow"
-            id="autoclose-never"
+            id="commit-manual"
             selection-mode="range"
-            auto-close="never"
+            commit-mode="manual"
             is-today-button-shown="false"
-            is-clear-button-shown="false"
-            is-apply-button-shown="true">
+            is-clear-button-shown="false">
           </web-daterangepicker>
-          <button class="clear-btn" onclick="clearPicker('autoclose-never')" title="Clear selection">&times;</button>
+          <button class="clear-btn" onclick="clearPicker('commit-manual')" title="Clear selection">&times;</button>
         </div>
       </div>
 
       <div class="form-group">
-        <label>auto-close="selection" (Auto-Close on Selection) - DEFAULT</label>
-        <small>Closes when selection completes (click, drag-adjust). Note: Multiple mode never auto-closes</small>
+        <label>commit-mode="selection" (Commit &amp; Close on Pick) - DEFAULT</label>
+        <small>Commits and closes when selection completes (click, drag-adjust). No Apply button. Multiple mode can't use this</small>
         <div class="field-row">
           <web-daterangepicker
             class="field-grow"
-            id="autoclose-selection"
+            id="commit-selection"
             selection-mode="range"
-            auto-close="selection">
+            commit-mode="selection">
           </web-daterangepicker>
-          <button class="clear-btn" onclick="clearPicker('autoclose-selection')" title="Clear selection">&times;</button>
+          <button class="clear-btn" onclick="clearPicker('commit-selection')" title="Clear selection">&times;</button>
         </div>
       </div>
 
       <div class="form-group">
-        <label>auto-close="apply" (Only Apply Closes)</label>
-        <small>Only the Apply button closes the calendar</small>
+        <label>commit-mode="apply" (Apply Button Commits)</label>
+        <small>Shows an Apply button; the selection is staged until Apply is clicked, which commits and closes</small>
         <div class="field-row">
           <web-daterangepicker
             class="field-grow"
-            id="autoclose-apply"
+            id="commit-apply"
             selection-mode="range"
-            auto-close="apply">
+            commit-mode="apply">
           </web-daterangepicker>
-          <button class="clear-btn" onclick="clearPicker('autoclose-apply')" title="Clear selection">&times;</button>
+          <button class="clear-btn" onclick="clearPicker('commit-apply')" title="Clear selection">&times;</button>
         </div>
       </div>
     </div>
 
-    <div class="code-block"><code><span class="comment">// Auto-close modes: 'never', 'selection' (default), 'apply'</span>
-<span class="keyword">&lt;web-daterangepicker</span> <span class="property">auto-close</span>=<span class="string">"never"</span><span class="keyword">&gt;&lt;/web-daterangepicker&gt;</span>
-<span class="keyword">&lt;web-daterangepicker</span> <span class="property">auto-close</span>=<span class="string">"selection"</span><span class="keyword">&gt;&lt;/web-daterangepicker&gt;</span>
-<span class="keyword">&lt;web-daterangepicker</span> <span class="property">auto-close</span>=<span class="string">"apply"</span><span class="keyword">&gt;&lt;/web-daterangepicker&gt;</span></code></div>
+    <div class="code-block"><code><span class="comment">// Commit modes: 'selection' (default), 'apply', 'manual'</span>
+<span class="keyword">&lt;web-daterangepicker</span> <span class="property">commit-mode</span>=<span class="string">"selection"</span><span class="keyword">&gt;&lt;/web-daterangepicker&gt;</span>
+<span class="keyword">&lt;web-daterangepicker</span> <span class="property">commit-mode</span>=<span class="string">"apply"</span><span class="keyword">&gt;&lt;/web-daterangepicker&gt;</span>
+<span class="keyword">&lt;web-daterangepicker</span> <span class="property">commit-mode</span>=<span class="string">"manual"</span><span class="keyword">&gt;&lt;/web-daterangepicker&gt;</span></code></div>
   </div>
 
   <!-- 3. Custom Preset Buttons -->
@@ -365,11 +364,11 @@ picker.isOpen = <span class="property">false</span>; <span class="comment">// Cl
 
     <div class="form-group">
       <label>Context-Aware Buttons</label>
-      <small>Apply button only shows when a range is selected (calendar stays open with auto-close="apply")</small>
+      <small>Apply button only shows when a range is selected (calendar stays open with commit-mode="apply")</small>
       <web-daterangepicker
         id="conditional-picker"
         selection-mode="range"
-        auto-close="apply"></web-daterangepicker>
+        commit-mode="apply"></web-daterangepicker>
     </div>
 
     <div class="code-block"><code><span class="keyword">const</span> picker = <span class="function">document.querySelector</span>(<span class="string">'#conditional-picker'</span>);
@@ -397,7 +396,7 @@ picker.actionButtons = [
       <web-daterangepicker
         id="disabled-picker"
         selection-mode="range"
-        auto-close="never"></web-daterangepicker>
+        commit-mode="manual"></web-daterangepicker>
     </div>
 
     <div class="code-block"><code><span class="keyword">const</span> picker = <span class="function">document.querySelector</span>(<span class="string">'#disabled-picker'</span>);
@@ -430,7 +429,7 @@ picker.actionButtons = [
       <web-daterangepicker
         id="text-picker"
         selection-mode="range"
-        auto-close="never"></web-daterangepicker>
+        commit-mode="manual"></web-daterangepicker>
     </div>
 
     <div class="code-block"><code><span class="keyword">const</span> picker = <span class="function">document.querySelector</span>(<span class="string">'#text-picker'</span>);
@@ -470,7 +469,7 @@ picker.actionButtons = [
       <web-daterangepicker
         id="css-picker"
         selection-mode="range"
-        auto-close="apply"></web-daterangepicker>
+        commit-mode="apply"></web-daterangepicker>
     </div>
 
     <div class="code-block"><code><span class="comment">// Define action buttons with dynamic classes</span>
@@ -531,7 +530,7 @@ picker.customStylesCallback = <span class="keyword">(</span>{ picker }<span clas
       <web-daterangepicker
         id="tooltip-picker"
         selection-mode="range"
-        auto-close="apply"></web-daterangepicker>
+        commit-mode="apply"></web-daterangepicker>
     </div>
 
     <div class="code-block"><code><span class="keyword">const</span> picker = <span class="function">document.querySelector</span>(<span class="string">'#tooltip-picker'</span>);
@@ -594,7 +593,7 @@ picker.actionButtons = [
       <web-daterangepicker
         id="priority-picker"
         selection-mode="range"
-        auto-close="apply"></web-daterangepicker>
+        commit-mode="apply"></web-daterangepicker>
     </div>
 
     <div class="code-block"><code><span class="keyword">const</span> picker = <span class="function">document.querySelector</span>(<span class="string">'#priority-picker'</span>);
@@ -641,7 +640,7 @@ picker.actionButtons = [
       <web-daterangepicker
         id="advanced-picker"
         selection-mode="range"
-        auto-close="never"></web-daterangepicker>
+        commit-mode="manual"></web-daterangepicker>
     </div>
 
     <div class="code-block"><code><span class="keyword">const</span> picker = <span class="function">document.querySelector</span>(<span class="string">'#advanced-picker'</span>);
@@ -717,7 +716,7 @@ picker.actionButtons = [
       <web-daterangepicker
         id="icon-picker"
         selection-mode="range"
-        auto-close="never"></web-daterangepicker>
+        commit-mode="manual"></web-daterangepicker>
     </div>
 
     <div class="code-block"><code><span class="comment">// Font Awesome must be imported into Shadow DOM via @import in customStylesCallback</span>
@@ -957,7 +956,7 @@ picker.actionButtons = [{
     // Wait for components to be ready
     await customElements.whenDefined('web-daterangepicker');
 
-    // Clear picker function for auto-close examples
+    // Clear picker function for commit-mode examples
     window.clearPicker = (id) => {
       const picker = document.querySelector(`#${id}`);
       if (picker && picker.picker) {
@@ -1414,5 +1413,6 @@ picker.actionButtons = [{
       }
     `;
   </script>
+  <script type="module" src="examples-chapter-nav.js"></script>
 </body>
 </html>

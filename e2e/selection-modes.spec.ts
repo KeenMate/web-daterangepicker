@@ -1,7 +1,7 @@
 import { test, expect, Page, Locator } from './fixtures';
 
 /**
- * Covers the three selection modes and the auto-close / Apply-button
+ * Covers the three selection modes and the commit-mode / Apply-button
  * variations. All pickers are pinned to `initial-date="2026-06-15"` in the
  * fixture so day cells (data-date="YYYY-MM-DD") are stable.
  *
@@ -48,7 +48,7 @@ test.describe('single mode', () => {
         await dayByDate(p, '2026-06-20').click();
 
         await expect(inputOf(p)).toHaveValue('2026-06-20');
-        // Default auto-close="selection": closes immediately after pick.
+        // Default commit-mode="selection": closes immediately after pick.
         await expect(calendarOf(p)).toBeHidden();
     });
 
@@ -185,10 +185,10 @@ test.describe('Apply button (range mode)', () => {
 });
 
 // =============================================================================
-// auto-close="never"
+// commit-mode="manual"
 // =============================================================================
 
-test('auto-close="never": single mode does NOT close after selecting a day', async ({ page }) => {
+test('commit-mode="manual": single mode does NOT close after selecting a day', async ({ page }) => {
     const p = await open(page, 'single-never');
 
     await dayByDate(p, '2026-06-20').click();

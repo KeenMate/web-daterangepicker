@@ -207,13 +207,49 @@
     <div class="card">
       <h2>6. Modal Behavior Details</h2>
       <ul>
-        <li><strong>Closes on:</strong> Escape, backdrop click, Apply button (range mode), or completing a selection (when <code>auto-close="selection"</code>, the default).</li>
+        <li><strong>Closes on:</strong> Escape, backdrop click, Apply button (<code>commit-mode="apply"</code>), or completing a selection (when <code>commit-mode="selection"</code>, the default).</li>
         <li><strong>Body scroll is locked</strong> while the modal is open. Reference-counted so multiple modal pickers don't fight over <code>document.body.style.overflow</code>.</li>
         <li><strong>Input is <code>blur()</code>-ed</strong> when the modal opens. This suppresses the mobile soft keyboard, which would otherwise overlap the modal. Focus is restored to the input on close.</li>
         <li><strong>Sticky regions inside the modal:</strong> per-month headers stay pinned to the top of the scrolling months area, the action bar (Today/Clear/Apply) stays pinned to the bottom. Days scroll between them; the action bar is always reachable.</li>
         <li><strong><code>shouldCloseOnScroll</code> is a no-op</strong> in modal mode — you're meant to scroll <em>inside</em> the modal, not have it close on you.</li>
       </ul>
     </div>
+
+    <!-- 7. Container-responsive compaction -->
+    <div class="card">
+      <h2>7. Container-Responsive Compaction: <code>compact-below</code></h2>
+      <p>The modal tiers above react to the <strong>viewport</strong>. But a picker placed in a narrow sidebar or a resizable panel on a wide monitor has a small <em>box</em> while the viewport is still large — viewport media/container queries on the modal don't help an <strong>inline</strong> picker sitting in a column. <code>compact-below</code> keys off the element's <strong>own border box</strong> (via a shared <code>ResizeObserver</code> in <code>@keenmate/web-components-core</code>), so it reacts to its container, not the window.</p>
+
+      <p>When the element's box drops below the threshold, the calendar collapses to a <strong>single month</strong> and hides the <strong>Today / Clear</strong> buttons. Widen it back and the authored layout returns verbatim — and any selection you've made survives the transition.</p>
+
+      <div class="form-group">
+        <label>Drag the bottom-right handle to resize (threshold: 520px)</label>
+        <p class="form-text">Below 520px the two-month layout collapses to one and the action buttons drop away. Pick a range first, then resize across the threshold — the selection is preserved.</p>
+        <div style="width: 640px; max-width: 100%; min-width: 300px; overflow: auto; resize: horizontal; padding: 12px; border: 1px dashed var(--drp-border, #cbd5e1); border-radius: 8px;">
+          <web-daterangepicker
+            id="compact-demo"
+            selection-mode="range"
+            positioning-mode="inline"
+            visible-months-count="2"
+            compact-below="520"
+            is-clear-button-shown="true"
+            initial-date="2026-06-15"
+            style="display: block; width: 100%;">
+          </web-daterangepicker>
+        </div>
+      </div>
+
+      <div class="code-block"><code><span class="keyword">&lt;web-daterangepicker</span>
+  <span class="property">selection-mode</span>=<span class="string">"range"</span>
+  <span class="property">positioning-mode</span>=<span class="string">"inline"</span>
+  <span class="property">visible-months-count</span>=<span class="string">"2"</span>
+  <span class="property">compact-below</span>=<span class="string">"520"</span><span class="keyword">&gt;&lt;/web-daterangepicker&gt;</span></code></div>
+
+      <div class="note info">
+        <strong>CSS container queries first.</strong> <code>compact-below</code> exists for the <em>structural</em> change — swapping the month-column count is a JS decision the engine can't do with CSS alone. For purely presentational tweaks under a narrow box (padding, a label→icon swap, stacking the summary), reach for <code>container-type: inline-size</code> + <code>@container</code> in your own CSS instead; it's cheaper and paints without a rebuild. Leave <code>compact-below</code> unset (or <code>0</code>) to disable the behavior entirely — it's opt-in and never changes an existing picker's layout on its own.
+      </div>
+    </div>
   </div>
+  <script type="module" src="examples-chapter-nav.js"></script>
 </body>
 </html>

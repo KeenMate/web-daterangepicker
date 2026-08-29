@@ -51,8 +51,7 @@ All kebab-case, string values:
   calendar-placement="bottom-start"
   is-today-button-shown="true"
   is-clear-button-shown="true"
-  is-apply-button-shown="true"
-  auto-close="selection">
+  commit-mode="selection">
 </web-daterangepicker>
 
 WEB COMPONENT CALLBACKS (Properties, Not Attributes)
@@ -424,8 +423,7 @@ Hotel booking (2 months):
 <web-daterangepicker
   selection-mode="range"
   visible-months-count="2"
-  is-apply-button-shown="true"
-  auto-close="apply">
+  commit-mode="apply">
 </web-daterangepicker>
 
 DEBUGGING

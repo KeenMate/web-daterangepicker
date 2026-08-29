@@ -61,7 +61,7 @@ same screen real estate as the modal). On close, focus is restored to
 the input if it had focus when the modal opened.
 
 **On day selection (single mode)** — the focused day cell stays
-focused. The popover closes (under `auto-close="selection"`, the
+focused. The popover closes (under `commit-mode="selection"`, the
 default) and focus returns to the input.
 
 **On day selection (range mode)** — focus stays on the just-clicked

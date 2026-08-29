@@ -15,7 +15,7 @@ export { DateRangePicker } from './date-picker';
 export type {
     DatePickerOptions, DateRange, FormatOptions, MonthDisplay, DatePickerEventDetail,
     // Shared callback/event context vocabulary
-    PickerContext, DayContext, MonthHeaderContext, UnifiedHeaderContext,
+    PickerContext, PresentationContext, DayContext, MonthHeaderContext, UnifiedHeaderContext,
     SelectionContext, MonthChangeContext, SummaryContext, ActionButtonContext,
     SelectEventDetail, CustomActionEventDetail, LoaderTarget, LockAspect,
     // Supporting types

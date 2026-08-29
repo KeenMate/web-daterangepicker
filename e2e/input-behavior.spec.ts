@@ -125,3 +125,36 @@ test('range: a compact bare "-" between the two dates is accepted and normalised
     });
     await expect(inp).toHaveValue('2026-06-10 - 2026-06-15');
 });
+
+// =============================================================================
+// inline clear (✕) button
+// =============================================================================
+
+function clearOf(p: Locator) {
+    return p.locator('.drp__input-clear');
+}
+
+test('clear button: hidden when empty, shown once the field has a value', async ({ page }) => {
+    const p = pickerById(page, 'iso');
+    await expect(clearOf(p)).not.toHaveClass(/drp__input-clear--visible/);
+    await typeInto(p, '20260610');
+    await expect(inputOf(p)).toHaveValue('2026-06-10');
+    await expect(clearOf(p)).toHaveClass(/drp__input-clear--visible/);
+});
+
+test('clear button: click empties the field and hides itself', async ({ page }) => {
+    const p = pickerById(page, 'iso');
+    await typeInto(p, '20260610');
+    await clearOf(p).click();
+    await expect(inputOf(p)).toHaveValue('');
+    await expect(clearOf(p)).not.toHaveClass(/drp__input-clear--visible/);
+});
+
+test('clear button: range mode clears both halves', async ({ page }) => {
+    const p = pickerById(page, 'range');
+    await typeInto(p, '2026061020260615');
+    await expect(inputOf(p)).toHaveValue('2026-06-10 - 2026-06-15');
+    await clearOf(p).click();
+    await expect(inputOf(p)).toHaveValue('');
+    await expect(clearOf(p)).not.toHaveClass(/drp__input-clear--visible/);
+});

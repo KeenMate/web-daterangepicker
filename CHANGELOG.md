@@ -5,6 +5,221 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+
+- **Container-responsive compaction — `compact-below` (via core rc09 `resized`
+  hook).** A new opt-in attribute `compact-below="<px>"` (property `compactBelow`)
+  collapses the calendar to a single month and hides the Today/Clear buttons when the
+  element's **own border box** drops below the threshold. Unlike the modal width tiers
+  (which key off the viewport) and CSS `@container` queries (presentational only), this
+  reacts to the element's box via `@keenmate/web-components-core`'s shared per-page
+  `ResizeObserver` — so an **inline** picker in a narrow sidebar/column compacts even
+  on a wide monitor. The month-column count is a structural engine option, so a
+  threshold cross rebuilds the picker; the committed selection is snapshotted and
+  restored so a resize never drops the user's dates. Unset or `0` disables it — no
+  existing picker changes layout without opting in. Bumps the core dependency to
+  `@keenmate/web-components-core@^1.0.0-rc09`. See the Responsive Behavior demo (§7).
+
+- **Presentation-aware render callbacks (via core rc08 `presentationContext`).** Every
+  render-facing callback context — `DayContext` (`renderDayCallback`,
+  `renderDayContentCallback`, `getDateMetadataCallback`, `dayTooltipCallback`,
+  `badgeTooltipCallback`), `SummaryContext` (`formatSummaryCallback`),
+  `MonthHeaderContext` (`getMonthHeaderCallback`), and `UnifiedHeaderContext`
+  (`getUnifiedHeaderCallback`) — now carries `presentation` (`'floating' | 'modal' |
+  'fullscreen'`), `isFullscreen`, and `isModal`. A single callback can render richer
+  content in the desktop popover and a leaner variant in the phone full-screen sheet
+  without the host page reaching for `matchMedia`, e.g.
+  `renderDayCallback: ({ isFullscreen }) => …`. The flags reflect the open chrome and
+  update when the device presentation flips. Mirrors web-multiselect's
+  render-context model. `PresentationContext` is re-exported for typing.
+
+### Changed
+
+- **BREAKING — merged `auto-close` + `is-apply-button-shown` into a single
+  `commit-mode`.** The old two attributes were an orthogonal pair that could be set to
+  contradictory or redundant combinations (e.g. a range picker that closed on selection
+  yet still rendered an Apply button). They are replaced by one attribute
+  `commit-mode` (property `commitMode`) with three values:
+  - `selection` — commit and close as soon as a selection completes (no Apply button).
+    Default for date mode.
+  - `apply` — render an Apply button; the selection is staged until it's clicked, which
+    commits and closes. Default for time/datetime and for `multiple` selection mode.
+  - `manual` — never auto-commit/auto-close and render no built-in Apply button; the app
+    drives commit/close via custom action buttons (`ActionButton.onClick`). Replaces the
+    old `auto-close="never"`.
+
+  Migration: `auto-close="never"` → `commit-mode="manual"`; `auto-close="selection"` →
+  `commit-mode="selection"`; `auto-close="apply"` → `commit-mode="apply"`;
+  `is-apply-button-shown="true"` → `commit-mode="apply"`; `is-apply-button-shown="false"`
+  → drop it (the `selection`/`manual` modes have no Apply button). No deprecated aliases
+  are kept — both old attributes/properties are removed.
+- **Bumped `@keenmate/web-components-core` to `^1.0.0-rc08`** (adds
+  `presentationContext` / `PresentationContext`).
+- **Border default raised for contrast** — `--drp-border-color` now defaults to
+  `light-dark(#cbd5e1, #52525b)` (was `light-dark(#e5e7eb, #3a3a3a)`, near-invisible on
+  both schemes). Matches web-multiselect's rc07 contrast fix.
+- **All icons are now font-independent CSS masks from one icon set (Lucide).** The
+  prev/next month arrows (`‹` / `›`), the full-screen close (`×`), and the input's
+  calendar affordance (the `📅` emoji) were rendered as characters, so their shape,
+  weight, and — for the emoji — color changed with the page font / OS. Each is now a
+  `background-color: currentColor` pseudo-element masked by a `--drp-icon-*` SVG, so
+  it is pixel-identical everywhere and tints with the element's `color`. Every icon —
+  including the pre-existing input clear button — is now sourced verbatim from the
+  **Lucide** set via the pure-admin-icons MCP (`x`, `calendar`, `chevron-left`,
+  `chevron-right`), a single set for the whole component. New theming hooks:
+  `--drp-icon-close`, `--drp-icon-chevron-left`, `--drp-icon-chevron-right`,
+  `--drp-icon-calendar` (joining `--drp-icon-input-clear`), plus `--drp-nav-icon-size`.
+
+### Fixed
+
+- **Full-screen calendar now actually scales up for touch (was rendering at the base
+  desktop scale).** The sheet set `--drp-rem: var(--drp-fullscreen-rem)` on itself, but
+  the size tokens (`--drp-nav-size`, `--drp-spacing-*`, `--drp-font-size-*`, …) are
+  declared on `:host` and resolve `var(--drp-rem)` there — so a rem override on the
+  sheet (a shadow descendant) inherited already-resolved base-scale values and did
+  nothing. Result: cramped padding and small text in full-screen, plus a close (✕)
+  that looked oversized because it alone used `--drp-fullscreen-rem` directly. The rem
+  override now lives on the host (`:host([data-drp-fullscreen])`, toggled in
+  enter/exitFullscreen), so the **whole** calendar scales together (~1.2×) as intended.
+- **Full-screen close (✕) is vertically centred on the month-nav row again.** With the
+  merged (no-title) header, the ✕ floats into the nav row; its downward nudge was tuned
+  to the old (unscaled) layout and left it ~12px too low once scaling was fixed. It now
+  centres via a rem-relative offset that also respects a themed `--drp-fullscreen-close-size`.
+- **`Home` / `End` now move the text caret in a typed input before navigating the
+  calendar.** Previously plain `Home`/`End` while the calendar was open always jumped
+  the month view to the first/last day, stealing the keystroke from the input — most
+  visible with `fullscreen-input`, where the header field is meant for typing a date.
+  They now move the caret first and only navigate the calendar once the caret sits at
+  the boundary (empty field still navigates immediately; `Ctrl`/`Cmd`+`Home`/`End`
+  stays the year-jump). Mirrors web-multiselect's caret-aware fix.
+- **Full-screen calendar clipped under the landscape system bars / display cutout.**
+  The full-screen sheet is `width: 100vw` (the full *physical* width) with no
+  safe-area handling, so on a landscape phone its header, day grid, and summary could
+  run **under the side navigation bar and camera cutout**. The sheet now sets
+  `box-sizing: border-box` and insets its content box by
+  `env(safe-area-inset-{top,right,bottom,left})` — background stays edge-to-edge while
+  the flex column is pulled into the visible region. `env()` is `0` unless the page
+  sets `<meta name="viewport" content="… viewport-fit=cover">` (the mobile
+  examples/tests now do), so it's a no-op on non-cutout pages. Aligns with
+  BlissFramework `responsive-overlay.md` constraint #4 / anti-pattern #7.
+
+### Added
+
+- **Device-adaptive presentation — `mobile-presentation` (SPEC §12.9).** A
+  `floating` picker now adapts to the device via core's `resolvePresentation` /
+  `classifyDevice` (capability-based and orientation-robust — it uses the
+  *shorter* viewport side, so a landscape phone still reads as a phone):
+  - **phone** (touch-primary, shorter side < 600px) → **full-screen** overlay,
+  - **tablet** (touch-primary, shorter side ≥ 600px) → **modal** centered dialog,
+  - **desktop** (fine pointer, any width) → **floating** popover.
+
+  The new `mobile-presentation` attribute (`auto` | `floating` | `modal` |
+  `fullscreen`, default `auto`) selects or forces this; a forced value applies on
+  any device (handy for previewing the phone overlay on a desktop). Only a
+  `floating`-configured picker adapts — `inline` and an explicit `positioning-mode`
+  of `modal` are left as authored.
+- **Phone full-screen overlay.** An edge-to-edge sheet (`position: fixed;
+  100vw/100dvh`) with a close (✕) header, page-scroll lock (core `lockBodyScroll`),
+  soft-keyboard tracking so the calendar sits above the keyboard (core
+  `observeKeyboardInset`), and a **Back-gesture trap** shared with modal (a history
+  entry so the phone Back gesture / browser Back button dismisses the sheet instead
+  of navigating away — see Fixed). The whole calendar
+  scales up for touch via `--drp-fullscreen-rem`. New `fullscreen-title` (optional
+  header heading) and `fullscreen-autofocus` (keyboard-off by default; opt in to
+  focus the input on open) attributes; theming via `--drp-fullscreen-*` tokens.
+- **Full-screen: typeable header input — `fullscreen-input`.** In the full-screen
+  sheet the trigger field sits *behind* the fixed overlay, so there's nothing to
+  type into. `fullscreen-input` relocates the live input node into the sheet header
+  (same node → the mask and form value carry over) where it's visible above the
+  calendar, and gives it `inputmode="numeric"` so phones show a digits-only keypad —
+  the input mask supplies the separators, so no `/` or `.` key is needed. It takes
+  over the header row (shown instead of `fullscreen-title`) and pairs with
+  `fullscreen-autofocus` for a type-first flow; the input is restored to its original
+  DOM spot and attributes on close. Sizing via `--drp-fullscreen-input-font-size`.
+- **`setPresentation('floating' | 'modal' | 'fullscreen')`** on the core picker —
+  swaps the runtime presentation **in place** (no rebuild, selection preserved),
+  so an orientation flip / resize re-resolves live.
+- **Themeable full-screen close (✕) chip** (matches web-multiselect): the bare round
+  glyph can become a bordered, command-palette-style button via
+  `--drp-fullscreen-close-bg`, `--drp-fullscreen-close-border`, and
+  `--drp-fullscreen-close-border-radius` (defaults `transparent` / `none` / `50%` keep
+  the current look). `box-sizing: border-box` keeps a border from growing the chip.
+
+### Changed
+
+- **Bumped `@keenmate/web-components-core` to `^1.0.0-rc07`** (from `rc02`).
+- **Presentation now switches in place instead of rebuilding.** The environment
+  hook drives `setPresentation()` on the live picker rather than flipping the
+  `positioning-mode` attribute (which rebuilt the picker and lost live selection).
+  Replaces the interim `mobile-modal-breakpoint` / `mobile-modal-min-height`
+  attributes and the environment→`modal` attribute-flip (both unreleased).
+- **Calendar popover gains a `maxWidth` cap** (core `anchor({ maxWidth })`, rc03):
+  a wide multi-month calendar near the viewport edge caps its `max-width` and
+  wraps internally instead of overflowing horizontally off-screen.
+
+### Fixed
+
+- **Full-screen ✕ corner is now tappable (matches web-multiselect).** The close
+  button was a small centered chip with dead padding around it, so taps in the
+  top-trailing corner — the natural place to reach — did nothing. A bounded
+  transparent `::after` now extends its tap target up past the button and out to the
+  sheet's trailing edge (reclaiming the header padding), so the corner dismisses the
+  sheet — without covering the month-nav `›` or the first day row. A small negative
+  margin (`--drp-fullscreen-close-edge-nudge`) also slides the glyph toward the edge.
+  The visible chip size is unchanged.
+- **Full-screen: the ✕ no longer wastes an empty row.** With no `fullscreen-title`,
+  the close button used to sit alone in its own header row. It now merges into the
+  month-navigation row — `‹ August 2026 › ✕` — floated top-trailing with the month
+  header reserving space so the › nav clears it (raised above the sticky header /
+  rolling selector so it stays clickable). When a `fullscreen-title` is set, the
+  header keeps its own full-width row (title + ✕).
+- **The Back gesture now dismisses a modal too, not just full-screen.** Only the
+  full-screen sheet trapped the phone Back gesture / browser Back button; an open
+  `modal` let Back navigate away (history −1). Modal now pushes the same same-URL
+  history entry on open and consumes it on close, so Back closes the sheet and stays
+  on the page (closing via ✕ / backdrop / Escape / selection leaves history clean).
+- **Range drag-to-adjust now works with touch.** The drag handlers were mouse-only
+  (`mousedown`/`mousemove`/`mouseup`), so a range couldn't be adjusted with a finger.
+  They're converted to Pointer Events (mouse + touch + pen). On touch, dragging an
+  existing range endpoint (which carries `touch-action: none`) adjusts the range,
+  while swiping any other day still scrolls the month list and tap-tap still creates
+  ranges. A drag takes explicit pointer capture on the calendar so the move stream
+  survives the endpoint cell's class churn. Also fixed a latent flaky hit-test: a
+  shadow `<slot>` can paint above the day cells, so drag detection now scans the full
+  `elementsFromPoint` stack instead of only the topmost element (this intermittently
+  broke mouse drags too).
+- **Single-month modal no longer stretches to the multi-month width.** A modal with
+  one visible month was pinned to the wide per-tier width (e.g. 900px), blowing the
+  day cells up huge; it now sizes to a natural single-month width
+  (`--drp-modal-width-single`, 360px) via a `:has()` override, with multi-month
+  modals unchanged.
+- **Tapping the input no longer instantly re-closes a modal / full-screen sheet.**
+  On touch, tapping the input opens the sheet on `pointerdown`; the tap's
+  synthesized `click` then landed inside the freshly-shown overlay — on a day cell
+  (→ select → single-mode auto-close) or the backdrop (→ dismiss) — so it opened and
+  closed in one gesture. A one-shot capture-phase guard now swallows exactly that
+  trailing "ghost" click when the open was pointer-triggered, and the modal backdrop
+  dismisses on a press that *starts* on the scrim rather than any bubbled click. A
+  genuine later tap is unaffected.
+- **`destroy()` no longer leaks input listeners or the floating anchor across a
+  rebuild.** The input element is reused when a `positioning-mode` change rebuilds
+  the picker, but `destroy()` never removed the input's `focus`/`pointerdown`/
+  `click`/mask listeners nor tore down the floating `autoUpdate` anchor. The result
+  was a *zombie* floating picker: after a rebuild the next tap on the input
+  reopened the destroyed floating picker and emitted a spurious "Calendar rendered
+  … away from where the library positioned it" drift warning (measuring its
+  detached, zero-rect calendar). All input listeners now register with an
+  `AbortController` signal that `destroy()` aborts, and `destroy()` runs the full
+  presentation teardown (`cleanupPositioning()` plus modal/full-screen exit) so an
+  open sheet can't leak its anchor, scroll-lock, or Back-trap.
+
+### Removed
+
+- The temporary `[drp modal-debug]` `console.warn` sizing report from modal
+  `show()` (the width-collapse diagnostic it was added for is resolved).
+
 ## [2.0.0-rc06] - 2026-08-04
 
 ### Added

@@ -256,6 +256,10 @@
         }
 
         renderCards()
+
+        // Feed the floating jump-nav (examples-chapter-nav.js) from the same registry,
+        // so the index gets a quick "hop to any example" list — no extra data needed.
+        window.CHAPTER_NAV_ITEMS = pages.map(function (p) { return { label: p.title, href: p.href } })
     </script>
     <script type="module">
         // Show the live package version instead of a hardcoded string.
@@ -264,5 +268,7 @@
         const badge = document.getElementById('version-badge');
         if (badge) badge.textContent = `v${version}`;
     </script>
+
+    <script type="module" src="examples-chapter-nav.js"></script>
 </body>
 </html>

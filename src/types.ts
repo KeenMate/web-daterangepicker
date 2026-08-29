@@ -1,4 +1,7 @@
 import type { DateRangePicker } from './date-picker';
+import type { PresentationContext } from '@keenmate/web-components-core';
+
+export type { PresentationContext };
 
 /**
  * Base context shared by every callback in the public API.
@@ -300,13 +303,43 @@ export interface DatePickerOptions {
   positioningMode?: 'inline' | 'floating' | 'modal';
 
   /**
-   * When the calendar auto-closes (floating mode only). Default: `selection`.
-   *
-   * - `never` — never auto-close, even on Apply; the user closes it manually
-   * - `selection` — close when a selection completes (single click, range completion, drag-adjust). Note: multiple mode never auto-closes on selection — it requires Apply
-   * - `apply` — close only when the Apply button is clicked
+   * Phone full-screen overlay: focus the input on open (pops the soft keyboard).
+   * Default `false` — the sheet opens with the calendar visible, keyboard closed.
+   * Only affects the `fullscreen` presentation.
    */
-  autoClose?: 'never' | 'selection' | 'apply';
+  fullscreenAutofocus?: boolean;
+
+  /**
+   * Optional heading shown in the phone full-screen overlay header, beside the
+   * close (✕) button. Unset → just the close button.
+   */
+  fullscreenTitle?: string | null;
+
+  /**
+   * In the phone full-screen overlay, relocate the date input into the header so
+   * it's visible and typeable above the sheet (the offscreen trigger field would
+   * otherwise sit behind the fixed sheet). Gets `inputmode="numeric"` so the phone
+   * shows a digits keypad — the input mask supplies the separators, so no `/`/`.`
+   * key is needed. Default `false`. Only affects the `fullscreen` presentation;
+   * takes over the header row, so `fullscreenTitle` is not shown alongside it.
+   */
+  fullscreenInput?: boolean;
+
+  /**
+   * How a selection is committed and the calendar dismissed (floating mode only).
+   * Merges the old `autoClose` + `isApplyButtonShown` into one axis.
+   * Default: `selection` for date mode; `apply` for time/datetime and multiple mode.
+   *
+   * - `selection` — commit and close as soon as a selection completes (single click,
+   *   range completion, drag-adjust). No Apply button. Multiple mode can't use this
+   *   (it collects several dates), so it falls back to `apply`.
+   * - `apply` — render an Apply button; the selection is staged until it's clicked,
+   *   which commits the value and closes.
+   * - `manual` — never auto-commit or auto-close, and render no built-in Apply button.
+   *   The app drives commit/close itself via custom action buttons (ActionButton.onClick
+   *   calling `apply()` / `hide()`).
+   */
+  commitMode?: 'selection' | 'apply' | 'manual';
 
   /**
    * Controls whether the calendar closes when user scrolls the page (floating mode only)
@@ -314,7 +347,7 @@ export interface DatePickerOptions {
    * - false: Keep open on scroll
    *
    * Note: Even when true, scroll won't close if:
-   * - Apply button is required (isApplyButtonShown: true)
+   * - The selection is staged pending Apply (commitMode: 'apply')
    * - A message is currently visible (validation error, etc.)
    */
   shouldCloseOnScroll?: boolean;
@@ -451,9 +484,6 @@ export interface DatePickerOptions {
 
   /** Show Clear button (default: true) */
   isClearButtonShown?: boolean;
-
-  /** Show Apply button (default: true for range/multiple modes, false for single mode) */
-  isApplyButtonShown?: boolean;
 
   /** Show selection summary (range mode only — days/nights count). Default: true. Set to false to omit the summary block entirely. */
   isSummaryShown?: boolean;
@@ -724,7 +754,7 @@ export interface DayMetadata {
   dayTooltip?: string;       // Plain text hover tooltip for day cell
 }
 
-export interface SummaryContext extends PickerContext {
+export interface SummaryContext extends PickerContext, PresentationContext {
   // Basic counts
   days: number;           // Total days selected
   nights: number;         // Total nights (days - 1)
@@ -761,7 +791,7 @@ export interface SummaryContext extends PickerContext {
  * (metadata resolution, string-render tooltip paths) run before the day cell exists
  * or before selection state is resolved.
  */
-export interface DayContext extends PickerContext {
+export interface DayContext extends PickerContext, PresentationContext {
   // Date information
   date: Date;                  // JavaScript Date object for this day
   dateString: string;          // ISO format YYYY-MM-DD
@@ -784,7 +814,7 @@ export interface DayContext extends PickerContext {
 /**
  * Context passed to getMonthHeaderCallback — a single visible month header.
  */
-export interface MonthHeaderContext extends PickerContext {
+export interface MonthHeaderContext extends PickerContext, PresentationContext {
   /** First day of the month being displayed */
   month: Date;
   /** Which visible month column this header belongs to (0-based) */
@@ -799,7 +829,7 @@ export interface MonthHeaderContext extends PickerContext {
  * Context passed to getUnifiedHeaderCallback — the single header that spans a
  * unified-navigation grid/row.
  */
-export interface UnifiedHeaderContext extends PickerContext {
+export interface UnifiedHeaderContext extends PickerContext, PresentationContext {
   /** First visible month in the grid */
   firstMonth: Date;
   /** Last visible month in the grid */

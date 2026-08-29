@@ -13,31 +13,43 @@ import log from './logger';
 // === DRAG FUNCTIONALITY ===
 
 export function initDragListeners(picker: any) {
-    // For range mode, add mousedown listeners to ALL enabled days
-    // This allows drawing a range from scratch without clicking first
-    // BUT: We need to detect actual dragging vs clicking to allow both behaviors
+    // For range mode, add pointerdown listeners to ALL enabled days. Pointer events
+    // unify mouse, touch, and pen, so drag-to-adjust works with a finger too.
+    // This allows drawing a range from scratch (mouse/pen) or adjusting an endpoint,
+    // detecting an actual drag vs a click/tap via a small movement threshold.
     if (picker.options.selectionMode === 'range') {
         const allDays = picker.calendar.querySelectorAll('.drp__day:not(.drp__day--disabled)');
 
         allDays.forEach(day => {
-            day.addEventListener('mousedown', (e) => {
+            day.addEventListener('pointerdown', (e) => {
                 // Selection lock: a drag adjusts the range, so freeze it here (the
                 // click fallback is separately gated in the calendar click handler).
                 if (picker.isAspectLocked('selection')) return;
-                const mouseEvent = e as MouseEvent;
+                const pe = e as PointerEvent;
                 const dayElement = day as HTMLElement;
 
+                // Determine drag type based on what's grabbed and what's selected.
+                const isRangeStart = dayElement.classList.contains('drp__day--range-start');
+                const isRangeEnd = dayElement.classList.contains('drp__day--range-end');
+                const isEndpoint = isRangeStart || isRangeEnd;
+
+                // On TOUCH, only an existing range endpoint starts a drag — otherwise a
+                // swipe on a day must stay free to scroll the month list (modal/full-
+                // screen), and tap-tap still creates ranges. The endpoint cells carry
+                // `touch-action: none` (see calendar-grid.css) so their drag doesn't
+                // scroll. Mouse/pen keep the draw-from-scratch behaviour on any day.
+                if (pe.pointerType === 'touch' && !(isEndpoint && picker._selectedStartDate && picker._selectedEndDate)) {
+                    return;
+                }
+
                 // Store initial position to detect actual dragging
-                const startX = mouseEvent.clientX;
-                const startY = mouseEvent.clientY;
+                const startX = pe.clientX;
+                const startY = pe.clientY;
+                const pointerId = pe.pointerId;
                 const dragThreshold = 5; // pixels
 
                 let hasMoved = false;
                 let dragStarted = false;
-
-                // Determine drag type based on what's clicked and what's selected
-                const isRangeStart = dayElement.classList.contains('drp__day--range-start');
-                const isRangeEnd = dayElement.classList.contains('drp__day--range-end');
 
                 let dragType: 'start' | 'end';
                 if (isRangeStart && picker._selectedStartDate && picker._selectedEndDate) {
@@ -49,8 +61,9 @@ export function initDragListeners(picker: any) {
                     dragType = 'start';
                 }
 
-                // Listen for mouse movement
-                const onMouseMove = (moveEvent: MouseEvent) => {
+                // Listen for pointer movement (same pointer only)
+                const onPointerMove = (moveEvent: PointerEvent) => {
+                    if (moveEvent.pointerId !== pointerId) return;
                     const deltaX = Math.abs(moveEvent.clientX - startX);
                     const deltaY = Math.abs(moveEvent.clientY - startY);
 
@@ -64,31 +77,33 @@ export function initDragListeners(picker: any) {
                         dragStarted = true;
                         // Now start the drag (this will add its own move/up listeners)
                         // Pass the dayElement we have in scope instead of relying on event.currentTarget
-                        startDrag(picker, mouseEvent, dragType, dayElement);
-                        // Clean up our temporary listeners
-                        document.removeEventListener('mousemove', onMouseMove);
-                        document.removeEventListener('mouseup', onMouseUp);
+                        startDrag(picker, moveEvent, dragType, dayElement);
+                        cleanup();
                     }
                 };
 
-                const onMouseUp = () => {
-                    // Mouse released without movement - this is a click, not a drag
-                    // Clean up listeners and let the click event fire normally
-                    document.removeEventListener('mousemove', onMouseMove);
-                    document.removeEventListener('mouseup', onMouseUp);
+                const onPointerUp = () => {
+                    // Released without movement - this is a click/tap, not a drag.
+                    // Clean up and let the click event handler in date-picker.ts run.
+                    cleanup();
+                };
 
-                    // Don't do anything here - let the click event handler in date-picker.ts handle it
+                const cleanup = () => {
+                    document.removeEventListener('pointermove', onPointerMove);
+                    document.removeEventListener('pointerup', onPointerUp);
+                    document.removeEventListener('pointercancel', onPointerUp);
                 };
 
                 // Add temporary listeners to detect movement
-                document.addEventListener('mousemove', onMouseMove);
-                document.addEventListener('mouseup', onMouseUp);
+                document.addEventListener('pointermove', onPointerMove);
+                document.addEventListener('pointerup', onPointerUp);
+                document.addEventListener('pointercancel', onPointerUp);
             });
         });
     }
 }
 
-export function startDrag(picker: any, event: MouseEvent, type: 'start' | 'end', dayElement: HTMLElement) {
+export function startDrag(picker: any, event: PointerEvent, type: 'start' | 'end', dayElement: HTMLElement) {
     event.preventDefault();
     event.stopPropagation();
 
@@ -166,32 +181,47 @@ export function startDrag(picker: any, event: MouseEvent, type: 'start' | 'end',
 
     dragLogger.debug(`Started dragging ${type} date`);
 
-    // Add document-level listeners
-    picker.onDragMoveBound = (e: MouseEvent) => onDragMove(picker, e);
-    picker.onDragEndBound = async (e: MouseEvent) => await onDragEnd(picker, e);
-    document.addEventListener('mousemove', picker.onDragMoveBound);
-    document.addEventListener('mouseup', picker.onDragEndBound);
+    // Take explicit pointer capture on the STABLE calendar element. A touch pointer
+    // gets an *implicit* capture on the day cell under the finger; once the drag
+    // starts (and preview classes churn on that cell) it stops delivering moves
+    // reliably, so onDragMove would fire only once. Re-capturing to the calendar —
+    // which never leaves the DOM mid-drag — keeps pointermove/up/cancel flowing.
+    // Captured events still bubble to document, so the listeners below cover mouse
+    // (no capture, events land on document) and touch/pen alike; elementFromPoint is
+    // geometric, so day-under-finger detection is unaffected.
+    picker.dragPointerId = event.pointerId;
+    try { picker.calendar.setPointerCapture?.(event.pointerId); } catch { /* older engines */ }
+
+    // Add document-level pointer listeners (mouse, touch, and pen). pointercancel
+    // (e.g. the OS interrupting a touch) finalizes like a release.
+    picker.onDragMoveBound = (e: PointerEvent) => onDragMove(picker, e);
+    picker.onDragEndBound = async (e: PointerEvent) => await onDragEnd(picker, e);
+    document.addEventListener('pointermove', picker.onDragMoveBound);
+    document.addEventListener('pointerup', picker.onDragEndBound);
+    document.addEventListener('pointercancel', picker.onDragEndBound);
 
     // Change body cursor
     document.body.style.cursor = 'grabbing';
 }
 
-export function onDragMove(picker: any, event: MouseEvent) {
+export function onDragMove(picker: any, event: PointerEvent) {
     if (!picker.isDragging) return;
 
-    // Check if hovering over navigation buttons during drag
-    // Use shadow root's elementsFromPoint if available, otherwise use document
-    let element: Element | null = null;
-    if (picker.containerElement instanceof ShadowRoot && 'elementsFromPoint' in picker.containerElement) {
-        const elements = (picker.containerElement as any).elementsFromPoint(event.clientX, event.clientY);
-        element = elements[0] || null;
-    } else {
-        element = document.elementFromPoint(event.clientX, event.clientY);
-    }
+    // Hit-test the point under the pointer. We scan the WHOLE stack (elementsFromPoint)
+    // rather than trusting the topmost element: a shadow <slot> (and other overlays)
+    // can paint above the day cells, so `elements[0]` is often the slot — searching
+    // the stack for the day/nav is what makes drag detection reliable (this also fixed
+    // intermittent mouse drags that happened to land on the slot pixel).
+    const canShadowHitTest = picker.containerElement instanceof ShadowRoot && 'elementsFromPoint' in picker.containerElement;
+    const stack: Element[] = canShadowHitTest
+        ? (picker.containerElement as any).elementsFromPoint(event.clientX, event.clientY)
+        : document.elementsFromPoint(event.clientX, event.clientY);
+    const findClosest = (selector: string): HTMLElement | null =>
+        (stack.map(el => (el as HTMLElement).closest?.(selector)).find(Boolean) as HTMLElement | undefined) ?? null;
 
     // Unified navigation button handling
-    const prevButton = element?.closest('.drp__nav--prev');
-    const nextButton = element?.closest('.drp__nav--next');
+    const prevButton = findClosest('.drp__nav--prev');
+    const nextButton = findClosest('.drp__nav--next');
 
     if (prevButton || nextButton) {
         // Hovering over a navigation button
@@ -229,11 +259,11 @@ export function onDragMove(picker: any, event: MouseEvent) {
         }
     }
 
-    // Find the day element under the cursor
-    const dayElement = element;
-    if (!dayElement || !dayElement.classList.contains('drp__day')) return;
+    // Find the day cell under the pointer (again, search the stack, not just the top).
+    const dayElement = findClosest('.drp__day');
+    if (!dayElement) return;
 
-    const dateAttr = (dayElement as HTMLElement).dataset.date;
+    const dateAttr = dayElement.dataset.date;
     if (!dateAttr) return;
 
     // Parse the date from the day element
@@ -288,7 +318,7 @@ export function onDragMove(picker: any, event: MouseEvent) {
     picker.updateDragPreview();
 }
 
-export async function onDragEnd(picker: any, event: MouseEvent) {
+export async function onDragEnd(picker: any, event: PointerEvent) {
     if (!picker.isDragging) return;
 
     dragLogger.debug('Ended dragging, finalizing selection');
@@ -365,12 +395,19 @@ export async function onDragEnd(picker: any, event: MouseEvent) {
         day.classList.remove('drp__day--dragging');
     });
 
+    // Release the calendar's pointer capture taken in startDrag.
+    if (picker.dragPointerId != null) {
+        try { picker.calendar.releasePointerCapture?.(picker.dragPointerId); } catch { /* already released */ }
+        picker.dragPointerId = null;
+    }
+
     // Remove document-level listeners
     if (picker.onDragMoveBound) {
-        document.removeEventListener('mousemove', picker.onDragMoveBound);
+        document.removeEventListener('pointermove', picker.onDragMoveBound);
     }
     if (picker.onDragEndBound) {
-        document.removeEventListener('mouseup', picker.onDragEndBound);
+        document.removeEventListener('pointerup', picker.onDragEndBound);
+        document.removeEventListener('pointercancel', picker.onDragEndBound);
     }
 
     // Clear navigation interval
@@ -622,12 +659,38 @@ export function applyRangeMask(picker: any, value: string): string {
     return formattedStart;
 }
 
+/**
+ * True when plain Home/End should move the text caret in an input rather than
+ * navigate the calendar: the target is an editable input holding text and the
+ * caret is not already at the relevant boundary (or a selection spans, which the
+ * browser should collapse). Callers must then NOT preventDefault and NOT
+ * navigate — the calendar only takes Home/End once the caret sits at the edge.
+ * Matters most for the `fullscreen-input` header field, where the user is typing
+ * a date. Ctrl/Cmd+Home/End stays calendar year-jump. Mirrors web-multiselect's
+ * caret-aware Home/End (core rc08 companion fix).
+ */
+export function inputOwnsCaretKey(event: KeyboardEvent): boolean {
+    const { key, ctrlKey, metaKey, target } = event;
+    if (ctrlKey || metaKey) return false;
+    if (key !== 'Home' && key !== 'End') return false;
+    if (!(target instanceof HTMLInputElement)) return false;
+    const start = target.selectionStart ?? 0;
+    const end = target.selectionEnd ?? 0;
+    if (start !== end) return true;              // a spanning selection — let the browser handle it
+    if (target.value.length === 0) return false; // empty field — navigate the calendar
+    return key === 'Home' ? start > 0 : end < target.value.length;
+}
+
 export function handleKeydown(picker: any, event: KeyboardEvent) {
     const { key, ctrlKey, metaKey } = event;
     const { separator } = picker.formatInfo;
 
-    // If calendar is open, let document handler deal with navigation keys
+    // If calendar is open, let document handler deal with navigation keys —
+    // except plain Home/End that should first move the caret in a typed input.
     if (picker.calendar.classList.contains('drp__picker--visible')) {
+        if (inputOwnsCaretKey(event)) {
+            return; // let the browser move the caret; don't preventDefault, don't navigate
+        }
         const navigationKeys = ['ArrowUp', 'ArrowDown', 'Home', 'End', 'PageUp', 'PageDown'];
         if (navigationKeys.includes(key)) {
             event.preventDefault(); // Prevent default input behavior

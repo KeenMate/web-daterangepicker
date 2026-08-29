@@ -17,35 +17,42 @@ Control visibility:
 <web-daterangepicker
   selection-mode="range"
   is-today-button-shown="true"
-  is-clear-button-shown="true"
-  is-apply-button-shown="true">
+  is-clear-button-shown="true">
 </web-daterangepicker>
 
 // JavaScript API
 const picker = new DateRangePicker(input, {
   selectionMode: 'range',
   isTodayButtonShown: true,
-  isClearButtonShown: true,
-  isApplyButtonShown: true
+  isClearButtonShown: true
 });
 
-AUTO-CLOSE CONTROL
-------------------
-Control when calendar closes:
+The Apply button is not toggled directly. It is rendered when
+commit-mode="apply" (see below) and omitted for 'selection' and 'manual'.
+
+COMMIT-MODE CONTROL
+-------------------
+Control how a selection is committed and when the calendar closes:
 
 <!-- Web Component -->
 <web-daterangepicker
-  auto-close="selection">  <!-- 'never', 'selection', 'apply' -->
+  commit-mode="selection">  <!-- 'selection', 'apply', 'manual' -->
 </web-daterangepicker>
 
 Modes:
-- 'never' - Never auto-close (manual close only)
-- 'selection' - Close on selection complete (default)
-- 'apply' - Only Apply button closes
+- 'selection' - Commit and close as soon as the pick completes (single
+                click, range completion, drag-adjust). No Apply button.
+                Default for date mode. (Not available in 'multiple' mode.)
+- 'apply'     - Render an Apply button; the pick is staged until Apply is
+                clicked, which commits and closes. Default for time/datetime
+                and for 'multiple' selection mode.
+- 'manual'    - Never auto-commit or auto-close, and render no built-in Apply
+                button. The app drives commit/close via custom action buttons
+                (ActionButton.onClick calling apply() / hide()).
 
 // JavaScript API
 const picker = new DateRangePicker(input, {
-  autoClose: 'selection'
+  commitMode: 'selection'
 });
 
 CUSTOM ACTION BUTTONS

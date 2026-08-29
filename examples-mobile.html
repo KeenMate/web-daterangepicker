@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>Date Range Picker — Mobile &amp; Full-Screen</title>
   <link rel="stylesheet" href="examples-shared.css">
 </head>
@@ -52,11 +52,11 @@
       <div class="grid">
         <div class="form-group">
           <label>Single date</label>
-          <web-daterangepicker id="intro-single" selection-mode="single" placeholder="YYYY-MM-DD"></web-daterangepicker>
+          <web-daterangepicker id="intro-single" selection-mode="single"></web-daterangepicker>
         </div>
         <div class="form-group">
           <label>Date range (2 months → stacked on phones)</label>
-          <web-daterangepicker id="intro-range" selection-mode="range" visible-months-count="2" placeholder="Start – End"></web-daterangepicker>
+          <web-daterangepicker id="intro-range" selection-mode="range" visible-months-count="2"></web-daterangepicker>
         </div>
       </div>
 
@@ -105,10 +105,48 @@
     </div>
 
     <!-- ============================================================ -->
-    <!-- 3. fullscreen-title — header heading                         -->
+    <!-- 3. fullscreen-input — type dates in the header               -->
     <!-- ============================================================ -->
     <div class="card">
-      <h2>3 · <code>fullscreen-title</code> — header heading</h2>
+      <h2>3 · <code>fullscreen-input</code> — type dates in the header</h2>
+      <p>
+        In the full-screen sheet the trigger field normally sits <em>behind</em> the overlay, so there's
+        nothing to type into. <code>fullscreen-input</code> moves the real input up into the sheet
+        header — visible, above the calendar, and wired to the same mask. It gets
+        <code>inputmode="numeric"</code>, so phones show a <strong>digits-only keypad</strong>: you type
+        <code>08192026</code> and the mask fills in the separators (<code>08/19/2026</code>). You never
+        need the <code>/</code> or <code>.</code> key a numeric keypad hides — the component owns them.
+      </p>
+      <p>
+        Pair it with <code>fullscreen-autofocus</code> to pop that keypad on open for a type-first flow,
+        or leave autofocus off and let users tap the header field when they want to type. The header
+        input takes over the row, so it's shown instead of <code>fullscreen-title</code>.
+      </p>
+
+      <label class="toggle-label"><input type="checkbox" id="hdrinput-fs-preview"> Preview as full-screen (desktop)</label>
+      <div class="grid">
+        <div class="form-group">
+          <label>Tap-or-type — header input</label>
+          <web-daterangepicker id="hdrinput" selection-mode="single" fullscreen-input></web-daterangepicker>
+        </div>
+        <div class="form-group">
+          <label>Type-first — header input + autofocus keypad</label>
+          <web-daterangepicker id="hdrinput-af" selection-mode="range" fullscreen-input fullscreen-autofocus></web-daterangepicker>
+        </div>
+      </div>
+
+      <div class="code-block"><code><span class="comment">&lt;!-- typeable input in the full-screen header, numeric keypad + mask --&gt;</span>
+<span class="keyword">&lt;web-daterangepicker</span> <span class="property">fullscreen-input</span><span class="keyword">&gt;&lt;/web-daterangepicker&gt;</span>
+
+<span class="comment">&lt;!-- type-first: also pop the keypad on open --&gt;</span>
+<span class="keyword">&lt;web-daterangepicker</span> <span class="property">fullscreen-input</span> <span class="property">fullscreen-autofocus</span><span class="keyword">&gt;&lt;/web-daterangepicker&gt;</span></code></div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- 4. fullscreen-title — header heading                         -->
+    <!-- ============================================================ -->
+    <div class="card">
+      <h2>4 · <code>fullscreen-title</code> — header heading</h2>
       <p>
         The full-screen header shows just a close (✕) button by default. Add <code>fullscreen-title</code>
         for a heading beside it — useful to label what the user is picking.
@@ -125,10 +163,10 @@
     </div>
 
     <!-- ============================================================ -->
-    <!-- 4. Forcing / previewing on desktop                           -->
+    <!-- 5. Forcing / previewing on desktop                           -->
     <!-- ============================================================ -->
     <div class="card">
-      <h2>4 · Forcing a presentation</h2>
+      <h2>5 · Forcing a presentation</h2>
       <p>
         Set <code>mobile-presentation</code> to a concrete value to override the device ladder on any
         device — for a deliberate design choice or to inspect the phone/tablet UI on a desktop.
@@ -166,7 +204,9 @@
     };
     wirePreview('intro-fs-preview', 'intro-single', 'intro-range');
     wirePreview('kbd-fs-preview', 'kbd-off', 'kbd-on');
+    wirePreview('hdrinput-fs-preview', 'hdrinput', 'hdrinput-af');
     wirePreview('titled-fs-preview', 'titled');
   </script>
+  <script type="module" src="examples-chapter-nav.js"></script>
 </body>
 </html>

@@ -107,10 +107,11 @@ use camelCase (`selectionMode`).
 | `disabled-dates-handling` | `'allow' \| 'prevent' \| 'block' \| 'split' \| 'individual'` | `'allow'` | How to handle range selections over disabled dates (see [Range selection modes](#range-selection-modes)) |
 | `display-format-mask` | `string` | Same as `date-format-mask` | Localized format hint shown to users (`'dd/mm/aaaa'` Spanish, `'tt.mm.jjjj'` German, …). Used as input placeholder when no explicit `placeholder` is set. Validation still uses `date-format-mask`. |
 | `should-highlight-disabled-in-range` | `boolean` | `true` | Highlight disabled dates within a selected range. `false` = only highlight enabled dates. |
-| `auto-close` | `'never' \| 'selection' \| 'apply'` | `'selection'` | When to close calendar (selection = after picking, apply = after Apply button, never = manual) |
+| `commit-mode` | `'selection' \| 'apply' \| 'manual'` | `'selection'` (`'apply'` for time/datetime and `multiple` mode) | How a selection is committed and when the calendar closes. `selection` = commit and close as soon as the pick completes, no Apply button; `apply` = render an Apply button and stage the pick until it is clicked; `manual` = never auto-commit or auto-close and render no built-in Apply button (app drives commit/close via custom action buttons) |
 | `positioning-mode` | `'inline' \| 'floating' \| 'modal'` | `'floating'` | Calendar positioning (inline = embedded, floating = popup anchored to input, modal = centered overlay with backdrop) |
-| `mobile-modal-breakpoint` | CSS length (e.g., `"640px"`, `"40em"`) | — | When configured mode is `floating`, auto-switch to `modal` below this viewport width |
-| `mobile-modal-min-height` | CSS length | — | Same as breakpoint but for viewport height. ORs with `mobile-modal-breakpoint`. |
+| `mobile-presentation` | `'auto' \| 'floating' \| 'modal' \| 'fullscreen'` | `'auto'` | How a **floating** picker adapts to the device (SPEC §12.9). `auto`: **phone** (touch, shorter viewport side < 600px) → full-screen overlay; **tablet** (touch, ≥ 600px) → centered modal; **desktop** (mouse) → floating popover. A concrete value forces that presentation on any device (e.g. `fullscreen` to preview the phone sheet on desktop). `inline` / explicit `modal` pickers are left as authored. |
+| `fullscreen-title` | `string` | — | Optional heading in the phone full-screen header, beside the ✕ close button. |
+| `fullscreen-autofocus` | `boolean` | `false` | Phone full-screen only: focus the input on open (pops the soft keyboard). Default off — the sheet opens with the calendar visible, keyboard closed. |
 | `is-summary-shown` | `boolean` | `true` | Show range-mode days/nights summary block. `false` = omit entirely (no empty-div jump). |
 | `input-size` | `'xs' \| 'sm' \| 'md' \| 'lg' \| 'xl'` | `'md'` | Input field size (floating/modal modes only) |
 | `enable-transitions` | `boolean` | `false` | Enable CSS transitions/animations |

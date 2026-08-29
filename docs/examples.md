@@ -95,10 +95,16 @@ themeing multiple KeenMate components together.
 
 ### Responsive — [`examples-responsive.html`](../examples-responsive.html)
 
-The `positioning-mode="modal"` layout, viewport-tier widths
-(xs / sm / md / lg), and the `mobile-modal-breakpoint` /
-`mobile-modal-min-height` auto-engage rules that switch a floating
-popover into a modal sheet on narrow screens.
+The explicit `positioning-mode="modal"` layout and its viewport-tier widths
+(xs / sm / md / lg).
+
+### Mobile & full-screen — [`examples-mobile.html`](../examples-mobile.html)
+
+The device-adaptive `mobile-presentation` ladder — floating on desktop, a
+centered modal on tablets, and an edge-to-edge **full-screen** overlay on
+phones (touch-primary + shorter viewport side < 600px, orientation-robust) —
+plus the `fullscreen-title` / `fullscreen-autofocus` options and a
+"preview as full-screen" toggle for inspecting the phone sheet on a desktop.
 
 ## Time / datetime
 

@@ -4,10 +4,17 @@ REM Usage: make.bat <command>
 
 setlocal enabledelayedexpansion
 
+REM Container image config (override via environment variables before calling).
+if not defined DOCKER_RUNNER set DOCKER_RUNNER=podman
+if not defined IMAGE_NAME set IMAGE_NAME=registry.km8.es/web-daterangepicker-examples:prod
+if not defined CONTAINER_NAME set CONTAINER_NAME=web-daterangepicker-examples
+if not defined IMAGE_PORT set IMAGE_PORT=12310
+
 if "%1"=="" goto :help
 if "%1"=="help" goto :help
 if "%1"=="setup" goto :setup
 if "%1"=="dev" goto :dev
+if "%1"=="kill-port" goto :kill-port
 if "%1"=="build" goto :build
 if "%1"=="package" goto :package
 if "%1"=="publish-dry" goto :publish-dry
@@ -22,6 +29,10 @@ if "%1"=="test-e2e" goto :test-e2e
 if "%1"=="test-e2e-ui" goto :test-e2e-ui
 if "%1"=="test-e2e-headed" goto :test-e2e-headed
 if "%1"=="test-e2e-install" goto :test-e2e-install
+if "%1"=="image-build" goto :image-build
+if "%1"=="image-run" goto :image-run
+if "%1"=="image-stop" goto :image-stop
+if "%1"=="image-clean" goto :image-clean
 goto :unknown
 
 :help
@@ -45,6 +56,13 @@ echo   test-e2e      - Run Playwright e2e tests (headless)
 echo   test-e2e-ui   - Run Playwright e2e tests in interactive UI mode
 echo   test-e2e-headed  - Run Playwright e2e tests headed
 echo   test-e2e-install - One-time: install chromium browser binary
+echo.
+echo Dev server / container image:
+echo   kill-port     - Free the vite dev-server ports (12300-12305)
+echo   image-build   - Build the examples container image
+echo   image-run     - Run the examples image (serves on %IMAGE_PORT%)
+echo   image-stop    - Stop and remove the examples container
+echo   image-clean   - Remove the examples container and image
 echo.
 goto :end
 
@@ -133,6 +151,40 @@ goto :end
 :test-e2e-install
 echo Installing chromium browser binary...
 call npm run test:e2e:install
+goto :end
+
+:kill-port
+echo Freeing ports 12300-12305...
+for /f "tokens=5" %%p in ('netstat -ano ^| findstr /R ":1230[0-5] " ^| findstr LISTENING') do (
+    taskkill /F /PID %%p >nul 2>&1
+)
+echo Ports 12300-12305 are free
+goto :end
+
+:image-build
+echo Building %IMAGE_NAME% with %DOCKER_RUNNER%...
+call %DOCKER_RUNNER% build -t %IMAGE_NAME% .
+echo Image built: %IMAGE_NAME%
+goto :end
+
+:image-run
+echo Starting %CONTAINER_NAME% on http://localhost:%IMAGE_PORT% ...
+call %DOCKER_RUNNER% rm -f %CONTAINER_NAME% >nul 2>&1
+call %DOCKER_RUNNER% run -d --name %CONTAINER_NAME% -p %IMAGE_PORT%:80 %IMAGE_NAME%
+echo Serving examples at http://localhost:%IMAGE_PORT%
+goto :end
+
+:image-stop
+echo Stopping %CONTAINER_NAME%...
+call %DOCKER_RUNNER% rm -f %CONTAINER_NAME% >nul 2>&1
+echo Stopped
+goto :end
+
+:image-clean
+echo Removing container and image %IMAGE_NAME%...
+call %DOCKER_RUNNER% rm -f %CONTAINER_NAME% >nul 2>&1
+call %DOCKER_RUNNER% rmi %IMAGE_NAME% >nul 2>&1
+echo Image removed
 goto :end
 
 :unknown

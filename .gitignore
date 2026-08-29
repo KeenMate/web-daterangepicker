@@ -45,3 +45,6 @@ vscode.css-custom-data.json
 
 # npm pack output
 *.tgz
+
+# Per-developer Make configuration (container runner, image name/port overrides)
+.makefile.env

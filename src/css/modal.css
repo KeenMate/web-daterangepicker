@@ -13,10 +13,12 @@
   transform: translate(-50%, -50%);
   max-width: calc(100vw - 2 * var(--drp-modal-gap));
   max-height: calc(100vh - 2 * var(--drp-modal-gap));
-  /* width: auto so the calendar sizes to its content (multi-month grid),
-     capped by max-width. On narrow viewports, the @media block below forces
-     a generous explicit width so the modal doesn't collapse to its intrinsic
-     min-content (which looks tiny — see --drp-modal-narrow-width). */
+  /* width: auto + the per-breakpoint @media widths below force a generous width so
+     a multi-month grid has room (and `container-type: inline-size` — needed for the
+     @container month-collapse queries — prevents content-based sizing, so an
+     explicit width is required). A SINGLE-month picker overrides this to a natural
+     width (see the `:not(:has(... nth-child(2)))` rule) so one month doesn't stretch
+     across the wide tier and blow up the day cells. */
   width: auto;
   /* Flex-column scroll layout (header pinned top, months scroll, actions
      pinned bottom) is shared with floating mode and lives in `base.css`
@@ -53,17 +55,12 @@
 }
 
 /* Per-breakpoint modal width.
-   Without an explicit width, `width: auto` collapses the modal to whatever
-   min-content width the day grid needs — much narrower than viewport on
-   phones, which looks awkward and wastes space. We pin the width per
-   breakpoint via CSS variables (which can be overridden by the consumer),
-   while the breakpoints themselves are hardcoded since media queries can't
-   read CSS variables.
-
-   Aligned with the 480 / 768 / 1200 breakpoints already used by `base.css`
-   (grid columns) and the Responsive Sizing demo (`--drp-rem` scaling).
-   See `variables.css` for the default widths and a description of each
-   tier. */
+   `container-type: inline-size` (needed for the @container queries) prevents the
+   modal from sizing to its content, so we pin an explicit width per tier that
+   gives a multi-month grid room. Breakpoints are hardcoded (media queries can't
+   read CSS variables) and aligned with the 480 / 768 / 1200 breakpoints used by
+   `base.css` and the Responsive Sizing demo. See `variables.css` for the defaults.
+   NOTE: a single-month picker overrides all of these — see the rule below. */
 
 /* xs — small phones (≤ 480px) */
 @media (max-width: 480px) {
@@ -91,6 +88,15 @@
   .drp__picker--modal {
     width: var(--drp-modal-width-lg);
   }
+}
+
+/* Single-month modal: a lone month must NOT stretch across the wide multi-month
+   tier width (one month over ~900px makes the day cells enormous). Detected via
+   `:has()` — no second month column — and pinned to a natural single-month width.
+   Higher specificity than the plain `.drp__picker--modal` tier rules above, so it
+   wins at every breakpoint; still capped by the viewport `max-width`. */
+.drp__picker--modal:not(:has(.drp__months > .drp__month:nth-child(2))) {
+  width: var(--drp-modal-width-single);
 }
 
 /* Progressive responsive layout — different behavior for flex vs grid:

@@ -88,35 +88,95 @@
   width: 100%;
 }
 
-/* Calendar icon */
+/* Calendar icon — a CSS mask (not the 📅 emoji, which rendered differently per
+   OS); tints with the input's text color. The em-based icon-size vars set the
+   pseudo-element's width/height and resolve against the inherited input font. */
 .drp__input::after {
-  content: '📅';
+  content: '';
   position: absolute;
   right: var(--drp-input-size-md-padding-h);
   top: 50%;
   transform: translateY(-50%);
   pointer-events: none;
   opacity: var(--drp-input-icon-opacity);
-  font-size: var(--drp-input-size-md-icon-size);
+  width: var(--drp-input-size-md-icon-size);
+  height: var(--drp-input-size-md-icon-size);
+  background-color: currentColor;
+  -webkit-mask: var(--drp-icon-calendar) center / contain no-repeat;
+          mask: var(--drp-icon-calendar) center / contain no-repeat;
 }
 
-/* Size variant icon positioning */
+/* Size variant icon positioning + sizing */
 .drp__input.drp__input--xs::after {
   right: var(--drp-input-size-xs-padding-h);
-  font-size: var(--drp-input-size-xs-icon-size);
+  width: var(--drp-input-size-xs-icon-size);
+  height: var(--drp-input-size-xs-icon-size);
 }
 
 .drp__input.drp__input--sm::after {
   right: var(--drp-input-size-sm-padding-h);
-  font-size: var(--drp-input-size-sm-icon-size);
+  width: var(--drp-input-size-sm-icon-size);
+  height: var(--drp-input-size-sm-icon-size);
 }
 
 .drp__input.drp__input--lg::after {
   right: var(--drp-input-size-lg-padding-h);
-  font-size: var(--drp-input-size-lg-icon-size);
+  width: var(--drp-input-size-lg-icon-size);
+  height: var(--drp-input-size-lg-icon-size);
 }
 
 .drp__input.drp__input--xl::after {
   right: var(--drp-input-size-xl-padding-h);
-  font-size: var(--drp-input-size-xl-icon-size);
+  width: var(--drp-input-size-xl-icon-size);
+  height: var(--drp-input-size-xl-icon-size);
+}
+
+/* ==============================================================================
+   INLINE CLEAR (✕) BUTTON
+   ==============================================================================
+   A positioned wrapper holds the <input> plus a trailing ✕ that clears the
+   selection + value. The button only shows while the field holds a value (the
+   web component toggles `--visible`). Mirrors web-multiselect's search clear. */
+
+.drp__input-wrapper {
+  position: relative;
+  display: inline-block;
+  width: 100%;
+}
+
+.drp__input-clear {
+  position: absolute;
+  inset-inline-end: var(--drp-input-clear-inset);
+  top: 50%;
+  transform: translateY(-50%);
+  /* Hidden until the field has a value; the host toggles `--visible`. */
+  display: none;
+  align-items: center;
+  justify-content: center;
+  width: var(--drp-input-clear-size);
+  height: var(--drp-input-clear-size);
+  padding: 0;
+  border: none;
+  border-radius: var(--drp-border-radius);
+  background: transparent;
+  color: var(--drp-input-clear-color);
+  cursor: pointer;
+  transition: background-color var(--drp-transition-fast) var(--drp-easing-snappy);
+}
+
+.drp__input-clear.drp__input-clear--visible {
+  display: flex;
+}
+
+.drp__input-clear:hover {
+  background: var(--drp-input-clear-bg-hover);
+}
+
+.drp__input-clear::before {
+  content: '';
+  width: var(--drp-input-clear-icon-size);
+  height: var(--drp-input-clear-icon-size);
+  background-color: currentColor;
+  -webkit-mask: var(--drp-icon-input-clear) center / contain no-repeat;
+          mask: var(--drp-icon-input-clear) center / contain no-repeat;
 }

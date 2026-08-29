@@ -24,6 +24,7 @@ import * as Lock from './date-picker-lock';
 import { resolveLocale, getLocaleStrings, getWeekdayNames, getMonthNames } from './date-picker-locales';
 import { drpLogger, navigationLogger, enableLogging, disableLogging } from './logger';
 import { createTooltip, type TooltipHandle } from '@keenmate/web-components-core/positioning';
+import { presentationContext, type PresentationContext } from '@keenmate/web-components-core';
 import { createScrollEventManager, createClickEventManager, type ScrollEventManager, type ClickEventManager, type ScrollSubscription, type ClickSubscription } from './modules';
 // Import styles for static injection (only used when injectGlobalStyles is called)
 import styles from './css/main.css?inline';
@@ -169,6 +170,32 @@ class DateRangePicker {
     clickEvents: ClickEventManager;
     private scrollSubscriptions: ScrollSubscription[] = [];
     private clickSubscriptions: ClickSubscription[] = [];
+    /**
+     * The concrete presentation of the OPEN calendar chrome (non-inline pickers):
+     * `floating` popover, centered `modal`, or phone `fullscreen` overlay. Set from
+     * the configured positioning mode and swapped in place by {@link setPresentation}
+     * as the device environment changes. `inline` pickers ignore this field.
+     */
+    presentation: 'floating' | 'modal' | 'fullscreen' = 'floating';
+    // Back-gesture trap for the full-screen sheet: on open we push a same-URL
+    // history entry so the phone Back gesture/button pops it (closing the sheet)
+    // instead of navigating the page. `onOverlayPopstate` is the bound listener.
+    // Managed by pushOverlayHistory()/popOverlayHistory()/handleOverlayPopstate() in
+    // date-picker-ui.ts — kept parallel with web-multiselect so this trap can later
+    // be extracted into web-components-core in one symmetric change.
+    overlayHistoryActive = false;
+    onOverlayPopstate: (() => void) | null = null;
+    /**
+     * Set by the input's pointer triggers so the just-opened modal/full-screen sheet
+     * knows to swallow the tap's trailing "ghost" click (which would otherwise land
+     * on a day cell of the overlay and select it). Consumed + cleared on open.
+     */
+    openViaPointer = false;
+    // All input-element listeners are registered with this controller's signal so
+    // destroy() can drop them in one call. The input element is REUSED across a
+    // destroy()+rebuild (e.g. the positioning-mode flip), so without this a zombie
+    // picker's show()/handlers would keep firing on the shared input.
+    private inputListenersAbort = new AbortController();
 
     // Week start and date restrictions
     private weekStartDay: number = 0; // 0 = Sunday, 1 = Monday, etc.
@@ -236,12 +263,11 @@ class DateRangePicker {
             badgeTooltipMember: options.badgeTooltipMember,
             dayTooltipMember: options.dayTooltipMember,
             isDisabledMember: options.isDisabledMember,
-            autoClose: options.autoClose || 'selection',
+            commitMode: options.commitMode || 'selection',
             shouldCloseOnScroll: options.shouldCloseOnScroll !== undefined ? options.shouldCloseOnScroll : true,
             actionButtons: options.actionButtons,
             isTodayButtonShown: options.isTodayButtonShown !== undefined ? options.isTodayButtonShown : true,
             isClearButtonShown: options.isClearButtonShown !== undefined ? options.isClearButtonShown : true,
-            isApplyButtonShown: options.isApplyButtonShown !== undefined ? options.isApplyButtonShown : (options.selectionMode === 'range' || options.selectionMode === 'multiple'),
             isSummaryShown: options.isSummaryShown !== undefined ? options.isSummaryShown : true,
             pickerMode: options.pickerMode || 'date',
             timeFormatMask: options.timeFormatMask || 'HH:mm',
@@ -250,8 +276,17 @@ class DateRangePicker {
             hourCycle: options.hourCycle,
             isSecondsShown: options.isSecondsShown,
             isNowButtonShown: options.isNowButtonShown !== undefined ? options.isNowButtonShown : true,
-            timeDisplay: options.timeDisplay || 'rolls'
+            timeDisplay: options.timeDisplay || 'rolls',
+            fullscreenAutofocus: options.fullscreenAutofocus || false,
+            fullscreenInput: options.fullscreenInput || false,
+            fullscreenTitle: options.fullscreenTitle
         };
+
+        // Runtime presentation of the OPEN calendar chrome, for non-inline pickers.
+        // Defaults from the configured positioning mode; the web component may swap
+        // it in place via setPresentation() as the device environment changes
+        // (floating popover ⇄ centered modal ⇄ phone full-screen overlay).
+        this.presentation = this.options.positioningMode === 'modal' ? 'modal' : 'floating';
 
         // Mode fallback enforcement — keep downstream code free of defensive checks.
         // pickerMode 'time'/'datetime' only support selectionMode 'single' in v1.
@@ -260,7 +295,6 @@ class DateRangePicker {
             console.warn(`[web-daterangepicker] pickerMode="${this.options.pickerMode}" does not support selectionMode="${this.options.selectionMode}" yet. Falling back to "single".`);
             this.options.selectionMode = 'single';
             this.options.visibleMonthsCount = 1;
-            this.options.isApplyButtonShown = options.isApplyButtonShown !== undefined ? options.isApplyButtonShown : true;
         }
         // pickerMode 'datetime' + monthLayout 'grid' — the time picker fights the grid for width.
         if (this.options.pickerMode === 'datetime' && this.options.monthLayout === 'grid') {
@@ -282,15 +316,17 @@ class DateRangePicker {
             console.warn('[web-daterangepicker] timeDisplay="clock" does not support isSecondsShown; seconds will always be 00. Set timeDisplay="rolls" to pick seconds.');
             this.options.isSecondsShown = false;
         }
-        // For time/datetime modes, default autoClose to 'apply' so each roll-click
-        // doesn't auto-commit. Honors an explicit user-supplied autoClose value.
-        // The matching isApplyButtonShown flip is required — otherwise Apply is gated
-        // on but the button never renders and the user has no way to commit.
-        if (this.options.pickerMode !== 'date' && options.autoClose === undefined) {
-            this.options.autoClose = 'apply';
+        // Multiple mode collects several dates, so it can't commit-and-close on each
+        // pick — default it to `apply` (the Apply button is its commit path) unless the
+        // caller set commitMode explicitly.
+        if (this.options.selectionMode === 'multiple' && options.commitMode === undefined) {
+            this.options.commitMode = 'apply';
         }
-        if (this.options.pickerMode !== 'date' && options.isApplyButtonShown === undefined) {
-            this.options.isApplyButtonShown = true;
+        // Time/datetime default to `apply` too, so each roll-click doesn't auto-commit
+        // and close; honors an explicit caller value. `apply` renders the Apply button,
+        // which is the only commit path once selection is staged.
+        if (this.options.pickerMode !== 'date' && options.commitMode === undefined) {
+            this.options.commitMode = 'apply';
         }
 
         // Enable/disable logging based on showDebugInfo option
@@ -495,7 +531,7 @@ class DateRangePicker {
     private setupEventSubscriptions() {
         // Subscribe to window scroll - close calendar when scrolling the page (floating mode only)
         const windowScrollSub = this.scrollEvents.subscribe('window', () => {
-            if (this.options.positioningMode === 'floating' && this.isOpen) {
+            if (this.presentation === 'floating' && this.isOpen) {
                 // Check if scroll close is disabled globally
                 if (this.options.shouldCloseOnScroll === false) {
                     return;
@@ -529,13 +565,14 @@ class DateRangePicker {
         const outsideClickSub = this.clickEvents.subscribe('outsideClick', (ctx) => {
             drpLogger.debug('Outside click detected', ctx.target);
 
-            // Modal mode handles "outside click" via the backdrop element directly,
-            // not via the document outside-click stream. Ignore here.
-            if (this.options.positioningMode === 'modal') {
+            // Modal handles "outside click" via the backdrop element; fullscreen is
+            // edge-to-edge (no document-level "outside" to click). Both ignore the
+            // outside-click stream here.
+            if (this.presentation === 'modal' || this.presentation === 'fullscreen') {
                 return;
             }
 
-            if (this.options.positioningMode === 'floating') {
+            if (this.presentation === 'floating') {
                 // Floating mode: close entire calendar
                 this.hide();
             } else {
@@ -858,8 +895,8 @@ class DateRangePicker {
             });
         }
 
-        // Apply button (for range and multiple modes)
-        if (this.options.isApplyButtonShown) {
+        // Apply button — only in `apply` commit mode (the staged-selection commit path).
+        if (this.options.commitMode === 'apply') {
             buttons.push({
                 action: 'apply',
                 text: this.localeStrings.apply
@@ -969,6 +1006,7 @@ class DateRangePicker {
         if (this.options.getDateMetadataCallback) {
             const customInfo = this.options.getDateMetadataCallback({
                 picker: this,
+                ...this.presentationCtx(),
                 date,
                 dateString: dateKey,
                 dayNumber: date.getDate(),
@@ -1092,8 +1130,8 @@ class DateRangePicker {
      * @returns true if Apply button is required and events should be deferred
      */
     requiresApplyButton(): boolean {
-        // Only defer selection commitment when autoClose is explicitly 'apply'
-        return this.options.autoClose === 'apply';
+        // Only defer selection commitment in `apply` commit mode.
+        return this.options.commitMode === 'apply';
     }
 
     /**
@@ -1104,7 +1142,7 @@ class DateRangePicker {
         // Multiple mode never auto-closes on selection (inherently requires Apply or manual close)
         if (this.options.selectionMode === 'multiple') return false;
 
-        return this.options.autoClose === 'selection';
+        return this.options.commitMode === 'selection';
     }
 
     createCalendar() {
@@ -1354,6 +1392,11 @@ class DateRangePicker {
 
         drpLogger.debug('Attaching input listeners');
 
+        // A fresh controller for this build's listeners (a rebuild makes a new
+        // instance; the prior one was already aborted in destroy()).
+        this.inputListenersAbort = new AbortController();
+        const signal = this.inputListenersAbort.signal;
+
         // Calendar trigger modes
         const triggerMode = this.options.calendarOpenTrigger || 'focus'; // default to 'focus' for backward compatibility
 
@@ -1362,7 +1405,7 @@ class DateRangePicker {
             this.input.addEventListener('focus', () => {
                 drpLogger.debug('Input focused - opening calendar');
                 this.show();
-            });
+            }, { signal });
             // Also re-open when the input is clicked while already focused but the
             // calendar got closed (e.g., by scroll, Escape, outside-click). The focus
             // event won't fire if focus didn't change. Both mousedown and click are
@@ -1377,16 +1420,19 @@ class DateRangePicker {
             // the input".
             this.input.addEventListener('pointerdown', () => {
                 drpLogger.debug('Input pointerdown - ensuring calendar open');
+                this.openViaPointer = true; // a trailing "ghost" click may hit a modal/fullscreen overlay
                 this.show();
-            });
+            }, { signal });
             this.input.addEventListener('mousedown', () => {
                 drpLogger.debug('Input mousedown - ensuring calendar open');
+                this.openViaPointer = true;
                 this.show();
-            });
+            }, { signal });
             this.input.addEventListener('click', () => {
                 drpLogger.debug('Input click - ensuring calendar open');
+                this.openViaPointer = true;
                 this.show();
-            });
+            }, { signal });
             // Diagnose: log when the input loses focus and when window focus changes.
         } else if (triggerMode === 'typing') {
             // Open when user starts typing
@@ -1395,14 +1441,14 @@ class DateRangePicker {
                     drpLogger.debug('User started typing - opening calendar');
                     this.show();
                 }
-            });
+            }, { signal });
         }
         // 'manual' mode: no automatic trigger, calendar only opens via .show()/.toggle() methods
 
         // Input masking handlers (always attached regardless of trigger mode)
-        this.input.addEventListener('input', (e) => this.handleInputMask(e));
-        this.input.addEventListener('keydown', (e) => this.handleKeydown(e));
-        this.input.addEventListener('paste', (e) => this.handlePaste(e));
+        this.input.addEventListener('input', (e) => this.handleInputMask(e), { signal });
+        this.input.addEventListener('keydown', (e) => this.handleKeydown(e), { signal });
+        this.input.addEventListener('paste', (e) => this.handlePaste(e), { signal });
     }
 
     attachCalendarListeners() {
@@ -1424,6 +1470,26 @@ class DateRangePicker {
             const target = e.target as HTMLElement;
             // Stop propagation to prevent "close on outside click" from firing
             e.stopPropagation();
+
+            // Touch badge tooltips: on hover-less devices (phone full-screen sheet,
+            // tablets) a badge's tooltip can't show on hover, so a tap toggles it.
+            // Gated on `!supportsHover()` so desktop keeps the mouseenter/leave path
+            // untouched. A tap on the same badge (or an empty badge) closes it; a tap
+            // anywhere else in the calendar dismisses an open badge tooltip before the
+            // tap's own action runs. Badge cells drive nothing else, so we return.
+            if (!this.supportsHover()) {
+                const badgeCell = target.closest('.drp__badge-cell') as HTMLElement | null;
+                if (badgeCell) {
+                    const tip = badgeCell.dataset.tooltip;
+                    if (tip && this.currentTooltipTarget !== badgeCell) {
+                        this.showTooltip(badgeCell, tip);
+                    } else {
+                        this.hideTooltip();
+                    }
+                    return;
+                }
+                if (this.currentTooltipTarget) this.hideTooltip();
+            }
 
             const action = target.dataset.action;
             const monthIndexAttr = target.dataset.monthIndex;
@@ -1641,8 +1707,12 @@ class DateRangePicker {
             }
         });
 
-        // Tooltip event delegation (for both days and badge cells)
+        // Tooltip event delegation (for both days and badge cells). Hover-only:
+        // touch devices report `(hover: none)` and get tap-to-toggle tooltips in the
+        // click handler instead. Bailing here also avoids the synthesized mouseenter
+        // that a tap fires from showing a tooltip the same tap would then toggle off.
         this.calendar.addEventListener('mouseenter', (e) => {
+            if (!this.supportsHover()) return;
             const target = e.target as HTMLElement;
             const day = target.closest('.drp__day');
             const badgeCell = target.closest('.drp__badge-cell');
@@ -1657,6 +1727,7 @@ class DateRangePicker {
         }, true); // Use capture phase to catch events on child elements
 
         this.calendar.addEventListener('mouseleave', (e) => {
+            if (!this.supportsHover()) return;
             const target = e.target as HTMLElement;
             const day = target.closest('.drp__day');
             const badgeCell = target.closest('.drp__badge-cell');
@@ -1730,6 +1801,11 @@ class DateRangePicker {
                 e.preventDefault();
                 return;
             }
+
+            // Plain Home/End belong to the caret while a typed input holds text and
+            // the caret isn't at the boundary (esp. the fullscreen-input header
+            // field) — don't hijack them for month/year navigation.
+            if (Interaction.inputOwnsCaretKey(e)) return;
 
             if (e.key === 'Escape') {
                 this.hide();
@@ -2446,8 +2522,36 @@ class DateRangePicker {
         // Stop listening for cross-picker activation broadcasts
         document.removeEventListener(DateRangePicker.ACTIVE_EVENT, this.onAnotherPickerActivated);
 
+        // Drop every input-element listener at once. The input is reused across a
+        // rebuild, so leaving these attached would let a destroyed picker's show()
+        // and mask/keydown handlers keep firing on the shared input (a zombie
+        // floating picker reopening after a positioning-mode flip).
+        this.inputListenersAbort.abort();
+
         // Destroy action button tooltips
         this.destroyAllActionButtonTooltips();
+
+        // Tear down positioning/overlay chrome BEFORE removing the calendar. If a
+        // modal/full-screen sheet is open we must run its full exit (unlock body
+        // scroll, drop the header, pop the Back-trap history entry, detach keyboard
+        // tracking) — but ONLY when open, or exitModal/exitFullscreen would unlock a
+        // scroll lock that was never taken and corrupt the ref count. When closed,
+        // cleanupPositioning alone stops any floating autoUpdate leaking onto the
+        // detached calendar (the rebuild-while-open drift guard).
+        // Detach Back-gesture handling WITHOUT popping history — a teardown (attribute
+        // rebuild, DOM move) must not trigger navigation. Any same-URL entry we pushed
+        // is harmless. Done before teardownPresentationChrome() so exitFullscreen's
+        // popOverlayHistory() no-ops. (Kept parallel with web-multiselect's destroy().)
+        if (this.overlayHistoryActive) {
+            this.overlayHistoryActive = false;
+            if (typeof window !== 'undefined' && this.onOverlayPopstate) {
+                window.removeEventListener('popstate', this.onOverlayPopstate);
+            }
+        }
+        const openOverlay = this.options.positioningMode !== 'inline' &&
+            this.calendar.classList.contains('drp__picker--visible');
+        if (openOverlay) UI.teardownPresentationChrome(this);
+        else UI.cleanupPositioning(this);
 
         this.calendar.remove();
         if (this.tooltip) {
@@ -2462,6 +2566,31 @@ class DateRangePicker {
     // UI methods - wrappers for pure functions
     show() { return UI.show(this); }
     hide() { return UI.hide(this); }
+    /**
+     * Swap the runtime presentation (`floating` | `modal` | `fullscreen`) in place —
+     * no rebuild, selection preserved. Driven by the web component's device
+     * environment hook; a no-op for inline pickers and when unchanged.
+     */
+    setPresentation(next: 'floating' | 'modal' | 'fullscreen') { return UI.setPresentation(this, next); }
+    /**
+     * Presentation render-context flags (core `presentationContext`, rc08) spread
+     * into every render-facing callback context so a single callback can vary its
+     * output between the desktop popover and the phone full-screen sheet — e.g.
+     * `renderDayCallback: ({ isFullscreen }) => …`. Reflects the OPEN chrome.
+     */
+    presentationCtx(): PresentationContext { return presentationContext(this.presentation); }
+    /**
+     * True on pointing devices that can hover (desktop mouse). Touch-primary
+     * devices — phones in the full-screen sheet, tablets — report `(hover: none)`;
+     * there day/badge tooltips can't appear on mouseenter, so they toggle on tap
+     * instead (see the badge branch in `attachCalendarListeners`). Guarded for
+     * non-DOM/SSR environments where `matchMedia` is absent.
+     */
+    supportsHover(): boolean {
+        return typeof window !== 'undefined'
+            && typeof window.matchMedia === 'function'
+            && window.matchMedia('(hover: hover)').matches;
+    }
     toggle() { return UI.toggle(this); }
     position() { return UI.position(this); }
     showTooltip(element: HTMLElement, content: string) { return UI.showTooltip(this, element, content); }
@@ -2540,9 +2669,9 @@ class DateRangePicker {
 
     // Interaction methods - wrappers for pure functions
     initDragListeners() { return Interaction.initDragListeners(this); }
-    handleStartDrag(event: MouseEvent, type: 'start' | 'end', dayElement: HTMLElement) { return Interaction.startDrag(this, event, type, dayElement); }
-    handleDragMove(event: MouseEvent) { return Interaction.onDragMove(this, event); }
-    async onDragEnd(event: MouseEvent) { return await Interaction.onDragEnd(this, event); }
+    handleStartDrag(event: PointerEvent, type: 'start' | 'end', dayElement: HTMLElement) { return Interaction.startDrag(this, event, type, dayElement); }
+    handleDragMove(event: PointerEvent) { return Interaction.onDragMove(this, event); }
+    async onDragEnd(event: PointerEvent) { return await Interaction.onDragEnd(this, event); }
     findNearestEnabledDate(targetDate: Date, preferredDirection: string = 'forward') { return Interaction.findNearestEnabledDate(this, targetDate, preferredDirection); }
     handleInputMask(event: Event) { return Interaction.handleInputMask(this, event); }
     applyMask(value: string) { return Interaction.applyMask(this, value); }

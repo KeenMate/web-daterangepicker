@@ -769,7 +769,7 @@ function switchTheme(newTheme) {
       // Setting the attribute (not the property) lets the component pick it up
       // on first init alongside the other observed attributes.
       if (picker.getAttribute('selection-mode') === 'range') {
-        picker.setAttribute('auto-close', 'apply');
+        picker.setAttribute('commit-mode', 'apply');
       }
 
       picker.customStylesCallback = richDemoStyles;
@@ -828,5 +828,6 @@ function switchTheme(newTheme) {
 
     console.log('✅ Theming examples loaded — same rich demo applied to every themed picker');
   </script>
+  <script type="module" src="examples-chapter-nav.js"></script>
 </body>
 </html>

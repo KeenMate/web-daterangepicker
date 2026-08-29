@@ -5,9 +5,10 @@ import { test, expect, Page, Locator } from './fixtures';
  *   - badge tooltip via specialDates.badgeTooltip
  *   - invalid-range error styling (showInvalidRange:true on restore)
  *   - is-unified-header-interactive opens unified rolling selector
- *   - mobile-modal-breakpoint auto-engages modal mode on narrow viewports
  *
  * Fixture: test/misc-features.html
+ * (Device-adaptive presentation — mobile-presentation / fullscreen — lives in
+ *  e2e/mobile-presentation.spec.ts, which needs per-project device emulation.)
  */
 
 const PAGE = '/test/misc-features.html';
@@ -77,23 +78,4 @@ test('is-unified-header-interactive: clicking the unified range header opens the
 
     await p.locator('.drp__unified-range').click();
     await expect(p.locator('.drp__unified-rolling-selector--visible')).toBeVisible();
-});
-
-// =============================================================================
-// mobile-modal-breakpoint
-// =============================================================================
-
-test('mobile-modal-breakpoint="600": viewport narrower than 600px auto-engages modal mode', async ({ page }) => {
-    // Open at the default 1440 viewport — positioning is floating.
-    const p = pickerById(page, 'mobile-modal');
-    const positioningModeBefore = await p.evaluate(el => el.getAttribute('positioning-mode') || 'floating');
-    expect(positioningModeBefore).toBe('floating');
-
-    // Shrink the viewport — the matchMedia listener should swap positioning-mode
-    // attribute to 'modal'.
-    await page.setViewportSize({ width: 480, height: 800 });
-    await expect.poll(
-        () => p.evaluate(el => el.getAttribute('positioning-mode')),
-        { timeout: 2000 }
-    ).toBe('modal');
 });

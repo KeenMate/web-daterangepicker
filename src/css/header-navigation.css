@@ -92,12 +92,24 @@
   border: var(--drp-nav-border);
 }
 
+/* Prev/next arrows: Lucide chevron-left / chevron-right masks — font-independent,
+   unlike the old ‹ › text glyphs which shifted with the page font. */
+.drp__nav--prev::before,
+.drp__nav--next::before {
+  content: '';
+  width: var(--drp-nav-icon-size);
+  height: var(--drp-nav-icon-size);
+  background-color: currentColor;
+}
+
 .drp__nav--prev::before {
-  content: '‹';
+  -webkit-mask: var(--drp-icon-chevron-left) center / contain no-repeat;
+          mask: var(--drp-icon-chevron-left) center / contain no-repeat;
 }
 
 .drp__nav--next::before {
-  content: '›';
+  -webkit-mask: var(--drp-icon-chevron-right) center / contain no-repeat;
+          mask: var(--drp-icon-chevron-right) center / contain no-repeat;
 }
 
 /* ==============================================================================

@@ -72,7 +72,7 @@
                     <web-daterangepicker
                         id="picker-1"
                         selection-mode="single"
-                        auto-close="never"
+                        commit-mode="manual"
                         calendar-placement="top"
                         placeholder="Click buttons to control visibility">
                     </web-daterangepicker>
@@ -455,7 +455,7 @@ if (picker) {
     // Access configuration (via options object)
     console.log('Mode:', picker.options.selectionMode); // 'single' or 'range'
     console.log('Months to show:', picker.options.visibleMonthsCount);
-    console.log('Auto-close:', picker.options.autoClose);
+    console.log('Commit mode:', picker.options.commitMode);
     console.log('Show summary:', picker.options.isSummaryShown);
 } else {
     console.warn('Picker not initialized yet');
@@ -614,10 +614,101 @@ picker.lockedAspects;           // -> ['selection','navigation','actions','open'
             </div>
         </section>
 
-        <!-- Section 8: Complete API Reference -->
+        <!-- Section 8: Confirm & close — validate before dismissing (floating) -->
         <section class="card">
             <div class="card-header">
-                <h2 class="card-title">8. Complete API Reference</h2>
+                <h2 class="card-title">8. Confirm &amp; close — validate before dismissing (floating)</h2>
+                <p class="card-description">
+                    A custom <strong>Confirm</strong> button that runs your own logic <em>before</em> the calendar
+                    closes. A <strong>custom</strong> action button never auto-closes the picker, so the callback is
+                    fully in control: when the selection is invalid it calls
+                    <code>showMessage(&hellip;)</code> and <strong>returns</strong> — the calendar stays open with the
+                    warning — and only when the selection passes does it call <code>apply()</code>, which commits the
+                    value <strong>and</strong> closes. Paired with <code>commit-mode="manual"</code> so a bare day click
+                    can't dismiss the picker before the guest reaches the gate and no built-in Apply button renders —
+                    Confirm is the only commit path. This example
+                    requires a range of <strong>at least 3 nights</strong>. The <code>onClick</code> is
+                    <code>await</code>ed, so the same shape works against an async/server check.
+                </p>
+            </div>
+            <div class="card-content">
+                <div class="grid" style="--grid-min: 320px">
+                    <div class="demo-card">
+                        <h4>Floating range picker</h4>
+                        <web-daterangepicker
+                            id="picker-confirm"
+                            selection-mode="range"
+                            commit-mode="manual"
+                            visible-months-count="2"
+                            placeholder="Select a range (min 3 nights)">
+                        </web-daterangepicker>
+                        <div class="note mt-1" id="confirm-output">Status: <span id="confirm-state">nothing confirmed yet</span></div>
+                    </div>
+
+                    <div class="demo-card">
+                        <h4>What to try</h4>
+                        <p>
+                            Open the calendar and hit <strong>Confirm</strong> with <strong>no selection</strong> — you
+                            get a warning and the calendar stays open. Pick a <strong>1&ndash;2 night</strong> range
+                            and confirm — it warns that the minimum is 3 nights and stays open. Pick <strong>3+
+                            nights</strong> and confirm — the value commits, the calendar <strong>closes</strong>, and
+                            the status line below updates.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="code-block">
+                    <button class="copy-button" onclick="copyCode(this)">Copy</button>
+                    <pre><code>&lt;web-daterangepicker id="picker" selection-mode="range"
+                     commit-mode="manual"&gt;&lt;/web-daterangepicker&gt;
+
+const picker = document.getElementById('picker');
+const MIN_NIGHTS = 3;
+
+// A custom button never auto-closes — the callback decides. onClick is awaited,
+// so you can validate against a server too.
+picker.actionButtons = [
+    { action: 'clear', text: 'Clear' },
+    {
+        action: 'custom',
+        text: 'Confirm',
+        cssClass: 'drp__button--apply',              // primary-action accent
+        onClick: async ({ picker }) =&gt; {
+            const start = picker.selectedStartDate;
+            const end   = picker.selectedEndDate;
+
+            // 1) nothing / half a range → warn, stay open
+            if (!start || !end) {
+                picker.showMessage('Please select a full date range first.', 'error');
+                return;
+            }
+            // 2) business rule → warn, stay open
+            const nights = Math.round((end - start) / 86400000);
+            if (nights &lt; MIN_NIGHTS) {
+                picker.showMessage(`Minimum ${MIN_NIGHTS} nights — you picked ${nights}.`, 'warning');
+                return;
+            }
+            // 3) valid → commit AND close
+            picker.hideMessage();
+            picker.apply();
+        }
+    }
+];</code></pre>
+                </div>
+
+                <div class="method-signature">
+                    <div><span class="return-type">void</span> showMessage(html: string, type?: 'error' | 'warning' | 'info' | 'success', autoHideMs?: number)</div>
+                    <div><span class="return-type">void</span> hideMessage()</div>
+                    <div><span class="return-type">void</span> apply()</div>
+                    <div><span class="return-type">void</span> hide()</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 9: Complete API Reference -->
+        <section class="card">
+            <div class="card-header">
+                <h2 class="card-title">9. Complete API Reference</h2>
                 <p class="card-description">
                     Full reference of all public methods, properties, and events available on the
                     <code>&lt;web-daterangepicker&gt;</code> component.
@@ -824,10 +915,10 @@ picker.addEventListener('date-select', (event: CustomEvent&lt;DateSelectDetail&g
             </div>
         </section>
 
-        <!-- Section 9: Integration Patterns -->
+        <!-- Section 10: Integration Patterns -->
         <section class="card">
             <div class="card-header">
-                <h2 class="card-title">9. Integration Patterns</h2>
+                <h2 class="card-title">10. Integration Patterns</h2>
                 <p class="card-description">
                     Common patterns for integrating the date picker with forms, frameworks, and application state.
                 </p>
@@ -1154,7 +1245,7 @@ const manager = new DateRangeManager();</code></pre>
                     <div>Picker instance found:</div>
                     <div>• Mode: <strong>${instance.options.selectionMode}</strong></div>
                     <div>• Months to show: <strong>${instance.options.visibleMonthsCount}</strong></div>
-                    <div>• Auto-close: <strong>${instance.options.autoClose}</strong></div>
+                    <div>• Commit mode: <strong>${instance.options.commitMode}</strong></div>
                 `;
             } else {
                 output6.innerHTML = '<strong style="color: #dc3545;">Picker not initialized</strong>';
@@ -1316,6 +1407,42 @@ const manager = new DateRangeManager();</code></pre>
 
         refresh9();
 
+        // Section 8: Confirm & close — validate before dismissing (floating)
+        const pickerConfirm = document.getElementById('picker-confirm');
+        const confirmState = document.getElementById('confirm-state');
+        const CONFIRM_MIN_NIGHTS = 3;
+        const fmtLocal = (d) =>
+            `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+
+        pickerConfirm.actionButtons = [
+            { action: 'clear', text: 'Clear' },
+            {
+                action: 'custom',
+                text: 'Confirm',
+                cssClass: 'drp__button--apply',          // reuse the primary-action accent
+                onClick: async ({ picker }) => {
+                    const start = picker.selectedStartDate;
+                    const end = picker.selectedEndDate;
+
+                    // 1) nothing / half a range → warn, stay open
+                    if (!start || !end) {
+                        picker.showMessage('Please select a full date range first.', 'error');
+                        return;
+                    }
+                    // 2) business rule (min nights) → warn, stay open
+                    const nights = Math.round((end - start) / 86400000);
+                    if (nights < CONFIRM_MIN_NIGHTS) {
+                        picker.showMessage(`Minimum ${CONFIRM_MIN_NIGHTS} nights — you picked ${nights}.`, 'warning');
+                        return;
+                    }
+                    // 3) valid → reflect it, then commit AND close
+                    picker.hideMessage();
+                    confirmState.textContent = `confirmed ${fmtLocal(start)} → ${fmtLocal(end)} (${nights} nights)`;
+                    picker.apply();
+                }
+            }
+        ];
+
         // Copy code functionality
         window.copyCode = function(button) {
             const codeBlock = button.nextElementSibling;
@@ -1332,5 +1459,6 @@ const manager = new DateRangeManager();</code></pre>
             }, 2000);
         };
     </script>
+  <script type="module" src="examples-chapter-nav.js"></script>
 </body>
 </html>

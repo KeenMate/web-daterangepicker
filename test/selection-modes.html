@@ -33,15 +33,15 @@
     </div>
 
     <div class="fixture">
-        <div class="fixture-label">range with auto-close="apply" — defers commit until Apply, Escape restores prior value</div>
+        <div class="fixture-label">range with commit-mode="apply" — defers commit until Apply, Escape restores prior value</div>
         <web-daterangepicker id="range-apply" selection-mode="range"
-            initial-date="2026-06-15" auto-close="apply" placeholder="YYYY-MM-DD"></web-daterangepicker>
+            initial-date="2026-06-15" commit-mode="apply" placeholder="YYYY-MM-DD"></web-daterangepicker>
     </div>
 
     <div class="fixture">
-        <div class="fixture-label">single with auto-close="never" — does NOT close after pick</div>
+        <div class="fixture-label">single with commit-mode="manual" — does NOT close after pick</div>
         <web-daterangepicker id="single-never" selection-mode="single"
-            initial-date="2026-06-15" auto-close="never" placeholder="YYYY-MM-DD"></web-daterangepicker>
+            initial-date="2026-06-15" commit-mode="manual" placeholder="YYYY-MM-DD"></web-daterangepicker>
     </div>
 
     <script type="module" src="/src/index.ts"></script>

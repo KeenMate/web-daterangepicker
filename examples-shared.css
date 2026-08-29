@@ -671,6 +671,197 @@ pre code,
 .swatch--red,    .swatch--red:hover    { background: #ef4444; }
 .swatch--dark,   .swatch--dark:hover   { background: #1f2937; }
 
+/* =============================================================================
+   CHAPTER NAV — floating "on this page" jump navigator (built by
+   examples-chapter-nav.js). A tab pinned to the right edge (~1/3 down the
+   viewport) that expands into a scroll-spied list of the page's chapters.
+   ============================================================================= */
+
+/* Smooth hash-jumps + a little headroom so a jumped-to section isn't flush to the
+   top edge. `scroll-margin-top` applies to the anchor targets the nav assigns ids to. */
+html {
+    scroll-behavior: smooth;
+}
+.card,
+.example-section {
+    scroll-margin-top: 1rem;
+}
+
+/* The grab tab, pinned to the right edge ~1/3 down. The panel is positioned
+   against it by Floating UI (see examples-chapter-nav.js), so it's out of flow
+   here — only the toggle occupies this fixed box. */
+.chapter-nav {
+    position: fixed;
+    top: 33vh;
+    right: 0;
+    z-index: 9000;
+    /* Let clicks fall through to the page; children re-enable. */
+    pointer-events: none;
+}
+
+.chapter-nav__panel,
+.chapter-nav__toggle {
+    pointer-events: auto;
+}
+
+/* The grab tab. Rounded on the left (it hugs the right edge). */
+.chapter-nav__toggle {
+    flex: 0 0 auto;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 48px;
+    padding: 0;
+    background: #667eea;
+    color: #fff;
+    border: none;
+    border-radius: 10px 0 0 10px;
+    box-shadow: 0 6px 18px rgba(102, 126, 234, 0.35);
+    cursor: pointer;
+    transition: background 0.2s, box-shadow 0.2s;
+}
+
+.chapter-nav__toggle:hover {
+    background: #5a67d8;
+}
+
+.chapter-nav[data-open="true"] .chapter-nav__toggle {
+    background: #4c51bf;
+}
+
+.chapter-nav__toggle svg {
+    width: 22px;
+    height: 22px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2;
+    stroke-linecap: round;
+}
+
+.chapter-nav__toggle svg circle {
+    fill: currentColor;
+    stroke: none;
+}
+
+/* The list panel — hidden (and non-interactive) until open. Positioned by
+   Floating UI (left/top set inline), so it's taken out of flow with fixed. */
+.chapter-nav__panel {
+    position: fixed;
+    z-index: 9000;
+    width: 260px;
+    max-width: 72vw;
+    max-height: 60vh;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: 10px;
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.12), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+    padding: 0.5rem;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateX(8px);
+    transition: opacity 0.18s ease, transform 0.18s ease, visibility 0.18s;
+}
+
+.chapter-nav[data-open="true"] .chapter-nav__panel {
+    opacity: 1;
+    visibility: visible;
+    transform: translateX(0);
+}
+
+/* "Back to Examples" link at the top of the panel (example pages only). */
+.chapter-nav__back {
+    display: block;
+    margin-bottom: 0.35rem;
+    padding: 0.45rem 0.6rem;
+    border-radius: 6px;
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: #4c51bf;
+    text-decoration: none;
+    background: #eef2ff;
+    transition: background 0.15s, color 0.15s;
+}
+
+.chapter-nav__back:hover {
+    background: #e0e7ff;
+    color: #3730a3;
+    text-decoration: none;
+}
+
+.chapter-nav__title {
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: #9ca3af;
+    padding: 0.25rem 0.5rem 0.4rem;
+}
+
+.chapter-nav__list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.chapter-nav__item {
+    display: block;
+    padding: 0.4rem 0.6rem;
+    border-radius: 6px;
+    border-left: 3px solid transparent;
+    font-size: 0.85rem;
+    line-height: 1.35;
+    color: #4a5568;
+    text-decoration: none;
+    transition: background 0.15s, color 0.15s, border-color 0.15s;
+}
+
+.chapter-nav__item:hover {
+    background: #f3f4f6;
+    color: #2d3748;
+    text-decoration: none;
+}
+
+.chapter-nav__item.is-active {
+    background: #eef2ff;
+    color: #4338ca;
+    border-left-color: #667eea;
+    font-weight: 600;
+}
+
+/* On small screens, go near-fullscreen (touch targets + readability) and bump the
+   font so chapter titles are comfortable to tap. */
+@media (max-width: 768px) {
+    .chapter-nav__panel {
+        width: 80vw;
+        max-width: 80vw;
+        max-height: 80vh;
+    }
+    .chapter-nav__title {
+        font-size: 0.9rem;
+    }
+    .chapter-nav__item {
+        font-size: 1.05rem;
+        padding: 0.7rem 0.85rem;
+    }
+    .chapter-nav__toggle {
+        width: 40px;
+        height: 44px;
+    }
+}
+
+/* Respect reduced-motion: no smooth scroll or slide. */
+@media (prefers-reduced-motion: reduce) {
+    html {
+        scroll-behavior: auto;
+    }
+    .chapter-nav__panel {
+        transition: none;
+    }
+}
+
 /* Responsive */
 @media (max-width: 768px) {
     body {
