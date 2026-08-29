@@ -546,7 +546,7 @@ picker.addEventListener('custom-action', (e) => {
 });
 ```
 
-A live demo lives in `examples-events.html` ("Messages with Custom Actions").
+A live demo lives in `examples-data-api.html` ("Confirm & close — validate before dismissing").
 
 ---
 

@@ -297,9 +297,8 @@ web-daterangepicker.custom {
 }
 ```
 
-See [`examples-sizes.html`](../examples-sizes.html) and
-[`examples-theming.html`](../examples-theming.html) for interactive
-demos including the classifier-retheming panel (Test 9) and the four
+See [`examples-theming.html`](../examples-theming.html) for interactive
+demos including the classifier-retheming panel and the four
 time-display UIs (Test 8).
 
 ## See also

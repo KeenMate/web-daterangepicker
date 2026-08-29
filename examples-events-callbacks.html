@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Events & Callbacks - Date Range Picker</title>
+  <title>Events, Handlers & Interceptors — Date Range Picker</title>
   <link rel="stylesheet" href="examples-shared.css">
   <style>
     /* Page-specific log entry-token colors only. These color the tokens the
@@ -31,13 +31,13 @@
   <div class="container">
     <header>
       <a href="index.html" class="back-link">← Back to Examples</a>
-      <h1>⚡ Events & Callbacks</h1>
-      <p class="subtitle">Event system and beforeDateSelectCallback for validation and control of date selections</p>
+      <h1>⚡ Events, Handlers & Interceptors</h1>
+      <p class="subtitle">Custom events, handler properties, and callbacks (beforeDateSelectCallback, beforeMonthChangedCallback) for validating, controlling, and enriching selections</p>
     </header>
 
   <!-- Events Overview -->
   <div class="card">
-    <h2>Events Fired by the Component</h2>
+    <h2>EV01 · Events Fired by the Component</h2>
     <p>The date picker fires three custom events:</p>
 
     <div class="note info">
@@ -107,7 +107,7 @@ picker.addEventListener('date-select', (event) => {
 
   <!-- beforeDateSelectCallback Callback -->
   <div class="card">
-    <h2>beforeDateSelectCallback Callback - Validation & Control</h2>
+    <h2>EV02 · beforeDateSelectCallback Callback - Validation & Control</h2>
     <p>
       The <code>beforeDateSelectCallback</code> callback is invoked BEFORE a selection is finalized.
       It allows you to validate, block, adjust, or clear selections based on your business logic.
@@ -160,7 +160,7 @@ picker.addEventListener('date-select', (event) => {
 
   <!-- Single Mode Examples -->
   <div class="card">
-    <h2>Single Mode - beforeDateSelectCallback Examples</h2>
+    <h2>EV03 · Single Mode - beforeDateSelectCallback Examples</h2>
 
     <div class="grid">
       <!-- Example 1: Block Weekends -->
@@ -255,7 +255,7 @@ picker.beforeDateSelectCallback = async (date) => {
 
   <!-- Range Mode Examples -->
   <div class="card">
-    <h2>Range Mode - beforeDateSelectCallback Examples</h2>
+    <h2>EV04 · Range Mode - beforeDateSelectCallback Examples</h2>
 
     <div class="grid">
       <!-- Example 5: Minimum Nights -->
@@ -419,7 +419,7 @@ picker.addEventListener('custom-action', (e) => {
 
   <!-- beforeMonthChangedCallback Examples -->
   <div class="card">
-    <h2>beforeMonthChangedCallback - Performance Optimization</h2>
+    <h2>EV05 · beforeMonthChangedCallback - Performance Optimization</h2>
     <p>
       The <code>beforeMonthChangedCallback</code> is called BEFORE month navigation occurs.
       Use it to bulk-load metadata for all visible dates in ONE API call instead of calling
@@ -486,7 +486,7 @@ picker.addEventListener('custom-action', (e) => {
 
   <!-- Custom Month Headers -->
   <div class="card">
-    <h2>Custom Month Headers</h2>
+    <h2>EV06 · Custom Month Headers</h2>
     <p>
       Customize the month header text (e.g., "January 2026") to display additional information
       like room availability, occupancy rates, or any business-specific data.

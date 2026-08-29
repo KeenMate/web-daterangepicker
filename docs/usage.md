@@ -83,7 +83,7 @@ isolated scope automatically. The `DateRangePicker` class creates
 calendar elements in the regular DOM, so it expects global CSS to be
 loaded separately.
 
-See [`examples-javascript-instantiation.html`](../examples-javascript-instantiation.html) for complete code samples and configuration options.
+See [`examples-data-api.html`](../examples-data-api.html) for complete code samples and configuration options.
 
 ## Attributes
 
@@ -938,6 +938,6 @@ this:
 ## See also
 
 - [`theming.md`](./theming.md) — the four theming contracts (container, variable, color-scheme, cascade-layer).
-- [`examples.md`](./examples.md) — index of the 13 runnable `examples-*.html` demos.
+- [`examples.md`](./examples.md) — index of the runnable `examples-*.html` demos.
 - [`accessibility.md`](./accessibility.md) — keyboard shortcuts, ARIA, focus management.
-- [`examples-javascript-instantiation.html`](../examples-javascript-instantiation.html) — full standalone-class examples with every callback wired up.
+- [`examples-data-api.html`](../examples-data-api.html) — full standalone-class examples with every callback wired up.

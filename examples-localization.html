@@ -31,7 +31,7 @@
 
   <!-- Built-in locales -->
   <div class="card">
-    <h2>Built-in Locales</h2>
+    <h2>LO01 · Built-in Locales</h2>
     <p>The <code>locale</code> attribute selects bundled UI strings and drives <code>Intl</code>-based
       month/weekday names. Built-ins: <code>en</code>, <code>de</code>, <code>fr</code>, <code>es</code>
       (<code>auto</code> detects from the browser).</p>
@@ -64,7 +64,7 @@
 
   <!-- week-start-day -->
   <div class="card">
-    <h2>Week Start Day</h2>
+    <h2>LO02 · Week Start Day</h2>
     <p><code>week-start-day</code> takes <code>auto</code> (locale-based) or <code>0</code>–<code>6</code>
       (<code>0</code>=Sunday … <code>6</code>=Saturday). It rotates which day column comes first — the
       day cells underneath stay aligned.</p>
@@ -90,7 +90,7 @@
 
   <!-- weekday-names attribute -->
   <div class="card">
-    <h2>Custom Weekday Names <span class="badge new">v2.0</span></h2>
+    <h2>LO03 · Custom Weekday Names <span class="badge new">v2.0</span></h2>
     <p>The <code>weekday-names</code> attribute overrides the header labels with a pipe-delimited list of
       exactly 7 entries, <strong>authored Sunday-first</strong>. Here the same Czech list
       <code>Ne|Po|Út|St|Čt|Pá|So</code> is reused across three different start days — note you
@@ -138,7 +138,7 @@
 
   <!-- month-names attribute -->
   <div class="card">
-    <h2>Custom Month Names <span class="badge new">v2.0</span></h2>
+    <h2>LO04 · Custom Month Names <span class="badge new">v2.0</span></h2>
     <p>The <code>month-names</code> attribute overrides month labels with a pipe-delimited list of exactly 12
       entries, in calendar order (<code>[0]</code>=January … <code>[11]</code>=December). No rotation —
       the list is always January → December.</p>
@@ -166,7 +166,7 @@
 
   <!-- Combined full Czech -->
   <div class="card">
-    <h2>Full Czech Calendar</h2>
+    <h2>LO05 · Full Czech Calendar</h2>
     <p>Combine <code>locale</code>, <code>week-start-day</code>, <code>month-names</code>, and
       <code>weekday-names</code> for a fully localized picker. Czech convention starts the week on Monday.</p>
 
@@ -186,7 +186,7 @@
 
   <!-- JS property equivalents -->
   <div class="card">
-    <h2>Setting Names via JavaScript</h2>
+    <h2>LO06 · Setting Names via JavaScript</h2>
     <p>The same overrides are available as array properties — useful when the names come from a translation
       bundle at runtime. The property wins if an attribute is also present.</p>
 
@@ -209,7 +209,7 @@ el.<span class="property">weekdayNames</span> = [<span class="string">'Nd','Pn',
 
   <!-- Validation -->
   <div class="card">
-    <h2>Validation &amp; Fallback</h2>
+    <h2>LO07 · Validation &amp; Fallback</h2>
     <p>A pipe list must have <strong>exactly</strong> 12 (months) or 7 (weekdays) non-empty segments.
       A wrong count or an empty segment is <strong>ignored</strong> — the picker falls back to locale
       names and emits a <code>console.warn</code> naming the attribute. Open your DevTools console to see it.</p>

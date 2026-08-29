@@ -2,8 +2,8 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Responsive Behavior - Date Range Picker</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Responsive & Mobile — Date Range Picker</title>
   <link rel="stylesheet" href="dist/style.css">
   <link rel="stylesheet" href="examples-shared.css">
 </head>
@@ -11,20 +11,88 @@
   <div class="container">
     <header>
       <a href="index.html" class="back-link">← Back to Examples</a>
-      <h1>📱 Responsive Behavior</h1>
-      <p class="subtitle">Modal positioning, viewport-tier widths, and auto-engage on small screens</p>
+      <h1>📱 Responsive & Mobile</h1>
+      <p class="subtitle">
+        Device-adaptive presentation, modal positioning, viewport-tier widths, full-screen phone
+        sheets, and container-responsive compaction.
+      </p>
     </header>
 
-    <!-- 1. Why modal mode -->
+    <!-- ============================================================ -->
+    <!-- RS01. Device-adaptive presentation — the device ladder       -->
+    <!-- (fused: mobile §1 + responsive §5)                           -->
+    <!-- ============================================================ -->
     <div class="card">
-      <h2>1. The Problem with Floating Mode on Small Screens</h2>
+      <h2>RS01 · Device-Adaptive Presentation — the device ladder</h2>
+      <p>You usually don't need to pick <code>modal</code> by hand. A <code>floating</code> picker adapts to the device automatically via <code>mobile-presentation="auto"</code> (the default): floating on desktop, a centered <strong>modal</strong> on tablets, and an edge-to-edge <strong>full-screen</strong> overlay on phones. The classification comes from <code>@keenmate/web-components-core</code> and is capability-based and orientation-robust — it uses the <em>shorter</em> viewport side, so a landscape phone still reads as a phone.</p>
+
+      <table class="reference-table">
+        <thead><tr><th>Device</th><th>Detected when</th><th>Presentation</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Phone</strong></td><td>touch-primary &amp; shorter side &lt; 600px</td><td><code>fullscreen</code> (edge-to-edge)</td></tr>
+          <tr><td><strong>Tablet</strong></td><td>touch-primary &amp; shorter side ≥ 600px</td><td><code>modal</code> (centered dialog)</td></tr>
+          <tr><td><strong>Desktop</strong></td><td>fine pointer (mouse), any width</td><td><code>floating</code> (anchored popover)</td></tr>
+        </tbody>
+      </table>
+      <ul>
+        <li><code>auto</code> <em>(default)</em> — the ladder above.</li>
+        <li><code>floating</code> / <code>modal</code> / <code>fullscreen</code> — force that presentation on any device
+          (handy for previewing the phone sheet on desktop, which is what the toggles on this page do).</li>
+      </ul>
+      <p>
+        Because full-screen is usually a phone-only look, every demo defaults to <code>auto</code> and
+        offers a <em>Preview as full-screen</em> toggle so you can see the overlay here on desktop.
+        Close the sheet with the ✕ in its header, Escape, or the phone Back gesture.
+      </p>
+
+      <div class="form-group">
+        <label>Live demo (default <code>mobile-presentation="auto"</code>)</label>
+        <p class="form-text">
+          Open devtools, toggle the device toolbar, and pick a phone preset — this floating picker opens full-screen.
+        </p>
+        <web-daterangepicker
+          id="adaptive"
+          selection-mode="range"
+          visible-months-count="2">
+        </web-daterangepicker>
+      </div>
+
+      <label class="toggle-label"><input type="checkbox" id="intro-fs-preview"> Preview as full-screen (desktop)</label>
+      <div class="grid">
+        <div class="form-group">
+          <label>Single date</label>
+          <web-daterangepicker id="intro-single" selection-mode="single"></web-daterangepicker>
+        </div>
+        <div class="form-group">
+          <label>Date range (2 months → stacked on phones)</label>
+          <web-daterangepicker id="intro-range" selection-mode="range" visible-months-count="2"></web-daterangepicker>
+        </div>
+      </div>
+
+      <div class="code-block"><code><span class="comment">&lt;!-- auto (default): floating on desktop, modal on tablets, fullscreen on phones --&gt;</span>
+<span class="keyword">&lt;web-daterangepicker</span>
+  <span class="property">selection-mode</span>=<span class="string">"range"</span>
+  <span class="property">visible-months-count</span>=<span class="string">"2"</span><span class="keyword">&gt;&lt;/web-daterangepicker&gt;</span>
+
+<span class="comment">&lt;!-- force one presentation everywhere --&gt;</span>
+<span class="keyword">&lt;web-daterangepicker</span> <span class="property">mobile-presentation</span>=<span class="string">"floating"</span><span class="keyword">&gt;&lt;/web-daterangepicker&gt;</span>
+<span class="keyword">&lt;web-daterangepicker</span> <span class="property">mobile-presentation</span>=<span class="string">"fullscreen"</span><span class="keyword">&gt;&lt;/web-daterangepicker&gt;</span></code></div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- RS02. Why modal mode (responsive §1)                         -->
+    <!-- ============================================================ -->
+    <div class="card">
+      <h2>RS02 · The Problem with Floating Mode on Small Screens</h2>
       <p>Floating mode anchors the calendar popover to its input. For multi-month layouts (<code>visible-months-count="3"</code>, <code>2×3</code> grid, etc.), the calendar can be wider than the viewport itself — users get a horizontal scrollbar, the picker overflows the screen edge, and on mobile it becomes unusable.</p>
       <p>Modal mode renders the calendar as a centered overlay with a backdrop scrim instead. It works at any viewport width, scales the configured layout responsively, and locks body scroll while open.</p>
     </div>
 
-    <!-- 2. Opt-in modal -->
+    <!-- ============================================================ -->
+    <!-- RS03. Opt-in modal (responsive §2)                           -->
+    <!-- ============================================================ -->
     <div class="card">
-      <h2>2. Opting In: <code>positioning-mode="modal"</code></h2>
+      <h2>RS03 · Opting In: <code>positioning-mode="modal"</code></h2>
       <p>Set the attribute and the picker opens as a centered overlay. Closes via Escape, backdrop click, Apply (range mode), or after a complete selection.</p>
 
       <div class="grid">
@@ -73,9 +141,11 @@
 <span class="function">document.querySelector</span>(<span class="string">'#picker'</span>).<span class="property">isOpen</span> = <span class="property">true</span>;</code></div>
     </div>
 
-    <!-- 3. Modal width tiers -->
+    <!-- ============================================================ -->
+    <!-- RS04. Modal width tiers (responsive §3)                      -->
+    <!-- ============================================================ -->
     <div class="card">
-      <h2>3. Modal Width Tiers</h2>
+      <h2>RS04 · Modal Width Tiers</h2>
       <p>The modal's outer width adapts to viewport size, picking from four CSS variables. Breakpoints align with the rest of the codebase (480 / 768 / 1200, same as <code>base.css</code> and the Responsive Sizing demo's <code>--drp-rem</code> scaling).</p>
 
       <table class="reference-table">
@@ -133,9 +203,11 @@
 }</code></div>
     </div>
 
-    <!-- 4. Inner-content tiers (container queries) -->
+    <!-- ============================================================ -->
+    <!-- RS05. Inner-content tiers / container queries (responsive §4) -->
+    <!-- ============================================================ -->
     <div class="card">
-      <h2>4. Progressive Inner-Content Layout</h2>
+      <h2>RS05 · Progressive Inner-Content Layout</h2>
       <p>Beyond just sizing the outer modal, the inner multi-month layout scales based on the modal's <strong>actual width</strong> via CSS container queries. The visible month count and grid columns adapt without any JS.</p>
 
       <table class="reference-table">
@@ -177,35 +249,11 @@
       <p>Hidden columns (when present) still update in lockstep through the existing collision-resolve navigation logic — range selection across "more months than are visible" continues to work; the user just navigates time linearly with the visible month's prev/next.</p>
     </div>
 
-    <!-- 5. Device-adaptive presentation -->
+    <!-- ============================================================ -->
+    <!-- RS06. Modal behavior details (responsive §6)                 -->
+    <!-- ============================================================ -->
     <div class="card">
-      <h2>5. Device-Adaptive Presentation (recommended)</h2>
-      <p>You usually don't need to pick <code>modal</code> by hand. A <code>floating</code> picker adapts to the device automatically via <code>mobile-presentation="auto"</code> (the default): floating on desktop, a centered <strong>modal</strong> on tablets, and an edge-to-edge <strong>full-screen</strong> overlay on phones. The classification is capability-based and orientation-robust (it uses the shorter viewport side, so a landscape phone still reads as a phone).</p>
-
-      <div class="form-group">
-        <label>Live demo (default <code>mobile-presentation="auto"</code>)</label>
-        <p class="form-text">
-          Open devtools, toggle the device toolbar, and pick a phone preset — this floating picker opens full-screen.
-        </p>
-        <web-daterangepicker
-          id="adaptive"
-          selection-mode="range"
-          visible-months-count="2">
-        </web-daterangepicker>
-      </div>
-
-      <div class="code-block"><code><span class="keyword">&lt;web-daterangepicker</span>
-  <span class="property">selection-mode</span>=<span class="string">"range"</span>
-  <span class="property">visible-months-count</span>=<span class="string">"2"</span><span class="keyword">&gt;&lt;/web-daterangepicker&gt;</span></code></div>
-
-      <div class="note info">
-        <strong>See the dedicated page:</strong> <a href="examples-mobile.html">Mobile &amp; Full-Screen</a> covers the full ladder, forcing a presentation, the <code>fullscreen-title</code> / <code>fullscreen-autofocus</code> options, and a "preview as full-screen" toggle for inspecting the phone sheet on a desktop.
-      </div>
-    </div>
-
-    <!-- 6. Behavior details -->
-    <div class="card">
-      <h2>6. Modal Behavior Details</h2>
+      <h2>RS06 · Modal Behavior Details</h2>
       <ul>
         <li><strong>Closes on:</strong> Escape, backdrop click, Apply button (<code>commit-mode="apply"</code>), or completing a selection (when <code>commit-mode="selection"</code>, the default).</li>
         <li><strong>Body scroll is locked</strong> while the modal is open. Reference-counted so multiple modal pickers don't fight over <code>document.body.style.overflow</code>.</li>
@@ -215,9 +263,131 @@
       </ul>
     </div>
 
-    <!-- 7. Container-responsive compaction -->
+    <!-- ============================================================ -->
+    <!-- RS07. fullscreen-autofocus — soft keyboard on phones (mobile §2) -->
+    <!-- ============================================================ -->
     <div class="card">
-      <h2>7. Container-Responsive Compaction: <code>compact-below</code></h2>
+      <h2>RS07 · Full-Screen: soft keyboard on phones (<code>fullscreen-autofocus</code>)</h2>
+      <p>
+        By <strong>default the keyboard stays closed</strong> when the full-screen sheet opens — it
+        shows the calendar first, so you tap dates and the bottom action row stays reachable. Set
+        <code>fullscreen-autofocus</code> to focus the input on open instead (pops the keyboard for
+        type-to-fill, like a native picker).
+      </p>
+      <p>
+        Both pickers use <code>mobile-presentation="auto"</code>: a floating popover here on desktop, a
+        full-screen sheet on a phone — where the keyboard difference actually shows. Tick
+        <em>Preview as full-screen</em> to see the overlay on desktop.
+      </p>
+
+      <label class="toggle-label"><input type="checkbox" id="kbd-fs-preview"> Preview as full-screen (desktop)</label>
+      <div class="grid">
+        <div class="form-group">
+          <label>Default — keyboard off (tap dates)</label>
+          <web-daterangepicker id="kbd-off" selection-mode="single" placeholder="Tap to pick"></web-daterangepicker>
+        </div>
+        <div class="form-group">
+          <label>Opt-in — <code>fullscreen-autofocus</code></label>
+          <web-daterangepicker id="kbd-on" selection-mode="single" fullscreen-autofocus placeholder="Type or tap"></web-daterangepicker>
+        </div>
+      </div>
+
+      <div class="code-block"><code><span class="comment">&lt;!-- default: keyboard stays closed, calendar visible --&gt;</span>
+<span class="keyword">&lt;web-daterangepicker&gt;&lt;/web-daterangepicker&gt;</span>
+
+<span class="comment">&lt;!-- opt in to focus the input + soft keyboard on open --&gt;</span>
+<span class="keyword">&lt;web-daterangepicker</span> <span class="property">fullscreen-autofocus</span><span class="keyword">&gt;&lt;/web-daterangepicker&gt;</span></code></div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- RS08. fullscreen-input — type dates in the header (mobile §3) -->
+    <!-- ============================================================ -->
+    <div class="card">
+      <h2>RS08 · Full-Screen: type dates in the header (<code>fullscreen-input</code>)</h2>
+      <p>
+        In the full-screen sheet the trigger field normally sits <em>behind</em> the overlay, so there's
+        nothing to type into. <code>fullscreen-input</code> moves the real input up into the sheet
+        header — visible, above the calendar, and wired to the same mask. It gets
+        <code>inputmode="numeric"</code>, so phones show a <strong>digits-only keypad</strong>: you type
+        <code>08192026</code> and the mask fills in the separators (<code>08/19/2026</code>). You never
+        need the <code>/</code> or <code>.</code> key a numeric keypad hides — the component owns them.
+      </p>
+      <p>
+        Pair it with <code>fullscreen-autofocus</code> to pop that keypad on open for a type-first flow,
+        or leave autofocus off and let users tap the header field when they want to type. The header
+        input takes over the row, so it's shown instead of <code>fullscreen-title</code>.
+      </p>
+
+      <label class="toggle-label"><input type="checkbox" id="hdrinput-fs-preview"> Preview as full-screen (desktop)</label>
+      <div class="grid">
+        <div class="form-group">
+          <label>Tap-or-type — header input</label>
+          <web-daterangepicker id="hdrinput" selection-mode="single" fullscreen-input></web-daterangepicker>
+        </div>
+        <div class="form-group">
+          <label>Type-first — header input + autofocus keypad</label>
+          <web-daterangepicker id="hdrinput-af" selection-mode="range" fullscreen-input fullscreen-autofocus></web-daterangepicker>
+        </div>
+      </div>
+
+      <div class="code-block"><code><span class="comment">&lt;!-- typeable input in the full-screen header, numeric keypad + mask --&gt;</span>
+<span class="keyword">&lt;web-daterangepicker</span> <span class="property">fullscreen-input</span><span class="keyword">&gt;&lt;/web-daterangepicker&gt;</span>
+
+<span class="comment">&lt;!-- type-first: also pop the keypad on open --&gt;</span>
+<span class="keyword">&lt;web-daterangepicker</span> <span class="property">fullscreen-input</span> <span class="property">fullscreen-autofocus</span><span class="keyword">&gt;&lt;/web-daterangepicker&gt;</span></code></div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- RS09. fullscreen-title — header heading (mobile §4)          -->
+    <!-- ============================================================ -->
+    <div class="card">
+      <h2>RS09 · Full-Screen: header heading (<code>fullscreen-title</code>)</h2>
+      <p>
+        The full-screen header shows just a close (✕) button by default. Add <code>fullscreen-title</code>
+        for a heading beside it — useful to label what the user is picking.
+      </p>
+
+      <label class="toggle-label"><input type="checkbox" id="titled-fs-preview"> Preview as full-screen (desktop)</label>
+      <div class="form-group">
+        <label>With a title</label>
+        <web-daterangepicker id="titled" selection-mode="range" fullscreen-title="Choose your dates" placeholder="Titled full-screen"></web-daterangepicker>
+      </div>
+
+      <div class="code-block"><code><span class="keyword">&lt;web-daterangepicker</span>
+  <span class="property">fullscreen-title</span>=<span class="string">"Choose your dates"</span><span class="keyword">&gt;&lt;/web-daterangepicker&gt;</span></code></div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- RS10. Forcing a presentation (mobile §5)                     -->
+    <!-- ============================================================ -->
+    <div class="card">
+      <h2>RS10 · Forcing a Presentation</h2>
+      <p>
+        Set <code>mobile-presentation</code> to a concrete value to override the device ladder on any
+        device — for a deliberate design choice or to inspect the phone/tablet UI on a desktop.
+      </p>
+      <div class="grid">
+        <div class="form-group">
+          <label><code>mobile-presentation="fullscreen"</code></label>
+          <web-daterangepicker id="forced-fs" selection-mode="range" mobile-presentation="fullscreen" placeholder="Always full-screen"></web-daterangepicker>
+        </div>
+        <div class="form-group">
+          <label><code>mobile-presentation="modal"</code></label>
+          <web-daterangepicker id="forced-modal" selection-mode="range" mobile-presentation="modal" placeholder="Always modal"></web-daterangepicker>
+        </div>
+      </div>
+      <div class="note">
+        <strong>Phone detection needs a viewport meta:</strong> your page must include
+        <code>&lt;meta name="viewport" content="width=device-width"&gt;</code> — without it a mobile browser
+        lays out at ~980px and the picker classifies the phone as a tablet (modal instead of full-screen).
+      </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- RS11. Container-responsive compaction (responsive §7)        -->
+    <!-- ============================================================ -->
+    <div class="card">
+      <h2>RS11 · Container-Responsive Compaction: <code>compact-below</code></h2>
       <p>The modal tiers above react to the <strong>viewport</strong>. But a picker placed in a narrow sidebar or a resizable panel on a wide monitor has a small <em>box</em> while the viewport is still large — viewport media/container queries on the modal don't help an <strong>inline</strong> picker sitting in a column. <code>compact-below</code> keys off the element's <strong>own border box</strong> (via a shared <code>ResizeObserver</code> in <code>@keenmate/web-components-core</code>), so it reacts to its container, not the window.</p>
 
       <p>When the element's box drops below the threshold, the calendar collapses to a <strong>single month</strong> and hides the <strong>Today / Clear</strong> buttons. Widen it back and the authored layout returns verbatim — and any selection you've made survives the transition.</p>
@@ -250,6 +420,25 @@
       </div>
     </div>
   </div>
+
+  <script type="module" src="/src/index.ts"></script>
+  <script>
+    // A "Preview as full-screen" checkbox flips mobile-presentation between
+    // 'fullscreen' (forced overlay on desktop) and 'auto' (device ladder) on the
+    // given pickers — so the phone UI is inspectable without a phone.
+    const wirePreview = (checkboxId, ...ids) => {
+      const cb = document.getElementById(checkboxId);
+      if (!cb) return;
+      cb.addEventListener('change', (e) => {
+        const mode = e.target.checked ? 'fullscreen' : 'auto';
+        ids.forEach((id) => document.getElementById(id)?.setAttribute('mobile-presentation', mode));
+      });
+    };
+    wirePreview('intro-fs-preview', 'intro-single', 'intro-range');
+    wirePreview('kbd-fs-preview', 'kbd-off', 'kbd-on');
+    wirePreview('hdrinput-fs-preview', 'hdrinput', 'hdrinput-af');
+    wirePreview('titled-fs-preview', 'titled');
+  </script>
   <script type="module" src="examples-chapter-nav.js"></script>
 </body>
 </html>

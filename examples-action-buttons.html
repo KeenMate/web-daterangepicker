@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Button Configuration & Multi-Range - Date Range Picker</title>
+  <title>Action Buttons — Date Range Picker</title>
   <link rel="stylesheet" href="dist/style.css">
   <link rel="stylesheet" href="examples-shared.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
@@ -34,13 +34,13 @@
   <div class="container">
     <header>
       <a href="index.html" class="back-link">← Back to Examples</a>
-      <h1>🎯 Button Configuration</h1>
-      <p class="subtitle">Control button visibility, create custom presets, and enable multi-range selection</p>
+      <h1>🎯 Action Buttons</h1>
+      <p class="subtitle">Configure built-in and custom action buttons — visibility, commit modes, presets, dynamic callbacks, icons, and the full ActionButton API</p>
     </header>
 
   <!-- 1. Button & Summary Visibility Control -->
   <div class="card">
-    <h2>1. Button & Summary Visibility Control</h2>
+    <h2>AB01 · Button & Summary Visibility Control</h2>
     <p>Use attributes to show/hide built-in buttons (Today, Clear, Apply) and the range-mode days/nights summary.</p>
 
     <div class="grid">
@@ -101,7 +101,7 @@
 
   <!-- 1b. Modal Display Mode -->
   <div class="card">
-    <h2>1b. Modal Display Mode (centered overlay)</h2>
+    <h2>AB02 · Modal Display Mode (centered overlay)</h2>
     <p>Set <code>positioning-mode="modal"</code> to render the calendar as a centered overlay with a backdrop scrim instead of anchoring to the input. Helpful on small screens where multi-month layouts horizontally overflow.</p>
 
     <div class="grid">
@@ -174,7 +174,7 @@
 
   <!-- 2. Auto-Close Control -->
   <div class="card">
-    <h2>2. Commit Mode (when the pick commits &amp; the calendar closes)</h2>
+    <h2>AB03 · Commit Mode (when the pick commits &amp; the calendar closes)</h2>
     <p>The <code>commit-mode</code> attribute governs how a selection is committed and the calendar dismissed — it merges the old <code>auto-close</code> and <code>is-apply-button-shown</code> into one axis.</p>
 
     <div class="grid">
@@ -231,7 +231,7 @@
 
   <!-- 3. Custom Preset Buttons -->
   <div class="card">
-    <h2>3. Custom Preset Buttons (JavaScript)</h2>
+    <h2>AB04 · Custom Preset Buttons (JavaScript)</h2>
     <p>Add custom buttons with preset date ranges using the JavaScript API.</p>
 
     <div class="form-group">
@@ -284,7 +284,7 @@ picker.actionButtons = [
 
   <!-- 4. Multiple Selection Mode -->
   <div class="card">
-    <h2>4. Multiple Selection Mode</h2>
+    <h2>AB05 · Multiple Selection Mode</h2>
     <p>Allow selecting multiple individual dates or ranges programmatically.</p>
 
     <div class="form-group">
@@ -311,7 +311,7 @@ picker.actionButtons = [
 
   <!-- 5. External Button Control -->
   <div class="card">
-    <h2>5. External Button Control (Programmatic API)</h2>
+    <h2>AB06 · External Button Control (Programmatic API)</h2>
     <p>Control the picker from external buttons using reactive properties.</p>
 
     <div class="form-group">
@@ -359,7 +359,7 @@ picker.isOpen = <span class="property">false</span>; <span class="comment">// Cl
 
   <!-- 6. Conditional Button Visibility -->
   <div class="card">
-    <h2>6. Conditional Button Visibility (JavaScript)</h2>
+    <h2>AB07 · Conditional Button Visibility (JavaScript)</h2>
     <p>Show/hide buttons based on picker state using the <code>isVisibleCallback</code> function.</p>
 
     <div class="form-group">
@@ -387,7 +387,7 @@ picker.actionButtons = [
 
   <!-- 7. Dynamic Disabled State -->
   <div class="card">
-    <h2>7. Dynamic Disabled State (isDisabledCallback)</h2>
+    <h2>AB08 · Dynamic Disabled State (isDisabledCallback)</h2>
     <p>Enable/disable buttons dynamically based on picker state.</p>
 
     <div class="form-group">
@@ -420,7 +420,7 @@ picker.actionButtons = [
 
   <!-- 8. Dynamic Button Text -->
   <div class="card">
-    <h2>8. Dynamic Button Text (getTextCallback)</h2>
+    <h2>AB09 · Dynamic Button Text (getTextCallback)</h2>
     <p>Change button text dynamically based on picker state.</p>
 
     <div class="form-group">
@@ -460,7 +460,7 @@ picker.actionButtons = [
 
   <!-- 9. Dynamic CSS Classes -->
   <div class="card">
-    <h2>9. Dynamic CSS Classes (getClassCallback)</h2>
+    <h2>AB10 · Dynamic CSS Classes (getClassCallback)</h2>
     <p>Apply dynamic CSS classes to buttons based on picker state. Callback can return a single string or array of strings.</p>
 
     <div class="form-group">
@@ -521,7 +521,7 @@ picker.customStylesCallback = <span class="keyword">(</span>{ picker }<span clas
 
   <!-- 10. Dynamic Tooltips -->
   <div class="card">
-    <h2>10. Dynamic Tooltips (getTooltipCallback)</h2>
+    <h2>AB11 · Dynamic Tooltips (getTooltipCallback)</h2>
     <p>Show contextual tooltips that change based on picker state. Hover over buttons to see dynamic tooltips.</p>
 
     <div class="form-group">
@@ -575,7 +575,7 @@ picker.actionButtons = [
 
   <!-- 11. Combined Features & Priority -->
   <div class="card">
-    <h2>11. Combined Features & Priority System</h2>
+    <h2>AB12 · Combined Features & Priority System</h2>
     <p>Demonstrates callback priority: <code>*Callback</code> functions override static properties when both are present.</p>
 
     <div class="note info">
@@ -631,7 +631,7 @@ picker.actionButtons = [
 
   <!-- 12. Advanced Custom Actions -->
   <div class="card">
-    <h2>12. Advanced Custom Actions (Business Use Cases)</h2>
+    <h2>AB13 · Advanced Custom Actions (Business Use Cases)</h2>
     <p>Real-world examples of custom buttons for common business scenarios.</p>
 
     <div class="form-group">
@@ -703,7 +703,7 @@ picker.actionButtons = [
 
   <!-- 13. Icons in Buttons -->
   <div class="card">
-    <h2>13. Icons in Buttons (Font Awesome)</h2>
+    <h2>AB14 · Icons in Buttons (Font Awesome)</h2>
     <p>Add icons to buttons using HTML in the <code>text</code> property. Works with Font Awesome, Material Icons, or any icon library.</p>
 
     <div class="note info">
@@ -764,7 +764,7 @@ picker.customStylesCallback = <span class="keyword">(</span>{ picker }<span clas
 
   <!-- 14. API Summary & Reference -->
   <div class="card">
-    <h2>14. ActionButton API Reference</h2>
+    <h2>AB15 · ActionButton API Reference</h2>
     <p>Complete reference for all <code>ActionButton</code> interface properties. Every callback receives a single <code>ctx</code> (<code>ActionButtonContext</code>) argument — <code>{ picker, action, button, data }</code> — so destructure what you need, e.g. <code>({ picker }) =&gt; …</code>.</p>
 
     <h3>Core Properties</h3>

@@ -15,7 +15,7 @@
     </header>
 
     <div class="card">
-      <h2>Time mode &mdash; defaults (HH:mm, 24h)</h2>
+      <h2>TP01 · Time mode &mdash; defaults (HH:mm, 24h)</h2>
       <div class="form-group">
         <label>Pick a time</label>
         <web-daterangepicker id="t1" picker-mode="time" placeholder="HH:mm"></web-daterangepicker>
@@ -24,7 +24,7 @@
     </div>
 
     <div class="card">
-      <h2>Time mode &mdash; 12-hour format with AM/PM</h2>
+      <h2>TP02 · Time mode &mdash; 12-hour format with AM/PM</h2>
       <div class="form-group">
         <label>hh:mm a</label>
         <web-daterangepicker
@@ -38,7 +38,7 @@
     </div>
 
     <div class="card">
-      <h2>Time mode &mdash; 15-minute step</h2>
+      <h2>TP03 · Time mode &mdash; 15-minute step</h2>
       <div class="form-group">
         <label>time-step="15"</label>
         <web-daterangepicker
@@ -52,7 +52,7 @@
     </div>
 
     <div class="card">
-      <h2>Time mode &mdash; with seconds</h2>
+      <h2>TP04 · Time mode &mdash; with seconds</h2>
       <div class="form-group">
         <label>HH:mm:ss</label>
         <web-daterangepicker
@@ -66,7 +66,7 @@
     </div>
 
     <div class="card">
-      <h2>Datetime mode &mdash; calendar + time side by side</h2>
+      <h2>TP05 · Datetime mode &mdash; calendar + time side by side</h2>
       <div class="form-group">
         <label>YYYY-MM-DD HH:mm</label>
         <web-daterangepicker
@@ -79,7 +79,7 @@
     </div>
 
     <div class="card">
-      <h2>Datetime mode &mdash; 12-hour with seconds</h2>
+      <h2>TP06 · Datetime mode &mdash; 12-hour with seconds</h2>
       <div class="form-group">
         <label>YYYY-MM-DD hh:mm:ss a</label>
         <web-daterangepicker
@@ -93,7 +93,7 @@
     </div>
 
     <div class="card">
-      <h2>Datetime + range &mdash; should fall back to date range (console warning)</h2>
+      <h2>TP07 · Datetime + range &mdash; should fall back to date range (console warning)</h2>
       <div class="form-group">
         <label>This combo is not supported &mdash; expect a console warning</label>
         <web-daterangepicker
@@ -107,7 +107,7 @@
     </div>
 
     <div class="card">
-      <h2>Datetime with initialDate &mdash; ISO datetime string</h2>
+      <h2>TP08 · Datetime with initialDate &mdash; ISO datetime string</h2>
       <div class="form-group">
         <label>initial-date="2026-05-23T14:30:00"</label>
         <web-daterangepicker
@@ -121,12 +121,12 @@
     </div>
 
     <header class="mt-1">
-      <h2>Clock face &mdash; <code>time-display="clock"</code></h2>
+      <h2>TP09 · Clock face &mdash; <code>time-display="clock"</code></h2>
       <p class="subtitle">Material-style two-step face: pick the hour, the dial flips to minutes. Click the HH or MM digit in the header to jump back.</p>
     </header>
 
     <div class="card">
-      <h2>Clock &mdash; h12 with AM/PM</h2>
+      <h2>TP10 · Clock &mdash; h12 with AM/PM</h2>
       <div class="form-group">
         <label>time-display="clock" time-format-mask="hh:mm a"</label>
         <web-daterangepicker
@@ -141,7 +141,7 @@
     </div>
 
     <div class="card">
-      <h2>Clock &mdash; h24 dual ring (outer 1-12, inner 13-24)</h2>
+      <h2>TP11 · Clock &mdash; h24 dual ring (outer 1-12, inner 13-24)</h2>
       <div class="form-group">
         <label>time-display="clock" (hour-cycle defaults to h24 with HH:mm)</label>
         <web-daterangepicker
@@ -155,7 +155,7 @@
     </div>
 
     <div class="card">
-      <h2>Clock &mdash; 15-minute step (4 labels)</h2>
+      <h2>TP12 · Clock &mdash; 15-minute step (4 labels)</h2>
       <div class="form-group">
         <label>time-display="clock" time-step="15"</label>
         <web-daterangepicker
@@ -170,7 +170,7 @@
     </div>
 
     <div class="card">
-      <h2>Clock &mdash; time-step="7" (non-divisor warning &rarr; falls back to 1)</h2>
+      <h2>TP13 · Clock &mdash; time-step="7" (non-divisor warning &rarr; falls back to 1)</h2>
       <div class="form-group">
         <label>time-display="clock" time-step="7" &mdash; check the console</label>
         <web-daterangepicker
@@ -185,7 +185,7 @@
     </div>
 
     <div class="card">
-      <h2>Clock &mdash; datetime side-by-side</h2>
+      <h2>TP14 · Clock &mdash; datetime side-by-side</h2>
       <div class="form-group">
         <label>picker-mode="datetime" time-display="clock" hour-cycle="h12"</label>
         <web-daterangepicker
@@ -200,12 +200,12 @@
     </div>
 
     <header class="mt-1">
-      <h2>Wheel barrel &mdash; <code>time-display="wheel"</code></h2>
+      <h2>TP15 · Wheel barrel &mdash; <code>time-display="wheel"</code></h2>
       <p class="subtitle">iOS UIPickerView aesthetic: snap-scrolling columns with a center selection band and top/bottom fade. Scroll a column or click any visible row to center it.</p>
     </header>
 
     <div class="card">
-      <h2>Wheel &mdash; defaults (HH:mm, 24h)</h2>
+      <h2>TP16 · Wheel &mdash; defaults (HH:mm, 24h)</h2>
       <div class="form-group">
         <label>time-display="wheel"</label>
         <web-daterangepicker
@@ -219,7 +219,7 @@
     </div>
 
     <div class="card">
-      <h2>Wheel &mdash; h12 with AM/PM</h2>
+      <h2>TP17 · Wheel &mdash; h12 with AM/PM</h2>
       <div class="form-group">
         <label>time-display="wheel" time-format-mask="hh:mm a"</label>
         <web-daterangepicker
@@ -234,7 +234,7 @@
     </div>
 
     <div class="card">
-      <h2>Wheel &mdash; with seconds (HH:mm:ss)</h2>
+      <h2>TP18 · Wheel &mdash; with seconds (HH:mm:ss)</h2>
       <div class="form-group">
         <label>time-display="wheel" time-format-mask="HH:mm:ss"</label>
         <web-daterangepicker
@@ -249,7 +249,7 @@
     </div>
 
     <div class="card">
-      <h2>Wheel &mdash; 5-minute step</h2>
+      <h2>TP19 · Wheel &mdash; 5-minute step</h2>
       <div class="form-group">
         <label>time-display="wheel" time-step="5"</label>
         <web-daterangepicker
@@ -264,7 +264,7 @@
     </div>
 
     <div class="card">
-      <h2>Wheel &mdash; datetime side-by-side</h2>
+      <h2>TP20 · Wheel &mdash; datetime side-by-side</h2>
       <div class="form-group">
         <label>picker-mode="datetime" time-display="wheel"</label>
         <web-daterangepicker
@@ -278,12 +278,12 @@
     </div>
 
     <header class="mt-1">
-      <h2>Compact pills &mdash; <code>time-display="compact"</code></h2>
+      <h2>TP21 · Compact pills &mdash; <code>time-display="compact"</code></h2>
       <p class="subtitle">iOS 14+ aesthetic: tap a pill to type a value. Enter commits, Escape reverts, &uarr;/&darr; nudge by step. Calmest of the four time UIs.</p>
     </header>
 
     <div class="card">
-      <h2>Compact &mdash; defaults (HH:mm, 24h)</h2>
+      <h2>TP22 · Compact &mdash; defaults (HH:mm, 24h)</h2>
       <div class="form-group">
         <label>time-display="compact"</label>
         <web-daterangepicker
@@ -297,7 +297,7 @@
     </div>
 
     <div class="card">
-      <h2>Compact &mdash; h12 with AM/PM</h2>
+      <h2>TP23 · Compact &mdash; h12 with AM/PM</h2>
       <div class="form-group">
         <label>time-display="compact" time-format-mask="hh:mm a"</label>
         <web-daterangepicker
@@ -312,7 +312,7 @@
     </div>
 
     <div class="card">
-      <h2>Compact &mdash; with seconds (HH:mm:ss)</h2>
+      <h2>TP24 · Compact &mdash; with seconds (HH:mm:ss)</h2>
       <div class="form-group">
         <label>time-display="compact" time-format-mask="HH:mm:ss"</label>
         <web-daterangepicker
@@ -327,7 +327,7 @@
     </div>
 
     <div class="card">
-      <h2>Compact &mdash; 15-minute step</h2>
+      <h2>TP25 · Compact &mdash; 15-minute step</h2>
       <div class="form-group">
         <label>time-display="compact" time-step="15" &mdash; typed value snaps to nearest multiple</label>
         <web-daterangepicker
@@ -342,7 +342,7 @@
     </div>
 
     <div class="card">
-      <h2>Compact &mdash; datetime side-by-side</h2>
+      <h2>TP26 · Compact &mdash; datetime side-by-side</h2>
       <div class="form-group">
         <label>picker-mode="datetime" time-display="compact" hour-cycle="h12"</label>
         <web-daterangepicker

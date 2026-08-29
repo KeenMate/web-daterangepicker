@@ -39,7 +39,7 @@
     </header>
 
   <div class="card">
-    <h2>Overview: Built-in Logging System</h2>
+    <h2>LG01 · Overview: Built-in Logging System</h2>
     <div class="note info">
       <strong>Built-in categorized logging</strong><br><br>
       The date picker includes a comprehensive logging system provided by
@@ -53,7 +53,7 @@
   </div>
 
   <div class="card">
-    <h2>Log Categories</h2>
+    <h2>LG02 · Log Categories</h2>
     <p>The logging system organizes output into 8 categories. In the console each line is prefixed with the full category name — <code>DRP:GENERAL</code>, <code>DRP:UI</code>, etc. (the short badge below is just the suffix):</p>
     <table>
       <thead>
@@ -109,7 +109,7 @@
   </div>
 
   <div class="card">
-    <h2>Example 1: Basic Logging</h2>
+    <h2>LG03 · Basic Logging</h2>
     <p>Enable debug logging with the <code>show-debug-info</code> attribute:</p>
     <div class="code-block"><code>&lt;date-range-picker
   selection-mode="single"
@@ -140,7 +140,7 @@
   </div>
 
   <div class="card">
-    <h2>Example 2: Range Selection with Validation Logs</h2>
+    <h2>LG04 · Range Selection with Validation Logs</h2>
     <p>See validation logs when selecting date ranges with disabled dates:</p>
     <div class="form-group">
       <label>Range picker with disabled weekends:</label>
@@ -167,7 +167,7 @@
   </div>
 
   <div class="card">
-    <h2>Example 3: Navigation & Rendering Logs</h2>
+    <h2>LG05 · Navigation & Rendering Logs</h2>
     <p>Track calendar navigation and rendering:</p>
     <div class="form-group">
       <label>Multi-month picker:</label>
@@ -194,7 +194,7 @@
   </div>
 
   <div class="card">
-    <h2>Example 4: Drag-to-Adjust Logs</h2>
+    <h2>LG06 · Drag-to-Adjust Logs</h2>
     <p>Track drag interactions in range mode:</p>
     <div class="form-group">
       <label>Range picker with drag support:</label>
@@ -220,7 +220,7 @@
   </div>
 
   <div class="card">
-    <h2>Filtering Console Logs</h2>
+    <h2>LG07 · Filtering Console Logs</h2>
     <p>Use browser console filters to focus on specific categories:</p>
 
     <h3 class="subsection">Filter by Category</h3>
@@ -252,7 +252,7 @@ logging.setCategoryLevel('DRP:UI', 'debug');   // one category (bare 'UI' also w
   </div>
 
   <div class="card">
-    <h2>Log Message Format</h2>
+    <h2>LG08 · Log Message Format</h2>
     <p>Each log line is prefixed with its colour-coded category, followed by the message:</p>
     <div class="code-block"><code>[DRP:CATEGORY] Message with context
 
@@ -264,7 +264,7 @@ Example:
   </div>
 
   <div class="card">
-    <h2>Best Practices</h2>
+    <h2>LG09 · Best Practices</h2>
     <ul>
       <li><strong>Development:</strong> Enable <code>show-debug-info</code> when troubleshooting</li>
       <li><strong>Production:</strong> Always remove <code>show-debug-info</code> attribute</li>
@@ -275,7 +275,7 @@ Example:
   </div>
 
   <div class="card">
-    <h2>Complete Example</h2>
+    <h2>LG10 · Complete Example</h2>
     <div class="code-block"><code>&lt;!-- HTML with debug enabled --&gt;
 &lt;web-daterangepicker
   selection-mode="range"

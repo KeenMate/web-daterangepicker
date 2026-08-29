@@ -3,7 +3,7 @@
 Every example below is a runnable HTML file at the repo root. Open it
 in a browser, or run `npm run dev` and navigate to it through the
 [live demo site](https://web-daterangepicker.keenmate.dev). Examples
-are listed in **rough learning order** — start with `basic.html`,
+are listed in **rough learning order** — start with `examples-basic.html`,
 follow your nose from there.
 
 For the picker's full API surface, see [`usage.md`](./usage.md). For
@@ -12,41 +12,41 @@ theming, see [`theming.md`](./theming.md). For keyboard / a11y, see
 
 ## Starting points
 
-### Basic features — [`examples-basic.html`](../examples-basic.html)
+### Basic usage — [`examples-basic.html`](../examples-basic.html)
 
-Single + range modes, every date format mask, locale switching, the
-multi-month grid layouts, and the inline-vs-floating popover trigger
-modes. The "see one of each thing" tour — the single best file to skim
-when you first see the component.
+A focused quick tour of the most common use cases: single + range
+modes, calendar trigger modes, date-format masks, multi-month display,
+pre-filled values, the disabled state, date restrictions, and inline
+display. The single best file to skim when you first see the component.
 
-### JavaScript instantiation — [`examples-javascript-instantiation.html`](../examples-javascript-instantiation.html)
+### Data & API — [`examples-data-api.html`](../examples-data-api.html)
 
-Using the `DateRangePicker` class directly without the
-`<web-daterangepicker>` custom element. Every callback wired up,
-explicit CSS-loading recipe, the `injectGlobalStyles()` pattern. The
-right starting point if you can't use custom elements or want full
-programmatic control.
-
-### API methods — [`examples-api-methods.html`](../examples-api-methods.html)
-
-Driving the picker programmatically — `show()` / `hide()` / `toggle()`,
-`setInputValue()`, `clearSelection()`, the property accessors, and the
-"set properties before the element is upgraded" pattern.
+Everything programmatic in one place. Using the `DateRangePicker`
+class directly without the `<web-daterangepicker>` custom element
+(every callback wired up, explicit CSS-loading recipe); the instance
+methods (`show()` / `hide()` / `toggle()`, `setInputValue()`,
+`clearSelection()`), reactive property accessors, the lock/unlock API,
+and the advanced configuration recipes moved out of Basic — rolling
+selector constraints, the `disabled-dates-handling` range modes,
+week-snapping, custom summary formatting, position control, and the
+keyboard-shortcut reference.
 
 ## Selection, validation, events
 
-### Range selection modes — [`examples-events.html`](../examples-events.html)
+### Events, handlers & interceptors — [`examples-events-callbacks.html`](../examples-events-callbacks.html)
 
-All five `disabled-dates-handling` modes (allow / prevent / block /
-split / individual) plus the `beforeDateSelectCallback` validation
-recipes from `usage.md`: minimum-nights, API availability check, the
-`showInvalidRange` red-error state.
+The event system plus the `beforeDateSelectCallback` validation
+recipes from `usage.md` (minimum-nights, API availability check, the
+`showInvalidRange` red-error state) and `beforeMonthChangedCallback`
+for per-month data loading. (The five `disabled-dates-handling` range
+modes now live on the **Data & API** page.)
 
-### Buttons & multi-range — [`examples-buttons.html`](../examples-buttons.html)
+### Action buttons — [`examples-action-buttons.html`](../examples-action-buttons.html)
 
 Custom action buttons, preset buttons ("This week" / "Last 30 days"),
 controlling Today / Clear / Apply visibility via the
-`is-*-button-shown` attributes, and the multi-range selection mode.
+`is-*-button-shown` attributes, commit modes, the multi-range
+selection mode, and the dynamic ActionButton callback API.
 
 ## Visual & data customization
 
@@ -69,46 +69,32 @@ content + `innerHTML`.
 
 ## Theming, sizing, layout
 
-### Theming — [`examples-theming.html`](../examples-theming.html)
+### Theming & sizing — [`examples-theming.html`](../examples-theming.html)
 
-Eight tests covering: default theme, color overrides (green / purple /
-red / orange), dark theme, custom sizing & spacing, range mode under
-themes, selection-hover states, pastel theme, **the four time-picker
-UIs themed in one shot** (Test 8), and the **Test 9 classifier
-retheming panel** (three pickers with identical data, different
-`--drp-holiday-color` / `--drp-event-color` / `--drp-badge-*`
-overrides). End with the full `--drp-*` reference list.
-
-### Sizes & density — [`examples-sizes.html`](../examples-sizes.html)
-
-The 5-level input-size scale (`xs` / `sm` / `md` / `lg` / `xl`), the
-`--drp-rem` calendar scaling recipe, and per-token overrides for
-fine-grained tweaks. Cross-references the input-size table in
+The combined theming + sizing showcase. Color overrides (green /
+purple / red / orange), dark theme, range mode under themes,
+selection-hover states, pastel theme, **the four time-picker UIs
+themed in one shot**, and the **classifier retheming panel** (three
+pickers with identical data, different `--drp-holiday-color` /
+`--drp-event-color` / `--drp-badge-*` overrides). Then the sizing
+system: the 5-level input-size scale (`xs` / `sm` / `md` / `lg` /
+`xl`), the `--drp-rem` calendar scaling recipe, per-token spacing/font
+overrides, the `--base-*` typography controls, and the full `--drp-*`
+reference list. Cross-references the input-size table in
 [`theming.md`](./theming.md).
 
-### Base variables — [`examples-base-variables.html`](../examples-base-variables.html)
+### Responsive & mobile — [`examples-responsive.html`](../examples-responsive.html)
 
-The cross-component `--base-*` taxonomy in action — fonts, sizes,
-weights, line heights, border radii. Set one `--base-*` declaration at
-`:root` and see it cascade through. The right starting point if you're
-themeing multiple KeenMate components together.
-
-### Responsive — [`examples-responsive.html`](../examples-responsive.html)
-
-The explicit `positioning-mode="modal"` layout and its viewport-tier widths
-(xs / sm / md / lg).
-
-### Mobile & full-screen — [`examples-mobile.html`](../examples-mobile.html)
-
-The device-adaptive `mobile-presentation` ladder — floating on desktop, a
-centered modal on tablets, and an edge-to-edge **full-screen** overlay on
-phones (touch-primary + shorter viewport side < 600px, orientation-robust) —
-plus the `fullscreen-title` / `fullscreen-autofocus` options and a
-"preview as full-screen" toggle for inspecting the phone sheet on a desktop.
+The device-adaptive `mobile-presentation` ladder (floating on desktop,
+a centered modal on tablets, an edge-to-edge **full-screen** overlay on
+phones), the explicit `positioning-mode="modal"` layout with its
+viewport-tier widths (xs / sm / md / lg), container-query inner layout,
+the `fullscreen-title` / `fullscreen-autofocus` / `fullscreen-input`
+options, and container-responsive compaction (`compact-below`).
 
 ## Time / datetime
 
-### Time picker — [`examples-time-picker.html`](../examples-time-picker.html)
+### Time & datetime — [`examples-time-picker.html`](../examples-time-picker.html)
 
 `picker-mode="time"` and `picker-mode="datetime"` across the four
 time-display UIs: **rolls** (default scrollable columns), **clock**

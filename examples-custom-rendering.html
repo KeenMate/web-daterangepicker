@@ -71,7 +71,7 @@
 
   <!-- Example 1: Per-Day Slots (Declarative) -->
   <div class="card">
-    <h2>1. Per-Day Slots (Declarative HTML)</h2>
+    <h2>CR01 · Per-Day Slots (Declarative HTML)</h2>
     <p class="description">
       Use named slots like <code>slot="day-2025-01-15"</code> to customize specific dates with HTML.
       This is the simplest approach for marking special dates.
@@ -115,7 +115,7 @@
 
   <!-- Example 2: renderDayCallback (Full Replacement) -->
   <div class="card">
-    <h2>2. renderDayCallback (Full Replacement)</h2>
+    <h2>CR02 · renderDayCallback (Full Replacement)</h2>
     <p class="description">
       Use <code>picker.renderDayCallback</code> to completely replace day cell content with custom logic.
       Perfect for dynamic data like prices, availability, or complex styling.
@@ -159,7 +159,7 @@ picker.renderDayCallback = (data) => {
 
   <!-- Example 3: renderDayContentCallback (Augmentation) -->
   <div class="card">
-    <h2>3.renderDayContentCallback Callback (Augmentation)</h2>
+    <h2>CR03 · renderDayContentCallback Callback (Augmentation)</h2>
     <p class="description">
       Use <code>picker.renderDayContentCallback</code> to ADD content to the default day cell rendering.
       The day number is rendered by the component, your callback adds extra elements.
@@ -206,7 +206,7 @@ picker.renderDayContentCallback = (data) => {
 
   <!-- Example 4: Weekends Highlighting -->
   <div class="card">
-    <h2>4. Dynamic Styling Based on State</h2>
+    <h2>CR04 · Dynamic Styling Based on State</h2>
     <p class="description">
       Rainbow weekday visualization showing traffic intensity: Monday (light blue, lowest) → Friday (red, highest), weekends in pink/purple.
       Uses <code>customStylesCallback</code> to inject CSS into Shadow DOM, then <code>getDateMetadataCallback</code> returns <code>dayClass</code> to style the entire day cell wrapper.
@@ -250,7 +250,7 @@ picker.getDateMetadataCallback = ({ date }) => {
 
   <!-- Example 5: Mixed - Slots + Callbacks -->
   <div class="card">
-    <h2>5. Combining Slots and Callbacks</h2>
+    <h2>CR05 · Combining Slots and Callbacks</h2>
     <p class="description">
       Per-day slots take priority over callbacks. Use slots for specific dates, callbacks for patterns.
     </p>
@@ -285,7 +285,7 @@ picker.renderDayContentCallback = (data) => {
 
   <!-- Example 6: Complex Use Case - Booking System -->
   <div class="card">
-    <h2>6. Real-World: Booking System</h2>
+    <h2>CR06 · Real-World: Booking System</h2>
     <p class="description">
       Complete example showing availability, pricing, and booking state.
     </p>

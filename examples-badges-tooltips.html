@@ -43,7 +43,7 @@
 
   <!-- Overview Section -->
   <div class="card">
-    <h2>Overview: Three Ways to Add Badges & Tooltips</h2>
+    <h2>BT01 · Overview: Three Ways to Add Badges & Tooltips</h2>
     <p>
       The component provides multiple approaches to display badges and tooltips, each with different use cases and capabilities.
     </p>
@@ -93,7 +93,7 @@
 
   <!-- Method 1: specialDates Array -->
   <div class="card">
-    <h2>Method 1: Static Special Dates Array</h2>
+    <h2>BT02 · Static Special Dates Array</h2>
     <p>
       The simplest approach: define an array of special dates with labels, tooltips, and CSS classes.
       Perfect for holidays, events, and other dates known at initialization time.
@@ -124,7 +124,7 @@ picker.specialDates = [
 
   <!-- Badge Implementation Methods -->
   <div class="card">
-    <h2>Badge Implementation Methods</h2>
+    <h2>BT03 · Badge Implementation Methods</h2>
     <p>
       Four different technical approaches for displaying badges above dates. Choose the method that fits your use case.
     </p>
@@ -197,7 +197,7 @@ picker.badgeTooltipCallback = (data) => {
 
   <!-- Method 5: Async data on month change -->
   <div class="card">
-    <h2>Async Badges — Load per Month (<code>beforeMonthChangedCallback</code>)</h2>
+    <h2>BT04 · Async Badges — Load per Month (<code>beforeMonthChangedCallback</code>)</h2>
     <p>
       The badge callbacks (Methods 1–4) are <strong>synchronous</strong> — they render from data you already have.
       When your badge data lives behind an API, load it <strong>per visible month</strong> with
@@ -263,7 +263,7 @@ picker.actionButtons = [
 
   <!-- Member Mapping Example -->
   <div class="card">
-    <h2>Using Custom Property Names (Member Mapping)</h2>
+    <h2>BT05 · Using Custom Property Names (Member Mapping)</h2>
     <p>
       Already have your own data structure? No need to reshape your data! Use member mapping properties
       to tell the picker which properties contain the date, badge text, tooltips, etc.
@@ -314,7 +314,7 @@ picker.specialDates = myHolidays;</code></pre>
 
   <!-- Method 2: getDateMetadataCallback -->
   <div class="card">
-    <h2>Method 2: Dynamic Metadata Callback</h2>
+    <h2>BT06 · Dynamic Metadata Callback</h2>
     <p>
       Use <code>getDateMetadataCallback</code> to generate badge and tooltip content dynamically based on date calculations,
       external data, or business logic. This is perfect for pricing calendars, availability systems, or computed values.
@@ -385,7 +385,7 @@ picker.getDateMetadataCallback = ({ date }) => {
 
   <!-- Method 3: HTML Tooltip Callbacks -->
   <div class="card">
-    <h2>Method 3: Advanced HTML Tooltips</h2>
+    <h2>BT07 · Advanced HTML Tooltips</h2>
     <p>
       For rich, formatted tooltips with HTML content, use <code>badgeTooltipCallback</code> or <code>dayTooltipCallback</code>.
       These callbacks return HTML strings that are rendered with full formatting support.
@@ -462,7 +462,7 @@ picker.dayTooltipCallback = (data) => {
 
   <!-- Combining Methods -->
   <div class="card">
-    <h2>Combining Multiple Methods</h2>
+    <h2>BT08 · Combining Multiple Methods</h2>
     <p>
       You can combine different methods for maximum flexibility. For example, use <code>specialDates</code> for static holidays
       and <code>getDateMetadataCallback</code> for dynamic pricing, with <code>dayTooltipCallback</code> for rich tooltips.
@@ -523,7 +523,7 @@ picker.dayTooltipCallback = (data) => {
 
   <!-- Consumer-data classifier convention -->
   <div class="card">
-    <h2>Consumer-Data Classifier Classes (built-in and custom)</h2>
+    <h2>BT09 · Consumer-Data Classifier Classes (built-in and custom)</h2>
     <p>
       The picker reads <code>dayClass</code> / <code>badgeClass</code> from your <code>specialDates</code>
       data and applies whatever string you hand it as a literal class on the day cell or badge cell.
@@ -634,7 +634,7 @@ picker.specialDates = [
 
   <!-- Tooltip Best Practices -->
   <div class="card">
-    <h2>Tooltip Best Practices</h2>
+    <h2>BT10 · Tooltip Best Practices</h2>
 
     <h3>When to Use Each Tooltip Type</h3>
     <table class="reference-table">
