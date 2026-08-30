@@ -726,14 +726,14 @@ document.getElementById('add-picker-btn').addEventListener('click', () => {
 
   <!-- Section 1: Show/Hide/Toggle Methods -->
   <section class="card">
-    <div class="card-header">
-      <h2 class="card-title">DA15 · Show/Hide/Toggle Methods</h2>
-      <p class="card-description">
+    <div>
+      <h2>DA15 · Show/Hide/Toggle Methods</h2>
+      <p class="description">
         Control calendar visibility programmatically. These methods are useful for external triggers,
         keyboard shortcuts, or conditional UI flows.
       </p>
     </div>
-    <div class="card-content">
+    <div>
       <div class="demo-area">
         <web-daterangepicker
           id="picker-1"
@@ -799,14 +799,14 @@ console.log('Calendar open?', picker.isOpen);
 
   <!-- Section 2: Get/Set Input Value -->
   <section class="card">
-    <div class="card-header">
-      <h2 class="card-title">DA16 · Get/Set Input Value</h2>
-      <p class="card-description">
+    <div>
+      <h2>DA16 · Get/Set Input Value</h2>
+      <p class="description">
         Read and write the formatted input value. The format follows the <code>date-format-mask</code> attribute.
         For range mode, use " - " separator (space-dash-space).
       </p>
     </div>
-    <div class="card-content">
+    <div>
       <div class="demo-area">
         <div class="field-row">
           <div class="field-grow">
@@ -871,14 +871,14 @@ rangePicker.setInputValue('');</code></pre>
 
   <!-- Section 3: Clear Selection -->
   <section class="card">
-    <div class="card-header">
-      <h2 class="card-title">DA17 · Clear Selection</h2>
-      <p class="card-description">
+    <div>
+      <h2>DA17 · Clear Selection</h2>
+      <p class="description">
         Clear the current selection and reset the picker to its initial state.
         This clears both the input value and internal date state.
       </p>
     </div>
-    <div class="card-content">
+    <div>
       <div class="demo-area">
         <div class="field-row">
           <div class="field-grow">
@@ -932,14 +932,14 @@ picker.setInputValue('2025-12-25');</code></pre>
 
   <!-- Section 4: Reactive Properties (selectedDate, selectedRanges) -->
   <section class="card">
-    <div class="card-header">
-      <h2 class="card-title">DA18 · Reactive Properties (selectedDate, selectedRanges)</h2>
-      <p class="card-description">
+    <div>
+      <h2>DA18 · Reactive Properties (selectedDate, selectedRanges)</h2>
+      <p class="description">
         Access and modify selection using Date objects. These properties are reactive and trigger
         re-rendering and events when changed.
       </p>
     </div>
-    <div class="card-content">
+    <div>
       <div class="demo-area">
         <div class="field-row">
           <div class="field-grow">
@@ -1011,14 +1011,14 @@ rangePicker.selectedRanges = [];</code></pre>
 
   <!-- Section 5: Calendar State (isOpen) -->
   <section class="card">
-    <div class="card-header">
-      <h2 class="card-title">DA19 · Calendar State (isOpen)</h2>
-      <p class="card-description">
+    <div>
+      <h2>DA19 · Calendar State (isOpen)</h2>
+      <p class="description">
         Read the current calendar visibility state. This is useful for conditional logic,
         UI synchronization, or analytics tracking.
       </p>
     </div>
-    <div class="card-content">
+    <div>
       <div class="demo-area">
         <div class="field-row">
           <web-daterangepicker
@@ -1075,14 +1075,14 @@ console.log('isOpen is now:', picker.isOpen); // false</code></pre>
 
   <!-- Section 6: Picker Instance Access -->
   <section class="card">
-    <div class="card-header">
-      <h2 class="card-title">DA20 · Picker Instance Access</h2>
-      <p class="card-description">
+    <div>
+      <h2>DA20 · Picker Instance Access</h2>
+      <p class="description">
         Access the underlying DateRangePicker instance for advanced features and internal state.
         <strong>Note:</strong> This is an advanced API - prefer using web component methods when possible.
       </p>
     </div>
-    <div class="card-content">
+    <div>
       <div class="demo-area">
         <web-daterangepicker
           id="picker-6"
@@ -1182,9 +1182,9 @@ picker.addEventListener('date-select', (e) => {
 
   <!-- Section 7: Booking desk — confirm & lock (scoped read-only) -->
   <section class="card">
-    <div class="card-header">
-      <h2 class="card-title">DA22 · Booking desk — confirm &amp; lock (scoped read-only)</h2>
-      <p class="card-description">
+    <div>
+      <h2>DA22 · Booking desk — confirm &amp; lock (scoped read-only)</h2>
+      <p class="description">
         Freeze user interaction while keeping the value <strong>readable</strong> (unlike
         <code>disabled</code>, which greys the input out). Each day shows its <strong>nightly rate</strong>
         as a badge (via <code>getDateMetadataCallback</code>, the same pricing model as the
@@ -1200,7 +1200,7 @@ picker.addEventListener('date-select', (e) => {
         The programmatic API is never gated; only the end user is.
       </p>
     </div>
-    <div class="card-content">
+    <div>
       <div class="grid" style="--grid-min: 320px">
         <!-- Calendar -->
         <div class="demo-card">
@@ -1319,9 +1319,9 @@ picker.lockedAspects;           // -> ['selection','navigation','actions','open'
 
   <!-- Section 8: Confirm & close — validate before dismissing (floating) -->
   <section class="card">
-    <div class="card-header">
-      <h2 class="card-title">DA23 · Confirm &amp; close — validate before dismissing</h2>
-      <p class="card-description">
+    <div>
+      <h2>DA23 · Confirm &amp; close — validate before dismissing</h2>
+      <p class="description">
         A custom <strong>Confirm</strong> button that runs your own logic <em>before</em> the calendar
         closes. A <strong>custom</strong> action button never auto-closes the picker, so the callback is
         fully in control: when the selection is invalid it calls
@@ -1334,7 +1334,7 @@ picker.lockedAspects;           // -> ['selection','navigation','actions','open'
         <code>await</code>ed, so the same shape works against an async/server check.
       </p>
     </div>
-    <div class="card-content">
+    <div>
       <div class="grid" style="--grid-min: 320px">
         <div class="demo-card">
           <h4>Floating range picker</h4>
@@ -1410,13 +1410,13 @@ picker.actionButtons = [
 
   <!-- Section 10: Integration Patterns -->
   <section class="card">
-    <div class="card-header">
-      <h2 class="card-title">DA24 · Integration Patterns</h2>
-      <p class="card-description">
+    <div>
+      <h2>DA24 · Integration Patterns</h2>
+      <p class="description">
         Common patterns for integrating the date picker with forms, frameworks, and application state.
       </p>
     </div>
-    <div class="card-content">
+    <div>
       <h3>Form Integration</h3>
       <div class="code-block">
         <button class="copy-button" onclick="copyCode(this)">Copy</button>
@@ -1578,7 +1578,7 @@ const manager = new DateRangeManager();</code></pre>
 
   <div class="card">
     <h2>DA25 · Keyboard Shortcuts</h2>
-    <ul class="features">
+    <ul>
       <li><strong>↑ ↓</strong> - Navigate up/down by week</li>
       <li><strong>← →</strong> - Navigate left/right by day</li>
       <li><strong>Ctrl+← / Ctrl+→</strong> - Previous / next month</li>
@@ -1728,14 +1728,14 @@ const picker = new DateRangePicker(inputElement, {
 
   <!-- Section 9: Complete API Reference -->
   <section class="card">
-    <div class="card-header">
-      <h2 class="card-title">DA27 · Complete API Reference</h2>
-      <p class="card-description">
+    <div>
+      <h2>DA27 · Complete API Reference</h2>
+      <p class="description">
         Full reference of all public methods, properties, and events available on the
         <code>&lt;web-daterangepicker&gt;</code> component.
       </p>
     </div>
-    <div class="card-content">
+    <div>
       <h3>Methods</h3>
       <table class="reference-table">
         <thead>
@@ -1964,7 +1964,7 @@ const picker = new DateRangePicker(inputElement, {
         </tbody>
       </table>
 
-      <p class="card-description" style="margin-top: 0.75rem;">
+      <p class="description" style="margin-top: 0.75rem;">
         This lists the most-used members. For the full attribute / property / method / event
         surface (~60 properties), see <code>API.md</code> or <a href="https://web-daterangepicker.keenmate.dev">the docs</a>.
       </p>

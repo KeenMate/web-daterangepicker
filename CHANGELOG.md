@@ -74,6 +74,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **Example pages — removed rogue (undefined) CSS classes so every page draws from the
+  shared design system.** `examples-basic.html`'s 📅 calendar-toggle buttons used an
+  undefined `.calendar-btn` (rendered as a plain browser-default button) — now the shared
+  `.btn-outline`. `examples-data-api.html` carried dead structural leftovers from the old
+  `api-methods` page: `.card-header` / `.card-content` (unclassed wrapper divs now),
+  `.card-title` (→ plain `<h2>`, already styled by `.card h2`), `.card-description`
+  (→ shared `.description`), and an orphan `<ul class="features">` (→ plain `<ul>`).
+  Purely markup class renames — no visual change to the design-system pattern, no JS
+  touched. The remaining page-local `<style>` blocks are all genuinely page-specific
+  (theme `--drp-*` overrides, shadow-DOM-injected day-cell styles, log-token colors).
 - **Full-screen calendar now actually scales up for touch (was rendering at the base
   desktop scale).** The sheet set `--drp-rem: var(--drp-fullscreen-rem)` on itself, but
   the size tokens (`--drp-nav-size`, `--drp-spacing-*`, `--drp-font-size-*`, …) are
